@@ -4,10 +4,11 @@
     "module": "commonjs",
     "target": "es5",
     "sourceMap": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "strictNullChecks": true,
     "removeComments": false,
     "moduleResolution": "node",
-    "declaration": true
+    "declaration": true,
+    "inlineSources": true
   }
 }

@@ -3,8 +3,6 @@ import "mocha";
 import * as assert from "assert";
 import {SmokeTest} from "../dist";
 
-// console.log("hello world");
-
 describe("index", ()=>{
     it("should say hello", ()=>{
         SmokeTest.HelloWorld();
