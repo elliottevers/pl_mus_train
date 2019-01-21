@@ -1,9 +1,8 @@
 // Globals defined in Max environment
 
 // NB: comment for Max compilation, uncomment for running compiled JS with node
-let inlets, outlets, autowatch;
-let Global: any = {};
-var main = Global.main;
+// let inlets, outlets, autowatch;
+// let Global: any = {};
 
 import {Log} from "./log/logger";
 
@@ -30,10 +29,10 @@ autowatch = 1;
 
 
 // console.log('hello world!');
-// post('init');
-console.log('init');
+post('init');
+// console.log('initial');
 
-Global.main = function main() {
+(Global as any).main = function main() {
     // let theObject = new em.TheClass(42);
     // post("theObject.getIndex(): " + theObject.getIndex() + "\n");
     // post("The square of pi is " + em.square(Math.PI) + "\n");
@@ -48,8 +47,8 @@ Global.main = function main() {
     let logger = new Log.Logger('node');
     // post(cat.speak());
     // logger.log("I am Logger")
-    // post("I am Logger");
-    console.log("I am Logger");
+    post("I am Logger");
+    // console.log("I am Logger");
 
     // post('hello world');
     // console.log(cat.speak())

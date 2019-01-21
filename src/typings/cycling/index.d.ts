@@ -8,7 +8,7 @@
  * Max globals
  * https://docs.cycling74.com/max7/vignettes/jsglobal
  */
-declare let ExportMax: any;
+
 declare var inlets: number;
 declare var outlets: number;
 declare var autowatch: number;

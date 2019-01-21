@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "to_max": "browserify ./dist/main.js > ./max/main.js && echo >> ./max/main.js && cat ./max/postprocess/define_main.js >> ./max/main.js"
   },
   "author": "",
   "license": "ISC",
