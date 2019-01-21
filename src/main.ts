@@ -1,6 +1,9 @@
 // Globals defined in Max environment
+
+// NB: comment for Max compilation, uncomment for running compiled JS with node
 let inlets, outlets, autowatch;
-let ExportMax: any = {};
+let Global: any = {};
+var main = Global.main;
 
 import {Log} from "./log/logger";
 
@@ -26,9 +29,11 @@ autowatch = 1;
 // console.log('hello world');
 
 
-console.log('hello world!');
+// console.log('hello world!');
+// post('init');
+console.log('init');
 
-ExportMax.main = function main() {
+Global.main = function main() {
     // let theObject = new em.TheClass(42);
     // post("theObject.getIndex(): " + theObject.getIndex() + "\n");
     // post("The square of pi is " + em.square(Math.PI) + "\n");
@@ -42,7 +47,9 @@ ExportMax.main = function main() {
     // TODO: make new type for the logger initialization string
     let logger = new Log.Logger('node');
     // post(cat.speak());
-    logger.log("I am Logge")
+    // logger.log("I am Logger")
+    // post("I am Logger");
+    console.log("I am Logger");
 
     // post('hello world');
     // console.log(cat.speak())

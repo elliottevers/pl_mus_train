@@ -1,8 +1,10 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 // Globals defined in Max environment
+Object.defineProperty(exports, "__esModule", { value: true });
+// NB: comment for Max compilation, uncomment for running compiled JS with node
 var inlets, outlets, autowatch;
-var ExportMax = {};
+var Global = {};
+var main = Global.main;
 var logger_1 = require("./log/logger");
 inlets = 1;
 outlets = 1;
@@ -19,8 +21,10 @@ autowatch = 1;
 // let dog = new Animal.Canine('doggo');
 // console.log(cat.speak());
 // console.log('hello world');
-console.log('hello world!');
-ExportMax.main = function main() {
+// console.log('hello world!');
+// post('init');
+console.log('init');
+Global.main = function main() {
     // let theObject = new em.TheClass(42);
     // post("theObject.getIndex(): " + theObject.getIndex() + "\n");
     // post("The square of pi is " + em.square(Math.PI) + "\n");
@@ -33,7 +37,9 @@ ExportMax.main = function main() {
     // TODO: make new type for the logger initialization string
     var logger = new logger_1.Log.Logger('node');
     // post(cat.speak());
-    logger.log("I am Logge");
+    // logger.log("I am Logger")
+    // post("I am Logger");
+    console.log("I am Logger");
     // post('hello world');
     // console.log(cat.speak())
 };
