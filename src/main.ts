@@ -6,6 +6,7 @@
 
 import {Log} from "./log/logger";
 import {note as n} from "./note/note"
+import TreeModel = require("tree-model");
 
 inlets = 1;
 outlets = 1;
@@ -31,7 +32,6 @@ autowatch = 1;
 
 
 // console.log('hello world!');
-post('init');
 // console.log('initial');
 
 (Global as any).main = function main() {
@@ -47,15 +47,40 @@ post('init');
 
     // TODO: make new type for the logger initialization string
     let logger = new Log.Logger('node');
+
     // post(cat.speak());
     // logger.log("I am Logger")
     // post("I am Logger");
     // console.log("I am Logger");
 
-    let note = new n.Note(70, 0, 4, 100, 0);
+    // let note = new n.Note(70, 0, 4, 100, 0);
 
-    post(note.pitch);
+    // post(note.pitch);
     // post('hello world');
     // console.log(cat.speak())
+    let tree = new TreeModel();
+
+    let root = tree.parse({
+        id: 1,
+        children: [
+            {
+                id: 11,
+                children: [{id: 111}]
+            },
+            {
+                id: 12,
+                children: [{id: 121}, {id: 122}]
+            },
+            {
+                id: 13
+            }
+        ]
+    });
+
+    let path_length = root.first(function (node) {     return node.model.id === 12; }).getPath().length;
+
+    post("length of path: ");
+    post(path_length);
+
 };
 

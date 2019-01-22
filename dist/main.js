@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // let inlets, outlets, autowatch;
 // let Global: any = {};
 var logger_1 = require("./log/logger");
-var note_1 = require("./note/note");
+var TreeModel = require("tree-model");
 inlets = 1;
 outlets = 1;
 autowatch = 1;
@@ -22,7 +22,6 @@ autowatch = 1;
 // console.log(cat.speak());
 // console.log('hello world');
 // console.log('hello world!');
-post('init');
 // console.log('initial');
 Global.main = function main() {
     // let theObject = new em.TheClass(42);
@@ -40,9 +39,29 @@ Global.main = function main() {
     // logger.log("I am Logger")
     // post("I am Logger");
     // console.log("I am Logger");
-    var note = new note_1.note.Note(70, 0, 4, 100, 0);
-    post(note.pitch);
+    // let note = new n.Note(70, 0, 4, 100, 0);
+    // post(note.pitch);
     // post('hello world');
     // console.log(cat.speak())
+    var tree = new TreeModel();
+    var root = tree.parse({
+        id: 1,
+        children: [
+            {
+                id: 11,
+                children: [{ id: 111 }]
+            },
+            {
+                id: 12,
+                children: [{ id: 121 }, { id: 122 }]
+            },
+            {
+                id: 13
+            }
+        ]
+    });
+    var path_length = root.first(function (node) { return node.model.id === 12; }).getPath().length;
+    post("length of path: ");
+    post(path_length);
 };
 //# sourceMappingURL=main.js.map
