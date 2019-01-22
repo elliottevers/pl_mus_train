@@ -18,14 +18,19 @@ export namespace clip {
 
         constructor(clip_dao) {
             this.clip_dao = clip_dao;
+            this.notes = null;
         }
 
         get_num_measures(): number {
-            return this.get_end_marker() / 4;
+            return (this.get_end_marker() - this.get_start_marker()) / 4;
         }
 
         get_end_marker(): number {
             return this.clip_dao.get_end_marker();
+        }
+
+        get_start_marker(): number {
+            return this.clip_dao.get_start_marker();
         }
 
         // TODO: annotations
@@ -43,8 +48,8 @@ export namespace clip {
             let pitch_max = 0;
 
             for (let note in this.notes) {
-                if (note.id.pitch > pitch_max) {
-                    pitch_max = note.id.pitch;
+                if (note.model.data.pitch > pitch_max) {
+                    pitch_max = note.model.data.pitch;
                 }
             }
 
@@ -56,8 +61,8 @@ export namespace clip {
             let pitch_min = 128;
 
             for (let note in this.notes) {
-                if (note.id.pitch < pitch_min) {
-                    pitch_min = note.id.pitch;
+                if (note.model.data.pitch < pitch_min) {
+                    pitch_min = note.model.data.pitch;
                 }
             }
 
@@ -94,7 +99,7 @@ export namespace clip {
 
         // TODO: return list of tree nodes
         get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<Node>[] {
-            if (this.notes === null) {
+            if (!this.notes) {
                 // let beat_start, pitch_midi_min, beat_end, pitch_midi_max;
                 // beat_start = 0;
                 // beat_end = this.get_end_marker();
@@ -171,7 +176,8 @@ export namespace clip {
                     notes_parsed.push(
                         tree.parse(
                             {
-                                id: new Note(
+                                id: -1, // TODO: hashing scheme for clip id and beat start
+                                data: new note.Note(
                                     pitch,
                                     beat_start,
                                     beats_duration,
@@ -188,9 +194,9 @@ export namespace clip {
             }
 
             function compare(note_former,note_latter) {
-                if (note_former.data.beat_start < note_latter.data.beat_start)
+                if (note_former.model.data.beat_start < note_latter.model.data.beat_start)
                     return -1;
-                if (note_former.data.beat_start > note_latter.data.beat_start)
+                if (note_former.model.data.beat_start > note_latter.model.data.beat_start)
                     return 1;
                 return 0;
             }
@@ -205,6 +211,88 @@ export namespace clip {
             // l.log(notes_parsed);
             return notes_parsed;
         }
+    }
+
+    export class ClipDao {
+
+        private clip_live;
+        private messenger;
+        private deferlow: boolean;
+
+        constructor(index_track: number, index_clip_slot: number, messenger, deferlow: boolean) {
+            let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+            // this.clip_live = new LiveAPI(null, path);
+            this.messenger = messenger;
+            this.deferlow = deferlow;
+        }
+
+        // TODO: check if these actually return arrays
+        get_end_marker(): number {
+            return this.clip_live.get('end_marker')[0];
+        }
+
+        // TODO: check if these actually return arrays
+        get_start_marker(): number {
+            return this.clip_live.get('start_marker')[0];
+        }
+
+        set_loop_bracket_lower(beat: number) {
+            if (this.deferlow) {
+                this.messenger.message(["clip_endpoints", "loop_start", beat, "set"])
+            } else {
+                this.clip_live.set('loop_start', beat);
+            }
+        }
+
+        set_loop_bracket_upper(beat: number) {
+            if (this.deferlow) {
+                this.messenger.message(["clip_endpoints", "loop_end", beat, "set"])
+            } else {
+                this.clip_live.set('loop_end', beat);
+            }
+        }
+
+        set_clip_endpoint_lower(beat: number) {
+            if (this.deferlow) {
+                this.messenger.message(["clip_endpoints", "start_marker", beat, "set"])
+            } else {
+                this.clip_live.set('start_marker', beat);
+            }
+        }
+
+        set_clip_endpoint_upper(beat: number) {
+            if (this.deferlow) {
+                this.messenger.message(["clip_endpoints", "end_marker", beat, "set"])
+            } else {
+                this.clip_live.set('end_marker', beat);
+            }
+        }
+
+        fire(): void {
+            if (this.deferlow) {
+                this.messenger.message(["clip_endpoints", "fire", "call"])
+            } else {
+                this.clip_live.call('fire');
+            }
+        };
+
+        stop(): void {
+            if (this.deferlow) {
+                this.messenger.message(["clip_endpoints", "stop", "call"])
+            } else {
+                this.clip_live.call('stop');
+            }
+        };
+
+        get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
+            return this.clip_live.call(
+                'get_notes',
+                beat_start,
+                pitch_midi_min,
+                beat_end,
+                pitch_midi_max
+            );
+        };
 
     }
 }

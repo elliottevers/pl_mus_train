@@ -1,6 +1,7 @@
 import TreeModel = require("tree-model");
+import p = require("../parse/parse");
 export declare namespace note {
-    class Note {
+    class Note implements p.parse.Parsable {
         pitch: number;
         beat_start: number;
         beats_duration: number;

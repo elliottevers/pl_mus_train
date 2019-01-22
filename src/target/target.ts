@@ -16,11 +16,11 @@ export namespace target {
         }
 
         public value(): number {
-            return this.note.id.pitch;
+            return this.note.model.pitch;
         }
 
         public get_note_interval_beats(): number[] {
-            return this.note.id.get_interval_beats();
+            return this.note.model.get_interval_beats();
         }
 
         public get_phrase_interval_beats(): number[] {

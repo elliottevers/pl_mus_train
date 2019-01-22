@@ -9,10 +9,10 @@ var target;
             this.phrase = phrase;
         }
         Target.prototype.value = function () {
-            return this.note.id.pitch;
+            return this.note.model.pitch;
         };
         Target.prototype.get_note_interval_beats = function () {
-            return this.note.id.get_interval_beats();
+            return this.note.model.get_interval_beats();
         };
         Target.prototype.get_phrase_interval_beats = function () {
             return this.phrase.get_interval_beats();

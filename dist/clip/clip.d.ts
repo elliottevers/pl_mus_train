@@ -6,6 +6,7 @@ export declare namespace clip {
         constructor(clip_dao: any);
         get_num_measures(): number;
         get_end_marker(): number;
+        get_start_marker(): number;
         load_notes(): void;
         get_pitch_max(): number;
         get_pitch_min(): number;
@@ -19,5 +20,20 @@ export declare namespace clip {
         get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<Node>[];
         private _get_notes;
         private static _parse_notes;
+    }
+    class ClipDao {
+        private clip_live;
+        private messenger;
+        private deferlow;
+        constructor(index_track: number, index_clip_slot: number, messenger: any, deferlow: boolean);
+        get_end_marker(): number;
+        get_start_marker(): number;
+        set_loop_bracket_lower(beat: number): void;
+        set_loop_bracket_upper(beat: number): void;
+        set_clip_endpoint_lower(beat: number): void;
+        set_clip_endpoint_upper(beat: number): void;
+        fire(): void;
+        stop(): void;
+        get_notes(beat_start: any, pitch_midi_min: any, beat_end: any, pitch_midi_max: any): string[];
     }
 }
