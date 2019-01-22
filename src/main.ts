@@ -5,10 +5,12 @@
 // let Global: any = {};
 
 import {Log} from "./log/logger";
+import {note as n} from "./note/note"
 
 inlets = 1;
 outlets = 1;
 autowatch = 1;
+
 
 // let inlets = 1;
 // let outlets = 1;
@@ -47,9 +49,12 @@ post('init');
     let logger = new Log.Logger('node');
     // post(cat.speak());
     // logger.log("I am Logger")
-    post("I am Logger");
+    // post("I am Logger");
     // console.log("I am Logger");
 
+    let note = new n.Note(70, 0, 4, 100, 0);
+
+    post(note.pitch);
     // post('hello world');
     // console.log(cat.speak())
 };

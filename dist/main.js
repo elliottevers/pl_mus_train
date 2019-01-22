@@ -5,6 +5,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // let inlets, outlets, autowatch;
 // let Global: any = {};
 var logger_1 = require("./log/logger");
+var note_1 = require("./note/note");
 inlets = 1;
 outlets = 1;
 autowatch = 1;
@@ -37,8 +38,10 @@ Global.main = function main() {
     var logger = new logger_1.Log.Logger('node');
     // post(cat.speak());
     // logger.log("I am Logger")
-    post("I am Logger");
+    // post("I am Logger");
     // console.log("I am Logger");
+    var note = new note_1.note.Note(70, 0, 4, 100, 0);
+    post(note.pitch);
     // post('hello world');
     // console.log(cat.speak())
 };

@@ -1,4 +1,3 @@
-declare function post(o: any): void;
 export namespace Log {
 
     export class Logger  {

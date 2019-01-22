@@ -1,11 +1,10 @@
 import "mocha";
-// import "assert";
 import * as assert from "assert";
-import {SmokeTest} from "../dist";
+import {note as n} from "../src/note/note"
 
-describe("index", ()=>{
-    it("should say hello", ()=>{
-        SmokeTest.HelloWorld();
-        assert.ok(true);
+describe("note", ()=>{
+    it("should store pitch information", ()=>{
+        let note = new n.Note(60, 0, 4, 100, 0);
+        assert.equal(note.pitch, 60);
     });
 });

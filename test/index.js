@@ -1,13 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 require("mocha");
-// import "assert";
 var assert = require("assert");
-var dist_1 = require("../dist");
-describe("index", function () {
-    it("should say hello", function () {
-        dist_1.SmokeTest.HelloWorld();
-        assert.ok(true);
+var note_1 = require("../src/note/note");
+describe("note", function () {
+    it("should store pitch information", function () {
+        var note = new note_1.note.Note(60, 0, 4, 100, 0);
+        assert.equal(note.pitch, 60);
     });
 });
 //# sourceMappingURL=index.js.map
