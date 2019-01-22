@@ -12,7 +12,9 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.18",
     "browserify": "^16.2.3",
+    "chai": "^4.2.0",
     "mocha": "^5.2.0",
+    "sinon": "^7.2.3",
     "tree-model": "^1.0.7",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.4"

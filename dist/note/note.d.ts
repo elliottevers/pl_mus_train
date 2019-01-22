@@ -1,3 +1,4 @@
+import TreeModel = require("tree-model");
 export declare namespace note {
     class Note {
         pitch: number;
@@ -11,5 +12,16 @@ export declare namespace note {
         get_interval_beats(): number[];
         get_best_candidate(list_candidate_note: any): any;
         choose(): boolean;
+    }
+    class NoteIterator {
+        private notes;
+        direction_forward: boolean;
+        private i;
+        constructor(notes: TreeModel.Node<Note>, direction_forward: boolean);
+        next(): {
+            value: any;
+            done: boolean;
+        };
+        current(): any;
     }
 }

@@ -73,5 +73,42 @@ var note;
         return Note;
     }());
     note.Note = Note;
+    var NoteIterator = /** @class */ (function () {
+        function NoteIterator(notes, direction_forward) {
+            this.notes = notes;
+            this.direction_forward = direction_forward;
+            this.i = -1;
+        }
+        // TODO: type declarations
+        NoteIterator.prototype.next = function () {
+            var value_increment = (this.direction_forward) ? 1 : -1;
+            this.i += value_increment;
+            if (this.i < 0) {
+                throw 'note iterator < 0';
+            }
+            if (this.i < this.notes.length) {
+                return {
+                    value: this.notes[this.i],
+                    done: false
+                };
+            }
+            else {
+                return {
+                    value: null,
+                    done: true
+                };
+            }
+        };
+        NoteIterator.prototype.current = function () {
+            if (this.i > -1) {
+                return this.notes[this.i];
+            }
+            else {
+                return null;
+            }
+        };
+        return NoteIterator;
+    }());
+    note.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 //# sourceMappingURL=note.js.map
