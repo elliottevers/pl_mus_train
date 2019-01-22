@@ -49,11 +49,11 @@ Global.main = function main() {
         children: [
             {
                 id: 11,
-                children: [{ id: 111 }]
+                children: [{ id: 111, attribute_test: 'hello world' }]
             },
             {
                 id: 12,
-                children: [{ id: 121 }, { id: 122 }]
+                children: [{ id: 121, attribute_test: 'hello world' }, { id: 122, attribute_test: 'hello world' }]
             },
             {
                 id: 13

@@ -22,14 +22,14 @@ describe('tree', function () {
                 },
                 {
                     id: 12,
-                    children: [{ id: 121 }, { id: 122 }]
+                    children: [{ id: 121, attribute_test: 'hello world' }, { id: 122 }]
                 },
                 {
                     id: 13
                 }
             ]
         });
-        var path_length = root.first(function (node) { return node.model.id === 12; }).getPath().length;
+        var path_length = root.first(function (node) { return node.model.attribute_test === 'hello world'; });
         assert.equal(path_length, 2);
     });
 });
