@@ -1,4 +1,4 @@
-export declare namespace Log {
+export declare namespace log {
     class Logger {
         env: string;
         constructor(env: string);

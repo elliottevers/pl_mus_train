@@ -9,14 +9,12 @@ import {note} from "../note/note";
 import TreeModel = require("tree-model");
 
 export namespace clip {
-    // TODO: custom type
-    import Note = note.Note;
 
     export class Clip {
 
         private clip_dao;
 
-        private notes: TreeModel.Node<Note>[];
+        private notes: TreeModel.Node<note.Note>[];
 
         constructor(clip_dao) {
             this.clip_dao = clip_dao;
@@ -32,7 +30,12 @@ export namespace clip {
 
         // TODO: annotations
         load_notes(): void {
-            this.notes = this.get_notes(0, 0, 16, 128);
+            this.notes = this.get_notes(
+                0,
+                0,
+                this.get_end_marker(),
+                128
+            );
         }
 
         // TODO: annotations
@@ -40,8 +43,8 @@ export namespace clip {
             let pitch_max = 0;
 
             for (let note in this.notes) {
-                if (note.data.pitch > pitch_max) {
-                    pitch_max = note.data.pitch;
+                if (note.id.pitch > pitch_max) {
+                    pitch_max = note.id.pitch;
                 }
             }
 
@@ -53,8 +56,8 @@ export namespace clip {
             let pitch_min = 128;
 
             for (let note in this.notes) {
-                if (note.data.pitch < pitch_min) {
-                    pitch_min = note.data.pitch;
+                if (note.id.pitch < pitch_min) {
+                    pitch_min = note.id.pitch;
                 }
             }
 
@@ -90,14 +93,14 @@ export namespace clip {
         }
 
         // TODO: return list of tree nodes
-        get_notes(): TreeModel.Node<Node>[] {
+        get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<Node>[] {
             if (this.notes === null) {
-                let beat_start, pitch_midi_min, beat_end, pitch_midi_max;
-                beat_start = 0;
-                beat_end = this.get_end_marker();
-                pitch_midi_min = 0;
-                pitch_midi_max = 128;
-                return this._parse_notes(
+                // let beat_start, pitch_midi_min, beat_end, pitch_midi_max;
+                // beat_start = 0;
+                // beat_end = this.get_end_marker();
+                // pitch_midi_min = 0;
+                // pitch_midi_max = 128;
+                return Clip._parse_notes(
                     this._get_notes(
                         beat_start,
                         pitch_midi_min,
@@ -120,7 +123,7 @@ export namespace clip {
         }
 
         // TODO: return list of tree nodes
-        private _parse_notes(notes: string): TreeModel.Node<Note>[] {
+        private static _parse_notes(notes: string[]): TreeModel.Node<note.Note>[] {
             let data: any = [];
             let notes_parsed = [];
 
@@ -165,32 +168,7 @@ export namespace clip {
 
                     let tree: TreeModel = new TreeModel();
 
-                    // let model: any = {
-                    //     id: new Note(
-                    //         pitch,
-                    //         beat_start,
-                    //         beats_duration,
-                    //         velocity,
-                    //         b_muted
-                    //     ),
-                    //     children: [
-                    //
-                    //     ]
-                    // };
-
                     notes_parsed.push(
-                        // new tr.Tree(
-                        //     null,
-                        //     new n.Note(
-                        //         pitch,
-                        //         beat_start,
-                        //         beats_duration,
-                        //         velocity,
-                        //         b_muted
-                        //     )
-                        // )
-
-                        // tree.parse(model)
                         tree.parse(
                             {
                                 id: new Note(
@@ -210,7 +188,6 @@ export namespace clip {
             }
 
             function compare(note_former,note_latter) {
-                // l.log(note_former.data);
                 if (note_former.data.beat_start < note_latter.data.beat_start)
                     return -1;
                 if (note_former.data.beat_start > note_latter.data.beat_start)

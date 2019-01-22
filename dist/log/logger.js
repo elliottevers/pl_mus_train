@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Log;
-(function (Log) {
+var log;
+(function (log) {
     var Logger = /** @class */ (function () {
         function Logger(env) {
             this.env = env;
@@ -67,6 +67,6 @@ var Log;
         };
         return Logger;
     }());
-    Log.Logger = Logger;
-})(Log = exports.Log || (exports.Log = {}));
+    log.Logger = Logger;
+})(log = exports.log || (exports.log = {}));
 //# sourceMappingURL=logger.js.map

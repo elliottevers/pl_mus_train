@@ -16,8 +16,8 @@ export declare namespace clip {
         set_clip_endpoint_upper(beat: number): void;
         fire(): void;
         stop(): void;
-        get_notes(): TreeModel.Node<Node>[];
+        get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<Node>[];
         private _get_notes;
-        private _parse_notes;
+        private static _parse_notes;
     }
 }

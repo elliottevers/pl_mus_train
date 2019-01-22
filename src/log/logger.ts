@@ -1,4 +1,4 @@
-export namespace Log {
+export namespace log {
 
     export class Logger  {
 
