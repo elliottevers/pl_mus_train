@@ -100,8 +100,8 @@ let main = ()=>{
     let logger = new log.Logger(env);
 
     for (let message of messages) {
-        logger.log(message);
-        logger.log('working');
+        // logger.log(message);
+        outlet(0, message);
     }
 };
 

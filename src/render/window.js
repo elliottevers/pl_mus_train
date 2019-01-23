@@ -213,8 +213,13 @@ var window;
         ;
         Pwindow.prototype.get_dist_from_top = function (pitch, index_clip) {
             var clip = this.clips[index_clip];
+            var offset = index_clip;
+            // TODO: make this configurable
+            if (true) {
+                offset = this.clips.length - 1 - index_clip;
+            }
             var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(index_clip);
-            return dist + (this.get_height_clip() * index_clip);
+            return dist + (this.get_height_clip() * offset);
         };
         ;
         Pwindow.prototype.get_dist_from_left = function (beat) {

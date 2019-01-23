@@ -656,8 +656,13 @@ var window;
         ;
         Pwindow.prototype.get_dist_from_top = function (pitch, index_clip) {
             var clip = this.clips[index_clip];
+            var offset = index_clip;
+            // TODO: make this configurable
+            if (true) {
+                offset = this.clips.length - 1 - index_clip;
+            }
             var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(index_clip);
-            return dist + (this.get_height_clip() * index_clip);
+            return dist + (this.get_height_clip() * offset);
         };
         ;
         Pwindow.prototype.get_dist_from_left = function (beat) {
@@ -692,7 +697,8 @@ var messenger_1 = require("./message/messenger");
 var window_1 = require("./render/window");
 var logger_1 = require("./log/logger");
 // let env: string = process.argv[2];
-// TODO: handle better
+// TODO: handle better - if set to max, can't run in node, but can compile TypeScript to max object
+// if we switch from node execution to max execution, will max have stopped watching?
 var env = 'max';
 if (env === 'max') {
     autowatch = 1;
@@ -760,8 +766,8 @@ var main = function () {
     var logger = new logger_1.log.Logger(env);
     for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {
         var message = messages_1[_i];
-        logger.log(message);
-        logger.log('working');
+        // logger.log(message);
+        outlet(0, message);
     }
 };
 if (typeof Global !== "undefined") {
