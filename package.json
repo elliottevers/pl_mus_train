@@ -1,10 +1,18 @@
 {
-  "name": "typescript_bullshit",
+  "name": "tk_music_ts",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "to_max": "browserify ./dist/$JS_OBJ_MAX_EXPORT.js > ./max/export/$JS_OBJ_MAX_EXPORT.js && echo >> ./max/export/$JS_OBJ_MAX_EXPORT.js && cat ./max/postprocess/define_interface/$JS_OBJ_MAX_EXPORT.js >> ./max/export/$JS_OBJ_MAX_EXPORT.js"
+    "to_max": "bnr to_max"
+  },
+  "betterScripts": {
+    "to_max": {
+      "command": "./build_object.sh",
+      "env":{
+        "JS_OBJ_MAX_EXPORT": "renderer"
+      }
+    }
   },
   "author": "",
   "license": "ISC",
@@ -12,6 +20,7 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.18",
     "@types/sinon": "^7.0.4",
+    "better-npm-run": "^0.1.1",
     "browserify": "^16.2.3",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",

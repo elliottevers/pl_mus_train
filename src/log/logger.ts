@@ -48,16 +48,16 @@ export namespace log {
                     if(s.indexOf("[object ") >= 0) {
                         s = JSON.stringify(message);
                     }
-                    console.log(s);
+                    // console.log(s);
                 }
                 else if(message === null) {
-                    console.log("<null>");
+                    // console.log("<null>");
                 }
                 else {
-                    console.log(message);
+                    // console.log(message);
                 }
             }
-            console.log("\n");
+            // console.log("\n");
         }
 
     }
