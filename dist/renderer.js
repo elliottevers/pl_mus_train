@@ -5,7 +5,10 @@ var messenger_1 = require("./message/messenger");
 // const sinon = require("sinon");
 var window_1 = require("./render/window");
 var logger_1 = require("./log/logger");
-var env = process.argv[2];
+autowatch = 1;
+// let env: string = process.argv[2];
+// TODO: handle better
+var env = 'max';
 var main = function () {
     // clip 1
     var clip_dao_1 = new clip_5.clip.ClipDao(15, 0, new messenger_1.message.Messenger(env, 0), false);

@@ -214,7 +214,7 @@ export namespace clip {
 
         constructor(index_track: number, index_clip_slot: number, messenger, deferlow: boolean) {
             let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-            // this.clip_live = new LiveAPI(null, path);
+            this.clip_live = new LiveAPI(null, path);
             this.messenger = messenger;
             this.deferlow = deferlow;
         }

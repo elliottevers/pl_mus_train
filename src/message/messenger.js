@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
 (function (message_1) {
+    // TODO: the following
+    // type Env = 'max' | 'node';
     var Messenger = /** @class */ (function () {
         function Messenger(env, outlet) {
             this.env = env;

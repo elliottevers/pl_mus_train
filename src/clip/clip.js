@@ -144,7 +144,7 @@ var clip;
     var ClipDao = /** @class */ (function () {
         function ClipDao(index_track, index_clip_slot, messenger, deferlow) {
             var path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-            // this.clip_live = new LiveAPI(null, path);
+            this.clip_live = new LiveAPI(null, path);
             this.messenger = messenger;
             this.deferlow = deferlow;
         }

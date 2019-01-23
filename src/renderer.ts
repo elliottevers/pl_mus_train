@@ -1,5 +1,6 @@
 declare let Global: any;
 // TODO: make dedicated library object for the following
+declare let autowatch: any;
 declare let inlets: any;
 declare let outlets: any;
 declare function outlet(n: number, o: any): void;
@@ -10,7 +11,11 @@ import {message as m} from "./message/messenger";
 import {window as w} from "./render/window";
 import {log} from "./log/logger";
 
-let env: string = process.argv[2];
+autowatch = 1;
+
+// let env: string = process.argv[2];
+// TODO: handle better
+let env: string = 'max';
 
 let main = ()=>{
     // clip 1
@@ -100,4 +105,3 @@ if (typeof Global !== "undefined") {
     Global.renderer = {};
     Global.renderer.main = main;
 }
-

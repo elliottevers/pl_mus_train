@@ -16,6 +16,8 @@ export namespace log {
             } else if (this.env === 'node') {
                 this.log_node(message);
             } else {
+                post('env: ' + this.env);
+                post('\n');
                 throw 'environment invalid'
             }
         }

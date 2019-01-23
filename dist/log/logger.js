@@ -14,6 +14,8 @@ var log;
                 this.log_node(message);
             }
             else {
+                post('env: ' + this.env);
+                post('\n');
                 throw 'environment invalid';
             }
         };
