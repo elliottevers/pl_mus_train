@@ -1,59 +1,8 @@
 "use strict";
-// Globals defined in Max environment
 Object.defineProperty(exports, "__esModule", { value: true });
-// NB: comment for Max compilation, uncomment for running compiled JS with node
-// let inlets, outlets, autowatch;
-// let Global: any = {};
 var env = 'node';
-// declare let Global: {
-//     main: () => void
-// };
-// declare function post(o: any): void;
-// declare let inlets: any;
-// declare let size: any;
-// declare let outlets: any;
-// declare function outlet(n: number, o: any): void;
-// interface
-// let obj: {
-//     main: () => void
-// };
-//
-// obj = {
-//     main: ()=>{
-//
-//     }
-// };
-var Global;
-Global = {
-    main: function () {
-    }
-};
-// obj = Global;
-// let obj_interface = {
-//     main()
-// };
-// var Global = {
-//     main: () => void
-// };
-if (env === 'node') {
-    console.log('node!');
-    // eval('let inlets, outlets, autowatch;');
-    // eval('let Global: any = {};');
-    // eval('inlets = 1;');
-    // eval('outlets = 1;');
-    // eval('autowatch = 1;');
-    // eval('obj = (Global as any);');
-    // eval('let Global: {main: () => void};');
-    // eval('declare function post(o: any): void;');
-    // eval('declare let inlets: any;');
-    // eval('declare let size: any;');
-    // eval('declare let outlets: any;');
-    // eval('declare function outlet(n: number, o: any): void;');
-    // eval('obj = Global;');
-    eval('var Global = {};');
-}
 var logger_1 = require("./log/logger");
-Global.main = function main() {
+var main = function () {
     // clip 1
     // let clip_dao_1 = new c.ClipDao(0, 0, new m.Messenger('node', 0), false);
     // sinon.stub(clip_dao_1, "get_start_marker").callsFake(() => {
@@ -134,12 +83,12 @@ Global.main = function main() {
     // for (let message of messages) {
     //     logger.log(message);
     // }
-    if (true) {
-        eval('console.log("eval")');
-    }
-    // eval('post("posting")');
+    post('posting');
+    post('\n');
+    outlet(0, 'posting');
+    // outlet(0,'\n');
 };
-Global.main();
-// NB: commeno
-// NB: comment for Max compilation, uncomment for running compiled JS with node
+if (env !== 'node') {
+    Global.main = main;
+}
 //# sourceMappingURL=renderer.js.map

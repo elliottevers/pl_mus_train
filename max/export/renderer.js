@@ -73,41 +73,10 @@ var log;
 
 },{}],2:[function(require,module,exports){
 "use strict";
-// Globals defined in Max environment
 Object.defineProperty(exports, "__esModule", { value: true });
-// declare function post(o: any): void;
-// declare let inlets: any;
-// declare let size: any;
-// declare let outlets: any;
-// declare function outlet(n: number, o: any): void;
 var env = 'node';
-// interface
-var obj;
-obj = {
-    main: function () {
-    }
-};
-// obj = Global;
-// let obj_interface = {
-//     main()
-// };
-if (env === 'node') {
-    // eval('let inlets, outlets, autowatch;');
-    // eval('let Global: any = {};');
-    // eval('inlets = 1;');
-    // eval('outlets = 1;');
-    // eval('autowatch = 1;');
-    // eval('obj = (Global as any);');
-    // eval('let Global: {main: () => void};');
-    // eval('declare function post(o: any): void;');
-    // eval('declare let inlets: any;');
-    // eval('declare let size: any;');
-    // eval('declare let outlets: any;');
-    // eval('declare function outlet(n: number, o: any): void;');
-    // eval('obj = Global;');
-}
 var logger_1 = require("./log/logger");
-Global.main = function main() {
+var main = function () {
     // clip 1
     // let clip_dao_1 = new c.ClipDao(0, 0, new m.Messenger('node', 0), false);
     // sinon.stub(clip_dao_1, "get_start_marker").callsFake(() => {
@@ -188,13 +157,17 @@ Global.main = function main() {
     // for (let message of messages) {
     //     logger.log(message);
     // }
-    if (false) {
-        eval('console.log("eval")');
+    if (true) {
+        // eval('console.log("eval")');
     }
-    eval('post("posting")');
+    post('posting');
+    post('\n');
+    outlet(0, 'posting');
+    // outlet(0,'\n');
 };
-// NB: commeno
-// NB: comment for Max compilation, uncomment for running compiled JS with node
+if (env !== 'node') {
+    Global.main = main;
+}
 
 },{"./log/logger":1}]},{},[2]);
 
