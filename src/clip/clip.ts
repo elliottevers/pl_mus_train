@@ -40,9 +40,9 @@ export namespace clip {
         get_pitch_max(): number {
             let pitch_max = 0;
 
-            for (let note in this.notes) {
-                if (note.model.note.pitch > pitch_max) {
-                    pitch_max = note.model.note.pitch;
+            for (let node of this.notes) {
+                if (node.model.note.pitch > pitch_max) {
+                    pitch_max = node.model.note.pitch;
                 }
             }
 
@@ -53,9 +53,9 @@ export namespace clip {
         get_pitch_min(): number {
             let pitch_min = 128;
 
-            for (let note in this.notes) {
-                if (note.model.note.pitch < pitch_min) {
-                    pitch_min = note.model.note.pitch;
+            for (let node of this.notes) {
+                if (node.model.note.pitch < pitch_min) {
+                    pitch_min = node.model.note.pitch;
                 }
             }
 

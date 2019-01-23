@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var TreeModel = require("tree-model");
 var window;
 (function (window) {
     var Pwindow = /** @class */ (function () {
@@ -50,25 +49,27 @@ var window;
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         Pwindow.prototype.add_clip = function (clip) {
             this.clips.push(clip);
-            if (this.clips.length === 1) {
-                // TODO: fix this, we're assuming the first clip has only the root note for now
-                var tree = new TreeModel();
-                this.root_parse_tree = tree.parse({
-                    id: -1,
-                    note: clip.get_notes()[0],
-                    children: []
-                });
-                this.list_leaves_current = [
-                    this.root_parse_tree
-                ];
-                return;
-            }
-            var notes_parent = this.list_leaves_current;
-            var notes_child = clip.get_notes();
-            var notes_diff = this.get_diff_notes(notes_parent, notes_child);
-            var notes_parent_diff = notes_diff['parent'];
-            var notes_child_diff = notes_diff['child'];
-            this.list_leaves_current = this.add_layer(notes_parent_diff, notes_child_diff);
+            // if (this.clips.length === 1) {
+            //     // TODO: fix this, we're assuming the first clip has only the root note for now
+            //     let tree: TreeModel = new TreeModel();
+            //     this.root_parse_tree = tree.parse(
+            //         {
+            //             id: -1, // TODO: hashing scheme for clip id and beat start
+            //             note: clip.get_notes()[0],
+            //             children: []
+            //         }
+            //     );
+            //     this.list_leaves_current = [
+            //         this.root_parse_tree
+            //     ];
+            //     return
+            // }
+            // var notes_parent = this.list_leaves_current;
+            // var notes_child = clip.get_notes();
+            // var notes_diff = this.get_diff_notes(notes_parent, notes_child);
+            // var notes_parent_diff = notes_diff['parent'];
+            // var notes_child_diff = notes_diff['child'];
+            // this.list_leaves_current = this.add_layer(notes_parent_diff, notes_child_diff);
         };
         ;
         // TODO: complete return signature
@@ -205,7 +206,7 @@ var window;
             var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.pitch, index_clip);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, index_clip);
             dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, index_clip);
             return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom];
         };

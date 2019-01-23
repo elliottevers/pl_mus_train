@@ -188,31 +188,10 @@ describe('Pwindow', function () {
         pwindow.add_clip(clip);
         // let messages = pwindow.get_messages_render_tree();
         var messages = pwindow.get_messages_render_clips();
-        var testing = 1;
-        // pwindow.render_clips();
-        //
-        // var notes = clip.get_notes();
-        //
-        // assert_equals(
-        //     'pwindow.get_height_note(0)',
-        //     '64'
-        // );
-        //
-        // assert_equals(
-        //     'pwindow.get_position_quadruplet(notes[0], 0)', '[0, 320, 96, 384]'
-        // );
-        //
-        // assert_equals(
-        //     'pwindow.get_position_quadruplet(notes[1], 0)', '[96, 192, 192, 256]'
-        // );
-        //
-        // assert_equals(
-        //     'pwindow.get_position_quadruplet(notes[2], 0)', '[192, 64, 288, 128]'
-        // );
-        //
-        // assert_equals(
-        //     'pwindow.get_position_quadruplet(notes[3], 0)', '[288, 0, 384, 64]'
-        // );
+        assert.deepEqual(messages[0], ['paintrect', 0, 320, 96, 384]);
+        assert.deepEqual(messages[1], ['paintrect', 96, 192, 192, 256]);
+        assert.deepEqual(messages[2], ['paintrect', 192, 64, 288, 128]);
+        assert.deepEqual(messages[3], ['paintrect', 288, 0, 384, 64]);
     }));
 });
 //# sourceMappingURL=index.js.map
