@@ -206,15 +206,24 @@ export namespace clip {
         }
     }
 
+    interface implementsLiveAPI {
+        get(): any;
+        set(): void;
+        call(): void;
+    }
+
     export class ClipDao {
 
         private clip_live;
         private messenger;
         private deferlow: boolean;
 
-        constructor(index_track: number, index_clip_slot: number, messenger, deferlow: boolean) {
-            let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-            this.clip_live = new LiveAPI(null, path);
+        // how to implement LiveAPI - get, set, call
+
+        constructor(clip_live: implementsLiveAPI, messenger, deferlow: boolean) {
+            // let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+            // this.clip_live = new LiveAPI(null, path);
+            this.clip_live = clip_live;
             this.messenger = messenger;
             this.deferlow = deferlow;
         }

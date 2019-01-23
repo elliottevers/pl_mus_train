@@ -142,9 +142,11 @@ var clip;
     }());
     clip.Clip = Clip;
     var ClipDao = /** @class */ (function () {
-        function ClipDao(index_track, index_clip_slot, messenger, deferlow) {
-            var path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-            this.clip_live = new LiveAPI(null, path);
+        // how to implement LiveAPI - get, set, call
+        function ClipDao(clip_live, messenger, deferlow) {
+            // let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+            // this.clip_live = new LiveAPI(null, path);
+            this.clip_live = clip_live;
             this.messenger = messenger;
             this.deferlow = deferlow;
         }

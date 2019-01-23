@@ -21,11 +21,16 @@ export declare namespace clip {
         private _get_notes;
         private static _parse_notes;
     }
+    interface implementsLiveAPI {
+        get(): any;
+        set(): void;
+        call(): void;
+    }
     class ClipDao {
         private clip_live;
         private messenger;
         private deferlow;
-        constructor(index_track: number, index_clip_slot: number, messenger: any, deferlow: boolean);
+        constructor(clip_live: implementsLiveAPI, messenger: any, deferlow: boolean);
         get_end_marker(): number;
         get_start_marker(): number;
         set_loop_bracket_lower(beat: number): void;
