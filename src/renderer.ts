@@ -11,11 +11,14 @@ import {message as m} from "./message/messenger";
 import {window as w} from "./render/window";
 import {log} from "./log/logger";
 
-autowatch = 1;
-
 // let env: string = process.argv[2];
-// TODO: handle better
+// TODO: handle better - if set to max, can't run in node, but can compile TypeScript to max object
+// if we switch from node execution to max execution, will max have stopped watching?
 let env: string = 'max';
+
+if (env === 'max') {
+    autowatch = 1;
+}
 
 let main = ()=>{
     // clip 1
@@ -98,6 +101,7 @@ let main = ()=>{
 
     for (let message of messages) {
         logger.log(message);
+        logger.log('working');
     }
 };
 

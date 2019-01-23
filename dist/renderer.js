@@ -5,10 +5,13 @@ var messenger_1 = require("./message/messenger");
 // const sinon = require("sinon");
 var window_1 = require("./render/window");
 var logger_1 = require("./log/logger");
-autowatch = 1;
 // let env: string = process.argv[2];
-// TODO: handle better
+// TODO: handle better - if set to max, can't run in node, but can compile TypeScript to max object
+// if we switch from node execution to max execution, will max have stopped watching?
 var env = 'max';
+if (env === 'max') {
+    autowatch = 1;
+}
 var main = function () {
     // clip 1
     var clip_dao_1 = new clip_5.clip.ClipDao(15, 0, new messenger_1.message.Messenger(env, 0), false);
@@ -73,6 +76,7 @@ var main = function () {
     for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {
         var message = messages_1[_i];
         logger.log(message);
+        logger.log('working');
     }
 };
 if (typeof Global !== "undefined") {
