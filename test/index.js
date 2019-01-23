@@ -170,7 +170,7 @@ describe('Pwindow', function () {
         //
         // let note_iterator = phrase.note_iterator;
     });
-    it("calculates centroids of a single clip correctly", test(function () {
+    it("calculates rendering messages of a single clip correctly", test(function () {
         var stub_clip_dao = new clip_5.clip.ClipDao(0, 0, new messenger_1.message.Messenger('node', 0), false);
         sinon.stub(stub_clip_dao, "get_start_marker").callsFake(function () {
             return 0;
@@ -192,6 +192,8 @@ describe('Pwindow', function () {
         assert.deepEqual(messages[1], ['paintrect', 96, 192, 192, 256]);
         assert.deepEqual(messages[2], ['paintrect', 192, 64, 288, 128]);
         assert.deepEqual(messages[3], ['paintrect', 288, 0, 384, 64]);
+    }));
+    it("calculates rendering messages of multiple clips correctly", test(function () {
     }));
 });
 //# sourceMappingURL=index.js.map

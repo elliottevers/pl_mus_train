@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "to_max": "browserify ./dist/main.js > ./max/export/main.js && echo >> ./max/export/main.js && cat ./max/postprocess/define_main.js >> ./max/export/main.js"
+    "to_max": "browserify ./dist/$JS_OBJ_MAX_EXPORT.js > ./max/export/$JS_OBJ_MAX_EXPORT.js && echo >> ./max/export/$JS_OBJ_MAX_EXPORT.js && cat ./max/postprocess/define_interface/$JS_OBJ_MAX_EXPORT.js >> ./max/export/$JS_OBJ_MAX_EXPORT.js"
   },
   "author": "",
   "license": "ISC",

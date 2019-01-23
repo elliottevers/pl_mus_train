@@ -221,7 +221,7 @@ describe('Pwindow', ()=>{
         // let note_iterator = phrase.note_iterator;
     });
 
-    it("calculates centroids of a single clip correctly", test(()=>{
+    it("calculates rendering messages of a single clip correctly", test(()=>{
 
         let stub_clip_dao = new c.ClipDao(
             0,
@@ -277,6 +277,10 @@ describe('Pwindow', ()=>{
             messages[3],
             ['paintrect', 288, 0, 384, 64]
         );
+    }));
+
+    it("calculates rendering messages of multiple clips correctly", test(()=>{
+
     }));
 
 });
