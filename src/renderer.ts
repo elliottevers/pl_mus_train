@@ -4,17 +4,79 @@
 // let inlets, outlets, autowatch;
 // let Global: any = {};
 
+let env = 'node';
+
+// declare let Global: {
+//     main: () => void
+// };
+// declare function post(o: any): void;
+// declare let inlets: any;
+// declare let size: any;
+// declare let outlets: any;
+// declare function outlet(n: number, o: any): void;
+
+
+// interface
+// let obj: {
+//     main: () => void
+// };
+//
+// obj = {
+//     main: ()=>{
+//
+//     }
+// };
+
+
+let Global: {
+    main: () => void
+};
+
+Global = {
+    main: ()=>{
+
+    }
+};
+
+
+
+// obj = Global;
+
+// let obj_interface = {
+//     main()
+// };
+
+// var Global = {
+//     main: () => void
+// };
+
+if (env === 'node') {
+    console.log('node!');
+    // eval('let inlets, outlets, autowatch;');
+    // eval('let Global: any = {};');
+    // eval('inlets = 1;');
+    // eval('outlets = 1;');
+    // eval('autowatch = 1;');
+    // eval('obj = (Global as any);');
+
+    // eval('let Global: {main: () => void};');
+    // eval('declare function post(o: any): void;');
+    // eval('declare let inlets: any;');
+    // eval('declare let size: any;');
+    // eval('declare let outlets: any;');
+    // eval('declare function outlet(n: number, o: any): void;');
+    // eval('obj = Global;');
+
+    eval('var Global = {};');
+}
+
 import {clip as c} from "./clip/clip";
 import {message as m} from "./message/messenger";
 // const sinon = require("sinon");
 import {window as w} from "./render/window";
 import {log} from "./log/logger";
 
-inlets = 1;
-outlets = 1;
-autowatch = 1;
-
-(Global as any).main = function main() {
+Global.main = function main() {
     // clip 1
     // let clip_dao_1 = new c.ClipDao(0, 0, new m.Messenger('node', 0), false);
     // sinon.stub(clip_dao_1, "get_start_marker").callsFake(() => {
@@ -97,9 +159,14 @@ autowatch = 1;
     //     logger.log(message);
     // }
 
-    logger.log('Hello World')
+    if (true) {
+        eval('console.log("eval")');
+    }
+
+    // eval('post("posting")');
 };
 
+Global.main();
 // NB: commeno
 // NB: comment for Max compilation, uncomment for running compiled JS with node
 

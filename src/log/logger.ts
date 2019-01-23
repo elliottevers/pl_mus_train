@@ -27,16 +27,16 @@ export namespace log {
                     if(s.indexOf("[object ") >= 0) {
                         s = JSON.stringify(message);
                     }
-                    post(s);
+                    // post(s);
                 }
                 else if(message === null) {
-                    post("<null>");
+                    // post("<null>");
                 }
                 else {
-                    post(message);
+                    // post(message);
                 }
             }
-            post("\n");
+            // post("\n");
         }
 
         // TODO: make static

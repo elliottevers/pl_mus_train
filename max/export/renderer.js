@@ -31,16 +31,16 @@ var log;
                     if (s.indexOf("[object ") >= 0) {
                         s = JSON.stringify(message);
                     }
-                    post(s);
+                    // post(s);
                 }
                 else if (message === null) {
-                    post("<null>");
+                    // post("<null>");
                 }
                 else {
-                    post(message);
+                    // post(message);
                 }
             }
-            post("\n");
+            // post("\n");
         };
         // TODO: make static
         Logger.prototype.log_node = function () {
@@ -75,10 +75,38 @@ var log;
 "use strict";
 // Globals defined in Max environment
 Object.defineProperty(exports, "__esModule", { value: true });
+// declare function post(o: any): void;
+// declare let inlets: any;
+// declare let size: any;
+// declare let outlets: any;
+// declare function outlet(n: number, o: any): void;
+var env = 'node';
+// interface
+var obj;
+obj = {
+    main: function () {
+    }
+};
+// obj = Global;
+// let obj_interface = {
+//     main()
+// };
+if (env === 'node') {
+    // eval('let inlets, outlets, autowatch;');
+    // eval('let Global: any = {};');
+    // eval('inlets = 1;');
+    // eval('outlets = 1;');
+    // eval('autowatch = 1;');
+    // eval('obj = (Global as any);');
+    // eval('let Global: {main: () => void};');
+    // eval('declare function post(o: any): void;');
+    // eval('declare let inlets: any;');
+    // eval('declare let size: any;');
+    // eval('declare let outlets: any;');
+    // eval('declare function outlet(n: number, o: any): void;');
+    // eval('obj = Global;');
+}
 var logger_1 = require("./log/logger");
-inlets = 1;
-outlets = 1;
-autowatch = 1;
 Global.main = function main() {
     // clip 1
     // let clip_dao_1 = new c.ClipDao(0, 0, new m.Messenger('node', 0), false);
@@ -160,7 +188,10 @@ Global.main = function main() {
     // for (let message of messages) {
     //     logger.log(message);
     // }
-    logger.log('Hello World');
+    if (false) {
+        eval('console.log("eval")');
+    }
+    eval('post("posting")');
 };
 // NB: commeno
 // NB: comment for Max compilation, uncomment for running compiled JS with node
