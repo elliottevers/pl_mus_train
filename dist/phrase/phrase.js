@@ -17,11 +17,6 @@ var phrase;
         Phrase.prototype.get_interval_beats = function () {
             return [this.beat_start, this.beat_end];
         };
-        // TODO: make 'direction' a type alias
-        // TODO: why is this referencing an non-existant method? Have we regressed?
-        Phrase.prototype.load_notes = function (direction_forward) {
-            this.set_note_iterator(this._parse_notes(this._get_notes()), direction_forward);
-        };
         return Phrase;
     }());
     phrase.Phrase = Phrase;

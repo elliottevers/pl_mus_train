@@ -1,10 +1,5 @@
 "use strict";
-// autowatch = 1;
 Object.defineProperty(exports, "__esModule", { value: true });
-// var l = require('./logger.js');
-// var n = require('./note.js');
-// var tr = require('./tree.js');
-// var cd = require('./clip_dao.js');
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
 var clip;
@@ -25,7 +20,7 @@ var clip;
         };
         // TODO: annotations
         Clip.prototype.load_notes = function () {
-            this.notes = this.get_notes(0, 0, this.get_end_marker(), 128);
+            this.notes = Clip._parse_notes(this._get_notes(0, 0, this.get_end_marker(), 128));
         };
         // TODO: annotations
         Clip.prototype.get_pitch_max = function () {
@@ -68,14 +63,14 @@ var clip;
         Clip.prototype.stop = function () {
             this.clip_dao.stop();
         };
-        // TODO: return list of tree nodes
-        Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+        Clip.prototype.get_notes = function () {
+            // get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<Node>[] {
             if (!this.notes) {
-                // let beat_start, pitch_midi_min, beat_end, pitch_midi_max;
-                // beat_start = 0;
-                // beat_end = this.get_end_marker();
-                // pitch_midi_min = 0;
-                // pitch_midi_max = 128;
+                var beat_start = void 0, pitch_midi_min = void 0, beat_end = void 0, pitch_midi_max = void 0;
+                beat_start = 0;
+                beat_end = this.get_end_marker();
+                pitch_midi_min = 0;
+                pitch_midi_max = 128;
                 return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max));
             }
             else {
