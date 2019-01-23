@@ -1,1 +1,1 @@
-var main = Global.main;
+var main = Global.renderer.main;

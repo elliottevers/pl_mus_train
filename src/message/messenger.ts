@@ -1,14 +1,15 @@
 export namespace message {
 
-    type Env = 'max' | 'node';
+    // TODO: the following
+    // type Env = 'max' | 'node';
 
     export class Messenger {
 
-        private env: Env;
+        private env: string;
 
         private outlet: number;
 
-        constructor (env: Env, outlet: number) {
+        constructor (env: string, outlet: number) {
             this.env = env;
             this.outlet = outlet;
         }

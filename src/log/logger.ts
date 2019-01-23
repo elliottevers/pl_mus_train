@@ -1,5 +1,7 @@
 export namespace log {
 
+    declare function post(o: any): void;
+
     export class Logger  {
 
         public env: string;
@@ -27,16 +29,16 @@ export namespace log {
                     if(s.indexOf("[object ") >= 0) {
                         s = JSON.stringify(message);
                     }
-                    // post(s);
+                    post(s);
                 }
                 else if(message === null) {
-                    // post("<null>");
+                    post("<null>");
                 }
                 else {
-                    // post(message);
+                    post(message);
                 }
             }
-            // post("\n");
+            post("\n");
         }
 
         // TODO: make static
@@ -48,16 +50,16 @@ export namespace log {
                     if(s.indexOf("[object ") >= 0) {
                         s = JSON.stringify(message);
                     }
-                    // console.log(s);
+                    console.log(s);
                 }
                 else if(message === null) {
-                    // console.log("<null>");
+                    console.log("<null>");
                 }
                 else {
-                    // console.log(message);
+                    console.log(message);
                 }
             }
-            // console.log("\n");
+            console.log("\n");
         }
 
     }

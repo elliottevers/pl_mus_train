@@ -8,7 +8,7 @@
  * Max globals
  * https://docs.cycling74.com/max7/vignettes/jsglobal
  */
-
+declare let Global: any;
 declare var inlets: number;
 declare var outlets: number;
 declare var autowatch: number;
@@ -537,22 +537,22 @@ declare class Folder {
  * A Global is basically a reference to a Javascript object that you can't access directly. The object is connected to the Max symbol with the name you supplied as an argument (this allows it to be accessed from Max). Every time you access a Global, it hands off the access to the secret hidden Javascript object. This means you can create any number of Global objects in your code, in any number of js instances, and if they all have the same name, they will all share the same data. In this way, a Global resembles a namespace.
  * https://docs.cycling74.com/max7/vignettes/jsglobalobject
  */
-declare class Global {
-
-    /**
-     * name represents a String that uniquely identifies the Global.
-     * @param {string} name [description]
-     */
-    constructor(name: string);
-
-    /**
-     * Sends the value of the named property property_name to the named Max receive object (or other Max object) bound to the specified receive_name symbol.
-     * TODO: Can have any property assigned to it
-     * @param {string} receive_name  [description]
-     * @param {string} property_name [description]
-     */
-    sendnamed(receive_name: string, property_name: string): void;
-}
+// declare class Global {
+//
+//     /**
+//      * name represents a String that uniquely identifies the Global.
+//      * @param {string} name [description]
+//      */
+//     constructor(name: string);
+//
+//     /**
+//      * Sends the value of the named property property_name to the named Max receive object (or other Max object) bound to the specified receive_name symbol.
+//      * TODO: Can have any property assigned to it
+//      * @param {string} receive_name  [description]
+//      * @param {string} property_name [description]
+//      */
+//     sendnamed(receive_name: string, property_name: string): void;
+// }
 
 
 /**
