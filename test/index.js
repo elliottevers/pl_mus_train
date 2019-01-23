@@ -11,6 +11,7 @@ describe('tree', function () {
         //
         // let root = tree.parse({
         //     id: 1,
+        //     attribute_test: 'hello world',
         //     children: [
         //         {
         //             id: 11,
@@ -18,7 +19,7 @@ describe('tree', function () {
         //         },
         //         {
         //             id: 12,
-        //             children: [{id: 121, attribute_test: 'hello world'}, {id: 122}]
+        //             children: [{id: 121}, {id: 122}]
         //         },
         //         {
         //             id: 13
@@ -34,7 +35,6 @@ var phrase_1 = require("../src/phrase/phrase");
 var messenger_1 = require("../src/message/messenger");
 var clip_5 = require("../src/clip/clip");
 var window_1 = require("../src/render/window");
-var Pwindow = window_1.window.Pwindow;
 describe('Phrase', function () {
     it('is capable of iteration', test(function () {
         // TODO: make 1 phrase consisting of quarter notes
@@ -155,7 +155,7 @@ describe('Pwindow', function () {
         clip_3.load_notes();
         clip_4.load_notes();
         var dim = 16 * 6 * 4;
-        var pwindow = new pw.Pwindow(dim, dim);
+        var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger('node', 0));
         pwindow.add_clip(clip_4);
         pwindow.add_clip(clip_3);
         pwindow.add_clip(clip_2);
@@ -170,7 +170,7 @@ describe('Pwindow', function () {
         //
         // let note_iterator = phrase.note_iterator;
     });
-    it("calculates centroids of a single clip correctly", function () {
+    it("calculates centroids of a single clip correctly", test(function () {
         var stub_clip_dao = new clip_5.clip.ClipDao(0, 0, new messenger_1.message.Messenger('node', 0), false);
         sinon.stub(stub_clip_dao, "get_start_marker").callsFake(function () {
             return 0;
@@ -184,9 +184,10 @@ describe('Pwindow', function () {
         var clip = new clip_5.clip.Clip(stub_clip_dao);
         clip.load_notes();
         var dim = 16 * 6 * 4;
-        var pwindow = new Pwindow(dim, dim, new messenger_1.message.Messenger('node', 0));
+        var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger('node', 0));
         pwindow.add_clip(clip);
-        var messages = pwindow.get_messages_render_tree();
+        // let messages = pwindow.get_messages_render_tree();
+        var messages = pwindow.get_messages_render_clips();
         var testing = 1;
         // pwindow.render_clips();
         //
@@ -212,6 +213,6 @@ describe('Pwindow', function () {
         // assert_equals(
         //     'pwindow.get_position_quadruplet(notes[3], 0)', '[288, 0, 384, 64]'
         // );
-    });
+    }));
 });
 //# sourceMappingURL=index.js.map

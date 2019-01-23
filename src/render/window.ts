@@ -10,8 +10,8 @@ export namespace window {
         messenger: m.Messenger;
         clips: c.Clip[];
         beats_per_measure: number;
-        parse_tree: TreeModel;
-        list_leaves_current: TreeModel.Node<Node>[];
+        root_parse_tree: TreeModel.Node<n.Note>;
+        list_leaves_current: TreeModel.Node<n.Note>[];
 
         constructor(height: number, width: number, messenger: m.Messenger) {
             this.height = height;
@@ -20,7 +20,7 @@ export namespace window {
             this.clips = [];
             // this.grans_per_measure = 24; // sixteenth and sixteenth triplets quantization
             this.beats_per_measure = 4;
-            this.parse_tree = null;
+            this.root_parse_tree = null;
             this.list_leaves_current = null;
             // need to count number of measures in clip
             // then multiply that by 24 = granule/measure
@@ -48,10 +48,10 @@ export namespace window {
 
             // TODO: determine how to get the index of the clip from just depth of the node
 
-            dist_from_left_beat_start = this.get_dist_from_left(node.data.beat_start);
-            dist_from_left_beat_end = this.get_dist_from_left(node.data.beat_start + node.data.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.data.pitch, index_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.data.pitch - 1, index_clip);
+            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
+            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, index_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, index_clip);
 
             return [
                 dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
@@ -64,40 +64,43 @@ export namespace window {
             this.clips.push(clip);
             if (this.clips.length === 1) {
                 // TODO: fix this, we're assuming the first clip has only the root note for now
-                // if (notes_parents === null) {
-                //     this.parse_tree = new tr.Tree(null, notes_parents[0]);
-                //     return notes_parents;
-                // }
-                // this.parse_tree = new tr.Tree(null, clip.get_notes()[0]);
-                this.parse_tree = clip.get_notes()[0];
-                this.list_leaves_current = [this.parse_tree];
+                let tree: TreeModel = new TreeModel();
+                this.root_parse_tree = tree.parse(
+                    {
+                        id: -1, // TODO: hashing scheme for clip id and beat start
+                        note: clip.get_notes()[0],
+                        children: []
+                    }
+                );
+                this.list_leaves_current = [
+                    this.root_parse_tree
+                ];
                 return
             }
             var notes_parent = this.list_leaves_current;
             var notes_child = clip.get_notes();
-            // l.log(notes_child);
             var notes_diff = this.get_diff_notes(notes_parent, notes_child);
             var notes_parent_diff = notes_diff['parent'];
             var notes_child_diff = notes_diff['child'];
-            this.list_leaves_current = this._add_layer(notes_parent_diff, notes_child_diff);
+            this.list_leaves_current = this.add_layer(notes_parent_diff, notes_child_diff);
         };
 
         // TODO: complete return signature
         get_diff_notes(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]) {
             let same_start, same_duration, notes_parent_diff, notes_child_diff, index_start_diff, index_end_diff;
 
-            for (var i=0; i < notes_child.length; i++) {
-                same_start = (notes_child[i].data.beat_start === notes_parent[i].data.beat_start);
-                same_duration = (notes_child[i].data.beats_duration === notes_parent[i].data.beats_duration);
+            for (let i=0; i < notes_child.length; i++) {
+                same_start = (notes_child[i].model.note.beat_start === notes_parent[i].model.note.beat_start);
+                same_duration = (notes_child[i].model.note.beats_duration === notes_parent[i].model.note.beats_duration);
                 if (!(same_start && same_duration)) {
                     index_start_diff = i;
                     break;
                 }
             }
 
-            for (i=-1; i > -1 * (notes_child.length + 1); i--) {
-                same_start = (notes_child.slice(i)[0].data.beat_start === notes_parent.slice(i)[0].data.beat_start);
-                same_duration = (notes_child.slice(i)[0].data.beats_duration === notes_parent.slice(i)[0].data.beats_duration);
+            for (let i=-1; i > -1 * (notes_child.length + 1); i--) {
+                same_start = (notes_child.slice(i)[0].model.note.beat_start === notes_parent.slice(i)[0].model.note.beat_start);
+                same_duration = (notes_child.slice(i)[0].model.note.beats_duration === notes_parent.slice(i)[0].model.note.beats_duration);
                 if (!(same_start && same_duration)) {
                     index_end_diff = i;
                     break;
@@ -125,38 +128,42 @@ export namespace window {
 
         // TODO: how do we render when there is no singular root (i.e. parsing, not sampling, sentence)?
         get_messages_render_tree() {
-            // iterator = ....  callback that sends messages to draw line segments using node.data.start_beat and node.depth
-            // this.tree.traverseDown(iterator)
-
             var messages = [];
 
-            // function iterator (node) {
-            //     var pixel_coord_centroid_child, pixel_coord_centroid_parent;
-            //     if (node.parent !== null) {
-            //         pixel_coord_centroid_parent = this.get_centroid(node.parent);
-            //         pixel_coord_centroid_child = this.get_centroid(node);
-            //
-            //         messages.push([
-            //             "linesegment",
-            //             pixel_coord_centroid_child[0],
-            //             pixel_coord_centroid_child[1],
-            //             pixel_coord_centroid_parent[0],
-            //             pixel_coord_centroid_parent[1]
-            //         ])
-            //     }
-            //
-            // }
+            this.root_parse_tree.walk((node)=>{
+                if (node.hasChildren()) {
+                    for (let child in node.children) {
+                        messages.push([
+                            "linesegment",
+                            this.get_centroid(child)[0],
+                            this.get_centroid(child)[1],
+                            this.get_centroid(node)[0],
+                            this.get_centroid(node)[1]
+                        ])
+                    }
+                }
 
-            // TODO: store all roots of trees
-
-            // var nodesGt100 = root.all(function (node) {
-            //     return node.model.id > 100;
-            // });
-
-            this.parse_tree.root.walk(function (node) {
-                // Halt the traversal by returning false
-                if (node.model.id === 121) return false;
+                return true;
             });
+
+            // isRoot(): boolean;
+            // hasChildren(): boolean;
+            // addChild(child: Node<T>): Node<T>;
+            // addChildAtIndex(child: Node<T>, index: number): Node<T>;
+            // setIndex(index: number): Node<T>;
+            // getPath(): Array<Node<T>>;
+            // getIndex(): number;
+            //
+            // walk(options: Options, fn: NodeVisitorFunction<T>, ctx?: object): void;
+            // walk(fn: NodeVisitorFunction<T>, ctx?: object): void;
+            //
+            // all(options: Options, fn: NodeVisitorFunction<T>, ctx?: object): Array<Node<T>>;
+            // all(fn: NodeVisitorFunction<T>, ctx?: object): Array<Node<T>>;
+            //
+            // first(options: Options, fn: NodeVisitorFunction<T>, ctx?: object): Node<T> | undefined;
+            // first(fn: NodeVisitorFunction<T>, ctx?: object): Node<T> | undefined;
+            //
+            // drop(): Node<T>;
 
             // this.parse_tree.traverseDown(iterator.bind(this));
 
@@ -172,16 +179,17 @@ export namespace window {
             //     return notes_parents;
             // }
 
-            var note_parent_best, b_successful, note_child;
+            var note_parent_best, b_successful;
 
             var num_successes = 0;
 
-            for (var i = 0; i < notes_child.length; i++) {
-                note_child = notes_child[i];
-                note_parent_best = note_child.data.get_best_candidate(notes_parent);
-                b_successful = note_child.data.choose();
+            let testing = 1;
+
+            for (let node of notes_child) {
+                note_parent_best = node.model.note.get_best_candidate(notes_parent);
+                b_successful = node.model.note.choose();
                 if (b_successful) {
-                    note_parent_best.appendChild(note_child);
+                    note_parent_best.addChild(node);
                     num_successes += 1;
                 }
             }
@@ -207,32 +215,30 @@ export namespace window {
         // TODO: return signature
         get_messages_render_clips()  {
             var messages = [];
-            for (var j = 0; j < this.clips.length; j++) {
-                messages = messages.concat(this.get_messages_render_notes(j))
+            for (let index_clip in this.clips) {
+                messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
             }
             return messages;
         };
 
         get_messages_render_notes(index_clip: number) {
             var clip = this.clips[index_clip];
-            var i, notes, quadruplets;
-            quadruplets = [];
-            notes = clip.get_notes();
-            for (i = 0; i < notes.length; i++) {
-                quadruplets.push(this.get_position_quadruplet(notes[i], index_clip));
+            let quadruplets = [];
+            for (let node of clip.get_notes()) {
+                quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {
                 return ["paintrect"].concat(tuplet)
             })
         };
 
-        get_position_quadruplet(note: n.Note, index_clip: number) {
+        get_position_quadruplet(node: TreeModel.Node<n.Note>, index_clip: number) {
             var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
 
-            dist_from_left_beat_start = this.get_dist_from_left(note.data.beat_start);
-            dist_from_left_beat_end = this.get_dist_from_left(note.data.beat_start + note.data.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(note.data.pitch, index_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(note.data.pitch - 1, index_clip);
+            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
+            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.pitch, index_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, index_clip);
 
             return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom]
         };
@@ -268,129 +274,4 @@ export namespace window {
             return this.clips[index_clip].get_ambitus();
         };
     }
-}
-
-function test() {
-
-    function assert(statement) {
-        if (!eval(statement)) {
-            throw statement
-        }
-    }
-
-    // NB: assume latter is desired value
-    function assert_equals(outcome, expectation) {
-        var statement = 'JSON.stringify(' + outcome + ') === JSON.stringify(' + expectation + ')';
-        if (!eval(statement)) {
-            // throw statement
-            l.log('FAILED: ' + outcome + ' === ' + expectation);
-            l.log('expected ' + expectation + ' got ' + eval(outcome));
-        } else {
-            l.log('PASSED: '  + outcome + ' === ' + expectation)
-        }
-    }
-
-    // TODO: stub the quarter note ascending major scale line
-    // TODO: figure out how to run entire test suite automatically
-
-    var index_track_test = 12;
-    var index_clip_slot_test = 0;
-    var deferlow = false;
-
-    var clip = new c.Clip(index_track_test, index_clip_slot_test, 0, deferlow);
-
-    clip.load_notes();
-
-    var test = 16 * 6 * 4;
-    var pwindow = new Pwindow(test, test);
-
-    pwindow.add_clip(clip);
-
-    pwindow.render_clips();
-
-    var notes = clip.get_notes();
-
-    assert_equals(
-        'pwindow.get_height_note(0)',
-        '64'
-    );
-
-    assert_equals(
-        'pwindow.get_position_quadruplet(notes[0], 0)', '[0, 320, 96, 384]'
-    );
-
-    assert_equals(
-        'pwindow.get_position_quadruplet(notes[1], 0)', '[96, 192, 192, 256]'
-    );
-
-    assert_equals(
-        'pwindow.get_position_quadruplet(notes[2], 0)', '[192, 64, 288, 128]'
-    );
-
-    assert_equals(
-        'pwindow.get_position_quadruplet(notes[3], 0)', '[288, 0, 384, 64]'
-    );
-}
-
-var index_track_1 = 12; // bottom
-var index_track_2 = 13;
-var index_track_3 = 14;
-var index_track_4 = 15; // top
-
-var index_clip_slot_universal = 0;
-
-function test_2() {
-
-    function assert(statement) {
-        if (!eval(statement)) {
-            throw statement
-        }
-    }
-
-    // NB: assume latter is desired value
-    function assert_equals(outcome, expectation) {
-        var statement = 'JSON.stringify(' + outcome + ') === JSON.stringify(' + expectation + ')';
-        if (!eval(statement)) {
-            // throw statement
-            l.log('FAILED: ' + outcome + ' === ' + expectation);
-            l.log('expected ' + expectation + ' got ' + eval(outcome));
-        } else {
-            l.log('PASSED: '  + outcome + ' === ' + expectation)
-        }
-    }
-
-    // var path_clip_1 = "live_set tracks " + index_track_1 + " clip_slots 0 clip";
-    // var path_clip_2 = "live_set tracks " + index_track_2 + " clip_slots 0 clip";
-    // var path_clip_3 = "live_set tracks " + index_track_3 + " clip_slots 0 clip";
-    // var path_clip_4 = "live_set tracks " + index_track_4 + " clip_slots 0 clip";
-
-    var deferlow = false;
-
-    var int_outlet = 0;
-
-    var messenger = m.Messenger('max', int_outlet);
-
-    var clip_1 = new c.Clip(cd.ClipDao(index_track_1, index_clip_slot_universal, messenger, deferlow));
-    var clip_2 = new c.Clip(cd.ClipDao(index_track_2, index_clip_slot_universal, messenger, deferlow));
-    var clip_3 = new c.Clip(cd.ClipDao(index_track_3, index_clip_slot_universal, messenger, deferlow));
-    var clip_4 = new c.Clip(cd.ClipDao(index_track_4, index_clip_slot_universal, messenger, deferlow));
-
-    clip_1.load_notes();
-    clip_2.load_notes();
-    clip_3.load_notes();
-    clip_4.load_notes();
-
-    // 16 beats
-    // 24 grans
-    // 6 grans per beat
-    var test = 16 * 6 * 4;
-    var pwindow = new Pwindow(test, test);
-
-    pwindow.add_clip(clip_1);
-    pwindow.add_clip(clip_2);
-    pwindow.add_clip(clip_3);
-    pwindow.add_clip(clip_4);
-
-    pwindow.render_clips();
-    pwindow.render_tree();
 }

@@ -9,8 +9,8 @@ export declare namespace window {
         messenger: m.Messenger;
         clips: c.Clip[];
         beats_per_measure: number;
-        parse_tree: TreeModel;
-        list_leaves_current: TreeModel.Node<Node>[];
+        root_parse_tree: TreeModel.Node<n.Note>;
+        list_leaves_current: TreeModel.Node<n.Note>[];
         constructor(height: number, width: number, messenger: m.Messenger);
         get_num_measures_clip(): number;
         get_centroid(node: TreeModel.Node<n.Note>): number[];
@@ -24,8 +24,8 @@ export declare namespace window {
         private add_layer;
         render_clips(): void;
         get_messages_render_clips(): any[];
-        get_messages_render_notes(index_clip: number): any;
-        get_position_quadruplet(note: n.Note, index_clip: number): any[];
+        get_messages_render_notes(index_clip: number): string[][];
+        get_position_quadruplet(node: TreeModel.Node<n.Note>, index_clip: number): any[];
         get_dist_from_top(pitch: number, index_clip: number): number;
         beat_to_pixel: (beat: number) => number;
         get_dist_from_left(beat: number): number;

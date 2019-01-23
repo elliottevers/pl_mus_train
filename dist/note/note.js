@@ -40,7 +40,7 @@ var note;
             beats_max_overlap = 0;
             for (var _i = 0, list_candidate_note_1 = list_candidate_note; _i < list_candidate_note_1.length; _i++) {
                 var candidate_note = list_candidate_note_1[_i];
-                beats_overlap = Note.get_overlap_beats(this.beat_start, this.beat_start + this.beats_duration, candidate_note.data.beat_start, candidate_note.data.beat_start + candidate_note.data.beats_duration);
+                beats_overlap = Note.get_overlap_beats(this.beat_start, this.beat_start + this.beats_duration, candidate_note.model.note.beat_start, candidate_note.model.note.beat_start + candidate_note.model.note.beats_duration);
                 if (beats_overlap > beats_max_overlap) {
                     beats_max_overlap = beats_overlap;
                     list_candidate_note_max_overlap = [];
@@ -50,9 +50,9 @@ var note;
                 }
             }
             function compare(note_former, note_latter) {
-                if (note_former.data.beat_start < note_latter.data.beat_start)
+                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
                     return -1;
-                if (note_former.data.beat_start > note_latter.data.beat_start)
+                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
                     return 1;
                 return 0;
             }
@@ -60,9 +60,9 @@ var note;
             return list_candidate_note_max_overlap[0];
         };
         Note.prototype.choose = function () {
-            if (this._b_has_chosen) {
+            if (!this._b_has_chosen) {
                 // tree.children[0].appendChild(left_left).appendChild(left_right);
-                // note_parent.appendChild(this);
+                // note_parent.addChild(this);
                 this._b_has_chosen = true;
                 return true;
             }

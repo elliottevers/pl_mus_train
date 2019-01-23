@@ -26,8 +26,8 @@ var clip;
         Clip.prototype.get_pitch_max = function () {
             var pitch_max = 0;
             for (var note_2 in this.notes) {
-                if (note_2.model.data.pitch > pitch_max) {
-                    pitch_max = note_2.model.data.pitch;
+                if (note_2.model.note.pitch > pitch_max) {
+                    pitch_max = note_2.model.note.pitch;
                 }
             }
             return pitch_max;
@@ -36,8 +36,8 @@ var clip;
         Clip.prototype.get_pitch_min = function () {
             var pitch_min = 128;
             for (var note_3 in this.notes) {
-                if (note_3.model.data.pitch < pitch_min) {
-                    pitch_min = note_3.model.data.pitch;
+                if (note_3.model.note.pitch < pitch_min) {
+                    pitch_min = note_3.model.note.pitch;
                 }
             }
             return pitch_min;
@@ -116,15 +116,15 @@ var clip;
                     var tree = new TreeModel();
                     notes_parsed.push(tree.parse({
                         id: -1,
-                        data: new note_1.note.Note(pitch, beat_start, beats_duration, velocity, b_muted),
+                        note: new note_1.note.Note(pitch, beat_start, beats_duration, velocity, b_muted),
                         children: []
                     }));
                 }
             }
             function compare(note_former, note_latter) {
-                if (note_former.model.data.beat_start < note_latter.model.data.beat_start)
+                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
                     return -1;
-                if (note_former.model.data.beat_start > note_latter.model.data.beat_start)
+                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
                     return 1;
                 return 0;
             }

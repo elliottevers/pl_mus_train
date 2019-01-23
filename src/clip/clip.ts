@@ -41,8 +41,8 @@ export namespace clip {
             let pitch_max = 0;
 
             for (let note in this.notes) {
-                if (note.model.data.pitch > pitch_max) {
-                    pitch_max = note.model.data.pitch;
+                if (note.model.note.pitch > pitch_max) {
+                    pitch_max = note.model.note.pitch;
                 }
             }
 
@@ -54,8 +54,8 @@ export namespace clip {
             let pitch_min = 128;
 
             for (let note in this.notes) {
-                if (note.model.data.pitch < pitch_min) {
-                    pitch_min = note.model.data.pitch;
+                if (note.model.note.pitch < pitch_min) {
+                    pitch_min = note.model.note.pitch;
                 }
             }
 
@@ -170,7 +170,7 @@ export namespace clip {
                         tree.parse(
                             {
                                 id: -1, // TODO: hashing scheme for clip id and beat start
-                                data: new note.Note(
+                                note: new note.Note(
                                     pitch,
                                     beat_start,
                                     beats_duration,
@@ -187,9 +187,9 @@ export namespace clip {
             }
 
             function compare(note_former,note_latter) {
-                if (note_former.model.data.beat_start < note_latter.model.data.beat_start)
+                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
                     return -1;
-                if (note_former.model.data.beat_start > note_latter.model.data.beat_start)
+                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
                     return 1;
                 return 0;
             }

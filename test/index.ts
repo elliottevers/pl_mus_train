@@ -11,6 +11,7 @@ describe('tree', function () {
         //
         // let root = tree.parse({
         //     id: 1,
+        //     attribute_test: 'hello world',
         //     children: [
         //         {
         //             id: 11,
@@ -18,7 +19,7 @@ describe('tree', function () {
         //         },
         //         {
         //             id: 12,
-        //             children: [{id: 121, attribute_test: 'hello world'}, {id: 122}]
+        //             children: [{id: 121}, {id: 122}]
         //         },
         //         {
         //             id: 13
@@ -38,8 +39,8 @@ import {phrase as p} from "../src/phrase/phrase"
 import {message as m} from "../src/message/messenger"
 
 import {clip as c} from "../src/clip/clip"
-import {window} from "../src/render/window";
-import Pwindow = window.Pwindow;
+
+import {window as w} from "../src/render/window";
 
 
 describe('Phrase', ()=>{
@@ -197,7 +198,11 @@ describe('Pwindow', ()=>{
         clip_4.load_notes();
 
         var dim = 16 * 6 * 4;
-        var pwindow = new pw.Pwindow(dim, dim);
+        var pwindow = new w.Pwindow(
+            dim,
+            dim,
+            new m.Messenger('node', 0)
+        );
 
         pwindow.add_clip(clip_4);
         pwindow.add_clip(clip_3);
@@ -216,7 +221,7 @@ describe('Pwindow', ()=>{
         // let note_iterator = phrase.note_iterator;
     });
 
-    it("calculates centroids of a single clip correctly", ()=>{
+    it("calculates centroids of a single clip correctly", test(()=>{
 
         let stub_clip_dao = new c.ClipDao(
             0,
@@ -241,7 +246,7 @@ describe('Pwindow', ()=>{
 
         var dim = 16 * 6 * 4;
 
-        var pwindow = new Pwindow(
+        var pwindow = new w.Pwindow(
             dim,
             dim,
             new m.Messenger('node', 0)
@@ -249,7 +254,9 @@ describe('Pwindow', ()=>{
 
         pwindow.add_clip(clip);
 
-        let messages = pwindow.get_messages_render_tree();
+        // let messages = pwindow.get_messages_render_tree();
+
+        let messages = pwindow.get_messages_render_clips();
 
         let testing = 1;
 
@@ -277,6 +284,6 @@ describe('Pwindow', ()=>{
         // assert_equals(
         //     'pwindow.get_position_quadruplet(notes[3], 0)', '[288, 0, 384, 64]'
         // );
-    });
+    }));
 
 });
