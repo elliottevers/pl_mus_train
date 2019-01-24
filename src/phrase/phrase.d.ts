@@ -8,7 +8,7 @@ export declare namespace phrase {
         clip: c.clip.Clip;
         note_iterator: n.note.NoteIterator;
         constructor(beat_start: number, beat_end: number, clip: c.clip.Clip);
-        set_note_iterator(notes: TreeModel.Node<n.note.Note>, direction_forward: any): void;
+        set_note_iterator(notes: TreeModel.Node<n.note.Note>[], direction_forward: boolean): void;
         get_interval_beats(): number[];
     }
     class PhraseIterator {

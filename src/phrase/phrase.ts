@@ -4,6 +4,7 @@ import TreeModel = require("tree-model");
 
 // TODO: use namespaces better
 export namespace phrase {
+
     export class Phrase {
 
         beat_start: number;
@@ -15,10 +16,9 @@ export namespace phrase {
             this.beat_start = beat_start;
             this.beat_end = beat_end;
             this.clip = clip;
-            this.note_iterator = null;
         }
 
-        public set_note_iterator(notes: TreeModel.Node<n.note.Note>, direction_forward): void {
+        public set_note_iterator(notes: TreeModel.Node<n.note.Note>[], direction_forward: boolean): void {
             this.note_iterator = new n.note.NoteIterator(
                 notes,
                 direction_forward
@@ -43,7 +43,7 @@ export namespace phrase {
         public direction_forward: boolean;
         private i: number;
 
-        public current(): Phrase {
+        public current() {
             if (this.i > -1) {
                 return this.phrases[this.i];
             } else {

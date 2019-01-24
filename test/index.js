@@ -41,7 +41,18 @@ describe('Phrase', function () {
         // TODO: iterate twice and ensure that the result starts on beat 3
         // TODO: make clip DAO stub
         var messenger = new messenger_1.message.Messenger('node', 0);
-        var clip_dao = new clip_5.clip.ClipDao(0, 0, messenger, false);
+        var stub_live_api = {
+            get: function (property) { return 0; },
+            set: function (property, value) { },
+            call: function (func) {
+                var args = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    args[_i - 1] = arguments[_i];
+                }
+                return 0;
+            }
+        };
+        var clip_dao = new clip_5.clip.ClipDao(stub_live_api, messenger, false);
         sinon.stub(clip_dao, "get_start_marker").callsFake(function () {
             return 0;
         });
@@ -58,7 +69,6 @@ describe('Phrase', function () {
         // TODO: see why undefined
         // let note = note_iterator.next().value;
         // TODO: assert result starts on beat 3
-        // throw 'testing'
     }));
 });
 describe('PredictionPreprocessor', function () {

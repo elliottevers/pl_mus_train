@@ -22,6 +22,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 
+post('works!!!');
 
 let main = ()=>{
 

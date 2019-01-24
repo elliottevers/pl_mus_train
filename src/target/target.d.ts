@@ -1,10 +1,11 @@
-import n = require("../note/note");
-import p = require("../phrase/phrase");
+import TreeModel = require("tree-model");
+import { note as n } from "../note/note";
+import { phrase as p } from "../phrase/phrase";
 export declare namespace target {
     class Target {
-        note: n.note.Note;
-        phrase: p.phrase.Phrase;
-        constructor(note: n.note.Note, phrase: p.phrase.Phrase);
+        note: TreeModel.Node<n.Note>;
+        phrase: p.Phrase;
+        constructor(note: TreeModel.Node<n.Note>, phrase: p.Phrase);
         value(): number;
         get_note_interval_beats(): number[];
         get_phrase_interval_beats(): number[];
@@ -12,7 +13,7 @@ export declare namespace target {
         set_phrase_interval_beats(phrase_interval_beats: number[], reverse: boolean): void;
     }
     class TargetIterator {
-        phrase_iterator: p.phrase.PhraseIterator;
+        phrase_iterator: p.PhraseIterator;
         i: number;
         current: any;
         next(): {

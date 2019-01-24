@@ -57,7 +57,7 @@ export namespace note {
         }
 
         // TODO: add type of argument and return value
-        get_best_candidate(list_candidate_note)  {
+        get_best_candidate(list_candidate_note: TreeModel.Node<Note>[])  {
             let beats_overlap, beats_max_overlap, list_candidate_note_max_overlap;
 
             list_candidate_note_max_overlap = [];
@@ -79,7 +79,7 @@ export namespace note {
                 }
             }
 
-            function compare(note_former,note_latter) {
+            function compare(note_former: TreeModel.Node<Note>, note_latter: TreeModel.Node<Note>) {
                 if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
                     return -1;
                 if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
@@ -106,11 +106,11 @@ export namespace note {
 
     export class NoteIterator {
 
-        private notes: TreeModel.Node<Note>;
+        private notes: TreeModel.Node<Note>[];
         public direction_forward: boolean;
         private i: number;
 
-        constructor(notes: TreeModel.Node<Note>, direction_forward: boolean) {
+        constructor(notes: TreeModel.Node<Note>[], direction_forward: boolean) {
                 this.notes = notes;
                 this.direction_forward = direction_forward;
                 this.i = -1;

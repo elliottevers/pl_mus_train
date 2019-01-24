@@ -1,5 +1,6 @@
-import n = require("../note/note");
-import p = require("../phrase/phrase");
+import TreeModel = require("tree-model");
+import {note as n} from "../note/note"
+import {phrase as p} from "../phrase/phrase"
 
 
 export namespace target {
@@ -7,10 +8,10 @@ export namespace target {
     let min_width_clip = 0.25;
 
     export class Target {
-        note: n.note.Note;
-        phrase: p.phrase.Phrase;
+        note: TreeModel.Node<n.Note>;
+        phrase: p.Phrase;
 
-        constructor(note: n.note.Note, phrase: p.phrase.Phrase) {
+        constructor(note: TreeModel.Node<n.Note>, phrase: p.Phrase) {
             this.note = note;
             this.phrase = phrase;
         }
@@ -59,9 +60,9 @@ export namespace target {
     }
 
     export class TargetIterator {
-        phrase_iterator: p.phrase.PhraseIterator;
+        phrase_iterator: p.PhraseIterator;
         i: number;
-        current;
+        current: any;
 
         // TODO: figure out how to annotate
         next() {
@@ -106,7 +107,9 @@ export namespace target {
 
         set_note_interval_beats(): void {
             // TODO: use direction in logic
-            var direction_forward = this.phrase_iterator.current().note_iterator.direction_forward;
+            if (this.phrase_iterator.current() !== null) {
+                var direction_forward = this.phrase_iterator.current().note_iterator.direction_forward;
+            }
             var reverse;
             var note_interval = this.current.get_note_interval_beats();
 

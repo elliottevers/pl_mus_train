@@ -53,7 +53,13 @@ describe('Phrase', ()=>{
 
         let messenger = new m.Messenger('node', 0);
 
-        let clip_dao = new c.ClipDao(0, 0, messenger, false);
+        let stub_live_api = {
+            get: (property: string): any => {return 0},
+            set: (property: string, value: any): void => {},
+            call: (func: string,  ...args: any[]): any => {return 0}
+        };
+
+        let clip_dao = new c.ClipDao(stub_live_api, messenger, false);
 
         sinon.stub(clip_dao, "get_start_marker").callsFake(() => {
             return 0;
@@ -83,8 +89,6 @@ describe('Phrase', ()=>{
         // let note = note_iterator.next().value;
 
         // TODO: assert result starts on beat 3
-
-        // throw 'testing'
 
     }));
 });

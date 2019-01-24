@@ -1,9 +1,12 @@
+declare function outlet(n: number, o: any): void;
+
 export namespace message {
 
     // TODO: the following
     // type Env = 'max' | 'node';
 
     export class Messenger {
+
 
         private env: string;
 

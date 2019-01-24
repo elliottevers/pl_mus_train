@@ -1,1 +1,0 @@
-browserify ./dist/${JS_OBJ_MAX_EXPORT}.js > ./max/export/${JS_OBJ_MAX_EXPORT}.js && echo >> ./max/export/${JS_OBJ_MAX_EXPORT}.js && cat ./max/postprocess/define_interface/${JS_OBJ_MAX_EXPORT}.js >> ./max/export/${JS_OBJ_MAX_EXPORT}.js

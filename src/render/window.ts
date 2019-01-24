@@ -62,27 +62,28 @@ export namespace window {
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         add_clip(clip: c.Clip): void {
             this.clips.push(clip);
-            // if (this.clips.length === 1) {
-            //     // TODO: fix this, we're assuming the first clip has only the root note for now
-            //     let tree: TreeModel = new TreeModel();
-            //     this.root_parse_tree = tree.parse(
-            //         {
-            //             id: -1, // TODO: hashing scheme for clip id and beat start
-            //             note: clip.get_notes()[0],
-            //             children: []
-            //         }
-            //     );
-            //     this.list_leaves_current = [
-            //         this.root_parse_tree
-            //     ];
-            //     return
-            // }
-            // var notes_parent = this.list_leaves_current;
-            // var notes_child = clip.get_notes();
-            // var notes_diff = this.get_diff_notes(notes_parent, notes_child);
-            // var notes_parent_diff = notes_diff['parent'];
-            // var notes_child_diff = notes_diff['child'];
-            // this.list_leaves_current = this.add_layer(notes_parent_diff, notes_child_diff);
+            if (this.clips.length === 1) {
+                // TODO: fix this, we're assuming the first clip has only the root note for now
+                // let tree: TreeModel = new TreeModel();
+                // this.root_parse_tree = tree.parse(
+                //     {
+                //         id: -1, // TODO: hashing scheme for clip id and beat start
+                //         note: clip.get_notes()[0],
+                //         children: []
+                //     }
+                // );
+                this.root_parse_tree = clip.get_notes()[0];
+                this.list_leaves_current = [
+                    this.root_parse_tree
+                ];
+                return
+            }
+            var notes_parent: TreeModel.Node<n.Note>[] = this.list_leaves_current;
+            var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes();
+            var notes_diff = this.get_diff_notes(notes_parent, notes_child);
+            var notes_parent_diff = notes_diff['parent'];
+            var notes_child_diff = notes_diff['child'];
+            this.list_leaves_current = this.add_layer(notes_parent_diff, notes_child_diff);
         };
 
         // TODO: complete return signature
@@ -110,6 +111,7 @@ export namespace window {
             notes_parent_diff = notes_parent.slice(index_start_diff, notes_parent.length + 1 - index_end_diff);
             notes_child_diff = notes_child.slice(index_start_diff, notes_child.length + 1 - index_end_diff);
 
+            // TODO: write signature
             return {
                 'parent': notes_parent_diff,
                 'child': notes_child_diff
@@ -132,7 +134,7 @@ export namespace window {
 
             this.root_parse_tree.walk((node)=>{
                 if (node.hasChildren()) {
-                    for (let child in node.children) {
+                    for (let child of node.children) {
                         messages.push([
                             "linesegment",
                             this.get_centroid(child)[0],
@@ -182,8 +184,6 @@ export namespace window {
             var note_parent_best, b_successful;
 
             var num_successes = 0;
-
-            let testing = 1;
 
             for (let node of notes_child) {
                 note_parent_best = node.model.note.get_best_candidate(notes_parent);

@@ -8,7 +8,7 @@
   },
   "betterScripts": {
     "to_max": {
-      "command": "./build_object.sh",
+      "command": "./build_object_max.sh",
       "env":{
         "JS_OBJ_MAX_EXPORT": "renderer"
       }

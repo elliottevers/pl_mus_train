@@ -1,3 +1,5 @@
+declare let LiveAPI: any;
+
 export namespace live {
 
     export interface iLiveApiJs {

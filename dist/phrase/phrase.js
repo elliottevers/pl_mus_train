@@ -9,7 +9,6 @@ var phrase;
             this.beat_start = beat_start;
             this.beat_end = beat_end;
             this.clip = clip;
-            this.note_iterator = null;
         }
         Phrase.prototype.set_note_iterator = function (notes, direction_forward) {
             this.note_iterator = new n.note.NoteIterator(notes, direction_forward);
