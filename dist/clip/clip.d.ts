@@ -1,4 +1,5 @@
 import TreeModel = require("tree-model");
+import { live } from "../live/live";
 export declare namespace clip {
     class Clip {
         private clip_dao;
@@ -21,16 +22,11 @@ export declare namespace clip {
         private _get_notes;
         private static _parse_notes;
     }
-    interface implementsLiveAPI {
-        get(): any;
-        set(): void;
-        call(): void;
-    }
     class ClipDao {
         private clip_live;
         private messenger;
         private deferlow;
-        constructor(clip_live: implementsLiveAPI, messenger: any, deferlow: boolean);
+        constructor(clip_live: live.iLiveApiJs, messenger: any, deferlow: boolean);
         get_end_marker(): number;
         get_start_marker(): number;
         set_loop_bracket_lower(beat: number): void;

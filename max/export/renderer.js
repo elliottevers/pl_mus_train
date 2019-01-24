@@ -143,11 +143,14 @@ var clip;
     }());
     clip.Clip = Clip;
     var ClipDao = /** @class */ (function () {
-        function ClipDao(index_track, index_clip_slot, messenger, deferlow) {
-            var path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-            this.clip_live = new LiveAPI(null, path);
+        // how to implement LiveAPI - get, set, call
+        function ClipDao(clip_live, messenger, deferlow) {
+            // let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+            // this.clip_live = new LiveAPI(null, path);
+            this.clip_live = clip_live;
             this.messenger = messenger;
             this.deferlow = deferlow;
+            // post(clip_live.get);
         }
         // TODO: check if these actually return arrays
         ClipDao.prototype.get_end_marker = function () {
@@ -216,7 +219,36 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../note/note":4,"tree-model":9}],2:[function(require,module,exports){
+},{"../note/note":5,"tree-model":10}],2:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var live;
+(function (live) {
+    var LiveApiJs = /** @class */ (function () {
+        function LiveApiJs(index_track, index_clip_slot) {
+            var path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+            this.live_api = new LiveAPI(null, path);
+        }
+        LiveApiJs.prototype.get = function (property) {
+            return this.live_api.get(property);
+        };
+        LiveApiJs.prototype.set = function (property, value) {
+            this.live_api.set(property, value);
+        };
+        LiveApiJs.prototype.call = function (func) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            var _a;
+            return (_a = this.live_api).call.apply(_a, [func].concat(args));
+        };
+        return LiveApiJs;
+    }());
+    live.LiveApiJs = LiveApiJs;
+})(live = exports.live || (exports.live = {}));
+
+},{}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var log;
@@ -291,7 +323,7 @@ var log;
     log.Logger = Logger;
 })(log = exports.log || (exports.log = {}));
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
@@ -325,7 +357,7 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note;
@@ -440,7 +472,7 @@ var note;
     note.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var window;
@@ -688,7 +720,7 @@ var window;
     window.Pwindow = Pwindow;
 })(window = exports.window || (exports.window = {}));
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_5 = require("./clip/clip");
@@ -696,6 +728,7 @@ var messenger_1 = require("./message/messenger");
 // const sinon = require("sinon");
 var window_1 = require("./render/window");
 var logger_1 = require("./log/logger");
+var live_1 = require("./live/live");
 // let env: string = process.argv[2];
 // TODO: handle better - if set to max, can't run in node, but can compile TypeScript to max object
 // if we switch from node execution to max execution, will max have stopped watching?
@@ -703,9 +736,73 @@ var env = 'max';
 if (env === 'max') {
     autowatch = 1;
 }
+// post('compiled');
+// post('\n');
 var main = function () {
+    // var clip_1 = new c.Clip(new cd.ClipDao(index_track_1, index_clip_slot_universal, messenger, deferlow));
+    // let b_stub_live_api: boolean = false;
+    var live_api_1, live_api_2, live_api_3, live_api_4;
+    // get(property: string): any;
+    // set(property: string, value: any): void;
+    // call(func: string): void;
+    if (env === 'node') {
+        live_api_1 = {
+            get: function (property) { return 0; },
+            set: function (property, value) { },
+            call: function (func) {
+                var args = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    args[_i - 1] = arguments[_i];
+                }
+                return 0;
+            }
+        };
+        live_api_2 = {
+            get: function (property) { return 0; },
+            set: function (property, value) { },
+            call: function (func) {
+                var args = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    args[_i - 1] = arguments[_i];
+                }
+                return 0;
+            }
+        };
+        live_api_3 = {
+            get: function (property) { return 0; },
+            set: function (property, value) { },
+            call: function (func) {
+                var args = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    args[_i - 1] = arguments[_i];
+                }
+                return 0;
+            }
+        };
+        live_api_4 = {
+            get: function (property) { return 0; },
+            set: function (property, value) { },
+            call: function (func) {
+                var args = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    args[_i - 1] = arguments[_i];
+                }
+                return 0;
+            }
+        };
+    }
+    else {
+        live_api_1 = new live_1.live.LiveApiJs(15, 0);
+        live_api_2 = new live_1.live.LiveApiJs(14, 0);
+        live_api_3 = new live_1.live.LiveApiJs(13, 0);
+        live_api_4 = new live_1.live.LiveApiJs(12, 0);
+    }
+    // post('before test');
+    // let test = live_api_1.get("end_marker");
+    // post(test);
+    // post('after test');
     // clip 1
-    var clip_dao_1 = new clip_5.clip.ClipDao(15, 0, new messenger_1.message.Messenger(env, 0), false);
+    var clip_dao_1 = new clip_5.clip.ClipDao(live_api_1, new messenger_1.message.Messenger(env, 0), false);
     // sinon.stub(clip_dao_1, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
@@ -716,7 +813,7 @@ var main = function () {
     //     return ["notes",1,"note",50,0,4,127,0,"done"]
     // });
     // clip 2
-    var clip_dao_2 = new clip_5.clip.ClipDao(14, 0, new messenger_1.message.Messenger(env, 0), false);
+    var clip_dao_2 = new clip_5.clip.ClipDao(live_api_2, new messenger_1.message.Messenger(env, 0), false);
     // sinon.stub(clip_dao_2, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
@@ -727,7 +824,7 @@ var main = function () {
     //     return ["notes",2,"note",50,0,2,127,0,"note",54,2,2,127,0,"done"]
     // });
     // clip 3
-    var clip_dao_3 = new clip_5.clip.ClipDao(13, 0, new messenger_1.message.Messenger(env, 0), false);
+    var clip_dao_3 = new clip_5.clip.ClipDao(live_api_3, new messenger_1.message.Messenger(env, 0), false);
     // sinon.stub(clip_dao_3, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
@@ -738,7 +835,7 @@ var main = function () {
     //     return ["notes",3,"note",50,0,1,127,0,"note",52,1,1,127,0,"note",54,2,2,127,0,"done"]
     // });
     // clip 4
-    var clip_dao_4 = new clip_5.clip.ClipDao(12, 0, new messenger_1.message.Messenger(env, 0), false);
+    var clip_dao_4 = new clip_5.clip.ClipDao(live_api_4, new messenger_1.message.Messenger(env, 0), false);
     // sinon.stub(clip_dao_4, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
@@ -767,15 +864,17 @@ var main = function () {
     for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {
         var message = messages_1[_i];
         logger.log(message);
-        outlet(0, message);
+        logger.log('hello');
+        // outlet(0, message);
     }
 };
 if (typeof Global !== "undefined") {
     Global.renderer = {};
     Global.renderer.main = main;
 }
+main();
 
-},{"./clip/clip":1,"./log/logger":2,"./message/messenger":3,"./render/window":5}],7:[function(require,module,exports){
+},{"./clip/clip":1,"./live/live":2,"./log/logger":3,"./message/messenger":4,"./render/window":6}],8:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -799,7 +898,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -851,7 +950,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -1144,6 +1243,6 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":7,"mergesort":8}]},{},[6]);
+},{"find-insert-index":8,"mergesort":9}]},{},[7]);
 
 var main = Global.renderer.main;

@@ -10,6 +10,8 @@ import {message as m} from "./message/messenger";
 // const sinon = require("sinon");
 import {window as w} from "./render/window";
 import {log} from "./log/logger";
+import {live as li} from "./live/live"
+
 
 // let env: string = process.argv[2];
 // TODO: handle better - if set to max, can't run in node, but can compile TypeScript to max object
@@ -20,9 +22,58 @@ if (env === 'max') {
     autowatch = 1;
 }
 
+
 let main = ()=>{
+
+    // var clip_1 = new c.Clip(new cd.ClipDao(index_track_1, index_clip_slot_universal, messenger, deferlow));
+
+    // let b_stub_live_api: boolean = false;
+
+    let live_api_1, live_api_2, live_api_3, live_api_4;
+
+    // get(property: string): any;
+    // set(property: string, value: any): void;
+    // call(func: string): void;
+
+    if (env === 'node') {
+        live_api_1 = {
+            get: (property: string): any => {return 0},
+            set: (property: string, value: any): void => {},
+            call: (func: string,  ...args: any[]): any => {return 0}
+        };
+        live_api_2 = {
+            get: (property: string) => {return 0},
+            set: (property: string, value: any): void => {},
+            call: (func: string,  ...args: any[]): any => {return 0}
+        };
+        live_api_3 = {
+            get: (property: string) => {return 0},
+            set: (property: string, value: any): void => {},
+            call: (func: string,  ...args: any[]): any => {return 0}
+        };
+        live_api_4 = {
+            get: (property: string) => {return 0},
+            set: (property: string, value: any): void => {},
+            call: (func: string,  ...args: any[]): any => {return 0}
+        };
+    } else {
+        live_api_1 = new li.LiveApiJs(15, 0);
+        live_api_2 = new li.LiveApiJs(14, 0);
+        live_api_3 = new li.LiveApiJs(13, 0);
+        live_api_4 = new li.LiveApiJs(12, 0);
+    }
+
+    // post('before test');
+    // let test = live_api_1.get("end_marker");
+    // post(test);
+    // post('after test');
+
     // clip 1
-    let clip_dao_1 = new c.ClipDao(15, 0, new m.Messenger(env, 0), false);
+    let clip_dao_1 = new c.ClipDao(
+        live_api_1,
+        new m.Messenger(env, 0),
+        false
+    );
     // sinon.stub(clip_dao_1, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
@@ -35,7 +86,11 @@ let main = ()=>{
 
 
     // clip 2
-    let clip_dao_2 = new c.ClipDao(14, 0, new m.Messenger(env, 0), false);
+    let clip_dao_2 = new c.ClipDao(
+        live_api_2,
+        new m.Messenger(env, 0),
+        false
+    );
     // sinon.stub(clip_dao_2, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
@@ -48,7 +103,11 @@ let main = ()=>{
 
 
     // clip 3
-    let clip_dao_3 = new c.ClipDao(13, 0, new m.Messenger(env, 0), false);
+    let clip_dao_3 = new c.ClipDao(
+        live_api_3,
+        new m.Messenger(env, 0),
+        false
+    );
     // sinon.stub(clip_dao_3, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
@@ -61,7 +120,11 @@ let main = ()=>{
 
 
     // clip 4
-    let clip_dao_4 = new c.ClipDao(12, 0, new m.Messenger(env, 0), false);
+    let clip_dao_4 = new c.ClipDao(
+        live_api_4,
+        new m.Messenger(env, 0),
+        false
+    );
     // sinon.stub(clip_dao_4, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
@@ -101,7 +164,6 @@ let main = ()=>{
 
     for (let message of messages) {
         logger.log(message);
-        outlet(0, message);
     }
 };
 

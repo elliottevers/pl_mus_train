@@ -1,7 +1,10 @@
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
+import {live} from "../live/live";
 
 export namespace clip {
+
+    import LiveApiJs = live.LiveApiJs;
 
     export class Clip {
 
@@ -28,12 +31,14 @@ export namespace clip {
 
         // TODO: annotations
         load_notes(): void {
-            this.notes = Clip._parse_notes(this._get_notes(
+            this.notes = Clip._parse_notes(
+                this._get_notes(
                 0,
                 0,
                 this.get_end_marker(),
                 128
-            ));
+                )
+            );
         }
 
         // TODO: annotations
@@ -206,12 +211,6 @@ export namespace clip {
         }
     }
 
-    interface implementsLiveAPI {
-        get(): any;
-        set(): void;
-        call(): void;
-    }
-
     export class ClipDao {
 
         private clip_live;
@@ -220,12 +219,13 @@ export namespace clip {
 
         // how to implement LiveAPI - get, set, call
 
-        constructor(clip_live: implementsLiveAPI, messenger, deferlow: boolean) {
+        constructor(clip_live: live.iLiveApiJs, messenger, deferlow: boolean) {
             // let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
             // this.clip_live = new LiveAPI(null, path);
             this.clip_live = clip_live;
             this.messenger = messenger;
             this.deferlow = deferlow;
+            // post(clip_live.get);
         }
 
         // TODO: check if these actually return arrays
