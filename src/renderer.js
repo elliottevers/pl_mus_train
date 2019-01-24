@@ -13,7 +13,6 @@ var env = 'max';
 if (env === 'max') {
     autowatch = 1;
 }
-post('works!!!');
 var main = function () {
     // var clip_1 = new c.Clip(new cd.ClipDao(index_track_1, index_clip_slot_universal, messenger, deferlow));
     // let b_stub_live_api: boolean = false;
@@ -131,10 +130,14 @@ var main = function () {
     clip_4.load_notes();
     var dim = 16 * 6 * 4;
     var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
-    pwindow.add_clip(clip_4);
-    pwindow.add_clip(clip_3);
-    pwindow.add_clip(clip_2);
+    // pwindow.add_clip(clip_4);
+    // pwindow.add_clip(clip_3);
+    // pwindow.add_clip(clip_2);
+    // pwindow.add_clip(clip_1);
     pwindow.add_clip(clip_1);
+    pwindow.add_clip(clip_2);
+    pwindow.add_clip(clip_3);
+    pwindow.add_clip(clip_4);
     var messages = pwindow.get_messages_render_clips();
     var logger = new logger_1.log.Logger(env);
     for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {

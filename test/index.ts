@@ -134,6 +134,8 @@ describe('Target', ()=>{
    it('iterates over both phrases and notes', ()=>{
        // TODO: make 2 phrase, each a measure long, consisting of quarter notes
        // TODO: iterate until the first note of the second phrase
+       // let index = [1,2,3,4].findIndex((int) => int === 3);
+       // assert.equal(index, 2);
    }) ;
 });
 
@@ -293,10 +295,35 @@ describe('Pwindow', test(()=>{
             new m.Messenger(env, 0)
         );
 
-        pwindow.add_clip(clip_4);
-        pwindow.add_clip(clip_3);
-        pwindow.add_clip(clip_2);
-        pwindow.add_clip(clip_1);
+        // pwindow.add_clip(clip_4);
+        // pwindow.add_clip(clip_3);
+        // pwindow.add_clip(clip_2);
+        // pwindow.add_clip(clip_1);
+//
+//         pwindow.add_clip(clip_1);
+//         pwindow.add_clip(clip_2);
+//         pwindow.add_clip(clip_3);
+//         pwindow.add_clip(clip_4);
+
+        pwindow.set_clip(clip_1);
+
+        pwindow.elaborate(
+            clip_2.get_notes()[1],
+            clip_2.get_notes()[1].model.note.beat_start,
+            clip_2.get_notes()[1].model.note.get_beat_end()
+        );
+
+        pwindow.elaborate(
+            clip_3.get_notes().slice(0, 2),
+            clip_3.get_notes().slice(0, 2)[0].model.note.beat_start,
+            clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end()
+        );
+
+        pwindow.elaborate(
+            clip_4.get_notes().slice(2, 4),
+            clip_4.get_notes().slice(2, 4)[0].model.note.beat_start,
+            clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end()
+        );
 
         let messages = pwindow.get_messages_render_tree();
 

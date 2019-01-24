@@ -52,8 +52,12 @@ export namespace note {
 
         }
 
+        get_beat_end():number {
+            return this.beat_start + this.beats_duration;
+        }
+
         get_interval_beats():number[] {
-            return [this.beat_start, this.beat_start + this.beats_duration];
+            return [this.beat_start, this.get_beat_end()];
         }
 
         // TODO: add type of argument and return value

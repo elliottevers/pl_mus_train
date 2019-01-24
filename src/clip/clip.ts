@@ -14,7 +14,7 @@ export namespace clip {
 
         constructor(clip_dao) {
             this.clip_dao = clip_dao;
-            this.notes = null;
+            // this.notes = null;
         }
 
         get_num_measures(): number {

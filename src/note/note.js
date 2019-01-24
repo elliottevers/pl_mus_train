@@ -30,8 +30,11 @@ var note;
             }
             throw 'case not considered';
         };
+        Note.prototype.get_beat_end = function () {
+            return this.beat_start + this.beats_duration;
+        };
         Note.prototype.get_interval_beats = function () {
-            return [this.beat_start, this.beat_start + this.beats_duration];
+            return [this.beat_start, this.get_beat_end()];
         };
         // TODO: add type of argument and return value
         Note.prototype.get_best_candidate = function (list_candidate_note) {

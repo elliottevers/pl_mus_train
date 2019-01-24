@@ -7,7 +7,7 @@ var clip;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
-            this.notes = null;
+            // this.notes = null;
         }
         Clip.prototype.get_num_measures = function () {
             return (this.get_end_marker() - this.get_start_marker()) / 4;

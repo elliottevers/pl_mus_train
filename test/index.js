@@ -108,6 +108,8 @@ describe('Target', function () {
     it('iterates over both phrases and notes', function () {
         // TODO: make 2 phrase, each a measure long, consisting of quarter notes
         // TODO: iterate until the first note of the second phrase
+        // let index = [1,2,3,4].findIndex((int) => int === 3);
+        // assert.equal(index, 2);
     });
 });
 describe('Pwindow', test(function () {
@@ -223,10 +225,19 @@ describe('Pwindow', test(function () {
         clip_4.load_notes();
         var dim = 16 * 6 * 4;
         var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
-        pwindow.add_clip(clip_4);
-        pwindow.add_clip(clip_3);
-        pwindow.add_clip(clip_2);
-        pwindow.add_clip(clip_1);
+        // pwindow.add_clip(clip_4);
+        // pwindow.add_clip(clip_3);
+        // pwindow.add_clip(clip_2);
+        // pwindow.add_clip(clip_1);
+        //
+        //         pwindow.add_clip(clip_1);
+        //         pwindow.add_clip(clip_2);
+        //         pwindow.add_clip(clip_3);
+        //         pwindow.add_clip(clip_4);
+        pwindow.set_clip(clip_1);
+        pwindow.elaborate(clip_2.get_notes()[1], clip_2.get_notes()[1].model.note.beat_start, clip_2.get_notes()[1].model.note.get_beat_end());
+        pwindow.elaborate(clip_3.get_notes().slice(0, 2), clip_3.get_notes().slice(0, 2)[0].model.note.beat_start, clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end());
+        pwindow.elaborate(clip_4.get_notes().slice(2, 4), clip_4.get_notes().slice(2, 4)[0].model.note.beat_start, clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end());
         var messages = pwindow.get_messages_render_tree();
         assert.deepEqual(messages[0], ['linesegment', 240, 312, 288, 201.6, 255, 0, 0]);
         assert.deepEqual(messages[1], ['linesegment', 336, 296, 288, 201.6, 255, 0, 0]);

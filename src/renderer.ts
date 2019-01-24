@@ -22,8 +22,6 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-post('works!!!');
-
 let main = ()=>{
 
     // var clip_1 = new c.Clip(new cd.ClipDao(index_track_1, index_clip_slot_universal, messenger, deferlow));
@@ -154,10 +152,15 @@ let main = ()=>{
         new m.Messenger(env, 0)
     );
 
-    pwindow.add_clip(clip_4);
-    pwindow.add_clip(clip_3);
-    pwindow.add_clip(clip_2);
+    // pwindow.add_clip(clip_4);
+    // pwindow.add_clip(clip_3);
+    // pwindow.add_clip(clip_2);
+    // pwindow.add_clip(clip_1);
+
     pwindow.add_clip(clip_1);
+    pwindow.add_clip(clip_2);
+    pwindow.add_clip(clip_3);
+    pwindow.add_clip(clip_4);
 
     let messages = pwindow.get_messages_render_clips();
 

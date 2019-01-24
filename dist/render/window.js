@@ -49,28 +49,28 @@ var window;
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         Pwindow.prototype.add_clip = function (clip) {
             this.clips.push(clip);
-            if (this.clips.length === 1) {
-                // TODO: fix this, we're assuming the first clip has only the root note for now
-                // let tree: TreeModel = new TreeModel();
-                // this.root_parse_tree = tree.parse(
-                //     {
-                //         id: -1, // TODO: hashing scheme for clip id and beat start
-                //         note: clip.get_notes()[0],
-                //         children: []
-                //     }
-                // );
-                this.root_parse_tree = clip.get_notes()[0];
-                this.list_leaves_current = [
-                    this.root_parse_tree
-                ];
-                return;
-            }
-            var notes_parent = this.list_leaves_current;
-            var notes_child = clip.get_notes();
-            var notes_diff = this.get_diff_notes(notes_parent, notes_child);
-            var notes_parent_diff = notes_diff['parent'];
-            var notes_child_diff = notes_diff['child'];
-            this.list_leaves_current = this.add_layer(notes_parent_diff, notes_child_diff);
+            // if (this.clips.length === 1) {
+            //     // TODO: fix this, we're assuming the first clip has only the root note for now
+            //     // let tree: TreeModel = new TreeModel();
+            //     // this.root_parse_tree = tree.parse(
+            //     //     {
+            //     //         id: -1, // TODO: hashing scheme for clip id and beat start
+            //     //         note: clip.get_notes()[0],
+            //     //         children: []
+            //     //     }
+            //     // );
+            //     this.root_parse_tree = clip.get_notes()[0];
+            //     this.list_leaves_current = [
+            //         this.root_parse_tree
+            //     ];
+            //     return
+            // }
+            // var notes_parent: TreeModel.Node<n.Note>[] = this.list_leaves_current;
+            // var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes();
+            // var notes_diff = this.get_diff_notes(notes_parent, notes_child);
+            // var notes_parent_diff = notes_diff['parent'];
+            // var notes_child_diff = notes_diff['child'];
+            // this.list_leaves_current = this.add_layer(notes_parent_diff, notes_child_diff);
         };
         ;
         // TODO: complete return signature
@@ -217,7 +217,7 @@ var window;
             var clip = this.clips[index_clip];
             var offset = index_clip;
             // TODO: make this configurable
-            if (true) {
+            if (false) {
                 offset = this.clips.length - 1 - index_clip;
             }
             var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(index_clip);
