@@ -19,7 +19,7 @@ var live;
                 args[_i - 1] = arguments[_i];
             }
             var _a;
-            (_a = this.live_api).call.apply(_a, [func].concat(args));
+            return (_a = this.live_api).call.apply(_a, [func].concat(args));
         };
         return LiveApiJs;
     }());

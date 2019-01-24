@@ -134,6 +134,178 @@ describe('Target', ()=>{
 });
 
 describe('Pwindow', test(()=>{
+
+    it('calculate rendering messages for tree correctly', test(()=>{
+        let env: string = 'node';
+
+        let stub1LiveAPI = {
+            get: () => {return 0},
+            set: () => {},
+            call: () => {}
+        };
+
+        // sinon.stub(stub1LiveAPI, "get").callsFake(() => {
+        //
+        // });
+        // sinon.stub(stub1LiveAPI, "set").callsFake(() => {
+        //
+        // });
+        // sinon.stub(stub1LiveAPI, "call").callsFake(() => {
+        //
+        // });
+
+        let stub2LiveAPI = {
+            get: () => {return 0},
+            set: () => {},
+            call: () => {}
+        };
+
+        // sinon.stub(stub2LiveAPI, "get").callsFake(() => {
+        //
+        // });
+        // sinon.stub(stub2LiveAPI, "set").callsFake(() => {
+        //
+        // });
+        // sinon.stub(stub2LiveAPI, "call").callsFake(() => {
+        //
+        // });
+
+        let stub3LiveAPI = {
+            get: () => {return 0},
+            set: () => {},
+            call: () => {}
+        };
+
+        // sinon.stub(stub3LiveAPI, "get").callsFake(() => {
+        //
+        // });
+        // sinon.stub(stub3LiveAPI, "set").callsFake(() => {
+        //
+        // });
+        // sinon.stub(stub3LiveAPI, "call").callsFake(() => {
+        //
+        // });
+
+        let stub4LiveAPI = {
+            get: () => {return 0},
+            set: () => {},
+            call: () => {}
+        };
+
+        // sinon.stub(stub4LiveAPI, "get").callsFake(() => {
+        //
+        // });
+        // sinon.stub(stub4LiveAPI, "set").callsFake(() => {
+        //
+        // });
+        // sinon.stub(stub4LiveAPI, "call").callsFake(() => {
+        //
+        // });
+
+        // clip 1
+        let clip_dao_1 = new c.ClipDao(
+            stub1LiveAPI,
+            new m.Messenger(env, 0),
+            false
+        );
+        sinon.stub(clip_dao_1, "get_start_marker").callsFake(() => {
+            return 0;
+        });
+        sinon.stub(clip_dao_1, "get_end_marker").callsFake(() => {
+            return 4;
+        });
+        sinon.stub(clip_dao_1, "get_notes").callsFake(() => {
+            return ["notes",1,"note",50,0,4,127,0,"done"]
+        });
+
+
+        // clip 2
+        let clip_dao_2 = new c.ClipDao(
+            stub2LiveAPI,
+            new m.Messenger(env, 0),
+            false
+        );
+        sinon.stub(clip_dao_2, "get_start_marker").callsFake(() => {
+            return 0;
+        });
+        sinon.stub(clip_dao_2, "get_end_marker").callsFake(() => {
+            return 4;
+        });
+        sinon.stub(clip_dao_2, "get_notes").callsFake(() => {
+            return ["notes",2,"note",50,0,2,127,0,"note",54,2,2,127,0,"done"]
+        });
+
+
+        // clip 3
+        let clip_dao_3 = new c.ClipDao(
+            stub3LiveAPI,
+            new m.Messenger(env, 0),
+            false
+        );
+
+        sinon.stub(clip_dao_3, "get_start_marker").callsFake(() => {
+            return 0;
+        });
+        sinon.stub(clip_dao_3, "get_end_marker").callsFake(() => {
+            return 4;
+        });
+        sinon.stub(clip_dao_3, "get_notes").callsFake(() => {
+            return ["notes",3,"note",50,0,1,127,0,"note",52,1,1,127,0,"note",54,2,2,127,0,"done"]
+        });
+
+
+        // clip 4
+        let clip_dao_4 = new c.ClipDao(
+            stub4LiveAPI,
+            new m.Messenger(env, 0),
+            false
+        );
+
+        sinon.stub(clip_dao_4, "get_start_marker").callsFake(() => {
+            return 0;
+        });
+        sinon.stub(clip_dao_4, "get_end_marker").callsFake(() => {
+            return 4;
+        });
+        sinon.stub(clip_dao_4, "get_notes").callsFake(() => {
+            return ["notes",4,"note",50,0,1,127,0,"note",52,1,1,127,0,"note",54,2,1,127,0,"note",55,3,1,127,0,"done"]
+        });
+
+        let clip_1 = new c.Clip(clip_dao_1);
+        let clip_2 = new c.Clip(clip_dao_2);
+        let clip_3 = new c.Clip(clip_dao_3);
+        let clip_4 = new c.Clip(clip_dao_4);
+
+        clip_1.load_notes();
+        clip_2.load_notes();
+        clip_3.load_notes();
+        clip_4.load_notes();
+
+        var dim = 16 * 6 * 4;
+
+        var pwindow = new w.Pwindow(
+            dim,
+            dim,
+            new m.Messenger(env, 0)
+        );
+
+        pwindow.add_clip(clip_4);
+        pwindow.add_clip(clip_3);
+        pwindow.add_clip(clip_2);
+        pwindow.add_clip(clip_1);
+
+        let messages = pwindow.get_messages_render_tree();
+
+        assert.deepEqual(
+            messages[0],
+            ['linesegment', 240, 312, 288, 201.6, 255, 0, 0]
+        );
+
+        assert.deepEqual(
+            messages[1],
+            ['linesegment', 336, 296, 288, 201.6, 255, 0, 0]
+        );
+    }));
     it("calculates rendering messages for multiple clips correctly", test(()=>{
 
         let env: string = 'node';
@@ -306,11 +478,15 @@ describe('Pwindow', test(()=>{
             ['paintrect', 96, 336, 192, 352]
         );
 
+        // (288 - (288 - 192)/2), (320 - (320 - 304)/2)
+        // 240, 312
         assert.deepEqual(
             messages[2],
             ['paintrect', 192, 304, 288, 320]
         );
 
+        // (384 - (384 - 288)/2), (304 - (304 - 288)/2)
+        // 336, 296
         assert.deepEqual(
             messages[3],
             ['paintrect', 288, 288, 384, 304]
@@ -325,12 +501,15 @@ describe('Pwindow', test(()=>{
             messages[5],
             ['paintrect', 96, 230.4, 192, 249.6]
         );
-
+        // TODO: linesegment 240 312 288 201.6 255 0 0, linesegment 336 296 288 201.6 255 0 0
+        // (384 - (384 - 192)/2), (211.2 - (211.2 - 192)/2)
+        // 288, 201.6
         assert.deepEqual(
             messages[6],
             ['paintrect', 192, 192, 384, 211.2]
         );
 
+        //
         assert.deepEqual(
             messages[7],
             ['paintrect', 0, 172.8, 192, 192]
@@ -341,6 +520,7 @@ describe('Pwindow', test(()=>{
             ['paintrect', 192, 96, 384, 115.2]
         );
 
+        //
         assert.deepEqual(
             messages[9],
             ['paintrect', 0, 0, 384, 96]

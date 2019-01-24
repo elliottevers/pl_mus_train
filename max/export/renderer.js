@@ -736,8 +736,6 @@ var env = 'max';
 if (env === 'max') {
     autowatch = 1;
 }
-// post('compiled');
-// post('\n');
 var main = function () {
     // var clip_1 = new c.Clip(new cd.ClipDao(index_track_1, index_clip_slot_universal, messenger, deferlow));
     // let b_stub_live_api: boolean = false;
@@ -863,16 +861,14 @@ var main = function () {
     var logger = new logger_1.log.Logger(env);
     for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {
         var message = messages_1[_i];
-        logger.log(message);
-        logger.log('hello');
-        // outlet(0, message);
+        // logger.log(message);
+        outlet(0, message);
     }
 };
 if (typeof Global !== "undefined") {
     Global.renderer = {};
     Global.renderer.main = main;
 }
-main();
 
 },{"./clip/clip":1,"./live/live":2,"./log/logger":3,"./message/messenger":4,"./render/window":6}],8:[function(require,module,exports){
 module.exports = (function () {

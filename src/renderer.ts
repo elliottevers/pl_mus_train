@@ -163,7 +163,8 @@ let main = ()=>{
     let logger = new log.Logger(env);
 
     for (let message of messages) {
-        logger.log(message);
+        // logger.log(message);
+        outlet(0, message);
     }
 };
 

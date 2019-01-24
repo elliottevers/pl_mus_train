@@ -138,7 +138,8 @@ var main = function () {
     var logger = new logger_1.log.Logger(env);
     for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {
         var message = messages_1[_i];
-        logger.log(message);
+        // logger.log(message);
+        outlet(0, message);
     }
 };
 if (typeof Global !== "undefined") {
