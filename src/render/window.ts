@@ -3,6 +3,8 @@ import {message as m} from "../message/messenger"
 import {clip as c} from "../clip/clip";
 import {note as n} from "../note/note";
 import {live} from "../live/live";
+import * as _ from "lodash";
+
 
 export namespace window {
 
@@ -25,7 +27,7 @@ export namespace window {
             this.clips = [];
             // this.grans_per_measure = 24; // sixteenth and sixteenth triplets quantization
             this.beats_per_measure = 4;
-            this.root_parse_tree = null;
+            // this.root_parse_tree = null;
             // this.list_leaves_current = null;
             // need to count number of measures in clip
             // then multiply that by 24 = granule/measure
@@ -33,19 +35,23 @@ export namespace window {
             // make the width be an integer multiple of this, for convenience
         }
 
+        // TODO: this assumes it only gets called once
         set_clip(clip: c.Clip) {
             this.clips.push(clip);
+            this.root_parse_tree = clip.get_notes()[0];
+            this.leaves = [clip.get_notes()[0]];
         }
 
         elaborate(elaboration: TreeModel.Node<n.Note>[], beat_start: number, beat_end: number): void {
             // splice clip into clip
+            // TODO: pick up here on adding the fourth and last clip
             let notes_new = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
             // add clip to this.clips
             let clip_dao_new = new LiveClipVirtual(notes_new);
             let clip_new = new c.Clip(clip_dao_new);
             this.clips.push(clip_new);
             // splice clip into leaves?  How to splice?  Same logic as above, though instead of replacing, we set children
-
+            // TODO: why are the clips in this.clips not full length?
             // create_layer_from_notes(notes_splice: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
             //     let interval_splice: number[] = [
             //         notes_splice[0].model.note.beat_start,
@@ -60,28 +66,49 @@ export namespace window {
             // TODO: maintain a list of current leaves
             let leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
             this.add_layer(leaves_within_interval, elaboration);
+            // TODO: note working for the fourth and last clip
             this.update_leaves(leaves_within_interval);
             // set list of current leaves
         }
 
-        // TODO: if we supply and interval, we won't have to calculate on the fly
-        splice_notes(notes: TreeModel.Node<n.Note>[], clip: c.Clip, interval_beats: number[]): TreeModel.Node<n.Note>[] {
+        // deep_copy(obj) {
+        //     return JSON.parse(JSON.stringify(obj));
+        // }
+
+        // TODO: why are we updated notes in this.clips here?
+        // TODO: doesn't work with last clip
+        splice_notes(notes_subset: TreeModel.Node<n.Note>[], clip: c.Clip, interval_beats: number[]): TreeModel.Node<n.Note>[] {
             // NB: beginning of interval must equal beat_start of some note in clip, and the end of the interval must equal beat_end of some note in clip
             // let interval_beats = get_interval_beats(notes);
-            let notes_clip = clip.get_notes();
+            let notes_clip = _.cloneDeep(clip.get_notes());
             let num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
-            let index_start = this.get_diff_index_start(
-                notes,
-                notes_clip
-            );
-            return notes_clip.splice(index_start, num_notes_to_replace);
+            // this should be 2?
+            // TODO: this method only works if the two sets of notes are the same length
+            // TODO: should we replace *all* of the notes?
+            // let index_start = this.get_diff_index_start(
+            //     notes,
+            //     notes_clip
+            // );
+            // this should be 2
+            let index_start = this.get_note_index_at_beat(interval_beats[0], notes_clip);
+            // NB: stateful
+            notes_clip.splice(index_start, num_notes_to_replace, ...notes_subset);
+            return notes_clip
+        }
+
+        get_note_index_at_beat(beat: number, notes: TreeModel.Node<n.Note>[]): number {
+            let val =  notes.findIndex((node)=>{
+                // checking number against string
+                return node.model.note.beat_start === beat
+            });
+            return val;
         }
 
         get_leaves_within_interval(beat_start: number, beat_end: number): TreeModel.Node<n.Note>[] {
-            let leaves_within = this.leaves.filter((node) =>{
-                return node.model.note.beat_start > beat_start && (node.model.note.beat_start + node.model.note.duration) < beat_end
+            let val =  this.leaves.filter((node) =>{
+                return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
             });
-            return leaves_within;
+            return val;
         }
 
         // NB: this makes the assumption that the end marker is at the end of the clip
@@ -100,7 +127,8 @@ export namespace window {
             // clip.load_notes();
             // var note = clip.get_notes()[index_note];
 
-            var index_clip = node.depth;
+            // var index_clip = node.depth;
+            var index_clip = node.getPath().length - 1;
 
             // TODO: determine how to get the index of the clip from just depth of the node
 
@@ -115,6 +143,7 @@ export namespace window {
             ]
         };
 
+        // TODO: elaboration won't always
         get_order_of_note_at_beat_start(notes: TreeModel.Node<n.Note>[], beat_start: number): number {
             return notes.findIndex((node) => {
                 return node.model.note.beat_start === beat_start
@@ -127,11 +156,11 @@ export namespace window {
             });
         }
 
-        num_notes_in_interval(notes: TreeModel.Node<n.Note>[], beat_start: number, beat_end: number): number {
-            return notes.filter((node) =>{
-                return node.model.note.beat_start > beat_start && (node.model.note.get_beat_end()) < beat_end
-            }).length;
-        }
+        // num_notes_in_interval(notes: TreeModel.Node<n.Note>[], beat_start: number, beat_end: number): number {
+        //     return notes.filter((node) =>{
+        //         return node.model.note.beat_start > beat_start && (node.model.note.get_beat_end()) < beat_end
+        //     }).length;
+        // }
 
         get_interval_beats(notes: TreeModel.Node<n.Note>[]): number[] {
             return [
@@ -155,32 +184,32 @@ export namespace window {
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         add_clip(clip: c.Clip): void {
             this.clips.push(clip);
-            if (this.clips.length === 1) {
-                // TODO: fix this, we're assuming the first clip has only the root note for now
-                // let tree: TreeModel = new TreeModel();
-                // this.root_parse_tree = tree.parse(
-                //     {
-                //         id: -1, // TODO: hashing scheme for clip id and beat start
-                //         note: clip.get_notes()[0],
-                //         children: []
-                //     }
-                // );
-                this.root_parse_tree = clip.get_notes()[0];
-                // this.list_leaves_current = [
-                //     this.root_parse_tree
-                // ];
-                return
-            }
-            // var notes_parent: TreeModel.Node<n.Note>[] = this.list_leaves_current; // TODO: don't make parental candidates leaves
-            // TODO: make method that takes to clip indices and finds the diff
-            // TODO: we don't need to support adding entire clip, if we know what the diff will be beforehand
-            var notes_parent: TreeModel.Node<n.Note>[] = this.clips[this.clips.length - 2].get_notes();
-            var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes();
-            var notes_diff = this.get_diff_notes(notes_parent, notes_child);
-            var notes_parent_diff = notes_diff['parent'];
-            var notes_child_diff = notes_diff['child'];
-            // this.add_layer(notes_parent_diff, notes_child_diff);
-            this.add_layer(this.get_leaves_within_interval())
+            // if (this.clips.length === 1) {
+            //     // TODO: fix this, we're assuming the first clip has only the root note for now
+            //     // let tree: TreeModel = new TreeModel();
+            //     // this.root_parse_tree = tree.parse(
+            //     //     {
+            //     //         id: -1, // TODO: hashing scheme for clip id and beat start
+            //     //         note: clip.get_notes()[0],
+            //     //         children: []
+            //     //     }
+            //     // );
+            //     this.root_parse_tree = clip.get_notes()[0];
+            //     // this.list_leaves_current = [
+            //     //     this.root_parse_tree
+            //     // ];
+            //     return
+            // }
+            // // var notes_parent: TreeModel.Node<n.Note>[] = this.list_leaves_current; // TODO: don't make parental candidates leaves
+            // // TODO: make method that takes to clip indices and finds the diff
+            // // TODO: we don't need to support adding entire clip, if we know what the diff will be beforehand
+            // var notes_parent: TreeModel.Node<n.Note>[] = this.clips[this.clips.length - 2].get_notes();
+            // var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes();
+            // var notes_diff = this.get_diff_notes(notes_parent, notes_child);
+            // var notes_parent_diff = notes_diff['parent'];
+            // var notes_child_diff = notes_diff['child'];
+            // // this.add_layer(notes_parent_diff, notes_child_diff);
+            // this.add_layer(this.get_leaves_within_interval())
         };
 
         get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
@@ -241,28 +270,29 @@ export namespace window {
             ];
         };
 
-        get_diff_notes(index_start_diff: number, index_end_diff: number) {
-            // notes_parent_diff = notes_parent.slice(index_start_diff, notes_parent.length + 1 - index_end_diff);
-            // notes_child_diff = notes_child.slice(index_start_diff, notes_child.length + 1 - index_end_diff);
-
-            if (index_end_diff === -1) {
-                // peculiarity of slice API
-                notes_parent_diff = notes_parent.slice(index_start_diff, index_end_diff);
-                notes_child_diff = notes_child.slice(index_start_diff, index_end_diff);
-                notes_parent_diff.push(notes_parent[notes_parent.length - 1]);
-                notes_child_diff.push(notes_child[notes_child.length - 1]);
-            } else {
-                notes_parent_diff = notes_parent.slice(index_start_diff, index_end_diff + 1);
-                notes_child_diff = notes_child.slice(index_start_diff, index_end_diff + 1);
-            }
-
-
-            // TODO: write signature
-            return {
-                'parent': notes_parent_diff,
-                'child': notes_child_diff
-            }
-        }
+        // TODO: finish if necessary
+        // get_diff_notes(index_start_diff: number, index_end_diff: number) {
+        //     // notes_parent_diff = notes_parent.slice(index_start_diff, notes_parent.length + 1 - index_end_diff);
+        //     // notes_child_diff = notes_child.slice(index_start_diff, notes_child.length + 1 - index_end_diff);
+        //
+        //     if (index_end_diff === -1) {
+        //         // peculiarity of slice API
+        //         notes_parent_diff = notes_parent.slice(index_start_diff, index_end_diff);
+        //         notes_child_diff = notes_child.slice(index_start_diff, index_end_diff);
+        //         notes_parent_diff.push(notes_parent[notes_parent.length - 1]);
+        //         notes_child_diff.push(notes_child[notes_child.length - 1]);
+        //     } else {
+        //         notes_parent_diff = notes_parent.slice(index_start_diff, index_end_diff + 1);
+        //         notes_child_diff = notes_child.slice(index_start_diff, index_end_diff + 1);
+        //     }
+        //
+        //
+        //     // TODO: write signature
+        //     return {
+        //         'parent': notes_parent_diff,
+        //         'child': notes_child_diff
+        //     }
+        // }
 
 
         render_tree(): void {
@@ -357,15 +387,15 @@ export namespace window {
             // find leaves in elaboration beat interval
 
             // splice them with their children
-            let leaves_spliced = leaves;
-            let leaf, children_to_insert, i_leaf_to_splice;
+            let leaves_spliced = this.leaves;
+            let children_to_insert, i_leaf_to_splice;
             for (let leaf of leaves) {
                 // find index of leaf to "splice"
                 // always splice only one leaf
                 // find corresponding leaf in leaves_spliced
                 children_to_insert = [];
                 if (leaf.hasChildren()) {
-                    i_leaf_to_splice = leaves_spliced.find((leaf_to_splice)=>{
+                    i_leaf_to_splice = leaves_spliced.findIndex((leaf_to_splice)=>{
                         // assuming monophony, i.e., no overlap
                         return leaf_to_splice.model.note.beat_start === leaf.model.note.beat_start
                     });

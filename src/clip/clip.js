@@ -25,7 +25,7 @@ var clip;
         // TODO: annotations
         Clip.prototype.get_pitch_max = function () {
             var pitch_max = 0;
-            for (var _i = 0, _a = this.notes; _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch > pitch_max) {
                     pitch_max = node.model.note.pitch;
@@ -36,7 +36,7 @@ var clip;
         // TODO: annotations
         Clip.prototype.get_pitch_min = function () {
             var pitch_min = 128;
-            for (var _i = 0, _a = this.notes; _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch < pitch_min) {
                     pitch_min = node.model.note.pitch;

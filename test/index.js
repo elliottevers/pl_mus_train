@@ -235,10 +235,12 @@ describe('Pwindow', test(function () {
         //         pwindow.add_clip(clip_3);
         //         pwindow.add_clip(clip_4);
         pwindow.set_clip(clip_1);
-        pwindow.elaborate(clip_2.get_notes()[1], clip_2.get_notes()[1].model.note.beat_start, clip_2.get_notes()[1].model.note.get_beat_end());
+        pwindow.elaborate(clip_2.get_notes(), clip_2.get_notes()[0].model.note.beat_start, clip_2.get_notes()[1].model.note.get_beat_end());
         pwindow.elaborate(clip_3.get_notes().slice(0, 2), clip_3.get_notes().slice(0, 2)[0].model.note.beat_start, clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end());
         pwindow.elaborate(clip_4.get_notes().slice(2, 4), clip_4.get_notes().slice(2, 4)[0].model.note.beat_start, clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end());
+        // TODO: why wasn't pitch 50 added?  Why was 54 added twice?
         var messages = pwindow.get_messages_render_tree();
+        // TODO: tack on colors to end of message, make color configurable
         assert.deepEqual(messages[0], ['linesegment', 240, 312, 288, 201.6, 255, 0, 0]);
         assert.deepEqual(messages[1], ['linesegment', 336, 296, 288, 201.6, 255, 0, 0]);
     }));

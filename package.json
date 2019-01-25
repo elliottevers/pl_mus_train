@@ -9,7 +9,7 @@
   "betterScripts": {
     "to_max": {
       "command": "./build_object_max.sh",
-      "env":{
+      "env": {
         "JS_OBJ_MAX_EXPORT": "renderer"
       }
     }
@@ -30,5 +30,8 @@
     "tree-model": "^1.0.7",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.11"
   }
 }

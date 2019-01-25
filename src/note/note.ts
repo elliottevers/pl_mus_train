@@ -19,11 +19,11 @@ export namespace note {
             velocity: number,
             muted: number
         ) {
-            this.pitch = pitch;
-            this.beat_start = beat_start;
-            this.beats_duration = beats_duration;
-            this.velocity = velocity;
-            this.muted = muted;
+            this.pitch = Number(pitch);
+            this.beat_start = Number(beat_start);
+            this.beats_duration = Number(beats_duration);
+            this.velocity = Number(velocity);
+            this.muted = Number(muted);
             this._b_has_chosen = false;
         }
 

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
+var _ = require("lodash");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
@@ -18,24 +19,29 @@ var window;
             this.clips = [];
             // this.grans_per_measure = 24; // sixteenth and sixteenth triplets quantization
             this.beats_per_measure = 4;
-            this.root_parse_tree = null;
+            // this.root_parse_tree = null;
             // this.list_leaves_current = null;
             // need to count number of measures in clip
             // then multiply that by 24 = granule/measure
             // this is the min size of window in pixels
             // make the width be an integer multiple of this, for convenience
         }
+        // TODO: this assumes it only gets called once
         Pwindow.prototype.set_clip = function (clip) {
             this.clips.push(clip);
+            this.root_parse_tree = clip.get_notes()[0];
+            this.leaves = [clip.get_notes()[0]];
         };
         Pwindow.prototype.elaborate = function (elaboration, beat_start, beat_end) {
             // splice clip into clip
+            // TODO: pick up here on adding the fourth and last clip
             var notes_new = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
             // add clip to this.clips
             var clip_dao_new = new LiveClipVirtual(notes_new);
             var clip_new = new clip_1.clip.Clip(clip_dao_new);
             this.clips.push(clip_new);
             // splice clip into leaves?  How to splice?  Same logic as above, though instead of replacing, we set children
+            // TODO: why are the clips in this.clips not full length?
             // create_layer_from_notes(notes_splice: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
             //     let interval_splice: number[] = [
             //         notes_splice[0].model.note.beat_start,
@@ -49,23 +55,45 @@ var window;
             // TODO: maintain a list of current leaves
             var leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
             this.add_layer(leaves_within_interval, elaboration);
+            // TODO: note working for the fourth and last clip
             this.update_leaves(leaves_within_interval);
             // set list of current leaves
         };
-        // TODO: if we supply and interval, we won't have to calculate on the fly
-        Pwindow.prototype.splice_notes = function (notes, clip, interval_beats) {
+        // deep_copy(obj) {
+        //     return JSON.parse(JSON.stringify(obj));
+        // }
+        // TODO: why are we updated notes in this.clips here?
+        // TODO: doesn't work with last clip
+        Pwindow.prototype.splice_notes = function (notes_subset, clip, interval_beats) {
             // NB: beginning of interval must equal beat_start of some note in clip, and the end of the interval must equal beat_end of some note in clip
             // let interval_beats = get_interval_beats(notes);
-            var notes_clip = clip.get_notes();
+            var notes_clip = _.cloneDeep(clip.get_notes());
             var num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
-            var index_start = this.get_diff_index_start(notes, notes_clip);
-            return notes_clip.splice(index_start, num_notes_to_replace);
+            // this should be 2?
+            // TODO: this method only works if the two sets of notes are the same length
+            // TODO: should we replace *all* of the notes?
+            // let index_start = this.get_diff_index_start(
+            //     notes,
+            //     notes_clip
+            // );
+            // this should be 2
+            var index_start = this.get_note_index_at_beat(interval_beats[0], notes_clip);
+            // NB: stateful
+            notes_clip.splice.apply(notes_clip, [index_start, num_notes_to_replace].concat(notes_subset));
+            return notes_clip;
+        };
+        Pwindow.prototype.get_note_index_at_beat = function (beat, notes) {
+            var val = notes.findIndex(function (node) {
+                // checking number against string
+                return node.model.note.beat_start === beat;
+            });
+            return val;
         };
         Pwindow.prototype.get_leaves_within_interval = function (beat_start, beat_end) {
-            var leaves_within = this.leaves.filter(function (node) {
-                return node.model.note.beat_start > beat_start && (node.model.note.beat_start + node.model.note.duration) < beat_end;
+            var val = this.leaves.filter(function (node) {
+                return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end;
             });
-            return leaves_within;
+            return val;
         };
         // NB: this makes the assumption that the end marker is at the end of the clip
         Pwindow.prototype.get_num_measures_clip = function () {
@@ -79,7 +107,8 @@ var window;
             // var clip = this.clips[index_clip];
             // clip.load_notes();
             // var note = clip.get_notes()[index_note];
-            var index_clip = node.depth;
+            // var index_clip = node.depth;
+            var index_clip = node.getPath().length - 1;
             // TODO: determine how to get the index of the clip from just depth of the node
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
@@ -91,6 +120,7 @@ var window;
             ];
         };
         ;
+        // TODO: elaboration won't always
         Pwindow.prototype.get_order_of_note_at_beat_start = function (notes, beat_start) {
             return notes.findIndex(function (node) {
                 return node.model.note.beat_start === beat_start;
@@ -101,11 +131,11 @@ var window;
                 return node.model.note.get_beat_end() === beat_end;
             });
         };
-        Pwindow.prototype.num_notes_in_interval = function (notes, beat_start, beat_end) {
-            return notes.filter(function (node) {
-                return node.model.note.beat_start > beat_start && (node.model.note.get_beat_end()) < beat_end;
-            }).length;
-        };
+        // num_notes_in_interval(notes: TreeModel.Node<n.Note>[], beat_start: number, beat_end: number): number {
+        //     return notes.filter((node) =>{
+        //         return node.model.note.beat_start > beat_start && (node.model.note.get_beat_end()) < beat_end
+        //     }).length;
+        // }
         Pwindow.prototype.get_interval_beats = function (notes) {
             return [
                 notes[0].model.note.beat_start,
@@ -125,32 +155,32 @@ var window;
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         Pwindow.prototype.add_clip = function (clip) {
             this.clips.push(clip);
-            if (this.clips.length === 1) {
-                // TODO: fix this, we're assuming the first clip has only the root note for now
-                // let tree: TreeModel = new TreeModel();
-                // this.root_parse_tree = tree.parse(
-                //     {
-                //         id: -1, // TODO: hashing scheme for clip id and beat start
-                //         note: clip.get_notes()[0],
-                //         children: []
-                //     }
-                // );
-                this.root_parse_tree = clip.get_notes()[0];
-                // this.list_leaves_current = [
-                //     this.root_parse_tree
-                // ];
-                return;
-            }
-            // var notes_parent: TreeModel.Node<n.Note>[] = this.list_leaves_current; // TODO: don't make parental candidates leaves
-            // TODO: make method that takes to clip indices and finds the diff
-            // TODO: we don't need to support adding entire clip, if we know what the diff will be beforehand
-            var notes_parent = this.clips[this.clips.length - 2].get_notes();
-            var notes_child = clip.get_notes();
-            var notes_diff = this.get_diff_notes(notes_parent, notes_child);
-            var notes_parent_diff = notes_diff['parent'];
-            var notes_child_diff = notes_diff['child'];
-            // this.add_layer(notes_parent_diff, notes_child_diff);
-            this.add_layer(this.get_leaves_within_interval());
+            // if (this.clips.length === 1) {
+            //     // TODO: fix this, we're assuming the first clip has only the root note for now
+            //     // let tree: TreeModel = new TreeModel();
+            //     // this.root_parse_tree = tree.parse(
+            //     //     {
+            //     //         id: -1, // TODO: hashing scheme for clip id and beat start
+            //     //         note: clip.get_notes()[0],
+            //     //         children: []
+            //     //     }
+            //     // );
+            //     this.root_parse_tree = clip.get_notes()[0];
+            //     // this.list_leaves_current = [
+            //     //     this.root_parse_tree
+            //     // ];
+            //     return
+            // }
+            // // var notes_parent: TreeModel.Node<n.Note>[] = this.list_leaves_current; // TODO: don't make parental candidates leaves
+            // // TODO: make method that takes to clip indices and finds the diff
+            // // TODO: we don't need to support adding entire clip, if we know what the diff will be beforehand
+            // var notes_parent: TreeModel.Node<n.Note>[] = this.clips[this.clips.length - 2].get_notes();
+            // var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes();
+            // var notes_diff = this.get_diff_notes(notes_parent, notes_child);
+            // var notes_parent_diff = notes_diff['parent'];
+            // var notes_child_diff = notes_diff['child'];
+            // // this.add_layer(notes_parent_diff, notes_child_diff);
+            // this.add_layer(this.get_leaves_within_interval())
         };
         ;
         Pwindow.prototype.get_diff_index_start = function (notes_new, notes_old) {
@@ -205,26 +235,29 @@ var window;
             ];
         };
         ;
-        Pwindow.prototype.get_diff_notes = function (index_start_diff, index_end_diff) {
-            // notes_parent_diff = notes_parent.slice(index_start_diff, notes_parent.length + 1 - index_end_diff);
-            // notes_child_diff = notes_child.slice(index_start_diff, notes_child.length + 1 - index_end_diff);
-            if (index_end_diff === -1) {
-                // peculiarity of slice API
-                notes_parent_diff = notes_parent.slice(index_start_diff, index_end_diff);
-                notes_child_diff = notes_child.slice(index_start_diff, index_end_diff);
-                notes_parent_diff.push(notes_parent[notes_parent.length - 1]);
-                notes_child_diff.push(notes_child[notes_child.length - 1]);
-            }
-            else {
-                notes_parent_diff = notes_parent.slice(index_start_diff, index_end_diff + 1);
-                notes_child_diff = notes_child.slice(index_start_diff, index_end_diff + 1);
-            }
-            // TODO: write signature
-            return {
-                'parent': notes_parent_diff,
-                'child': notes_child_diff
-            };
-        };
+        // TODO: finish if necessary
+        // get_diff_notes(index_start_diff: number, index_end_diff: number) {
+        //     // notes_parent_diff = notes_parent.slice(index_start_diff, notes_parent.length + 1 - index_end_diff);
+        //     // notes_child_diff = notes_child.slice(index_start_diff, notes_child.length + 1 - index_end_diff);
+        //
+        //     if (index_end_diff === -1) {
+        //         // peculiarity of slice API
+        //         notes_parent_diff = notes_parent.slice(index_start_diff, index_end_diff);
+        //         notes_child_diff = notes_child.slice(index_start_diff, index_end_diff);
+        //         notes_parent_diff.push(notes_parent[notes_parent.length - 1]);
+        //         notes_child_diff.push(notes_child[notes_child.length - 1]);
+        //     } else {
+        //         notes_parent_diff = notes_parent.slice(index_start_diff, index_end_diff + 1);
+        //         notes_child_diff = notes_child.slice(index_start_diff, index_end_diff + 1);
+        //     }
+        //
+        //
+        //     // TODO: write signature
+        //     return {
+        //         'parent': notes_parent_diff,
+        //         'child': notes_child_diff
+        //     }
+        // }
         Pwindow.prototype.render_tree = function () {
             var messages = this.get_messages_render_tree();
             for (var i = 0; i < messages.length; i++) {
@@ -305,19 +338,19 @@ var window;
         Pwindow.prototype.update_leaves = function (leaves) {
             // find leaves in elaboration beat interval
             // splice them with their children
-            var leaves_spliced = leaves;
-            var leaf, children_to_insert, i_leaf_to_splice;
-            var _loop_1 = function (leaf_1) {
+            var leaves_spliced = this.leaves;
+            var children_to_insert, i_leaf_to_splice;
+            var _loop_1 = function (leaf) {
                 // find index of leaf to "splice"
                 // always splice only one leaf
                 // find corresponding leaf in leaves_spliced
                 children_to_insert = [];
-                if (leaf_1.hasChildren()) {
-                    i_leaf_to_splice = leaves_spliced.find(function (leaf_to_splice) {
+                if (leaf.hasChildren()) {
+                    i_leaf_to_splice = leaves_spliced.findIndex(function (leaf_to_splice) {
                         // assuming monophony, i.e., no overlap
-                        return leaf_to_splice.model.note.beat_start === leaf_1.model.note.beat_start;
+                        return leaf_to_splice.model.note.beat_start === leaf.model.note.beat_start;
                     });
-                    for (var _i = 0, _a = leaf_1.children; _i < _a.length; _i++) {
+                    for (var _i = 0, _a = leaf.children; _i < _a.length; _i++) {
                         var child = _a[_i];
                         children_to_insert.push(child);
                     }
@@ -326,8 +359,8 @@ var window;
                 }
             };
             for (var _i = 0, leaves_1 = leaves; _i < leaves_1.length; _i++) {
-                var leaf_1 = leaves_1[_i];
-                _loop_1(leaf_1);
+                var leaf = leaves_1[_i];
+                _loop_1(leaf);
             }
             this.leaves = leaves_spliced;
         };

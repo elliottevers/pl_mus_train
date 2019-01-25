@@ -308,8 +308,8 @@ describe('Pwindow', test(()=>{
         pwindow.set_clip(clip_1);
 
         pwindow.elaborate(
-            clip_2.get_notes()[1],
-            clip_2.get_notes()[1].model.note.beat_start,
+            clip_2.get_notes(),
+            clip_2.get_notes()[0].model.note.beat_start,
             clip_2.get_notes()[1].model.note.get_beat_end()
         );
 
@@ -325,8 +325,10 @@ describe('Pwindow', test(()=>{
             clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end()
         );
 
+        // TODO: why wasn't pitch 50 added?  Why was 54 added twice?
         let messages = pwindow.get_messages_render_tree();
 
+        // TODO: tack on colors to end of message, make color configurable
         assert.deepEqual(
             messages[0],
             ['linesegment', 240, 312, 288, 201.6, 255, 0, 0]
