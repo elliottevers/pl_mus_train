@@ -553,10 +553,14 @@ var window;
             // make the width be an integer multiple of this, for convenience
         }
         // TODO: this assumes it only gets called once
+        // TODO: assumes we only have one note to begin with
         Pwindow.prototype.set_clip = function (clip) {
-            this.clips.push(clip);
-            this.root_parse_tree = clip.get_notes()[0];
-            this.leaves = [clip.get_notes()[0]];
+            // this.clips.push(clip);
+            this.add_clip(clip);
+            var note = clip.get_notes()[0]; // first clip only has one note
+            note.model.id = 0; // index of first clip
+            this.root_parse_tree = note;
+            this.leaves = [note];
         };
         Pwindow.prototype.elaborate = function (elaboration, beat_start, beat_end) {
             // splice clip into clip
@@ -565,7 +569,8 @@ var window;
             // add clip to this.clips
             var clip_dao_new = new LiveClipVirtual(notes_new);
             var clip_new = new clip_1.clip.Clip(clip_dao_new);
-            this.clips.push(clip_new);
+            // this.clips.push(clip_new);
+            this.add_clip(clip_new);
             // splice clip into leaves?  How to splice?  Same logic as above, though instead of replacing, we set children
             // TODO: why are the clips in this.clips not full length?
             // create_layer_from_notes(notes_splice: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
@@ -580,7 +585,7 @@ var window;
             // }
             // TODO: maintain a list of current leaves
             var leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
-            this.add_layer(leaves_within_interval, elaboration);
+            this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
             // TODO: note working for the fourth and last clip
             this.update_leaves(leaves_within_interval);
             // set list of current leaves
@@ -634,7 +639,9 @@ var window;
             // clip.load_notes();
             // var note = clip.get_notes()[index_note];
             // var index_clip = node.depth;
-            var index_clip = node.getPath().length - 1;
+            // TODO: this isn't always true
+            // let index_clip = node.getPath().length - 1;
+            var index_clip = node.model.id;
             // TODO: determine how to get the index of the clip from just depth of the node
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
@@ -680,6 +687,9 @@ var window;
         // }
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         Pwindow.prototype.add_clip = function (clip) {
+            // for (let node of clip.get_notes()) {
+            //     node.model.id = this.clips.length; // soon to be the new index of this clip
+            // }
             this.clips.push(clip);
             // if (this.clips.length === 1) {
             //     // TODO: fix this, we're assuming the first clip has only the root note for now
@@ -817,7 +827,7 @@ var window;
         ;
         // NB: only works top down currently
         // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
-        Pwindow.prototype.add_layer = function (notes_parent, notes_child) {
+        Pwindow.prototype.add_layer = function (notes_parent, notes_child, index_new_layer) {
             // // TODO: fix this, we're assuming the first clip has only the root note for now
             // if (notes_parents === null) {
             //     this.parse_tree = new tr.Tree(null, notes_parents[0]);
@@ -830,6 +840,7 @@ var window;
                 note_parent_best = node.model.note.get_best_candidate(notes_parent);
                 b_successful = node.model.note.choose();
                 if (b_successful) {
+                    node.model.id = index_new_layer;
                     note_parent_best.addChild(node);
                     // num_successes += 1;
                 }
