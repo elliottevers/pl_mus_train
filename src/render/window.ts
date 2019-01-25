@@ -9,7 +9,8 @@ export namespace window {
 
     import LiveClipVirtual = live.LiveClipVirtual;
 
-    const red = ["255", "0", "0"];
+    const red = [255, 0, 0];
+    const black = ["0", "0", "0"];
 
     export class Pwindow {
         height: number;
@@ -98,7 +99,7 @@ export namespace window {
         }
 
         get_note_index_at_beat(beat: number, notes: TreeModel.Node<n.Note>[]): number {
-            let val =  notes.findIndex((node)=>{
+            let val =  _.findIndex(notes, (node)=>{
                 // checking number against string
                 return node.model.note.beat_start === beat
             });
@@ -146,13 +147,13 @@ export namespace window {
 
         // TODO: elaboration won't always
         get_order_of_note_at_beat_start(notes: TreeModel.Node<n.Note>[], beat_start: number): number {
-            return notes.findIndex((node) => {
+            return _.findIndex(notes, (node) => {
                 return node.model.note.beat_start === beat_start
             });
         }
 
         get_order_of_note_at_beat_end(notes: TreeModel.Node<n.Note>[], beat_end: number): number {
-            return notes.findIndex((node) => {
+            return _.findIndex(notes, (node) => {
                 return node.model.note.get_beat_end() === beat_end
             });
         }
@@ -307,7 +308,7 @@ export namespace window {
 
         // TODO: how do we render when there is no singular root (i.e. parsing, not sampling, sentence)?
         get_messages_render_tree() {
-            let color: string[], messages: any[] = [], message: string[];
+            let color: number[], messages: any[] = [], message: any[];
 
             this.root_parse_tree.walk((node)=>{
                 if (node.hasChildren()) {
@@ -315,10 +316,10 @@ export namespace window {
 
                         message = [
                             "linesegment",
-                            this.get_centroid(child)[0].toString(),
-                            this.get_centroid(child)[1].toString(),
-                            this.get_centroid(node)[0].toString(),
-                            this.get_centroid(node)[1].toString()
+                            this.get_centroid(child)[0],
+                            this.get_centroid(child)[1],
+                            this.get_centroid(node)[0],
+                            this.get_centroid(node)[1]
                         ];
 
                         color = red;
@@ -381,7 +382,7 @@ export namespace window {
                 // find corresponding leaf in leaves_spliced
                 children_to_insert = [];
                 if (leaf.hasChildren()) {
-                    i_leaf_to_splice = leaves_spliced.findIndex((leaf_to_splice)=>{
+                    i_leaf_to_splice = _.findIndex(leaves_spliced, (leaf_to_splice)=>{
                         // assuming monophony, i.e., no overlap
                         return leaf_to_splice.model.note.beat_start === leaf.model.note.beat_start
                     });
@@ -424,7 +425,7 @@ export namespace window {
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {
-                return ["paintrect"].concat(tuplet)
+                return ["paintrect"].concat(tuplet).concat(black)
             })
         };
 

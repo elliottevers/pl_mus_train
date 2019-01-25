@@ -172,11 +172,11 @@ let main = ()=>{
 
     let messages_tree = pwindow.get_messages_render_tree();
 
-    // let logger = new log.Logger(env);
+    let logger = new log.Logger(env);
     let messenger = new m.Messenger(env, 0);
 
-    messenger.message(messages_notes.length.toString());
-    messenger.message(messages_tree.length.toString());
+    // messenger.message(messages_notes.length.toString());
+    // messenger.message(messages_tree.length.toString());
 
     for (let message of messages_notes) {
         messenger.message(message);
@@ -186,6 +186,7 @@ let main = ()=>{
 
     for (let message of messages_tree) {
         messenger.message(message);
+        // logger.log(message);
         // outlet(0, message);
     }
 };
@@ -194,6 +195,3 @@ if (typeof Global !== "undefined") {
     Global.renderer = {};
     Global.renderer.main = main;
 }
-
-// main();
-post('hello world');

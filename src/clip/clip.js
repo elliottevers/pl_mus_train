@@ -149,7 +149,6 @@ var clip;
             this.clip_live = clip_live;
             this.messenger = messenger;
             this.deferlow = deferlow;
-            // post(clip_live.get);
         }
         // TODO: check if these actually return arrays
         ClipDao.prototype.get_end_marker = function () {

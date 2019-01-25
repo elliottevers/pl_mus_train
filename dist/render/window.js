@@ -6,7 +6,8 @@ var _ = require("lodash");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
-    var red = ["255", "0", "0"];
+    var red = [255, 0, 0];
+    var black = ["0", "0", "0"];
     var Pwindow = /** @class */ (function () {
         function Pwindow(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
@@ -84,7 +85,7 @@ var window;
             return notes_clip;
         };
         Pwindow.prototype.get_note_index_at_beat = function (beat, notes) {
-            var val = notes.findIndex(function (node) {
+            var val = _.findIndex(notes, function (node) {
                 // checking number against string
                 return node.model.note.beat_start === beat;
             });
@@ -123,12 +124,12 @@ var window;
         ;
         // TODO: elaboration won't always
         Pwindow.prototype.get_order_of_note_at_beat_start = function (notes, beat_start) {
-            return notes.findIndex(function (node) {
+            return _.findIndex(notes, function (node) {
                 return node.model.note.beat_start === beat_start;
             });
         };
         Pwindow.prototype.get_order_of_note_at_beat_end = function (notes, beat_end) {
-            return notes.findIndex(function (node) {
+            return _.findIndex(notes, function (node) {
                 return node.model.note.get_beat_end() === beat_end;
             });
         };
@@ -276,10 +277,10 @@ var window;
                         var child = _a[_i];
                         message = [
                             "linesegment",
-                            _this.get_centroid(child)[0].toString(),
-                            _this.get_centroid(child)[1].toString(),
-                            _this.get_centroid(node)[0].toString(),
-                            _this.get_centroid(node)[1].toString()
+                            _this.get_centroid(child)[0],
+                            _this.get_centroid(child)[1],
+                            _this.get_centroid(node)[0],
+                            _this.get_centroid(node)[1]
                         ];
                         color = red;
                         messages.push(message.concat(color));
@@ -289,7 +290,7 @@ var window;
             });
             return messages;
         };
-
+        ;
         // NB: only works top down currently
         // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
         Pwindow.prototype.add_layer = function (notes_parent, notes_child) {
@@ -330,7 +331,7 @@ var window;
                 // find corresponding leaf in leaves_spliced
                 children_to_insert = [];
                 if (leaf.hasChildren()) {
-                    i_leaf_to_splice = leaves_spliced.findIndex(function (leaf_to_splice) {
+                    i_leaf_to_splice = _.findIndex(leaves_spliced, function (leaf_to_splice) {
                         // assuming monophony, i.e., no overlap
                         return leaf_to_splice.model.note.beat_start === leaf.model.note.beat_start;
                     });
@@ -372,7 +373,7 @@ var window;
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {
-                return ["paintrect"].concat(tuplet);
+                return ["paintrect"].concat(tuplet).concat(black);
             });
         };
         ;

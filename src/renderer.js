@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_5 = require("./clip/clip");
 var messenger_1 = require("./message/messenger");
 var window_1 = require("./render/window");
+var logger_1 = require("./log/logger");
 var live_1 = require("./live/live");
 // const sinon = require("sinon");
 // let env: string = process.argv[2];
@@ -131,10 +132,10 @@ var main = function () {
     pwindow.elaborate(clip_4.get_notes().slice(2, 4), clip_4.get_notes().slice(2, 4)[0].model.note.beat_start, clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end());
     var messages_notes = pwindow.get_messages_render_clips();
     var messages_tree = pwindow.get_messages_render_tree();
-    // let logger = new log.Logger(env);
+    var logger = new logger_1.log.Logger(env);
     var messenger = new messenger_1.message.Messenger(env, 0);
-    messenger.message(messages_notes.length.toString());
-    messenger.message(messages_tree.length.toString());
+    // messenger.message(messages_notes.length.toString());
+    // messenger.message(messages_tree.length.toString());
     for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
         var message = messages_notes_1[_i];
         messenger.message(message);
@@ -144,6 +145,7 @@ var main = function () {
     for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
         var message = messages_tree_1[_a];
         messenger.message(message);
+        // logger.log(message);
         // outlet(0, message);
     }
 };
@@ -151,6 +153,4 @@ if (typeof Global !== "undefined") {
     Global.renderer = {};
     Global.renderer.main = main;
 }
-// main();
-post('hello world');
 //# sourceMappingURL=renderer.js.map

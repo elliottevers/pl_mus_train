@@ -12,20 +12,6 @@ export namespace live {
     }
 
     export interface ClipLive {
-        // private clip_live;
-        // private messenger;
-        // private deferlow: boolean;
-
-        // how to implement LiveAPI - get, set, call
-
-    //     constructor(clip_live: live.iLiveApiJs, messenger, deferlow: boolean) {
-    //     // let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-    //     // this.clip_live = new LiveAPI(null, path);
-    //     this.clip_live = clip_live;
-    //     this.messenger = messenger;
-    //     this.deferlow = deferlow;
-    //     // post(clip_live.get);
-    // }
 
         get_end_marker(): number
 
