@@ -75,8 +75,6 @@ export namespace live {
             this.notes = notes;
         }
 
-        set_notes(notes: TreeModel.Node<n.Note>)
-
         get_end_marker(): number {
             return this.notes[this.notes.length - 1].model.note.get_beat_end()
         }

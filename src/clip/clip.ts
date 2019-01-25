@@ -95,7 +95,7 @@ export namespace clip {
             this.clip_dao.stop();
         }
 
-        get_notes(): TreeModel.Node<Node>[] {
+        get_notes(): TreeModel.Node<note.Note>[] {
         // get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<Node>[] {
             if (!this.notes) {
                 let beat_start, pitch_midi_min, beat_end, pitch_midi_max;

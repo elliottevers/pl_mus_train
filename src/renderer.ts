@@ -7,10 +7,11 @@ declare function outlet(n: number, o: any): void;
 
 import {clip as c} from "./clip/clip";
 import {message as m} from "./message/messenger";
-// const sinon = require("sinon");
 import {window as w} from "./render/window";
 import {log} from "./log/logger";
 import {live as li} from "./live/live"
+// const sinon = require("sinon");
+
 
 
 // let env: string = process.argv[2];
@@ -61,11 +62,6 @@ let main = ()=>{
         live_api_3 = new li.LiveApiJs(13, 0);
         live_api_4 = new li.LiveApiJs(12, 0);
     }
-
-    // post('before test');
-    // let test = live_api_1.get("end_marker");
-    // post(test);
-    // post('after test');
 
     // clip 1
     let clip_dao_1 = new c.ClipDao(
@@ -152,23 +148,45 @@ let main = ()=>{
         new m.Messenger(env, 0)
     );
 
-    // pwindow.add_clip(clip_4);
-    // pwindow.add_clip(clip_3);
-    // pwindow.add_clip(clip_2);
-    // pwindow.add_clip(clip_1);
+    pwindow.set_clip(clip_1);
 
-    pwindow.add_clip(clip_1);
-    pwindow.add_clip(clip_2);
-    pwindow.add_clip(clip_3);
-    pwindow.add_clip(clip_4);
+    pwindow.elaborate(
+        clip_2.get_notes(),
+        clip_2.get_notes()[0].model.note.beat_start,
+        clip_2.get_notes()[1].model.note.get_beat_end()
+    );
 
-    let messages = pwindow.get_messages_render_clips();
+    pwindow.elaborate(
+        clip_3.get_notes().slice(0, 2),
+        clip_3.get_notes().slice(0, 2)[0].model.note.beat_start,
+        clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end()
+    );
 
-    let logger = new log.Logger(env);
+    pwindow.elaborate(
+        clip_4.get_notes().slice(2, 4),
+        clip_4.get_notes().slice(2, 4)[0].model.note.beat_start,
+        clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end()
+    );
 
-    for (let message of messages) {
+    let messages_notes = pwindow.get_messages_render_clips();
+
+    let messages_tree = pwindow.get_messages_render_tree();
+
+    // let logger = new log.Logger(env);
+    let messenger = new m.Messenger(env, 0);
+
+    messenger.message(messages_notes.length.toString());
+    messenger.message(messages_tree.length.toString());
+
+    for (let message of messages_notes) {
+        messenger.message(message);
         // logger.log(message);
-        outlet(0, message);
+        // outlet(0, message);
+    }
+
+    for (let message of messages_tree) {
+        messenger.message(message);
+        // outlet(0, message);
     }
 };
 
@@ -176,3 +194,6 @@ if (typeof Global !== "undefined") {
     Global.renderer = {};
     Global.renderer.main = main;
 }
+
+// main();
+post('hello world');

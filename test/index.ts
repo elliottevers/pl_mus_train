@@ -150,31 +150,11 @@ describe('Pwindow', test(()=>{
             call: () => {}
         };
 
-        // sinon.stub(stub1LiveAPI, "get").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub1LiveAPI, "set").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub1LiveAPI, "call").callsFake(() => {
-        //
-        // });
-
         let stub2LiveAPI = {
             get: () => {return 0},
             set: () => {},
             call: () => {}
         };
-
-        // sinon.stub(stub2LiveAPI, "get").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub2LiveAPI, "set").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub2LiveAPI, "call").callsFake(() => {
-        //
-        // });
 
         let stub3LiveAPI = {
             get: () => {return 0},
@@ -182,31 +162,11 @@ describe('Pwindow', test(()=>{
             call: () => {}
         };
 
-        // sinon.stub(stub3LiveAPI, "get").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub3LiveAPI, "set").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub3LiveAPI, "call").callsFake(() => {
-        //
-        // });
-
         let stub4LiveAPI = {
             get: () => {return 0},
             set: () => {},
             call: () => {}
         };
-
-        // sinon.stub(stub4LiveAPI, "get").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub4LiveAPI, "set").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub4LiveAPI, "call").callsFake(() => {
-        //
-        // });
 
         // clip 1
         let clip_dao_1 = new c.ClipDao(
@@ -295,16 +255,6 @@ describe('Pwindow', test(()=>{
             new m.Messenger(env, 0)
         );
 
-        // pwindow.add_clip(clip_4);
-        // pwindow.add_clip(clip_3);
-        // pwindow.add_clip(clip_2);
-        // pwindow.add_clip(clip_1);
-//
-//         pwindow.add_clip(clip_1);
-//         pwindow.add_clip(clip_2);
-//         pwindow.add_clip(clip_3);
-//         pwindow.add_clip(clip_4);
-
         pwindow.set_clip(clip_1);
 
         pwindow.elaborate(
@@ -339,6 +289,7 @@ describe('Pwindow', test(()=>{
             ['linesegment', 336, 296, 288, 201.6, 255, 0, 0]
         );
     }));
+
     it("calculates rendering messages for multiple clips correctly", test(()=>{
 
         let env: string = 'node';

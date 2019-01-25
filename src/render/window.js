@@ -6,6 +6,7 @@ var _ = require("lodash");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
+    var red = ["255", "0", "0"];
     var Pwindow = /** @class */ (function () {
         function Pwindow(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
@@ -268,41 +269,24 @@ var window;
         // TODO: how do we render when there is no singular root (i.e. parsing, not sampling, sentence)?
         Pwindow.prototype.get_messages_render_tree = function () {
             var _this = this;
-            var messages = [];
+            var color, messages = [], message;
             this.root_parse_tree.walk(function (node) {
                 if (node.hasChildren()) {
                     for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
                         var child = _a[_i];
-                        messages.push([
+                        message = [
                             "linesegment",
-                            _this.get_centroid(child)[0],
-                            _this.get_centroid(child)[1],
-                            _this.get_centroid(node)[0],
-                            _this.get_centroid(node)[1]
-                        ]);
+                            _this.get_centroid(child)[0].toString(),
+                            _this.get_centroid(child)[1].toString(),
+                            _this.get_centroid(node)[0].toString(),
+                            _this.get_centroid(node)[1].toString()
+                        ];
+                        color = red;
+                        messages.push(message.concat(color));
                     }
                 }
                 return true;
             });
-            // isRoot(): boolean;
-            // hasChildren(): boolean;
-            // addChild(child: Node<T>): Node<T>;
-            // addChildAtIndex(child: Node<T>, index: number): Node<T>;
-            // setIndex(index: number): Node<T>;
-            // getPath(): Array<Node<T>>;
-            // getIndex(): number;
-            //
-            // walk(options: Options, fn: NodeVisitorFunction<T>, ctx?: object): void;
-            // walk(fn: NodeVisitorFunction<T>, ctx?: object): void;
-            //
-            // all(options: Options, fn: NodeVisitorFunction<T>, ctx?: object): Array<Node<T>>;
-            // all(fn: NodeVisitorFunction<T>, ctx?: object): Array<Node<T>>;
-            //
-            // first(options: Options, fn: NodeVisitorFunction<T>, ctx?: object): Node<T> | undefined;
-            // first(fn: NodeVisitorFunction<T>, ctx?: object): Node<T> | undefined;
-            //
-            // drop(): Node<T>;
-            // this.parse_tree.traverseDown(iterator.bind(this));
             return messages;
         };
         ;

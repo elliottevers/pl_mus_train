@@ -120,57 +120,21 @@ describe('Pwindow', test(function () {
             set: function () { },
             call: function () { }
         };
-        // sinon.stub(stub1LiveAPI, "get").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub1LiveAPI, "set").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub1LiveAPI, "call").callsFake(() => {
-        //
-        // });
         var stub2LiveAPI = {
             get: function () { return 0; },
             set: function () { },
             call: function () { }
         };
-        // sinon.stub(stub2LiveAPI, "get").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub2LiveAPI, "set").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub2LiveAPI, "call").callsFake(() => {
-        //
-        // });
         var stub3LiveAPI = {
             get: function () { return 0; },
             set: function () { },
             call: function () { }
         };
-        // sinon.stub(stub3LiveAPI, "get").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub3LiveAPI, "set").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub3LiveAPI, "call").callsFake(() => {
-        //
-        // });
         var stub4LiveAPI = {
             get: function () { return 0; },
             set: function () { },
             call: function () { }
         };
-        // sinon.stub(stub4LiveAPI, "get").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub4LiveAPI, "set").callsFake(() => {
-        //
-        // });
-        // sinon.stub(stub4LiveAPI, "call").callsFake(() => {
-        //
-        // });
         // clip 1
         var clip_dao_1 = new clip_5.clip.ClipDao(stub1LiveAPI, new messenger_1.message.Messenger(env, 0), false);
         sinon.stub(clip_dao_1, "get_start_marker").callsFake(function () {
@@ -225,15 +189,6 @@ describe('Pwindow', test(function () {
         clip_4.load_notes();
         var dim = 16 * 6 * 4;
         var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
-        // pwindow.add_clip(clip_4);
-        // pwindow.add_clip(clip_3);
-        // pwindow.add_clip(clip_2);
-        // pwindow.add_clip(clip_1);
-        //
-        //         pwindow.add_clip(clip_1);
-        //         pwindow.add_clip(clip_2);
-        //         pwindow.add_clip(clip_3);
-        //         pwindow.add_clip(clip_4);
         pwindow.set_clip(clip_1);
         pwindow.elaborate(clip_2.get_notes(), clip_2.get_notes()[0].model.note.beat_start, clip_2.get_notes()[1].model.note.get_beat_end());
         pwindow.elaborate(clip_3.get_notes().slice(0, 2), clip_3.get_notes().slice(0, 2)[0].model.note.beat_start, clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end());

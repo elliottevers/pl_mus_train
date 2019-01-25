@@ -2,10 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_5 = require("./clip/clip");
 var messenger_1 = require("./message/messenger");
-// const sinon = require("sinon");
 var window_1 = require("./render/window");
-var logger_1 = require("./log/logger");
 var live_1 = require("./live/live");
+// const sinon = require("sinon");
 // let env: string = process.argv[2];
 // TODO: handle better - if set to max, can't run in node, but can compile TypeScript to max object
 // if we switch from node execution to max execution, will max have stopped watching?
@@ -72,10 +71,6 @@ var main = function () {
         live_api_3 = new live_1.live.LiveApiJs(13, 0);
         live_api_4 = new live_1.live.LiveApiJs(12, 0);
     }
-    // post('before test');
-    // let test = live_api_1.get("end_marker");
-    // post(test);
-    // post('after test');
     // clip 1
     var clip_dao_1 = new clip_5.clip.ClipDao(live_api_1, new messenger_1.message.Messenger(env, 0), false);
     // sinon.stub(clip_dao_1, "get_start_marker").callsFake(() => {
@@ -130,24 +125,32 @@ var main = function () {
     clip_4.load_notes();
     var dim = 16 * 6 * 4;
     var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
-    // pwindow.add_clip(clip_4);
-    // pwindow.add_clip(clip_3);
-    // pwindow.add_clip(clip_2);
-    // pwindow.add_clip(clip_1);
-    pwindow.add_clip(clip_1);
-    pwindow.add_clip(clip_2);
-    pwindow.add_clip(clip_3);
-    pwindow.add_clip(clip_4);
-    var messages = pwindow.get_messages_render_clips();
-    var logger = new logger_1.log.Logger(env);
-    for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {
-        var message = messages_1[_i];
+    pwindow.set_clip(clip_1);
+    pwindow.elaborate(clip_2.get_notes(), clip_2.get_notes()[0].model.note.beat_start, clip_2.get_notes()[1].model.note.get_beat_end());
+    pwindow.elaborate(clip_3.get_notes().slice(0, 2), clip_3.get_notes().slice(0, 2)[0].model.note.beat_start, clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end());
+    pwindow.elaborate(clip_4.get_notes().slice(2, 4), clip_4.get_notes().slice(2, 4)[0].model.note.beat_start, clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end());
+    var messages_notes = pwindow.get_messages_render_clips();
+    var messages_tree = pwindow.get_messages_render_tree();
+    // let logger = new log.Logger(env);
+    var messenger = new messenger_1.message.Messenger(env, 0);
+    messenger.message(messages_notes.length.toString());
+    messenger.message(messages_tree.length.toString());
+    for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
+        var message = messages_notes_1[_i];
+        messenger.message(message);
         // logger.log(message);
-        outlet(0, message);
+        // outlet(0, message);
+    }
+    for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
+        var message = messages_tree_1[_a];
+        messenger.message(message);
+        // outlet(0, message);
     }
 };
 if (typeof Global !== "undefined") {
     Global.renderer = {};
     Global.renderer.main = main;
 }
+// main();
+post('hello world');
 //# sourceMappingURL=renderer.js.map
