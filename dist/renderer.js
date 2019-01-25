@@ -139,13 +139,13 @@ var main = function () {
     for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
         var message = messages_notes_1[_i];
         messenger.message(message);
-        // logger.log(message);
+        logger.log(message);
         // outlet(0, message);
     }
     for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
         var message = messages_tree_1[_a];
         messenger.message(message);
-        // logger.log(message);
+        logger.log(message);
         // outlet(0, message);
     }
 };

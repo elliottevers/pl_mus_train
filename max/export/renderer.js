@@ -531,7 +531,8 @@ var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var red = [255, 0, 0];
-    var black = ["0", "0", "0"];
+    // const black = ["0", "0", "0"];
+    var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
         function Pwindow(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
@@ -908,7 +909,9 @@ var window;
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {
-                return ["paintrect"].concat(tuplet).concat(black);
+                var message = ["paintrect"].concat(tuplet);
+                message = message.concat(black);
+                return message;
             });
         };
         ;
@@ -1097,13 +1100,13 @@ var main = function () {
     for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
         var message = messages_notes_1[_i];
         messenger.message(message);
-        // logger.log(message);
+        logger.log(message);
         // outlet(0, message);
     }
     for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
         var message = messages_tree_1[_a];
         messenger.message(message);
-        // logger.log(message);
+        logger.log(message);
         // outlet(0, message);
     }
 };

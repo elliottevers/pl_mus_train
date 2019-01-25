@@ -180,13 +180,13 @@ let main = ()=>{
 
     for (let message of messages_notes) {
         messenger.message(message);
-        // logger.log(message);
+        logger.log(message);
         // outlet(0, message);
     }
 
     for (let message of messages_tree) {
         messenger.message(message);
-        // logger.log(message);
+        logger.log(message);
         // outlet(0, message);
     }
 };

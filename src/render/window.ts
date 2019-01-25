@@ -10,7 +10,8 @@ export namespace window {
     import LiveClipVirtual = live.LiveClipVirtual;
 
     const red = [255, 0, 0];
-    const black = ["0", "0", "0"];
+    // const black = ["0", "0", "0"];
+    const black = [0, 0, 0];
 
     export class Pwindow {
         height: number;
@@ -436,7 +437,9 @@ export namespace window {
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {
-                return ["paintrect"].concat(tuplet).concat(black)
+                let message = <any>["paintrect"].concat(tuplet);
+                message = message.concat(black);
+                return message;
             })
         };
 

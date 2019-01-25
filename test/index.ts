@@ -5,33 +5,6 @@ const sinon = require("sinon");
 const sinonTest = require('sinon-test');
 const test = sinonTest(sinon);
 
-describe('tree', function () {
-    it('works', ()=>{
-        // let tree = new TreeModel();
-        //
-        // let root = tree.parse({
-        //     id: 1,
-        //     attribute_test: 'hello world',
-        //     children: [
-        //         {
-        //             id: 11,
-        //             children: [{id: 111}]
-        //         },
-        //         {
-        //             id: 12,
-        //             children: [{id: 121}, {id: 122}]
-        //         },
-        //         {
-        //             id: 13
-        //         }
-        //     ]
-        // });
-        //
-        // let path_length = root.first(function (node) {     return node.model.attribute_test === 'hello world'; });
-        // assert.equal(path_length, 2);
-    })
-});
-
 import {note as n} from "../src/note/note"
 
 import {phrase as p} from "../src/phrase/phrase"
@@ -41,6 +14,7 @@ import {message as m} from "../src/message/messenger"
 import {clip as c} from "../src/clip/clip"
 
 import {window as w} from "../src/render/window";
+
 import {log} from "../src/log/logger";
 
 
@@ -134,8 +108,7 @@ describe('Target', ()=>{
    it('iterates over both phrases and notes', ()=>{
        // TODO: make 2 phrase, each a measure long, consisting of quarter notes
        // TODO: iterate until the first note of the second phrase
-       // let index = [1,2,3,4].findIndex((int) => int === 3);
-       // assert.equal(index, 2);
+
    }) ;
 });
 
@@ -275,18 +248,38 @@ describe('Pwindow', test(()=>{
             clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end()
         );
 
-        // TODO: why wasn't pitch 50 added?  Why was 54 added twice?
         let messages = pwindow.get_messages_render_tree();
 
         // TODO: tack on colors to end of message, make color configurable
+        // TODO: make order of messages not matter
+        assert.deepEqual(
+            messages[4],
+            ['linesegment', 240, 312, 288, 105.6, 255, 0, 0],
+        );
+
+        assert.deepEqual(
+            messages[5],
+            ['linesegment', 336, 296, 288, 105.6, 255, 0, 0],
+        );
+
         assert.deepEqual(
             messages[0],
-            ['linesegment', 240, 312, 288, 201.6, 255, 0, 0]
+            ['linesegment', 96, 182.4, 192, 48, 255, 0, 0],
         );
 
         assert.deepEqual(
             messages[1],
-            ['linesegment', 336, 296, 288, 201.6, 255, 0, 0]
+            ['linesegment', 288, 105.6, 192, 48, 255, 0, 0],
+        );
+
+        assert.deepEqual(
+            messages[2],
+            ['linesegment', 48, 278.4, 96, 182.4, 255, 0, 0]
+        );
+
+        assert.deepEqual(
+            messages[3],
+            ['linesegment', 144, 240, 96, 182.4, 255, 0, 0],
         );
     }));
 
@@ -445,69 +438,87 @@ describe('Pwindow', test(()=>{
             new m.Messenger(env, 0)
         );
 
-        pwindow.add_clip(clip_4);
-        pwindow.add_clip(clip_3);
-        pwindow.add_clip(clip_2);
-        pwindow.add_clip(clip_1);
+        // pwindow.add_clip(clip_4);
+        // pwindow.add_clip(clip_3);
+        // pwindow.add_clip(clip_2);
+        // pwindow.add_clip(clip_1);
+        // pwindow.add_clip(clip_1);
+        // pwindow.add_clip(clip_2);
+        // pwindow.add_clip(clip_3);
+        // pwindow.add_clip(clip_4);
+
+        pwindow.set_clip(clip_1);
+
+        pwindow.elaborate(
+            clip_2.get_notes(),
+            clip_2.get_notes()[0].model.note.beat_start,
+            clip_2.get_notes()[1].model.note.get_beat_end()
+        );
+
+        pwindow.elaborate(
+            clip_3.get_notes().slice(0, 2),
+            clip_3.get_notes().slice(0, 2)[0].model.note.beat_start,
+            clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end()
+        );
+
+        pwindow.elaborate(
+            clip_4.get_notes().slice(2, 4),
+            clip_4.get_notes().slice(2, 4)[0].model.note.beat_start,
+            clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end()
+        );
 
         let messages = pwindow.get_messages_render_clips();
 
         assert.deepEqual(
-            messages[0],
-            ['paintrect', 0, 368, 96, 384]
-        );
-
-        assert.deepEqual(
-            messages[1],
-            ['paintrect', 96, 336, 192, 352]
-        );
-
-        // (288 - (288 - 192)/2), (320 - (320 - 304)/2)
-        // 240, 312
-        assert.deepEqual(
-            messages[2],
-            ['paintrect', 192, 304, 288, 320]
-        );
-
-        // (384 - (384 - 288)/2), (304 - (304 - 288)/2)
-        // 336, 296
-        assert.deepEqual(
-            messages[3],
-            ['paintrect', 288, 288, 384, 304]
-        );
-
-        assert.deepEqual(
-            messages[4],
-            ['paintrect', 0, 268.8, 96, 288]
-        );
-
-        assert.deepEqual(
-            messages[5],
-            ['paintrect', 96, 230.4, 192, 249.6]
-        );
-        // TODO: linesegment 240 312 288 201.6 255 0 0, linesegment 336 296 288 201.6 255 0 0
-        // (384 - (384 - 192)/2), (211.2 - (211.2 - 192)/2)
-        // 288, 201.6
-        assert.deepEqual(
             messages[6],
-            ['paintrect', 192, 192, 384, 211.2]
+            ['paintrect', 0, 368, 96, 384, 0, 0, 0]
         );
 
-        //
         assert.deepEqual(
             messages[7],
-            ['paintrect', 0, 172.8, 192, 192]
+            ['paintrect', 96, 336, 192, 352, 0, 0, 0]
         );
 
         assert.deepEqual(
             messages[8],
-            ['paintrect', 192, 96, 384, 115.2]
+            ['paintrect', 192, 304, 288, 320, 0, 0, 0]
+        );
+
+        assert.deepEqual(
+            messages[9],
+            ['paintrect', 288, 288, 384, 304, 0, 0, 0]
+        );
+
+        assert.deepEqual(
+            messages[3],
+            ['paintrect', 0, 268.8, 96, 288, 0, 0, 0]
+        );
+
+        assert.deepEqual(
+            messages[4],
+            ['paintrect', 96, 230.4, 192, 249.6, 0, 0, 0]
+        );
+
+        assert.deepEqual(
+            messages[5],
+            ['paintrect', 192, 192, 384, 211.2, 0, 0, 0]
         );
 
         //
         assert.deepEqual(
-            messages[9],
-            ['paintrect', 0, 0, 384, 96]
+            messages[1],
+            ['paintrect', 0, 172.8, 192, 192, 0, 0, 0]
+        );
+
+        assert.deepEqual(
+            messages[2],
+            ['paintrect', 192, 96, 384, 115.2, 0, 0, 0]
+        );
+
+        //
+        assert.deepEqual(
+            messages[0],
+            ['paintrect', 0, 0, 384, 96, 0, 0, 0]
         );
 
     }));
@@ -554,22 +565,22 @@ describe('Pwindow', test(()=>{
 
         assert.deepEqual(
             messages[0],
-            ['paintrect', 0, 320, 96, 384]
+            ['paintrect', 0, 320, 96, 384, 0, 0, 0]
         );
 
         assert.deepEqual(
             messages[1],
-            ['paintrect', 96, 192, 192, 256]
+            ['paintrect', 96, 192, 192, 256, 0, 0, 0]
         );
 
         assert.deepEqual(
             messages[2],
-            ['paintrect', 192, 64, 288, 128]
+            ['paintrect', 192, 64, 288, 128, 0, 0, 0]
         );
 
         assert.deepEqual(
             messages[3],
-            ['paintrect', 288, 0, 384, 64]
+            ['paintrect', 288, 0, 384, 64, 0, 0, 0]
         );
     }));
 

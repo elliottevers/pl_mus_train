@@ -7,7 +7,8 @@ var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var red = [255, 0, 0];
-    var black = ["0", "0", "0"];
+    // const black = ["0", "0", "0"];
+    var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
         function Pwindow(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
@@ -384,7 +385,9 @@ var window;
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {
-                return ["paintrect"].concat(tuplet).concat(black);
+                var message = ["paintrect"].concat(tuplet);
+                message = message.concat(black);
+                return message;
             });
         };
         ;
