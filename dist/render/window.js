@@ -7,7 +7,6 @@ var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var red = [255, 0, 0];
-    // const black = ["0", "0", "0"];
     var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
         function Pwindow(height, width, messenger) {
@@ -29,12 +28,15 @@ var window;
             // this is the min size of window in pixels
             // make the width be an integer multiple of this, for convenience
         }
+        Pwindow.prototype.get_notes_leaves = function () {
+            return this.leaves;
+        };
         // TODO: this assumes it only gets called once
         // TODO: assumes we only have one note to begin with
         Pwindow.prototype.set_clip = function (clip) {
             // this.clips.push(clip);
             this.add_clip(clip);
-            var note = clip.get_notes()[0]; // first clip only has one note
+            var note = clip.get_notes_within_markers()[0]; // first clip only has one note
             note.model.id = 0; // index of first clip
             this.root_parse_tree = note;
             this.leaves = [note];
@@ -75,7 +77,7 @@ var window;
         Pwindow.prototype.splice_notes = function (notes_subset, clip, interval_beats) {
             // NB: beginning of interval must equal beat_start of some note in clip, and the end of the interval must equal beat_end of some note in clip
             // let interval_beats = get_interval_beats(notes);
-            var notes_clip = _.cloneDeep(clip.get_notes());
+            var notes_clip = _.cloneDeep(clip.get_notes_within_markers());
             var num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
             // this should be 2?
             // TODO: this method only works if the two sets of notes are the same length
@@ -113,8 +115,8 @@ var window;
             // var index_clip = node.get_index_clip();
             // var index_note = node.get_index_note();
             // var clip = this.clips[index_clip];
-            // clip.load_notes();
-            // var note = clip.get_notes()[index_note];
+            // clip.load_notes_within_markers();
+            // var note = clip.get_notes_within_markers()[index_note];
             // var index_clip = node.depth;
             // TODO: this isn't always true
             // let index_clip = node.getPath().length - 1;
@@ -164,7 +166,7 @@ var window;
         // }
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         Pwindow.prototype.add_clip = function (clip) {
-            // for (let node of clip.get_notes()) {
+            // for (let node of clip.get_notes_within_markers()) {
             //     node.model.id = this.clips.length; // soon to be the new index of this clip
             // }
             this.clips.push(clip);
@@ -174,11 +176,11 @@ var window;
             //     // this.root_parse_tree = tree.parse(
             //     //     {
             //     //         id: -1, // TODO: hashing scheme for clip id and beat start
-            //     //         note: clip.get_notes()[0],
+            //     //         note: clip.get_notes_within_markers()[0],
             //     //         children: []
             //     //     }
             //     // );
-            //     this.root_parse_tree = clip.get_notes()[0];
+            //     this.root_parse_tree = clip.get_notes_within_markers()[0];
             //     // this.list_leaves_current = [
             //     //     this.root_parse_tree
             //     // ];
@@ -187,8 +189,8 @@ var window;
             // // var notes_parent: TreeModel.Node<n.Note>[] = this.list_leaves_current; // TODO: don't make parental candidates leaves
             // // TODO: make method that takes to clip indices and finds the diff
             // // TODO: we don't need to support adding entire clip, if we know what the diff will be beforehand
-            // var notes_parent: TreeModel.Node<n.Note>[] = this.clips[this.clips.length - 2].get_notes();
-            // var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes();
+            // var notes_parent: TreeModel.Node<n.Note>[] = this.clips[this.clips.length - 2].get_notes_within_markers();
+            // var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes_within_markers();
             // var notes_diff = this.get_diff_notes(notes_parent, notes_child);
             // var notes_parent_diff = notes_diff['parent'];
             // var notes_child_diff = notes_diff['child'];
@@ -380,7 +382,7 @@ var window;
         Pwindow.prototype.get_messages_render_notes = function (index_clip) {
             var clip = this.clips[index_clip];
             var quadruplets = [];
-            for (var _i = 0, _a = clip.get_notes(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = clip.get_notes_within_markers(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }

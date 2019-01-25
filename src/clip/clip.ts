@@ -1,4 +1,4 @@
-import {note} from "../note/note";
+import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {live} from "../live/live";
 
@@ -10,11 +10,10 @@ export namespace clip {
 
         private clip_dao;
 
-        private notes: TreeModel.Node<note.Note>[];
+        private notes: TreeModel.Node<n.Note>[];
 
         constructor(clip_dao) {
             this.clip_dao = clip_dao;
-            // this.notes = null;
         }
 
         get_num_measures(): number {
@@ -30,22 +29,20 @@ export namespace clip {
         }
 
         // TODO: annotations
-        load_notes(): void {
-            this.notes = Clip._parse_notes(
-                this._get_notes(
-                0,
+        load_notes_within_markers(): void {
+            this.notes = this.get_notes(
+                this.get_start_marker(),
                 0,
                 this.get_end_marker(),
                 128
-                )
-            );
+            )
         }
 
         // TODO: annotations
         get_pitch_max(): number {
             let pitch_max = 0;
 
-            for (let node of this.get_notes()) {
+            for (let node of this.get_notes_within_markers()) {
                 if (node.model.note.pitch > pitch_max) {
                     pitch_max = node.model.note.pitch;
                 }
@@ -58,7 +55,7 @@ export namespace clip {
         get_pitch_min(): number {
             let pitch_min = 128;
 
-            for (let node of this.get_notes()) {
+            for (let node of this.get_notes_within_markers()) {
                 if (node.model.note.pitch < pitch_min) {
                     pitch_min = node.model.note.pitch;
                 }
@@ -95,28 +92,30 @@ export namespace clip {
             this.clip_dao.stop();
         }
 
-        get_notes(): TreeModel.Node<note.Note>[] {
-        // get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<Node>[] {
+        get_notes_within_markers(): TreeModel.Node<n.Note>[] {
             if (!this.notes) {
-                let beat_start, pitch_midi_min, beat_end, pitch_midi_max;
-                beat_start = 0;
-                beat_end = this.get_end_marker();
-                pitch_midi_min = 0;
-                pitch_midi_max = 128;
-                return Clip._parse_notes(
-                    this._get_notes(
-                        beat_start,
-                        pitch_midi_min,
-                        beat_end,
-                        pitch_midi_max
-                    )
-                );
-            } else {
-                return this.notes;
+                this.load_notes_within_markers()
             }
+            return this.notes;
         }
 
-        private _get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): string[] {
+        public get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<n.Note>[] {
+            return Clip._parse_notes(
+                this._get_notes(
+                    beat_start,
+                    pitch_midi_min,
+                    beat_end,
+                    pitch_midi_max
+                )
+            );
+        }
+
+        public set_notes(notes: TreeModel.Node<n.Note>[]): void {
+            this.clip_dao.set_notes(notes);
+        }
+
+        // TODO: *actually* make private
+        public _get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): string[] {
             return this.clip_dao.get_notes(
                 beat_start,
                 pitch_midi_min,
@@ -125,8 +124,17 @@ export namespace clip {
             )
         }
 
+        public remove_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): void {
+            this.clip_dao.remove_notes(
+                beat_start,
+                pitch_midi_min,
+                beat_end,
+                pitch_midi_max
+            )
+        }
+
         // TODO: return list of tree nodes
-        private static _parse_notes(notes: string[]): TreeModel.Node<note.Note>[] {
+        private static _parse_notes(notes: string[]): TreeModel.Node<n.Note>[] {
             let data: any = [];
             let notes_parsed = [];
 
@@ -175,7 +183,7 @@ export namespace clip {
                         tree.parse(
                             {
                                 id: -1, // TODO: hashing scheme for clip id and beat start
-                                note: new note.Note(
+                                note: new n.Note(
                                     pitch,
                                     beat_start,
                                     beats_duration,
@@ -295,5 +303,39 @@ export namespace clip {
             );
         };
 
+        remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void {
+            this.clip_live.call(
+                'remove_notes',
+                beat_start,
+                pitch_midi_min,
+                beat_end,
+                pitch_midi_max
+            );
+        };
+
+        set_notes(notes: TreeModel.Node<n.Note>[]): void {
+            this.clip_live.call('set_notes');
+            // post('set_notes');
+            // post('\n');
+            this.clip_live.call('notes', notes.length);
+            // post('notes.length');
+            post(notes.length);
+            // post('\n');
+            for (let node of notes) {
+                this.clip_live.call(
+                    "note",
+                    node.model.note.pitch,
+                    // "0.0",
+                    // "1.0",
+                    node.model.note.beat_start.toFixed(4),
+                    node.model.note.beats_duration.toFixed(4),
+                    node.model.note.velocity,
+                    node.model.note.muted
+                );
+                // post('note');
+                // post('\n');
+            }
+            this.clip_live.call("done")
+        }
     }
 }

@@ -33,11 +33,11 @@ describe('Phrase', function () {
         sinon.stub(clip_dao, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(clip_dao, "get_notes").callsFake(function () {
+        sinon.stub(clip_dao, "get_notes_within_markers").callsFake(function () {
             return ["notes", 2, "note", 50, 0, 1, 127, 0, "note", 52, 1, 1, 127, 0, "note", 54, 2, 2, 127, 0, "done"];
         });
         var clip = new clip_5.clip.Clip(clip_dao);
-        clip.load_notes();
+        clip.load_notes_within_markers();
         var phrase = new phrase_1.phrase.Phrase(clip.get_start_marker(), clip.get_end_marker(), clip);
         var note_iterator = phrase.note_iterator;
         // TODO: see why undefined
@@ -115,7 +115,7 @@ describe('Pwindow', test(function () {
         sinon.stub(clip_dao_1, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(clip_dao_1, "get_notes").callsFake(function () {
+        sinon.stub(clip_dao_1, "get_notes_within_markers").callsFake(function () {
             return ["notes", 1, "note", 50, 0, 4, 127, 0, "done"];
         });
         // clip 2
@@ -126,7 +126,7 @@ describe('Pwindow', test(function () {
         sinon.stub(clip_dao_2, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(clip_dao_2, "get_notes").callsFake(function () {
+        sinon.stub(clip_dao_2, "get_notes_within_markers").callsFake(function () {
             return ["notes", 2, "note", 50, 0, 2, 127, 0, "note", 54, 2, 2, 127, 0, "done"];
         });
         // clip 3
@@ -137,7 +137,7 @@ describe('Pwindow', test(function () {
         sinon.stub(clip_dao_3, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(clip_dao_3, "get_notes").callsFake(function () {
+        sinon.stub(clip_dao_3, "get_notes_within_markers").callsFake(function () {
             return ["notes", 3, "note", 50, 0, 1, 127, 0, "note", 52, 1, 1, 127, 0, "note", 54, 2, 2, 127, 0, "done"];
         });
         // clip 4
@@ -148,23 +148,23 @@ describe('Pwindow', test(function () {
         sinon.stub(clip_dao_4, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(clip_dao_4, "get_notes").callsFake(function () {
+        sinon.stub(clip_dao_4, "get_notes_within_markers").callsFake(function () {
             return ["notes", 4, "note", 50, 0, 1, 127, 0, "note", 52, 1, 1, 127, 0, "note", 54, 2, 1, 127, 0, "note", 55, 3, 1, 127, 0, "done"];
         });
         var clip_1 = new clip_5.clip.Clip(clip_dao_1);
         var clip_2 = new clip_5.clip.Clip(clip_dao_2);
         var clip_3 = new clip_5.clip.Clip(clip_dao_3);
         var clip_4 = new clip_5.clip.Clip(clip_dao_4);
-        clip_1.load_notes();
-        clip_2.load_notes();
-        clip_3.load_notes();
-        clip_4.load_notes();
+        clip_1.load_notes_within_markers();
+        clip_2.load_notes_within_markers();
+        clip_3.load_notes_within_markers();
+        clip_4.load_notes_within_markers();
         var dim = 16 * 6 * 4;
         var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
         pwindow.set_clip(clip_1);
-        pwindow.elaborate(clip_2.get_notes(), clip_2.get_notes()[0].model.note.beat_start, clip_2.get_notes()[1].model.note.get_beat_end());
-        pwindow.elaborate(clip_3.get_notes().slice(0, 2), clip_3.get_notes().slice(0, 2)[0].model.note.beat_start, clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end());
-        pwindow.elaborate(clip_4.get_notes().slice(2, 4), clip_4.get_notes().slice(2, 4)[0].model.note.beat_start, clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end());
+        pwindow.elaborate(clip_2.get_notes_within_markers(), clip_2.get_notes_within_markers()[0].model.note.beat_start, clip_2.get_notes_within_markers()[1].model.note.get_beat_end());
+        pwindow.elaborate(clip_3.get_notes_within_markers().slice(0, 2), clip_3.get_notes_within_markers().slice(0, 2)[0].model.note.beat_start, clip_3.get_notes_within_markers().slice(0, 2)[1].model.note.get_beat_end());
+        pwindow.elaborate(clip_4.get_notes_within_markers().slice(2, 4), clip_4.get_notes_within_markers().slice(2, 4)[0].model.note.beat_start, clip_4.get_notes_within_markers().slice(2, 4)[1].model.note.get_beat_end());
         var messages = pwindow.get_messages_render_tree();
         // TODO: tack on colors to end of message, make color configurable
         // TODO: make order of messages not matter
@@ -241,7 +241,7 @@ describe('Pwindow', test(function () {
         sinon.stub(clip_dao_1, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(clip_dao_1, "get_notes").callsFake(function () {
+        sinon.stub(clip_dao_1, "get_notes_within_markers").callsFake(function () {
             return ["notes", 1, "note", 50, 0, 4, 127, 0, "done"];
         });
         // clip 2
@@ -252,7 +252,7 @@ describe('Pwindow', test(function () {
         sinon.stub(clip_dao_2, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(clip_dao_2, "get_notes").callsFake(function () {
+        sinon.stub(clip_dao_2, "get_notes_within_markers").callsFake(function () {
             return ["notes", 2, "note", 50, 0, 2, 127, 0, "note", 54, 2, 2, 127, 0, "done"];
         });
         // clip 3
@@ -263,7 +263,7 @@ describe('Pwindow', test(function () {
         sinon.stub(clip_dao_3, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(clip_dao_3, "get_notes").callsFake(function () {
+        sinon.stub(clip_dao_3, "get_notes_within_markers").callsFake(function () {
             return ["notes", 3, "note", 50, 0, 1, 127, 0, "note", 52, 1, 1, 127, 0, "note", 54, 2, 2, 127, 0, "done"];
         });
         // clip 4
@@ -274,17 +274,17 @@ describe('Pwindow', test(function () {
         sinon.stub(clip_dao_4, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(clip_dao_4, "get_notes").callsFake(function () {
+        sinon.stub(clip_dao_4, "get_notes_within_markers").callsFake(function () {
             return ["notes", 4, "note", 50, 0, 1, 127, 0, "note", 52, 1, 1, 127, 0, "note", 54, 2, 1, 127, 0, "note", 55, 3, 1, 127, 0, "done"];
         });
         var clip_1 = new clip_5.clip.Clip(clip_dao_1);
         var clip_2 = new clip_5.clip.Clip(clip_dao_2);
         var clip_3 = new clip_5.clip.Clip(clip_dao_3);
         var clip_4 = new clip_5.clip.Clip(clip_dao_4);
-        clip_1.load_notes();
-        clip_2.load_notes();
-        clip_3.load_notes();
-        clip_4.load_notes();
+        clip_1.load_notes_within_markers();
+        clip_2.load_notes_within_markers();
+        clip_3.load_notes_within_markers();
+        clip_4.load_notes_within_markers();
         var dim = 16 * 6 * 4;
         var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
         // pwindow.add_clip(clip_4);
@@ -296,9 +296,9 @@ describe('Pwindow', test(function () {
         // pwindow.add_clip(clip_3);
         // pwindow.add_clip(clip_4);
         pwindow.set_clip(clip_1);
-        pwindow.elaborate(clip_2.get_notes(), clip_2.get_notes()[0].model.note.beat_start, clip_2.get_notes()[1].model.note.get_beat_end());
-        pwindow.elaborate(clip_3.get_notes().slice(0, 2), clip_3.get_notes().slice(0, 2)[0].model.note.beat_start, clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end());
-        pwindow.elaborate(clip_4.get_notes().slice(2, 4), clip_4.get_notes().slice(2, 4)[0].model.note.beat_start, clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end());
+        pwindow.elaborate(clip_2.get_notes_within_markers(), clip_2.get_notes_within_markers()[0].model.note.beat_start, clip_2.get_notes_within_markers()[1].model.note.get_beat_end());
+        pwindow.elaborate(clip_3.get_notes_within_markers().slice(0, 2), clip_3.get_notes_within_markers().slice(0, 2)[0].model.note.beat_start, clip_3.get_notes_within_markers().slice(0, 2)[1].model.note.get_beat_end());
+        pwindow.elaborate(clip_4.get_notes_within_markers().slice(2, 4), clip_4.get_notes_within_markers().slice(2, 4)[0].model.note.beat_start, clip_4.get_notes_within_markers().slice(2, 4)[1].model.note.get_beat_end());
         var messages = pwindow.get_messages_render_clips();
         assert.deepEqual(messages[6], ['paintrect', 0, 368, 96, 384, 0, 0, 0]);
         assert.deepEqual(messages[7], ['paintrect', 96, 336, 192, 352, 0, 0, 0]);
@@ -326,11 +326,11 @@ describe('Pwindow', test(function () {
         sinon.stub(stub_clip_dao, "get_end_marker").callsFake(function () {
             return 4;
         });
-        sinon.stub(stub_clip_dao, "get_notes").callsFake(function () {
+        sinon.stub(stub_clip_dao, "get_notes_within_markers").callsFake(function () {
             return ["notes", 4, "note", 50, 0, 1, 127, 0, "note", 52, 1, 1, 127, 0, "note", 54, 2, 1, 127, 0, "note", 55, 3, 1, 127, 0, "done"];
         });
         var clip = new clip_5.clip.Clip(stub_clip_dao);
-        clip.load_notes();
+        clip.load_notes_within_markers();
         var dim = 16 * 6 * 4;
         var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger('node', 0));
         pwindow.add_clip(clip);

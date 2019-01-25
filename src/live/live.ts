@@ -30,13 +30,19 @@ export namespace live {
         stop(): void
 
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[]
+
+        remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void
     }
 
     export class LiveApiJs implements iLiveApiJs {
         private live_api: any;
 
-        constructor(index_track: number, index_clip_slot: number) {
-            let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+        // constructor(index_track: number, index_clip_slot: number) {
+        //     let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+        //     this.live_api = new LiveAPI(null, path);
+        // }
+
+        constructor(path: string) {
             this.live_api = new LiveAPI(null, path);
         }
 
@@ -107,6 +113,10 @@ export namespace live {
             }
             suffix = ["done"];
             return prefix.concat(notes).concat(suffix)
+        }
+
+        remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void {
+            return
         }
     }
 

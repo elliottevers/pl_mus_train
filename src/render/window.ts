@@ -10,7 +10,6 @@ export namespace window {
     import LiveClipVirtual = live.LiveClipVirtual;
 
     const red = [255, 0, 0];
-    // const black = ["0", "0", "0"];
     const black = [0, 0, 0];
 
     export class Pwindow {
@@ -20,7 +19,6 @@ export namespace window {
         clips: c.Clip[];
         beats_per_measure: number;
         root_parse_tree: TreeModel.Node<n.Note>;
-        // list_leaves_current: TreeModel.Node<n.Note>[];
         leaves: TreeModel.Node<n.Note>[];
 
         constructor(height: number, width: number, messenger: m.Messenger) {
@@ -38,12 +36,16 @@ export namespace window {
             // make the width be an integer multiple of this, for convenience
         }
 
+        get_notes_leaves(): TreeModel.Node<n.Note>[] {
+            return this.leaves;
+        }
+
         // TODO: this assumes it only gets called once
         // TODO: assumes we only have one note to begin with
         set_clip(clip: c.Clip) {
             // this.clips.push(clip);
             this.add_clip(clip);
-            let note = clip.get_notes()[0];  // first clip only has one note
+            let note = clip.get_notes_within_markers()[0];  // first clip only has one note
             note.model.id = 0;  // index of first clip
             this.root_parse_tree = note;
             this.leaves = [note];
@@ -88,7 +90,7 @@ export namespace window {
         splice_notes(notes_subset: TreeModel.Node<n.Note>[], clip: c.Clip, interval_beats: number[]): TreeModel.Node<n.Note>[] {
             // NB: beginning of interval must equal beat_start of some note in clip, and the end of the interval must equal beat_end of some note in clip
             // let interval_beats = get_interval_beats(notes);
-            let notes_clip = _.cloneDeep(clip.get_notes());
+            let notes_clip = _.cloneDeep(clip.get_notes_within_markers());
             let num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
             // this should be 2?
             // TODO: this method only works if the two sets of notes are the same length
@@ -132,8 +134,8 @@ export namespace window {
             // var index_clip = node.get_index_clip();
             // var index_note = node.get_index_note();
             // var clip = this.clips[index_clip];
-            // clip.load_notes();
-            // var note = clip.get_notes()[index_note];
+            // clip.load_notes_within_markers();
+            // var note = clip.get_notes_within_markers()[index_note];
 
             // var index_clip = node.depth;
             // TODO: this isn't always true
@@ -193,7 +195,7 @@ export namespace window {
 
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         add_clip(clip: c.Clip): void {
-            // for (let node of clip.get_notes()) {
+            // for (let node of clip.get_notes_within_markers()) {
             //     node.model.id = this.clips.length; // soon to be the new index of this clip
             // }
             this.clips.push(clip);
@@ -203,11 +205,11 @@ export namespace window {
             //     // this.root_parse_tree = tree.parse(
             //     //     {
             //     //         id: -1, // TODO: hashing scheme for clip id and beat start
-            //     //         note: clip.get_notes()[0],
+            //     //         note: clip.get_notes_within_markers()[0],
             //     //         children: []
             //     //     }
             //     // );
-            //     this.root_parse_tree = clip.get_notes()[0];
+            //     this.root_parse_tree = clip.get_notes_within_markers()[0];
             //     // this.list_leaves_current = [
             //     //     this.root_parse_tree
             //     // ];
@@ -216,8 +218,8 @@ export namespace window {
             // // var notes_parent: TreeModel.Node<n.Note>[] = this.list_leaves_current; // TODO: don't make parental candidates leaves
             // // TODO: make method that takes to clip indices and finds the diff
             // // TODO: we don't need to support adding entire clip, if we know what the diff will be beforehand
-            // var notes_parent: TreeModel.Node<n.Note>[] = this.clips[this.clips.length - 2].get_notes();
-            // var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes();
+            // var notes_parent: TreeModel.Node<n.Note>[] = this.clips[this.clips.length - 2].get_notes_within_markers();
+            // var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes_within_markers();
             // var notes_diff = this.get_diff_notes(notes_parent, notes_child);
             // var notes_parent_diff = notes_diff['parent'];
             // var notes_child_diff = notes_diff['child'];
@@ -433,7 +435,7 @@ export namespace window {
         get_messages_render_notes(index_clip: number) {
             var clip = this.clips[index_clip];
             let quadruplets = [];
-            for (let node of clip.get_notes()) {
+            for (let node of clip.get_notes_within_markers()) {
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {

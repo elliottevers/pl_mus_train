@@ -8,7 +8,6 @@ var clip;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
-            // this.notes = null;
         }
         Clip.prototype.get_num_measures = function () {
             return (this.get_end_marker() - this.get_start_marker()) / 4;
@@ -20,13 +19,13 @@ var clip;
             return this.clip_dao.get_start_marker();
         };
         // TODO: annotations
-        Clip.prototype.load_notes = function () {
-            this.notes = Clip._parse_notes(this._get_notes(0, 0, this.get_end_marker(), 128));
+        Clip.prototype.load_notes_within_markers = function () {
+            this.notes = this.get_notes(this.get_start_marker(), 0, this.get_end_marker(), 128);
         };
         // TODO: annotations
         Clip.prototype.get_pitch_max = function () {
             var pitch_max = 0;
-            for (var _i = 0, _a = this.get_notes(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes_within_markers(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch > pitch_max) {
                     pitch_max = node.model.note.pitch;
@@ -37,7 +36,7 @@ var clip;
         // TODO: annotations
         Clip.prototype.get_pitch_min = function () {
             var pitch_min = 128;
-            for (var _i = 0, _a = this.get_notes(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes_within_markers(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch < pitch_min) {
                     pitch_min = node.model.note.pitch;
@@ -66,22 +65,24 @@ var clip;
         Clip.prototype.stop = function () {
             this.clip_dao.stop();
         };
-        Clip.prototype.get_notes = function () {
-            // get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<Node>[] {
+        Clip.prototype.get_notes_within_markers = function () {
             if (!this.notes) {
-                var beat_start = void 0, pitch_midi_min = void 0, beat_end = void 0, pitch_midi_max = void 0;
-                beat_start = 0;
-                beat_end = this.get_end_marker();
-                pitch_midi_min = 0;
-                pitch_midi_max = 128;
-                return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max));
+                this.load_notes_within_markers();
             }
-            else {
-                return this.notes;
-            }
+            return this.notes;
         };
+        Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max));
+        };
+        Clip.prototype.set_notes = function (notes) {
+            this.clip_dao.set_notes(notes);
+        };
+        // TODO: *actually* make private
         Clip.prototype._get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
             return this.clip_dao.get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+        };
+        Clip.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            this.clip_dao.remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
         };
         // TODO: return list of tree nodes
         Clip._parse_notes = function (notes) {
@@ -213,19 +214,35 @@ var clip;
             return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
         };
         ;
+        ClipDao.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            this.clip_live.call('remove_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+        };
+        ;
+        ClipDao.prototype.set_notes = function (notes) {
+            this.clip_live.call('set_notes');
+            this.clip_live.call('notes', notes.length);
+            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                var node = notes_1[_i];
+                this.clip_live.call("note", node.model.note.pitch, node.model.note.beat_start, node.model.note.beats_duration, node.model.note.velocity, node.model.note.muted);
+            }
+            this.clip_live.call("done");
+        };
         return ClipDao;
     }());
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../note/note":5,"tree-model":11}],2:[function(require,module,exports){
+},{"../note/note":5,"tree-model":12}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live;
 (function (live) {
     var LiveApiJs = /** @class */ (function () {
-        function LiveApiJs(index_track, index_clip_slot) {
-            var path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+        // constructor(index_track: number, index_clip_slot: number) {
+        //     let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+        //     this.live_api = new LiveAPI(null, path);
+        // }
+        function LiveApiJs(path) {
             this.live_api = new LiveAPI(null, path);
         }
         LiveApiJs.prototype.get = function (property) {
@@ -288,6 +305,9 @@ var live;
             }
             suffix = ["done"];
             return prefix.concat(notes).concat(suffix);
+        };
+        LiveClipVirtual.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            return;
         };
         return LiveClipVirtual;
     }());
@@ -531,7 +551,6 @@ var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var red = [255, 0, 0];
-    // const black = ["0", "0", "0"];
     var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
         function Pwindow(height, width, messenger) {
@@ -553,12 +572,15 @@ var window;
             // this is the min size of window in pixels
             // make the width be an integer multiple of this, for convenience
         }
+        Pwindow.prototype.get_notes_leaves = function () {
+            return this.leaves;
+        };
         // TODO: this assumes it only gets called once
         // TODO: assumes we only have one note to begin with
         Pwindow.prototype.set_clip = function (clip) {
             // this.clips.push(clip);
             this.add_clip(clip);
-            var note = clip.get_notes()[0]; // first clip only has one note
+            var note = clip.get_notes_within_markers()[0]; // first clip only has one note
             note.model.id = 0; // index of first clip
             this.root_parse_tree = note;
             this.leaves = [note];
@@ -599,7 +621,7 @@ var window;
         Pwindow.prototype.splice_notes = function (notes_subset, clip, interval_beats) {
             // NB: beginning of interval must equal beat_start of some note in clip, and the end of the interval must equal beat_end of some note in clip
             // let interval_beats = get_interval_beats(notes);
-            var notes_clip = _.cloneDeep(clip.get_notes());
+            var notes_clip = _.cloneDeep(clip.get_notes_within_markers());
             var num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
             // this should be 2?
             // TODO: this method only works if the two sets of notes are the same length
@@ -637,8 +659,8 @@ var window;
             // var index_clip = node.get_index_clip();
             // var index_note = node.get_index_note();
             // var clip = this.clips[index_clip];
-            // clip.load_notes();
-            // var note = clip.get_notes()[index_note];
+            // clip.load_notes_within_markers();
+            // var note = clip.get_notes_within_markers()[index_note];
             // var index_clip = node.depth;
             // TODO: this isn't always true
             // let index_clip = node.getPath().length - 1;
@@ -688,7 +710,7 @@ var window;
         // }
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         Pwindow.prototype.add_clip = function (clip) {
-            // for (let node of clip.get_notes()) {
+            // for (let node of clip.get_notes_within_markers()) {
             //     node.model.id = this.clips.length; // soon to be the new index of this clip
             // }
             this.clips.push(clip);
@@ -698,11 +720,11 @@ var window;
             //     // this.root_parse_tree = tree.parse(
             //     //     {
             //     //         id: -1, // TODO: hashing scheme for clip id and beat start
-            //     //         note: clip.get_notes()[0],
+            //     //         note: clip.get_notes_within_markers()[0],
             //     //         children: []
             //     //     }
             //     // );
-            //     this.root_parse_tree = clip.get_notes()[0];
+            //     this.root_parse_tree = clip.get_notes_within_markers()[0];
             //     // this.list_leaves_current = [
             //     //     this.root_parse_tree
             //     // ];
@@ -711,8 +733,8 @@ var window;
             // // var notes_parent: TreeModel.Node<n.Note>[] = this.list_leaves_current; // TODO: don't make parental candidates leaves
             // // TODO: make method that takes to clip indices and finds the diff
             // // TODO: we don't need to support adding entire clip, if we know what the diff will be beforehand
-            // var notes_parent: TreeModel.Node<n.Note>[] = this.clips[this.clips.length - 2].get_notes();
-            // var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes();
+            // var notes_parent: TreeModel.Node<n.Note>[] = this.clips[this.clips.length - 2].get_notes_within_markers();
+            // var notes_child: TreeModel.Node<n.Note>[] = clip.get_notes_within_markers();
             // var notes_diff = this.get_diff_notes(notes_parent, notes_child);
             // var notes_parent_diff = notes_diff['parent'];
             // var notes_child_diff = notes_diff['child'];
@@ -904,7 +926,7 @@ var window;
         Pwindow.prototype.get_messages_render_notes = function (index_clip) {
             var clip = this.clips[index_clip];
             var quadruplets = [];
-            for (var _i = 0, _a = clip.get_notes(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = clip.get_notes_within_markers(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
@@ -958,15 +980,18 @@ var window;
     window.Pwindow = Pwindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":1,"../live/live":2,"lodash":9}],7:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"lodash":10}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var clip_5 = require("./clip/clip");
+var clip_1 = require("./clip/clip");
 var messenger_1 = require("./message/messenger");
-var window_1 = require("./render/window");
 var logger_1 = require("./log/logger");
 var live_1 = require("./live/live");
+var window_1 = require("./render/window");
+var song_1 = require("./song/song");
+// import Song = song.Song;
 // const sinon = require("sinon");
+var bound_lower, bound_upper;
 // let env: string = process.argv[2];
 // TODO: handle better - if set to max, can't run in node, but can compile TypeScript to max object
 // if we switch from node execution to max execution, will max have stopped watching?
@@ -974,7 +999,63 @@ var env = 'max';
 if (env === 'max') {
     autowatch = 1;
 }
-var main = function () {
+var live_api_user_input;
+var live_api_to_elaborate;
+var live_api_elaboration;
+var clip_user_input;
+var clip_to_elaborate;
+var clip_elaboration;
+var pwindow;
+var elaboration;
+// let index_track = 18;
+// let index_clip_slot = 0;
+//
+// let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+//
+// live_api_user_input = new li.LiveApiJs(index_track_user_input, index_clip_slot_user_input);
+var song_dao = new song_1.song.SongDao(new live_1.live.LiveApiJs("live_set"), new messenger_1.message.Messenger(env, 0), false);
+var song = new song_1.song.Song(song_dao);
+var boundary_change_record_interval = function (int) {
+    song.set_session_record(int);
+};
+var test = function () {
+    post('test');
+    post('\n');
+};
+var set_bound_upper = function (beat) {
+    bound_upper = Number(beat);
+};
+var set_bound_lower = function (beat) {
+    bound_lower = Number(beat);
+};
+var confirm = function () {
+    elaboration = clip_user_input.get_notes(bound_lower, 0, bound_upper, 128);
+    pwindow.elaborate(elaboration, bound_lower, bound_upper);
+    var messages_notes = pwindow.get_messages_render_clips();
+    var messages_tree = pwindow.get_messages_render_tree();
+    // most recent summarization
+    var notes_leaves = pwindow.get_notes_leaves();
+    var logger = new logger_1.log.Logger(env);
+    var messenger = new messenger_1.message.Messenger(env, 0);
+    messenger.message("clear");
+    for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
+        var message = messages_notes_1[_i];
+        messenger.message(message);
+        logger.log(message);
+    }
+    for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
+        var message = messages_tree_1[_a];
+        messenger.message(message);
+        logger.log(message);
+    }
+    clip_elaboration.set_notes(notes_leaves);
+    // TODO: replace notes in summarization clip with leaf notes
+};
+var reset = function () {
+    clip_user_input.remove_notes(bound_lower, 0, bound_upper, 128);
+};
+// maybe init?
+var main = function (index_track_to_elaborate, index_clip_slot_to_elaborate, index_track_user_input, index_clip_slot_user_input, index_track_elaboration, index_clip_slot_elaboration) {
     // var clip_1 = new c.Clip(new cd.ClipDao(index_track_1, index_clip_slot_universal, messenger, deferlow));
     // let b_stub_live_api: boolean = false;
     var live_api_1, live_api_2, live_api_3, live_api_4;
@@ -1028,94 +1109,175 @@ var main = function () {
         };
     }
     else {
-        live_api_1 = new live_1.live.LiveApiJs(15, 0);
-        live_api_2 = new live_1.live.LiveApiJs(14, 0);
-        live_api_3 = new live_1.live.LiveApiJs(13, 0);
-        live_api_4 = new live_1.live.LiveApiJs(12, 0);
+        // live_api_1 = new li.LiveApiJs(15, 0);
+        // live_api_2 = new li.LiveApiJs(14, 0);
+        // live_api_3 = new li.LiveApiJs(13, 0);
+        // live_api_4 = new li.LiveApiJs(12, 0);
+        // "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+        live_api_user_input = new live_1.live.LiveApiJs("live_set tracks " + index_track_user_input + " clip_slots " + index_clip_slot_user_input + " clip");
+        live_api_to_elaborate = new live_1.live.LiveApiJs("live_set tracks " + index_track_to_elaborate + " clip_slots " + index_clip_slot_to_elaborate + " clip");
+        live_api_elaboration = new live_1.live.LiveApiJs("live_set tracks " + index_track_elaboration + " clip_slots " + index_clip_slot_elaboration + " clip");
     }
     // clip 1
-    var clip_dao_1 = new clip_5.clip.ClipDao(live_api_1, new messenger_1.message.Messenger(env, 0), false);
+    // let clip_dao_1 = new c.ClipDao(
+    //     live_api_1,
+    //     new m.Messenger(env, 0),
+    //     false
+    // );
     // sinon.stub(clip_dao_1, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
     // sinon.stub(clip_dao_1, "get_end_marker").callsFake(() => {
     //     return 4;
     // });
-    // sinon.stub(clip_dao_1, "get_notes").callsFake(() => {
+    // sinon.stub(clip_dao_1, "get_notes_within_markers").callsFake(() => {
     //     return ["notes",1,"note",50,0,4,127,0,"done"]
     // });
     // clip 2
-    var clip_dao_2 = new clip_5.clip.ClipDao(live_api_2, new messenger_1.message.Messenger(env, 0), false);
+    // let clip_dao_2 = new c.ClipDao(
+    //     live_api_2,
+    //     new m.Messenger(env, 0),
+    //     false
+    // );
     // sinon.stub(clip_dao_2, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
     // sinon.stub(clip_dao_2, "get_end_marker").callsFake(() => {
     //     return 4;
     // });
-    // sinon.stub(clip_dao_2, "get_notes").callsFake(() => {
+    // sinon.stub(clip_dao_2, "get_notes_within_markers").callsFake(() => {
     //     return ["notes",2,"note",50,0,2,127,0,"note",54,2,2,127,0,"done"]
     // });
     // clip 3
-    var clip_dao_3 = new clip_5.clip.ClipDao(live_api_3, new messenger_1.message.Messenger(env, 0), false);
+    // let clip_dao_3 = new c.ClipDao(
+    //     live_api_3,
+    //     new m.Messenger(env, 0),
+    //     false
+    // );
     // sinon.stub(clip_dao_3, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
     // sinon.stub(clip_dao_3, "get_end_marker").callsFake(() => {
     //     return 4;
     // });
-    // sinon.stub(clip_dao_3, "get_notes").callsFake(() => {
+    // sinon.stub(clip_dao_3, "get_notes_within_markers").callsFake(() => {
     //     return ["notes",3,"note",50,0,1,127,0,"note",52,1,1,127,0,"note",54,2,2,127,0,"done"]
     // });
     // clip 4
-    var clip_dao_4 = new clip_5.clip.ClipDao(live_api_4, new messenger_1.message.Messenger(env, 0), false);
+    // let clip_dao_4 = new c.ClipDao(
+    //     live_api_4,
+    //     new m.Messenger(env, 0),
+    //     false
+    // );
     // sinon.stub(clip_dao_4, "get_start_marker").callsFake(() => {
     //     return 0;
     // });
     // sinon.stub(clip_dao_4, "get_end_marker").callsFake(() => {
     //     return 4;
     // });
-    // sinon.stub(clip_dao_4, "get_notes").callsFake(() => {
+    // sinon.stub(clip_dao_4, "get_notes_within_markers").callsFake(() => {
     //     return ["notes",4,"note",50,0,1,127,0,"note",52,1,1,127,0,"note",54,2,1,127,0,"note",55,3,1,127,0,"done"]
     // });
-    var clip_1 = new clip_5.clip.Clip(clip_dao_1);
-    var clip_2 = new clip_5.clip.Clip(clip_dao_2);
-    var clip_3 = new clip_5.clip.Clip(clip_dao_3);
-    var clip_4 = new clip_5.clip.Clip(clip_dao_4);
-    clip_1.load_notes();
-    clip_2.load_notes();
-    clip_3.load_notes();
-    clip_4.load_notes();
+    // let clip_1 = new c.Clip(clip_dao_1);
+    // let clip_2 = new c.Clip(clip_dao_2);
+    // let clip_3 = new c.Clip(clip_dao_3);
+    // let clip_4 = new c.Clip(clip_dao_4);
+    //
+    // clip_1.load_notes_within_markers();
+    // clip_2.load_notes_within_markers();
+    // clip_3.load_notes_within_markers();
+    // clip_4.load_notes_within_markers();
+    // TODO: make configurable
     var dim = 16 * 6 * 4;
-    var pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
-    pwindow.set_clip(clip_1);
-    pwindow.elaborate(clip_2.get_notes(), clip_2.get_notes()[0].model.note.beat_start, clip_2.get_notes()[1].model.note.get_beat_end());
-    pwindow.elaborate(clip_3.get_notes().slice(0, 2), clip_3.get_notes().slice(0, 2)[0].model.note.beat_start, clip_3.get_notes().slice(0, 2)[1].model.note.get_beat_end());
-    pwindow.elaborate(clip_4.get_notes().slice(2, 4), clip_4.get_notes().slice(2, 4)[0].model.note.beat_start, clip_4.get_notes().slice(2, 4)[1].model.note.get_beat_end());
-    var messages_notes = pwindow.get_messages_render_clips();
-    var messages_tree = pwindow.get_messages_render_tree();
-    var logger = new logger_1.log.Logger(env);
-    var messenger = new messenger_1.message.Messenger(env, 0);
-    // messenger.message(messages_notes.length.toString());
-    // messenger.message(messages_tree.length.toString());
-    for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
-        var message = messages_notes_1[_i];
-        messenger.message(message);
-        logger.log(message);
-        // outlet(0, message);
-    }
-    for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
-        var message = messages_tree_1[_a];
-        messenger.message(message);
-        logger.log(message);
-        // outlet(0, message);
-    }
+    pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
+    // TODO: sample workflow
+    clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), false));
+    clip_to_elaborate = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_to_elaborate, new messenger_1.message.Messenger(env, 0), false));
+    // collect index of clip to sumarize from user
+    pwindow.set_clip(clip_to_elaborate);
+    // these will be notes collected within the bound specified by the user
+    // pwindow.elaborate(
+    //     clip_2.get_notes_within_markers(),
+    //     clip_2.get_notes_within_markers()[0].model.note.beat_start,
+    //     clip_2.get_notes_within_markers()[1].model.note.get_beat_end()
+    // );
+    //
+    // pwindow.elaborate(
+    //     clip_3.get_notes_within_markers().slice(0, 2),
+    //     clip_3.get_notes_within_markers().slice(0, 2)[0].model.note.beat_start,
+    //     clip_3.get_notes_within_markers().slice(0, 2)[1].model.note.get_beat_end()
+    // );
+    //
+    // pwindow.elaborate(
+    //     clip_4.get_notes_within_markers().slice(2, 4),
+    //     clip_4.get_notes_within_markers().slice(2, 4)[0].model.note.beat_start,
+    //     clip_4.get_notes_within_markers().slice(2, 4)[1].model.note.get_beat_end()
+    // );
+    // let messages_notes = pwindow.get_messages_render_clips();
+    //
+    // let messages_tree = pwindow.get_messages_render_tree();
+    //
+    // let logger = new log.Logger(env);
+    // let messenger = new m.Messenger(env, 0);
+    //
+    // // messenger.message(messages_notes.length.toString());
+    // // messenger.message(messages_tree.length.toString());
+    //
+    // for (let message of messages_notes) {
+    //     messenger.message(message);
+    //     logger.log(message);
+    //     // outlet(0, message);
+    // }
+    //
+    // for (let message of messages_tree) {
+    //     messenger.message(message);
+    //     logger.log(message);
+    //     // outlet(0, message);
+    // }
 };
 if (typeof Global !== "undefined") {
     Global.renderer = {};
     Global.renderer.main = main;
+    Global.renderer.confirm = confirm;
+    Global.renderer.reset = reset;
+    Global.renderer.set_bound_lower = set_bound_lower;
+    Global.renderer.set_bound_upper = set_bound_upper;
+    Global.renderer.test = test;
+    Global.renderer.boundary_change_record_interval = boundary_change_record_interval;
 }
 
-},{"./clip/clip":1,"./live/live":2,"./log/logger":3,"./message/messenger":4,"./render/window":6}],8:[function(require,module,exports){
+},{"./clip/clip":1,"./live/live":2,"./log/logger":3,"./message/messenger":4,"./render/window":6,"./song/song":8}],8:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var song;
+(function (song) {
+    var Song = /** @class */ (function () {
+        function Song(song_dao) {
+            this.song_dao = song_dao;
+        }
+        Song.prototype.set_session_record = function (int) {
+            this.song_dao.set_session_record(int);
+        };
+        return Song;
+    }());
+    song.Song = Song;
+    var SongDao = /** @class */ (function () {
+        function SongDao(clip_live, messenger, deferlow) {
+            this.clip_live = clip_live;
+            this.messenger = messenger;
+            this.deferlow = deferlow;
+        }
+        SongDao.prototype.set_session_record = function (int) {
+            post("setting session record");
+            post("\n");
+            this.clip_live.set("session_record", int);
+        };
+        return SongDao;
+    }());
+    song.SongDao = SongDao;
+})(song = exports.song || (exports.song = {}));
+
+},{}],9:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1139,7 +1301,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -18250,7 +18412,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -18302,7 +18464,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -18595,6 +18757,12 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":8,"mergesort":10}]},{},[7]);
+},{"find-insert-index":9,"mergesort":11}]},{},[7]);
 
 var main = Global.renderer.main;
+var confirm = Global.renderer.confirm;
+var reset = Global.renderer.reset;
+var set_bound_lower = Global.renderer.set_bound_lower;
+var set_bound_upper = Global.renderer.set_bound_upper;
+var test = Global.renderer.test;
+var boundary_change_record_interval = Global.renderer.boundary_change_record_interval;

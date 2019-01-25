@@ -3,8 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var live;
 (function (live) {
     var LiveApiJs = /** @class */ (function () {
-        function LiveApiJs(index_track, index_clip_slot) {
-            var path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+        // constructor(index_track: number, index_clip_slot: number) {
+        //     let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
+        //     this.live_api = new LiveAPI(null, path);
+        // }
+        function LiveApiJs(path) {
             this.live_api = new LiveAPI(null, path);
         }
         LiveApiJs.prototype.get = function (property) {
@@ -67,6 +70,9 @@ var live;
             }
             suffix = ["done"];
             return prefix.concat(notes).concat(suffix);
+        };
+        LiveClipVirtual.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            return;
         };
         return LiveClipVirtual;
     }());

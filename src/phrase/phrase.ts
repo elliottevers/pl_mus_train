@@ -31,7 +31,7 @@ export namespace phrase {
 
         // TODO: make 'direction' a type alias
         // TODO: why is this referencing an non-existant method? Have we regressed?
-        // public load_notes(direction_forward: boolean) {
+        // public load_notes_within_markers(direction_forward: boolean) {
         //     this.set_note_iterator(this._parse_notes(this._get_notes()), direction_forward);
         // }
 

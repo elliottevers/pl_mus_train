@@ -7,7 +7,6 @@ var clip;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
-            // this.notes = null;
         }
         Clip.prototype.get_num_measures = function () {
             return (this.get_end_marker() - this.get_start_marker()) / 4;
@@ -19,13 +18,13 @@ var clip;
             return this.clip_dao.get_start_marker();
         };
         // TODO: annotations
-        Clip.prototype.load_notes = function () {
-            this.notes = Clip._parse_notes(this._get_notes(0, 0, this.get_end_marker(), 128));
+        Clip.prototype.load_notes_within_markers = function () {
+            this.notes = this.get_notes(this.get_start_marker(), 0, this.get_end_marker(), 128);
         };
         // TODO: annotations
         Clip.prototype.get_pitch_max = function () {
             var pitch_max = 0;
-            for (var _i = 0, _a = this.get_notes(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes_within_markers(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch > pitch_max) {
                     pitch_max = node.model.note.pitch;
@@ -36,7 +35,7 @@ var clip;
         // TODO: annotations
         Clip.prototype.get_pitch_min = function () {
             var pitch_min = 128;
-            for (var _i = 0, _a = this.get_notes(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes_within_markers(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch < pitch_min) {
                     pitch_min = node.model.note.pitch;
@@ -65,22 +64,24 @@ var clip;
         Clip.prototype.stop = function () {
             this.clip_dao.stop();
         };
-        Clip.prototype.get_notes = function () {
-            // get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<Node>[] {
+        Clip.prototype.get_notes_within_markers = function () {
             if (!this.notes) {
-                var beat_start = void 0, pitch_midi_min = void 0, beat_end = void 0, pitch_midi_max = void 0;
-                beat_start = 0;
-                beat_end = this.get_end_marker();
-                pitch_midi_min = 0;
-                pitch_midi_max = 128;
-                return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max));
+                this.load_notes_within_markers();
             }
-            else {
-                return this.notes;
-            }
+            return this.notes;
         };
+        Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max));
+        };
+        Clip.prototype.set_notes = function (notes) {
+            this.clip_dao.set_notes(notes);
+        };
+        // TODO: *actually* make private
         Clip.prototype._get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
             return this.clip_dao.get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+        };
+        Clip.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            this.clip_dao.remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
         };
         // TODO: return list of tree nodes
         Clip._parse_notes = function (notes) {
@@ -212,6 +213,29 @@ var clip;
             return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
         };
         ;
+        ClipDao.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            this.clip_live.call('remove_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+        };
+        ;
+        ClipDao.prototype.set_notes = function (notes) {
+            this.clip_live.call('set_notes');
+            // post('set_notes');
+            // post('\n');
+            this.clip_live.call('notes', notes.length);
+            // post('notes.length');
+            post(notes.length);
+            // post('\n');
+            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                var node = notes_1[_i];
+                this.clip_live.call("note", node.model.note.pitch, 
+                // "0.0",
+                // "1.0",
+                node.model.note.beat_start.toFixed(4), node.model.note.beats_duration.toFixed(4), node.model.note.velocity, node.model.note.muted);
+                // post('note');
+                // post('\n');
+            }
+            this.clip_live.call("done");
+        };
         return ClipDao;
     }());
     clip.ClipDao = ClipDao;
