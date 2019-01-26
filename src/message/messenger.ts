@@ -12,24 +12,33 @@ export namespace message {
 
         private outlet: number;
 
-        constructor (env: string, outlet: number) {
+        private key_route: string;
+
+        constructor (env: string, outlet: number, key_route?: string) {
             this.env = env;
             this.outlet = outlet;
+            this.key_route = key_route;
         }
 
-        message(message: string) {
+        message(message: any[]) {
             if (this.env === 'max') {
+                if (this.key_route) {
+                    message.unshift(this.key_route);
+                }
                 this.message_max(message);
             } else if (this.env === 'node') {
+                if (this.key_route) {
+                    message.unshift(this.key_route);
+                }
                 this.message_node(message);
             }
         }
 
-        message_max(message: string): void {
+        message_max(message: any[]): void {
             outlet(this.outlet, message);
         }
 
-        message_node(message: string): void {
+        message_node(message: any[]): void {
             console.log("Messenger:");
             console.log("\n");
             console.log(message);

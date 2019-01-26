@@ -19,8 +19,6 @@ var song;
             this.deferlow = deferlow;
         }
         SongDao.prototype.set_session_record = function (int) {
-            post("setting session record");
-            post("\n");
             this.clip_live.set("session_record", int);
         };
         return SongDao;

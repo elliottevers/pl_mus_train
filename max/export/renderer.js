@@ -53,6 +53,12 @@ var clip;
         Clip.prototype.set_loop_bracket_upper = function (beat) {
             this.clip_dao.set_loop_bracket_upper(beat);
         };
+        Clip.prototype.get_loop_bracket_lower = function () {
+            return this.clip_dao.get_loop_bracket_lower();
+        };
+        Clip.prototype.get_loop_bracket_upper = function () {
+            return this.clip_dao.get_loop_bracket_upper();
+        };
         Clip.prototype.set_clip_endpoint_lower = function (beat) {
             this.clip_dao.set_clip_endpoint_lower(beat);
         };
@@ -162,7 +168,7 @@ var clip;
         };
         ClipDao.prototype.set_loop_bracket_lower = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "loop_start", beat, "set"]);
+                this.messenger.message(["set", "loop_start", beat]);
             }
             else {
                 this.clip_live.set('loop_start', beat);
@@ -170,15 +176,29 @@ var clip;
         };
         ClipDao.prototype.set_loop_bracket_upper = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "loop_end", beat, "set"]);
+                this.messenger.message(["set", "loop_end", beat]);
             }
             else {
                 this.clip_live.set('loop_end', beat);
             }
         };
+        ClipDao.prototype.get_loop_bracket_lower = function () {
+            // if (this.deferlow) {
+            //     this.messenger.message(["set", "loop_start", beat])
+            // } else {
+            return this.clip_live.get('loop_start');
+            // }
+        };
+        ClipDao.prototype.get_loop_bracket_upper = function () {
+            // if (this.deferlow) {
+            //     this.messenger.message(["set", "loop_end", beat])
+            // } else {
+            return this.clip_live.get('loop_end');
+            // }
+        };
         ClipDao.prototype.set_clip_endpoint_lower = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "start_marker", beat, "set"]);
+                this.messenger.message(["set", "start_marker", beat]);
             }
             else {
                 this.clip_live.set('start_marker', beat);
@@ -186,7 +206,7 @@ var clip;
         };
         ClipDao.prototype.set_clip_endpoint_upper = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "end_marker", beat, "set"]);
+                this.messenger.message(["set", "end_marker", beat]);
             }
             else {
                 this.clip_live.set('end_marker', beat);
@@ -194,7 +214,7 @@ var clip;
         };
         ClipDao.prototype.fire = function () {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "fire", "call"]);
+                this.messenger.message(["call", "fire"]);
             }
             else {
                 this.clip_live.call('fire');
@@ -203,7 +223,7 @@ var clip;
         ;
         ClipDao.prototype.stop = function () {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "stop", "call"]);
+                this.messenger.message(["call", "stop"]);
             }
             else {
                 this.clip_live.call('stop');
@@ -211,21 +231,49 @@ var clip;
         };
         ;
         ClipDao.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            // if (this.deferlow) {
+            //
+            // } else {
             return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            // }
         };
         ;
         ClipDao.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            this.clip_live.call('remove_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            if (this.deferlow) {
+                this.messenger.message(["call", "remove_notes", beat_start, pitch_midi_min, beat_end, pitch_midi_max]);
+            }
+            else {
+                this.clip_live.call('remove_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            }
         };
         ;
         ClipDao.prototype.set_notes = function (notes) {
-            this.clip_live.call('set_notes');
-            this.clip_live.call('notes', notes.length);
-            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
-                var node = notes_1[_i];
-                this.clip_live.call("note", node.model.note.pitch, node.model.note.beat_start, node.model.note.beats_duration, node.model.note.velocity, node.model.note.muted);
+            if (this.deferlow) {
+                this.messenger.message(['call', 'set_notes']);
+                this.messenger.message(['call', 'notes', notes.length]);
+                for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                    var node = notes_1[_i];
+                    this.messenger.message([
+                        'call',
+                        'note',
+                        node.model.note.pitch,
+                        node.model.note.beat_start.toFixed(4),
+                        node.model.note.beats_duration.toFixed(4),
+                        node.model.note.velocity,
+                        node.model.note.muted
+                    ]);
+                }
+                this.messenger.message(['call', 'done']);
             }
-            this.clip_live.call("done");
+            else {
+                this.clip_live.call('set_notes');
+                this.clip_live.call('notes', notes.length);
+                for (var _a = 0, notes_2 = notes; _a < notes_2.length; _a++) {
+                    var node = notes_2[_a];
+                    this.clip_live.call("note", node.model.note.pitch, node.model.note.beat_start.toFixed(4), node.model.note.beats_duration.toFixed(4), node.model.note.velocity, node.model.note.muted);
+                }
+                this.clip_live.call("done");
+            }
         };
         return ClipDao;
     }());
@@ -238,10 +286,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var live;
 (function (live) {
     var LiveApiJs = /** @class */ (function () {
-        // constructor(index_track: number, index_clip_slot: number) {
-        //     let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-        //     this.live_api = new LiveAPI(null, path);
-        // }
         function LiveApiJs(path) {
             this.live_api = new LiveAPI(null, path);
         }
@@ -397,15 +441,22 @@ var message;
     // TODO: the following
     // type Env = 'max' | 'node';
     var Messenger = /** @class */ (function () {
-        function Messenger(env, outlet) {
+        function Messenger(env, outlet, key_route) {
             this.env = env;
             this.outlet = outlet;
+            this.key_route = key_route;
         }
         Messenger.prototype.message = function (message) {
             if (this.env === 'max') {
+                if (this.key_route) {
+                    message.unshift(this.key_route);
+                }
                 this.message_max(message);
             }
             else if (this.env === 'node') {
+                if (this.key_route) {
+                    message.unshift(this.key_route);
+                }
                 this.message_node(message);
             }
         };
@@ -992,6 +1043,7 @@ var song_1 = require("./song/song");
 // import Song = song.Song;
 // const sinon = require("sinon");
 var bound_lower, bound_upper;
+outlets = 2;
 // let env: string = process.argv[2];
 // TODO: handle better - if set to max, can't run in node, but can compile TypeScript to max object
 // if we switch from node execution to max execution, will max have stopped watching?
@@ -1013,14 +1065,37 @@ var elaboration;
 // let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
 //
 // live_api_user_input = new li.LiveApiJs(index_track_user_input, index_clip_slot_user_input);
-var song_dao = new song_1.song.SongDao(new live_1.live.LiveApiJs("live_set"), new messenger_1.message.Messenger(env, 0), false);
+var song_dao = new song_1.song.SongDao(new live_1.live.LiveApiJs("live_set"), new messenger_1.message.Messenger(env, 1, "song"), true);
 var song = new song_1.song.Song(song_dao);
+var toggle = true;
 var boundary_change_record_interval = function (int) {
     song.set_session_record(int);
 };
 var test = function () {
-    post('test');
-    post('\n');
+    // clip_elaboration.remove_notes(
+    //     0,
+    //     0,
+    //     4,
+    //     128
+    // );
+    // post(clip_user_input.get_loop_bracket_upper());
+    // post('\n');
+    // testing if we can change the looping of phrases automatically
+    toggle = !toggle;
+    if (toggle) {
+        post('true');
+        clip_user_input.set_loop_bracket_lower(0);
+        clip_user_input.set_loop_bracket_upper(2);
+        // clip_user_input.set_loop_bracket_upper(4);
+        // clip_user_input.set_loop_bracket_lower(2);
+    }
+    else {
+        post('false');
+        // clip_user_input.set_loop_bracket_lower(0);
+        // clip_user_input.set_loop_bracket_upper(2);
+        clip_user_input.set_loop_bracket_upper(4);
+        clip_user_input.set_loop_bracket_lower(2);
+    }
 };
 var set_bound_upper = function (beat) {
     bound_upper = Number(beat);
@@ -1037,7 +1112,7 @@ var confirm = function () {
     var notes_leaves = pwindow.get_notes_leaves();
     var logger = new logger_1.log.Logger(env);
     var messenger = new messenger_1.message.Messenger(env, 0);
-    messenger.message("clear");
+    messenger.message(["clear"]);
     for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
         var message = messages_notes_1[_i];
         messenger.message(message);
@@ -1048,8 +1123,15 @@ var confirm = function () {
         messenger.message(message);
         logger.log(message);
     }
+    // logger.log('about to remove notes');
+    // clip_elaboration.remove_notes(
+    //     notes_leaves[0].model.note.beat_start,
+    //     0,
+    //     notes_leaves[notes_leaves.length - 1].model.note.get_beat_end() - notes_leaves[0].model.note.beat_start,
+    //     128
+    // );
+    clip_elaboration.remove_notes(0, 0, 0, 128);
     clip_elaboration.set_notes(notes_leaves);
-    // TODO: replace notes in summarization clip with leaf notes
 };
 var reset = function () {
     clip_user_input.remove_notes(bound_lower, 0, bound_upper, 128);
@@ -1190,9 +1272,10 @@ var main = function (index_track_to_elaborate, index_clip_slot_to_elaborate, ind
     // TODO: make configurable
     var dim = 16 * 6 * 4;
     pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
-    // TODO: sample workflow
-    clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), false));
-    clip_to_elaborate = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_to_elaborate, new messenger_1.message.Messenger(env, 0), false));
+    // TODO: sample workflowd
+    clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 1, "user_input"), true));
+    clip_to_elaborate = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_to_elaborate, new messenger_1.message.Messenger(env, 1, "to_elaborate"), true));
+    clip_elaboration = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_elaboration, new messenger_1.message.Messenger(env, 1, "elaboration"), true));
     // collect index of clip to sumarize from user
     pwindow.set_clip(clip_to_elaborate);
     // these will be notes collected within the bound specified by the user
@@ -1268,8 +1351,6 @@ var song;
             this.deferlow = deferlow;
         }
         SongDao.prototype.set_session_record = function (int) {
-            post("setting session record");
-            post("\n");
             this.clip_live.set("session_record", int);
         };
         return SongDao;

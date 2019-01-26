@@ -20,6 +20,8 @@ import {song as s} from "./song/song";
 
 let bound_lower, bound_upper;
 
+outlets = 2;
+
 
 // let env: string = process.argv[2];
 // TODO: handle better - if set to max, can't run in node, but can compile TypeScript to max object
@@ -48,19 +50,43 @@ let elaboration: TreeModel.Node<n.Note>[];
 
 let song_dao = new s.SongDao(
     new li.LiveApiJs("live_set"),
-    new m.Messenger(env, 0),
-    false
+    new m.Messenger(env, 1, "song"),
+    true
 );
 
 let song: s.Song = new s.Song(song_dao);
+
+let toggle: boolean = true;
 
 let boundary_change_record_interval = (int) => {
     song.set_session_record(int);
 };
 
 let test = () => {
-    post('test');
-    post('\n');
+    // clip_elaboration.remove_notes(
+    //     0,
+    //     0,
+    //     4,
+    //     128
+    // );
+
+    // post(clip_user_input.get_loop_bracket_upper());
+    // post('\n');
+    // testing if we can change the looping of phrases automatically
+    toggle = !toggle;
+    if (toggle) {
+        post('true');
+        clip_user_input.set_loop_bracket_lower(0);
+        clip_user_input.set_loop_bracket_upper(2);
+        // clip_user_input.set_loop_bracket_upper(4);
+        // clip_user_input.set_loop_bracket_lower(2);
+    } else {
+        post('false');
+        // clip_user_input.set_loop_bracket_lower(0);
+        // clip_user_input.set_loop_bracket_upper(2);
+        clip_user_input.set_loop_bracket_upper(4);
+        clip_user_input.set_loop_bracket_lower(2);
+    }
 };
 
 let set_bound_upper = (beat) => {
@@ -91,7 +117,7 @@ let confirm = () => {
 
     let messenger = new m.Messenger(env, 0);
 
-    messenger.message("clear");
+    messenger.message(["clear"]);
 
     for (let message of messages_notes) {
         messenger.message(message);
@@ -103,11 +129,25 @@ let confirm = () => {
         logger.log(message);
     }
 
+    // logger.log('about to remove notes');
+
+    // clip_elaboration.remove_notes(
+    //     notes_leaves[0].model.note.beat_start,
+    //     0,
+    //     notes_leaves[notes_leaves.length - 1].model.note.get_beat_end() - notes_leaves[0].model.note.beat_start,
+    //     128
+    // );
+
+    clip_elaboration.remove_notes(
+        0,
+        0,
+        0,
+        128
+    );
+
     clip_elaboration.set_notes(
         notes_leaves
-    )
-
-    // TODO: replace notes in summarization clip with leaf notes
+    );
 };
 
 let reset = () => {
@@ -258,21 +298,29 @@ let main = (
         new m.Messenger(env, 0)
     );
 
-    // TODO: sample workflow
+    // TODO: sample workflowd
 
     clip_user_input = new c.Clip(
         new c.ClipDao(
             live_api_user_input,
-            new m.Messenger(env, 0),
-            false
+            new m.Messenger(env, 1, "user_input"),
+            true
         )
     );
 
     clip_to_elaborate = new c.Clip(
         new c.ClipDao(
             live_api_to_elaborate,
-            new m.Messenger(env, 0),
-            false
+            new m.Messenger(env, 1, "to_elaborate"),
+            true
+        )
+    );
+
+    clip_elaboration = new c.Clip(
+        new c.ClipDao(
+            live_api_elaboration,
+            new m.Messenger(env, 1, "elaboration"),
+            true
         )
     );
 

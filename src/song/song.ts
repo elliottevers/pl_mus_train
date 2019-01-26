@@ -31,8 +31,6 @@ export namespace song {
         }
 
         set_session_record(int) {
-            post("setting session record");
-            post("\n");
             this.clip_live.set("session_record", int);
         }
     }

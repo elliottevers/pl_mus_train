@@ -52,6 +52,12 @@ var clip;
         Clip.prototype.set_loop_bracket_upper = function (beat) {
             this.clip_dao.set_loop_bracket_upper(beat);
         };
+        Clip.prototype.get_loop_bracket_lower = function () {
+            return this.clip_dao.get_loop_bracket_lower();
+        };
+        Clip.prototype.get_loop_bracket_upper = function () {
+            return this.clip_dao.get_loop_bracket_upper();
+        };
         Clip.prototype.set_clip_endpoint_lower = function (beat) {
             this.clip_dao.set_clip_endpoint_lower(beat);
         };
@@ -161,7 +167,7 @@ var clip;
         };
         ClipDao.prototype.set_loop_bracket_lower = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "loop_start", beat, "set"]);
+                this.messenger.message(["set", "loop_start", beat]);
             }
             else {
                 this.clip_live.set('loop_start', beat);
@@ -169,15 +175,29 @@ var clip;
         };
         ClipDao.prototype.set_loop_bracket_upper = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "loop_end", beat, "set"]);
+                this.messenger.message(["set", "loop_end", beat]);
             }
             else {
                 this.clip_live.set('loop_end', beat);
             }
         };
+        ClipDao.prototype.get_loop_bracket_lower = function () {
+            // if (this.deferlow) {
+            //     this.messenger.message(["set", "loop_start", beat])
+            // } else {
+            return this.clip_live.get('loop_start');
+            // }
+        };
+        ClipDao.prototype.get_loop_bracket_upper = function () {
+            // if (this.deferlow) {
+            //     this.messenger.message(["set", "loop_end", beat])
+            // } else {
+            return this.clip_live.get('loop_end');
+            // }
+        };
         ClipDao.prototype.set_clip_endpoint_lower = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "start_marker", beat, "set"]);
+                this.messenger.message(["set", "start_marker", beat]);
             }
             else {
                 this.clip_live.set('start_marker', beat);
@@ -185,7 +205,7 @@ var clip;
         };
         ClipDao.prototype.set_clip_endpoint_upper = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "end_marker", beat, "set"]);
+                this.messenger.message(["set", "end_marker", beat]);
             }
             else {
                 this.clip_live.set('end_marker', beat);
@@ -193,7 +213,7 @@ var clip;
         };
         ClipDao.prototype.fire = function () {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "fire", "call"]);
+                this.messenger.message(["call", "fire"]);
             }
             else {
                 this.clip_live.call('fire');
@@ -202,7 +222,7 @@ var clip;
         ;
         ClipDao.prototype.stop = function () {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "stop", "call"]);
+                this.messenger.message(["call", "stop"]);
             }
             else {
                 this.clip_live.call('stop');
@@ -210,31 +230,49 @@ var clip;
         };
         ;
         ClipDao.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            // if (this.deferlow) {
+            //
+            // } else {
             return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            // }
         };
         ;
         ClipDao.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            this.clip_live.call('remove_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            if (this.deferlow) {
+                this.messenger.message(["call", "remove_notes", beat_start, pitch_midi_min, beat_end, pitch_midi_max]);
+            }
+            else {
+                this.clip_live.call('remove_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            }
         };
         ;
         ClipDao.prototype.set_notes = function (notes) {
-            this.clip_live.call('set_notes');
-            // post('set_notes');
-            // post('\n');
-            this.clip_live.call('notes', notes.length);
-            // post('notes.length');
-            post(notes.length);
-            // post('\n');
-            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
-                var node = notes_1[_i];
-                this.clip_live.call("note", node.model.note.pitch, 
-                // "0.0",
-                // "1.0",
-                node.model.note.beat_start.toFixed(4), node.model.note.beats_duration.toFixed(4), node.model.note.velocity, node.model.note.muted);
-                // post('note');
-                // post('\n');
+            if (this.deferlow) {
+                this.messenger.message(['call', 'set_notes']);
+                this.messenger.message(['call', 'notes', notes.length]);
+                for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                    var node = notes_1[_i];
+                    this.messenger.message([
+                        'call',
+                        'note',
+                        node.model.note.pitch,
+                        node.model.note.beat_start.toFixed(4),
+                        node.model.note.beats_duration.toFixed(4),
+                        node.model.note.velocity,
+                        node.model.note.muted
+                    ]);
+                }
+                this.messenger.message(['call', 'done']);
             }
-            this.clip_live.call("done");
+            else {
+                this.clip_live.call('set_notes');
+                this.clip_live.call('notes', notes.length);
+                for (var _a = 0, notes_2 = notes; _a < notes_2.length; _a++) {
+                    var node = notes_2[_a];
+                    this.clip_live.call("note", node.model.note.pitch, node.model.note.beat_start.toFixed(4), node.model.note.beats_duration.toFixed(4), node.model.note.velocity, node.model.note.muted);
+                }
+                this.clip_live.call("done");
+            }
         };
         return ClipDao;
     }());

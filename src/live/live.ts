@@ -37,11 +37,6 @@ export namespace live {
     export class LiveApiJs implements iLiveApiJs {
         private live_api: any;
 
-        // constructor(index_track: number, index_clip_slot: number) {
-        //     let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-        //     this.live_api = new LiveAPI(null, path);
-        // }
-
         constructor(path: string) {
             this.live_api = new LiveAPI(null, path);
         }

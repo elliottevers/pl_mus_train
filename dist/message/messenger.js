@@ -5,15 +5,22 @@ var message;
     // TODO: the following
     // type Env = 'max' | 'node';
     var Messenger = /** @class */ (function () {
-        function Messenger(env, outlet) {
+        function Messenger(env, outlet, key_route) {
             this.env = env;
             this.outlet = outlet;
+            this.key_route = key_route;
         }
         Messenger.prototype.message = function (message) {
             if (this.env === 'max') {
+                if (this.key_route) {
+                    message.unshift(this.key_route);
+                }
                 this.message_max(message);
             }
             else if (this.env === 'node') {
+                if (this.key_route) {
+                    message.unshift(this.key_route);
+                }
                 this.message_node(message);
             }
         };

@@ -3,10 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var live;
 (function (live) {
     var LiveApiJs = /** @class */ (function () {
-        // constructor(index_track: number, index_clip_slot: number) {
-        //     let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-        //     this.live_api = new LiveAPI(null, path);
-        // }
         function LiveApiJs(path) {
             this.live_api = new LiveAPI(null, path);
         }

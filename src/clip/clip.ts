@@ -1,10 +1,12 @@
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {live} from "../live/live";
+import {message} from "../message/messenger";
 
 export namespace clip {
 
     import LiveApiJs = live.LiveApiJs;
+    import Messenger = message.Messenger;
 
     export class Clip {
 
@@ -74,6 +76,14 @@ export namespace clip {
 
         set_loop_bracket_upper(beat: number): void {
             this.clip_dao.set_loop_bracket_upper(beat);
+        }
+
+        get_loop_bracket_lower(): number {
+            return this.clip_dao.get_loop_bracket_lower();
+        }
+
+        get_loop_bracket_upper(): number {
+            return this.clip_dao.get_loop_bracket_upper();
         }
 
         set_clip_endpoint_lower(beat: number): void {
@@ -222,7 +232,7 @@ export namespace clip {
     export class ClipDao {
 
         private clip_live;
-        private messenger;
+        private messenger: Messenger;
         private deferlow: boolean;
 
         // how to implement LiveAPI - get, set, call
@@ -247,7 +257,7 @@ export namespace clip {
 
         set_loop_bracket_lower(beat: number) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "loop_start", beat, "set"])
+                this.messenger.message(["set", "loop_start", beat])
             } else {
                 this.clip_live.set('loop_start', beat);
             }
@@ -255,15 +265,31 @@ export namespace clip {
 
         set_loop_bracket_upper(beat: number) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "loop_end", beat, "set"])
+                this.messenger.message(["set", "loop_end", beat])
             } else {
                 this.clip_live.set('loop_end', beat);
             }
         }
 
+        get_loop_bracket_lower(): number {
+            // if (this.deferlow) {
+            //     this.messenger.message(["set", "loop_start", beat])
+            // } else {
+            return this.clip_live.get('loop_start');
+            // }
+        }
+
+        get_loop_bracket_upper(): number {
+            // if (this.deferlow) {
+            //     this.messenger.message(["set", "loop_end", beat])
+            // } else {
+            return this.clip_live.get('loop_end');
+            // }
+        }
+
         set_clip_endpoint_lower(beat: number) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "start_marker", beat, "set"])
+                this.messenger.message(["set", "start_marker", beat])
             } else {
                 this.clip_live.set('start_marker', beat);
             }
@@ -271,7 +297,7 @@ export namespace clip {
 
         set_clip_endpoint_upper(beat: number) {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "end_marker", beat, "set"])
+                this.messenger.message(["set", "end_marker", beat])
             } else {
                 this.clip_live.set('end_marker', beat);
             }
@@ -279,7 +305,7 @@ export namespace clip {
 
         fire(): void {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "fire", "call"])
+                this.messenger.message(["call", "fire"])
             } else {
                 this.clip_live.call('fire');
             }
@@ -287,55 +313,71 @@ export namespace clip {
 
         stop(): void {
             if (this.deferlow) {
-                this.messenger.message(["clip_endpoints", "stop", "call"])
+                this.messenger.message(["call", "stop"])
             } else {
                 this.clip_live.call('stop');
             }
         };
 
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
-            return this.clip_live.call(
-                'get_notes',
-                beat_start,
-                pitch_midi_min,
-                beat_end,
-                pitch_midi_max
-            );
+            // if (this.deferlow) {
+            //
+            // } else {
+                return this.clip_live.call(
+                    'get_notes',
+                    beat_start,
+                    pitch_midi_min,
+                    beat_end,
+                    pitch_midi_max
+                );
+            // }
         };
 
         remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void {
-            this.clip_live.call(
-                'remove_notes',
-                beat_start,
-                pitch_midi_min,
-                beat_end,
-                pitch_midi_max
-            );
+            if (this.deferlow) {
+                this.messenger.message(["call", "remove_notes", beat_start, pitch_midi_min, beat_end, pitch_midi_max])
+            } else {
+                this.clip_live.call(
+                    'remove_notes',
+                    beat_start,
+                    pitch_midi_min,
+                    beat_end,
+                    pitch_midi_max
+                );
+            }
         };
 
         set_notes(notes: TreeModel.Node<n.Note>[]): void {
-            this.clip_live.call('set_notes');
-            // post('set_notes');
-            // post('\n');
-            this.clip_live.call('notes', notes.length);
-            // post('notes.length');
-            post(notes.length);
-            // post('\n');
-            for (let node of notes) {
-                this.clip_live.call(
-                    "note",
-                    node.model.note.pitch,
-                    // "0.0",
-                    // "1.0",
-                    node.model.note.beat_start.toFixed(4),
-                    node.model.note.beats_duration.toFixed(4),
-                    node.model.note.velocity,
-                    node.model.note.muted
-                );
-                // post('note');
-                // post('\n');
+            if (this.deferlow) {
+                this.messenger.message(['call', 'set_notes']);
+                this.messenger.message(['call', 'notes', notes.length]);
+                for (let node of notes) {
+                    this.messenger.message([
+                        'call',
+                        'note',
+                        node.model.note.pitch,
+                        node.model.note.beat_start.toFixed(4),
+                        node.model.note.beats_duration.toFixed(4),
+                        node.model.note.velocity,
+                        node.model.note.muted
+                    ]);
+                }
+                this.messenger.message(['call', 'done'])
+            } else {
+                this.clip_live.call('set_notes');
+                this.clip_live.call('notes', notes.length);
+                for (let node of notes) {
+                    this.clip_live.call(
+                        "note",
+                        node.model.note.pitch,
+                        node.model.note.beat_start.toFixed(4),
+                        node.model.note.beats_duration.toFixed(4),
+                        node.model.note.velocity,
+                        node.model.note.muted
+                    );
+                }
+                this.clip_live.call("done")
             }
-            this.clip_live.call("done")
         }
     }
 }
