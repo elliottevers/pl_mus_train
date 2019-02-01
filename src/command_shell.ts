@@ -15,13 +15,11 @@ export {}
 
 declare let Global: any;
 
-let env: string = 'node';
+let env: string = 'max';
 
 if (env === 'max') {
     autowatch = 1;
 }
-
-////////////////////
 
 let messenger: Messenger;
 
@@ -60,9 +58,9 @@ let init = () => {
 
 
 
-    let arg_file_out = new cli.Arg('file_out');
+    let arg_file_out = new cli.Arg('file_out', false, true);
 
-    let option_file_input = new cli.Option('i');
+    let option_file_input = new cli.Option('i', false, true);
 
     // /usr/local/bin/ffmpeg -i /Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.* /Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.mp3
 
@@ -111,22 +109,27 @@ let get_cmd = (path_executable) => {
 
 let test = () => {
 
+    // let git_repo = '/Users/elliottevers/Documents/Documents\\\\ -\\\\ Elliott’s\\\\ MacBook\\\\ Pro/git-repos.nosync/';
+
+    let git_repo = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync';
+
     set_arg('/usr/local/bin/youtube-dl', 'url', 'https://www.youtube.com/watch?v=CbkvLYrEvF4');
-    set_option('/usr/local/bin/youtube-dl', 'o', '/Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.%(ext)s');
+    set_option('/usr/local/bin/youtube-dl', 'o', git_repo + '/audio/youtube/tswift_teardrops.%(ext)s');
     set_flag('/usr/local/bin/youtube-dl', 'x', 1);
 
+    // messenger.message(get_cmd('/usr/local/bin/youtube-dl'));
 
-    get_cmd('/usr/local/bin/youtube-dl');
 
+    set_arg('/usr/local/bin/ffmpeg', 'file_out', git_repo + '/audio/youtube/tswift_teardrops.mp3');
+    set_option('/usr/local/bin/ffmpeg', 'i', git_repo + '/audio/youtube/tswift_teardrops.*');
 
-    set_arg('/usr/local/bin/ffmpeg', 'file_out', '/Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.mp3');
-    set_option('/usr/local/bin/ffmpeg', 'i', '/Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.*');
+    messenger.message(get_cmd('/usr/local/bin/ffmpeg'));
 
-    get_cmd('/usr/local/bin/ffmpeg');
+    // messenger.message([git_repo])
 };
 
-init();
-test();
+// init();
+// test();
 
 
 if (typeof Global !== "undefined") {
@@ -138,4 +141,5 @@ if (typeof Global !== "undefined") {
     Global.command_shell.get_cmd = get_cmd;
     Global.command_shell.run_executable = run_executable;
     Global.command_shell.test = test;
+    Global.command_shell._lookup_executable = _lookup_executable;
 }

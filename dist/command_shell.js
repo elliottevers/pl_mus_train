@@ -6,109 +6,70 @@ var messenger_1 = require("./message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var logger_1 = require("./log/logger");
 var Logger = logger_1.log.Logger;
+var cli_1 = require("./cli/cli");
 var env = 'max';
 if (env === 'max') {
     autowatch = 1;
 }
-var dir = '/Users/elliottevers/Documents/git-repos.nosync/music/';
-var path_interpreter = dir + '.venv_36_test/bin/python';
-// TODO: put in patcher if it turns out to make sense
-// let path_script = dir + 'sandbox/download_youtube.py';
-// let path_script: string;
-var args = [];
-var flags = [];
-var options = [];
-var outlet_shell_obj = 0;
 var messenger;
 var logger;
-// let set_path_script = (path) => {
-//     path_script = path;
-// };
-var set_arg = function (arg, val) {
-    args.push({ arg: val });
-};
-var set_flag = function (flag) {
-    flags.push(flag);
-};
-var set_option = function (option) {
-    options.push(option);
-};
+var outlet_shell_obj = 0;
+var executables = [];
+var executable;
+var dir = '/Users/elliottevers/Documents/git-repos.nosync/music/';
+var path_interpreter = dir + '.venv_36_test/bin/python';
 var init = function () {
     messenger = new Messenger(env, outlet_shell_obj);
     logger = new Logger(env);
+    var arg_url = new cli_1.cli.Arg('url');
+    var option_outfile = new cli_1.cli.Option('o', true);
+    var flag_audio_only = new cli_1.cli.Flag('x');
+    // /usr/local/bin/youtube-dl -x -o \"/Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.%(ext)s\" https://www.youtube.com/watch?v=CbkvLYrEvF4
+    var executable_youtube_dl = new cli_1.cli.Executable('/usr/local/bin/youtube-dl', [flag_audio_only], [option_outfile], [arg_url], messenger);
+    executables.push(executable_youtube_dl);
+    var arg_file_out = new cli_1.cli.Arg('file_out', false, true);
+    var option_file_input = new cli_1.cli.Option('i', false, true);
+    // /usr/local/bin/ffmpeg -i /Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.* /Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.mp3
+    var executable_ffmpeg = new cli_1.cli.Executable('/usr/local/bin/ffmpeg', [], [option_file_input], [arg_file_out], messenger);
+    executables.push(executable_ffmpeg);
 };
-var get_cmd = function () {
-    var cmd = [];
-    cmd.push(path_interpreter);
-    // cmd.push(path_script);
-    // flags
-    for (var _i = 0, flags_1 = flags; _i < flags_1.length; _i++) {
-        var flag = flags_1[_i];
-        cmd.push(flag);
-    }
-    // options
-    for (var _a = 0, options_1 = options; _a < options_1.length; _a++) {
-        var option = options_1[_a];
-        cmd.push(option);
-    }
-    var _loop_1 = function (arg) {
-        Object.keys(arg).forEach(function (key) {
-            cmd.push(key);
-            cmd.push(arg[key]);
-        });
-    };
-    // args
-    for (var _b = 0, args_1 = args; _b < args_1.length; _b++) {
-        var arg = args_1[_b];
-        _loop_1(arg);
-    }
-    return logger.log(cmd.join(' '));
+var run_executable = function (path_executable) {
+    _lookup_executable(path_executable).run();
 };
-// let run = (path_script, cmd) => {
-//     messenger = new Messenger(env, outlet_shell_obj);
-//
-//     logger = new Logger(env);
-//
-//     let cmd_script: string[] = [];
-//
-//     cmd_script.push(path_interpreter);
-//
-//     cmd_script.push(path_script);
-//
-//     // cmd_script.push('--');
-//
-//     cmd_script.push(cmd);
-//
-//     messenger.message(cmd_script);
-//
-//     logger.log(cmd_script.join(' '));
-// };
-var run = function () {
-    messenger = new Messenger(env, outlet_shell_obj);
-    //
-    // logger = new Logger(env);
-    //
-    // let cmd_script: string[] = [];
-    //
-    // cmd_script.push(path_interpreter);
-    //
-    // cmd_script.push(path_script);
-    //
-    // // cmd_script.push('--');
-    //
-    // cmd_script.push(cmd);
-    //
-    // messenger.message(cmd_script);
-    //
-    // logger.log(cmd_script.join(' '));
-    var argv = [];
-    argv.push('/usr/local/bin/youtube-dl');
-    argv.push('-x');
-    argv.push('-o');
-    argv.push('\\\"/Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.%(ext)s\\\"');
-    argv.push('https://www.youtube.com/watch?v=CbkvLYrEvF4');
-    messenger.message(argv);
+var set_arg = function (path_executable, name_arg, val_arg) {
+    _lookup_executable(path_executable).get_arg(name_arg).set(val_arg);
 };
+var set_flag = function (path_executable, name_flag, val_flag) {
+    _lookup_executable(path_executable).get_flag(name_flag).set(val_flag);
+};
+var set_option = function (path_executable, name_opt, val_opt) {
+    _lookup_executable(path_executable).get_opt(name_opt).set(val_opt);
+};
+var _lookup_executable = function (path_executable) {
+    return executables.filter(function (executable) {
+        return executable.get_command_exec() === path_executable;
+    })[0];
+};
+var get_cmd = function (path_executable) {
+    // return logger.log(
+    //     _lookup_executable(path_executable).get_run_command().split(' ')
+    // );
+    return _lookup_executable(path_executable).get_run_command().split(' ');
+};
+var test = function () {
+    // let git_repo = '/Users/elliottevers/Documents/Documents\\\\ -\\\\ Elliott’s\\\\ MacBook\\\\ Pro/git-repos.nosync/';
+    var git_repo = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync';
+    set_arg('/usr/local/bin/youtube-dl', 'url', 'https://www.youtube.com/watch?v=CbkvLYrEvF4');
+    set_option('/usr/local/bin/youtube-dl', 'o', git_repo + '/audio/youtube/tswift_teardrops.%(ext)s');
+    set_flag('/usr/local/bin/youtube-dl', 'x', 1);
+    // messenger.message(get_cmd('/usr/local/bin/youtube-dl'));
+    set_arg('/usr/local/bin/ffmpeg', 'file_out', git_repo + '/audio/youtube/tswift_teardrops.mp3');
+    set_option('/usr/local/bin/ffmpeg', 'i', git_repo + '/audio/youtube/tswift_teardrops.*');
+    messenger.message(get_cmd('/usr/local/bin/ffmpeg'));
+    // messenger.message([git_repo])
+};
+// init();
+// test();
 if (typeof Global !== "undefined") {
     Global.command_shell = {};
     Global.command_shell.set_arg = set_arg;
@@ -116,8 +77,8 @@ if (typeof Global !== "undefined") {
     Global.command_shell.set_flag = set_flag;
     Global.command_shell.init = init;
     Global.command_shell.get_cmd = get_cmd;
-    Global.command_shell.run = run;
+    Global.command_shell.run_executable = run_executable;
+    Global.command_shell.test = test;
+    Global.command_shell._lookup_executable = _lookup_executable;
 }
-// main();
-// run('cmd');
 //# sourceMappingURL=command_shell.js.map

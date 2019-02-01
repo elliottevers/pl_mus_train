@@ -4,3 +4,6 @@ var set_flag = Global.command_shell.set_flag;
 var get_cmd = Global.command_shell.get_cmd;
 var init = Global.command_shell.init;
 var run = Global.command_shell.run;
+var run_executable = Global.command_shell.run_executable;
+var test = Global.command_shell.test;
+var _lookup_executable = Global.command_shell._lookup_executable;

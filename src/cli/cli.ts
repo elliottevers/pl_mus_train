@@ -106,12 +106,56 @@ export namespace cli {
         }
     }
 
-    export class Arg {
+    abstract class MaxShellParameter {
+        needs_escaping_max: boolean;
+        needs_escaping_shell: boolean;
+
+        _preprocess_max(val): string {
+            if (this.needs_escaping_max) {
+                return '\\"' + val + '\\"';
+            } else {
+                return val;
+            }
+        }
+
+        _preprocess_shell(val): string {
+            if (this.needs_escaping_shell) {
+                // val = val.split(' ').join('\\\\\\\\ ');
+                // post(val);
+                // return val;
+                // return val.split(' ').join('\\\\\\\\ ');
+                return val.split(' ').join('\\\\ ');
+
+            } else {
+                return val;
+            }
+        }
+
+        _preprocess(val): string {
+            if (this.needs_escaping_max && this.needs_escaping_shell) {
+                // TODO: take care of this
+                throw 'you better take care of this now'
+            }
+            if (this.needs_escaping_max) {
+                return this._preprocess_max(val)
+            }
+            if (this.needs_escaping_shell) {
+                return this._preprocess_shell(val)
+            }
+
+            return val;
+        }
+    }
+
+    export class Arg extends MaxShellParameter {
         name: string;
         val: string;
 
-        constructor(name) {
+        constructor(name, needs_escaping_max?: boolean, needs_escaping_shell?: boolean) {
+            super();
             this.name = name;
+            this.needs_escaping_max = needs_escaping_max;
+            this.needs_escaping_shell = needs_escaping_shell;
         }
 
         public set(val) {
@@ -119,19 +163,24 @@ export namespace cli {
         }
 
         public get_name_exec() {
-            return this.val
+            return this._preprocess(this.val)
         }
+
+        // public get_name_exec() {
+        //     return '-' + this.name + ' ' + this._preprocess(this.val)
+        // }
 
         public b_set(): boolean {
             return this.val !== null
         }
     }
 
-    export class Flag {
+    export class Flag extends MaxShellParameter {
         name: string;
         val: boolean;
 
         constructor(name) {
+            super();
             this.name = name;
         }
 
@@ -148,24 +197,19 @@ export namespace cli {
         }
     }
 
-    export class Option {
+    export class Option extends MaxShellParameter {
         name: string;
         val: string;
-        needs_escaping: boolean;
 
-        constructor(name, needs_escaping: boolean) {
+        constructor(name, needs_escaping_max?: boolean, needs_escaping_shell?: boolean) {
+            super();
             this.name = name;
-            this.needs_escaping = needs_escaping;
+            this.needs_escaping_max = needs_escaping_max;
+            this.needs_escaping_shell = needs_escaping_shell;
         }
 
         public set(val) {
             this.val = val;
-        }
-
-        private _preprocess(val) {
-            if (this.needs_escaping) {
-
-            }
         }
 
         public get_name_exec() {
