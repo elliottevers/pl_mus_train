@@ -16,6 +16,7 @@ declare let autowatch: any;
 declare let inlets: any;
 declare let outlets: any;
 declare function outlet(n: number, o: any): void;
+declare function post(message?: any): void;
 
 export {}
 
@@ -50,11 +51,6 @@ script = new cli.Script(
     messenger,
     true
 );
-
-let test_undefined = () => {
-    post(script)
-};
-
 
 let test = () => {
     set_arg('argument', 'argument_test_val');
@@ -308,11 +304,10 @@ let set_option = (name_opt, val_opt) => {
 
 
 if (typeof Global !== "undefined") {
-    Global.command_shell = {};
-    Global.command_shell.set_arg = set_arg;
-    Global.command_shell.set_option = set_option;
-    Global.command_shell.set_flag = set_flag;
-    Global.command_shell.init = init;
-    Global.command_shell.run = run;
-    Global.command_shell.test_undefined = test_undefined;
+    Global.max_comm = {};
+    Global.max_comm.set_arg = set_arg;
+    Global.max_comm.set_option = set_option;
+    Global.max_comm.set_flag = set_flag;
+    Global.max_comm.init = init;
+    Global.max_comm.run = run;
 }
