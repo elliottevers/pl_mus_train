@@ -1,23 +1,19 @@
 import {message} from "../message/messenger";
 
 export namespace cli {
+
     import Messenger = message.Messenger;
 
-    export class Executable {
+    interface Runnable {
+        get_command_exec();
+        run();
+    }
 
-        path: string;
+    abstract class Parameterized {
         flags: Flag[];
         options: Option[];
         args: Arg[];
         messenger: Messenger;
-
-        constructor(path, flags, options, args, messenger) {
-            this.path = path;
-            this.flags = flags;
-            this.options = options;
-            this.args = args;
-            this.messenger = messenger;
-        }
 
         // TODO: put counting logic here
         public b_primed(): boolean {
@@ -51,9 +47,9 @@ export namespace cli {
             return unset_parameters;
         }
 
-        public get_command_exec(): string {
-            return this.path;
-        }
+        // public get_command_exec(): string {
+        //     return this.path;
+        // }
 
         public get_arg(name_arg) {
             return this.args.filter((arg) => {
@@ -73,8 +69,8 @@ export namespace cli {
             })[0];
         }
 
-        public get_run_command() {
-            let command_exec: string = this.get_command_exec();
+        public get_run_command(command_exec) {
+            // let command_exec: string = this.get_command_exec();
 
             let argv: string[] = [];
 
@@ -101,9 +97,165 @@ export namespace cli {
             return command_exec + ' ' + argv.join(' ');
         }
 
-        public run() {
-            this.messenger.message(this.get_run_command().split(' '));
+        // public run() {
+        //     let unset_params = this.get_unset_parameters();
+        //     if (unset_params.length > 0) {
+        //         throw 'unset parameters: ' + unset_params
+        //     }
+        //     this.messenger.message(this.get_run_command(command_exec).split(' '));
+        // }
+    }
+
+    export class Script extends Parameterized implements Runnable {
+
+        interpreter: string;
+        script: string;
+        // flags: Flag[];
+        // options: Option[];
+        // args: Arg[];
+        // messenger: Messenger;
+
+        constructor(interpreter, script, flags, options, args, messenger) {
+            super();
+            this.interpreter = interpreter;
+            this.script = script;
+            this.flags = flags;
+            this.options = options;
+            this.args = args;
+            this.messenger = messenger;
         }
+
+        public get_command_exec = () => {
+            return this.interpreter + ' ' + this.script;
+        };
+
+        public run() {
+            let unset_params = this.get_unset_parameters();
+            if (unset_params.length > 0) {
+                throw 'unset parameters: ' + unset_params
+            }
+            this.messenger.message(this.get_run_command(this.get_command_exec()).split(' '));
+        }
+    }
+
+    export class Executable extends Parameterized implements Runnable {
+
+        path: string;
+        // flags: Flag[];
+        // options: Option[];
+        // args: Arg[];
+        // messenger: Messenger;
+
+        constructor(path, flags, options, args, messenger) {
+            super();
+            this.path = path;
+            this.flags = flags;
+            this.options = options;
+            this.args = args;
+            this.messenger = messenger;
+        }
+
+        public get_command_exec = () => {
+            return this.path;
+        };
+
+        public run() {
+            let unset_params = this.get_unset_parameters();
+            if (unset_params.length > 0) {
+                throw 'unset parameters: ' + unset_params
+            }
+            this.messenger.message(this.get_run_command(this.get_command_exec()).split(' '));
+        }
+
+        // // TODO: put counting logic here
+        // public b_primed(): boolean {
+        //     return this.get_unset_parameters().length > 0;
+        // }
+        //
+        // public get_unset_parameters(): string[] {
+        //     let unset_parameters: string[] = [];
+        //
+        //     // flags
+        //     for (let flag of this.flags) {
+        //         if (!flag.b_set()) {
+        //             unset_parameters.push(flag.name)
+        //         }
+        //     }
+        //
+        //     // options
+        //     for (let option of this.options) {
+        //         if (!option.b_set()) {
+        //             unset_parameters.push(option.name)
+        //         }
+        //     }
+        //
+        //     // args
+        //     for (let arg of this.args) {
+        //         if (!arg.b_set()) {
+        //             unset_parameters.push(arg.name)
+        //         }
+        //     }
+        //
+        //     return unset_parameters;
+        // }
+        //
+        // public get_command_exec(): string {
+        //     return this.path;
+        // }
+        //
+        // public get_arg(name_arg) {
+        //     return this.args.filter((arg) => {
+        //         return arg.name === name_arg;
+        //     })[0];
+        // }
+        //
+        // public get_opt(name_opt) {
+        //     return this.options.filter((opt) => {
+        //         return opt.name === name_opt;
+        //     })[0];
+        // }
+        //
+        // public get_flag(name_flag) {
+        //     return this.flags.filter((flag) => {
+        //         return flag.name === name_flag;
+        //     })[0];
+        // }
+        //
+        // public get_run_command() {
+        //     let command_exec: string = this.get_command_exec();
+        //
+        //     let argv: string[] = [];
+        //
+        //     for (let flag of this.flags) {
+        //         if (flag.b_set()) {
+        //             argv.push(flag.get_name_exec());
+        //         }
+        //     }
+        //
+        //     // options
+        //     for (let option of this.options) {
+        //         if (option.b_set()) {
+        //             argv.push(option.get_name_exec());
+        //         }
+        //     }
+        //
+        //     // args
+        //     for (let arg of this.args) {
+        //         if (arg.b_set()) {
+        //             argv.push(arg.get_name_exec());
+        //         }
+        //     }
+        //
+        //     return command_exec + ' ' + argv.join(' ');
+        // }
+        //
+        // public run() {
+        //     let unset_params = this.get_unset_parameters();
+        //     if (unset_params.length > 0) {
+        //         throw 'unset parameters: ' + unset_params
+        //     }
+        //     this.messenger.message(this.get_run_command().split(' '));
+        // }
     }
 
     abstract class MaxShellParameter {

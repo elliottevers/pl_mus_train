@@ -44,8 +44,6 @@ let init = () => {
     let option_outfile = new cli.Option('o', true);
     let flag_audio_only = new cli.Flag('x');
 
-    // /usr/local/bin/youtube-dl -x -o \"/Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.%(ext)s\" https://www.youtube.com/watch?v=CbkvLYrEvF4
-
     let executable_youtube_dl = new cli.Executable(
         '/usr/local/bin/youtube-dl',
         [flag_audio_only],
@@ -57,12 +55,9 @@ let init = () => {
     executables.push(executable_youtube_dl);
 
 
-
     let arg_file_out = new cli.Arg('file_out', false, true);
 
     let option_file_input = new cli.Option('i', false, true);
-
-    // /usr/local/bin/ffmpeg -i /Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.* /Users/elliottevers/Documents/git-repos.nosync/audio/youtube/tswift_teardrops.mp3
 
     let executable_ffmpeg = new cli.Executable(
         '/usr/local/bin/ffmpeg',
@@ -82,14 +77,23 @@ let run_executable = (path_executable) => {
 
 
 let set_arg = (path_executable, name_arg, val_arg) => {
+    post(path_executable);
+    post(name_arg);
+    post(val_arg);
     _lookup_executable(path_executable).get_arg(name_arg).set(val_arg);
 };
 
 let set_flag = (path_executable, name_flag, val_flag) => {
+    post(path_executable);
+    post(name_flag);
+    post(val_flag);
     _lookup_executable(path_executable).get_flag(name_flag).set(val_flag);
 };
 
 let set_option = (path_executable, name_opt, val_opt) => {
+    post(path_executable);
+    post(name_opt);
+    post(val_opt);
     _lookup_executable(path_executable).get_opt(name_opt).set(val_opt);
 };
 
@@ -99,37 +103,29 @@ let _lookup_executable = (path_executable) => {
     })[0];
 };
 
-let get_cmd = (path_executable) => {
-    // return logger.log(
-    //     _lookup_executable(path_executable).get_run_command().split(' ')
-    // );
-    return _lookup_executable(path_executable).get_run_command().split(' ')
+let log_cmd = (path_executable) => {
+    logger.log(
+        _lookup_executable(path_executable).get_run_command().split(' ')
+    );
+    // return _lookup_executable(path_executable).get_run_command().split(' ')
 
 };
 
 let test = () => {
-
-    // let git_repo = '/Users/elliottevers/Documents/Documents\\\\ -\\\\ Elliott’s\\\\ MacBook\\\\ Pro/git-repos.nosync/';
-
     let git_repo = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync';
 
     set_arg('/usr/local/bin/youtube-dl', 'url', 'https://www.youtube.com/watch?v=CbkvLYrEvF4');
     set_option('/usr/local/bin/youtube-dl', 'o', git_repo + '/audio/youtube/tswift_teardrops.%(ext)s');
     set_flag('/usr/local/bin/youtube-dl', 'x', 1);
 
-    // messenger.message(get_cmd('/usr/local/bin/youtube-dl'));
+    // messenger.message(log_cmd('/usr/local/bin/youtube-dl'));
 
 
     set_arg('/usr/local/bin/ffmpeg', 'file_out', git_repo + '/audio/youtube/tswift_teardrops.mp3');
     set_option('/usr/local/bin/ffmpeg', 'i', git_repo + '/audio/youtube/tswift_teardrops.*');
 
-    messenger.message(get_cmd('/usr/local/bin/ffmpeg'));
-
-    // messenger.message([git_repo])
+    // messenger.message(log_cmd('/usr/local/bin/ffmpeg'));
 };
-
-// init();
-// test();
 
 
 if (typeof Global !== "undefined") {
@@ -138,7 +134,7 @@ if (typeof Global !== "undefined") {
     Global.command_shell.set_option = set_option;
     Global.command_shell.set_flag = set_flag;
     Global.command_shell.init = init;
-    Global.command_shell.get_cmd = get_cmd;
+    Global.command_shell.log_cmd = log_cmd;
     Global.command_shell.run_executable = run_executable;
     Global.command_shell.test = test;
     Global.command_shell._lookup_executable = _lookup_executable;

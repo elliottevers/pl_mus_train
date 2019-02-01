@@ -96,6 +96,10 @@ var cli;
             return command_exec + ' ' + argv.join(' ');
         };
         Executable.prototype.run = function () {
+            var unset_params = this.get_unset_parameters();
+            if (unset_params.length > 0) {
+                throw 'unset parameters: ' + unset_params;
+            }
             this.messenger.message(this.get_run_command().split(' '));
         };
         return Executable;
