@@ -15,19 +15,14 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var cli;
 (function (cli) {
-    var Executable = /** @class */ (function () {
-        function Executable(path, flags, options, args, messenger) {
-            this.path = path;
-            this.flags = flags;
-            this.options = options;
-            this.args = args;
-            this.messenger = messenger;
+    var Parameterized = /** @class */ (function () {
+        function Parameterized() {
         }
         // TODO: put counting logic here
-        Executable.prototype.b_primed = function () {
+        Parameterized.prototype.b_primed = function () {
             return this.get_unset_parameters().length > 0;
         };
-        Executable.prototype.get_unset_parameters = function () {
+        Parameterized.prototype.get_unset_parameters = function () {
             var unset_parameters = [];
             // flags
             for (var _i = 0, _a = this.flags; _i < _a.length; _i++) {
@@ -52,26 +47,26 @@ var cli;
             }
             return unset_parameters;
         };
-        Executable.prototype.get_command_exec = function () {
-            return this.path;
-        };
-        Executable.prototype.get_arg = function (name_arg) {
+        // public get_command_exec(): string {
+        //     return this.path;
+        // }
+        Parameterized.prototype.get_arg = function (name_arg) {
             return this.args.filter(function (arg) {
                 return arg.name === name_arg;
             })[0];
         };
-        Executable.prototype.get_opt = function (name_opt) {
+        Parameterized.prototype.get_opt = function (name_opt) {
             return this.options.filter(function (opt) {
                 return opt.name === name_opt;
             })[0];
         };
-        Executable.prototype.get_flag = function (name_flag) {
+        Parameterized.prototype.get_flag = function (name_flag) {
             return this.flags.filter(function (flag) {
                 return flag.name === name_flag;
             })[0];
         };
-        Executable.prototype.get_run_command = function () {
-            var command_exec = this.get_command_exec();
+        Parameterized.prototype.get_run_parameters = function () {
+            // let command_exec: string = this.get_command_exec();
             var argv = [];
             for (var _i = 0, _a = this.flags; _i < _a.length; _i++) {
                 var flag = _a[_i];
@@ -93,17 +88,82 @@ var cli;
                     argv.push(arg.get_name_exec());
                 }
             }
-            return command_exec + ' ' + argv.join(' ');
+            // return command_exec + ' ' + argv.join(' ');
+            return argv.join(' ');
         };
+        Parameterized.prototype.preprocess_shell = function (val) {
+            return val.split(' ').join('\\\\ ');
+        };
+        Parameterized.prototype.preprocess_max = function (val) {
+            return '\\"' + val + '\\"';
+        };
+        return Parameterized;
+    }());
+    var Script = /** @class */ (function (_super) {
+        __extends(Script, _super);
+        // flags: Flag[];
+        // options: Option[];
+        // args: Arg[];
+        // messenger: Messenger;
+        function Script(interpreter, script, flags, options, args, messenger, escape_paths) {
+            var _this = _super.call(this) || this;
+            _this.get_command_exec = function () {
+                if (_this.escape_paths) {
+                    return _this.preprocess_max(_this.preprocess_shell(_this.interpreter) + ' ' + _this.preprocess_shell(_this.script));
+                }
+                else {
+                    return _this.interpreter + ' ' + _this.script;
+                }
+            };
+            _this.interpreter = interpreter;
+            _this.script = script;
+            _this.flags = flags;
+            _this.options = options;
+            _this.args = args;
+            _this.messenger = messenger;
+            // TODO: do better
+            _this.escape_paths = escape_paths;
+            return _this;
+        }
+        Script.prototype.run = function () {
+            var unset_params = this.get_unset_parameters();
+            if (unset_params.length > 0) {
+                throw 'unset parameters: ' + unset_params;
+            }
+            var command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
+            this.messenger.message(command_full);
+        };
+        return Script;
+    }(Parameterized));
+    cli.Script = Script;
+    var Executable = /** @class */ (function (_super) {
+        __extends(Executable, _super);
+        // flags: Flag[];
+        // options: Option[];
+        // args: Arg[];
+        // messenger: Messenger;
+        function Executable(path, flags, options, args, messenger) {
+            var _this = _super.call(this) || this;
+            _this.get_command_exec = function () {
+                return _this.path;
+            };
+            _this.path = path;
+            _this.flags = flags;
+            _this.options = options;
+            _this.args = args;
+            _this.messenger = messenger;
+            return _this;
+        }
         Executable.prototype.run = function () {
             var unset_params = this.get_unset_parameters();
             if (unset_params.length > 0) {
                 throw 'unset parameters: ' + unset_params;
             }
-            this.messenger.message(this.get_run_command().split(' '));
+            var command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
+            this.messenger.message(command_full);
         };
         return Executable;
-    }());
+    }(Parameterized));
     cli.Executable = Executable;
     var MaxShellParameter = /** @class */ (function () {
         function MaxShellParameter() {
@@ -199,7 +259,7 @@ var cli;
             this.val = val;
         };
         Option.prototype.get_name_exec = function () {
-            return '-' + this.name + ' ' + this._preprocess(this.val);
+            return '--' + this.name + ' ' + this._preprocess(this.val);
         };
         Option.prototype.b_set = function () {
             return this.val !== null;

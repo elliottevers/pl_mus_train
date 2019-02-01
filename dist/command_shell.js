@@ -32,34 +32,34 @@ var init = function () {
     executables.push(executable_ffmpeg);
 };
 var run_executable = function (path_executable) {
-    lookup_executable(path_executable).run();
+    _lookup_executable(path_executable).run();
 };
 var set_arg = function (path_executable, name_arg, val_arg) {
     post(path_executable);
     post(name_arg);
     post(val_arg);
-    lookup_executable(path_executable).get_arg(name_arg).set(val_arg);
+    _lookup_executable(path_executable).get_arg(name_arg).set(val_arg);
 };
 var set_flag = function (path_executable, name_flag, val_flag) {
     post(path_executable);
     post(name_flag);
     post(val_flag);
-    lookup_executable(path_executable).get_flag(name_flag).set(val_flag);
+    _lookup_executable(path_executable).get_flag(name_flag).set(val_flag);
 };
 var set_option = function (path_executable, name_opt, val_opt) {
     post(path_executable);
     post(name_opt);
     post(val_opt);
-    lookup_executable(path_executable).get_opt(name_opt).set(val_opt);
+    _lookup_executable(path_executable).get_opt(name_opt).set(val_opt);
 };
-var lookup_executable = function (path_executable) {
+var _lookup_executable = function (path_executable) {
     return executables.filter(function (executable) {
         return executable.get_command_exec() === path_executable;
     })[0];
 };
 var log_cmd = function (path_executable) {
-    logger.log(lookup_executable(path_executable).get_run_command().split(' '));
-    // return lookup_executable(path_executable).get_run_command().split(' ')
+    logger.log(_lookup_executable(path_executable).get_run_command().split(' '));
+    // return _lookup_executable(path_executable).get_run_command().split(' ')
 };
 var test = function () {
     var git_repo = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync';
@@ -80,6 +80,6 @@ if (typeof Global !== "undefined") {
     Global.command_shell.log_cmd = log_cmd;
     Global.command_shell.run_executable = run_executable;
     Global.command_shell.test = test;
-    Global.command_shell.lookup_executable = lookup_executable;
+    Global.command_shell._lookup_executable = _lookup_executable;
 }
 //# sourceMappingURL=command_shell.js.map

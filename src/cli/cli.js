@@ -65,7 +65,7 @@ var cli;
                 return flag.name === name_flag;
             })[0];
         };
-        Parameterized.prototype.get_run_command = function (command_exec) {
+        Parameterized.prototype.get_run_parameters = function () {
             // let command_exec: string = this.get_command_exec();
             var argv = [];
             for (var _i = 0, _a = this.flags; _i < _a.length; _i++) {
@@ -88,7 +88,14 @@ var cli;
                     argv.push(arg.get_name_exec());
                 }
             }
-            return command_exec + ' ' + argv.join(' ');
+            // return command_exec + ' ' + argv.join(' ');
+            return argv.join(' ');
+        };
+        Parameterized.prototype.preprocess_shell = function (val) {
+            return val.split(' ').join('\\\\ ');
+        };
+        Parameterized.prototype.preprocess_max = function (val) {
+            return '\\"' + val + '\\"';
         };
         return Parameterized;
     }());
@@ -98,10 +105,15 @@ var cli;
         // options: Option[];
         // args: Arg[];
         // messenger: Messenger;
-        function Script(interpreter, script, flags, options, args, messenger) {
+        function Script(interpreter, script, flags, options, args, messenger, escape_paths) {
             var _this = _super.call(this) || this;
             _this.get_command_exec = function () {
-                return _this.interpreter + ' ' + _this.script;
+                if (_this.escape_paths) {
+                    return _this.preprocess_max(_this.preprocess_shell(_this.interpreter) + ' ' + _this.preprocess_shell(_this.script));
+                }
+                else {
+                    return _this.interpreter + ' ' + _this.script;
+                }
             };
             _this.interpreter = interpreter;
             _this.script = script;
@@ -109,6 +121,8 @@ var cli;
             _this.options = options;
             _this.args = args;
             _this.messenger = messenger;
+            // TODO: do better
+            _this.escape_paths = escape_paths;
             return _this;
         }
         Script.prototype.run = function () {
@@ -116,7 +130,8 @@ var cli;
             if (unset_params.length > 0) {
                 throw 'unset parameters: ' + unset_params;
             }
-            this.messenger.message(this.get_run_command(this.get_command_exec()).split(' '));
+            var command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
+            this.messenger.message(command_full);
         };
         return Script;
     }(Parameterized));
@@ -144,7 +159,8 @@ var cli;
             if (unset_params.length > 0) {
                 throw 'unset parameters: ' + unset_params;
             }
-            this.messenger.message(this.get_run_command(this.get_command_exec()).split(' '));
+            var command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
+            this.messenger.message(command_full);
         };
         return Executable;
     }(Parameterized));
@@ -243,7 +259,7 @@ var cli;
             this.val = val;
         };
         Option.prototype.get_name_exec = function () {
-            return '-' + this.name + ' ' + this._preprocess(this.val);
+            return '--' + this.name + ' ' + this._preprocess(this.val);
         };
         Option.prototype.b_set = function () {
             return this.val !== null;

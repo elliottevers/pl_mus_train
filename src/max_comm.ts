@@ -21,16 +21,43 @@ export {}
 
 declare let Global: any;
 
-let env: string = 'node';
+let env: string = 'max';
 
 if (env === 'max') {
+    post('recompile successful');
     autowatch = 1;
 }
 
 let script: cli.Script;
 
+let messenger = new Messenger(env, 0);
+let logger = new Logger(env);
+
+let arg = new cli.Arg('argument');
+let option = new cli.Option('o', false);
+let flag = new cli.Flag('f');
+
+let path_interpreter = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/.venv_master_36/bin/python';
+
+let path_script = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/sandbox/max_comm.py';
+
+script = new cli.Script(
+    path_interpreter,
+    path_script,
+    [flag],
+    [option],
+    [arg],
+    messenger,
+    true
+);
+
+let test_undefined = () => {
+    post(script)
+};
+
+
 let test = () => {
-    set_arg('NA', 'argument_test_val');
+    set_arg('argument', 'argument_test_val');
     set_option('o', 'option_test_val');
     set_flag( 'f', 1);
 };
@@ -57,7 +84,8 @@ let init = () => {
         [flag],
         [option],
         [arg],
-        messenger
+        messenger,
+        true
     );
 
     // let executable_max_comm = new cli.Executable(
@@ -159,15 +187,15 @@ let set_flag = (name_flag, val_flag) => {
 };
 
 let set_option = (name_opt, val_opt) => {
-    // post(path_executable);
-    // post(name_opt);
-    // post(val_opt);
+    // post(typeof(name_opt));
+    // post(typeof(val_opt));
+    // post(script.interpreter);
     script.get_opt(name_opt).set(val_opt);
 };
 
-init();
-test();
-run();
+// init();
+// test();
+// run();
 
 
 // if __name__ == '__main__':
@@ -286,4 +314,5 @@ if (typeof Global !== "undefined") {
     Global.command_shell.set_flag = set_flag;
     Global.command_shell.init = init;
     Global.command_shell.run = run;
+    Global.command_shell.test_undefined = test_undefined;
 }

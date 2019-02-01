@@ -69,7 +69,7 @@ export namespace cli {
             })[0];
         }
 
-        public get_run_command(command_exec) {
+        public get_run_parameters() {
             // let command_exec: string = this.get_command_exec();
 
             let argv: string[] = [];
@@ -94,7 +94,16 @@ export namespace cli {
                 }
             }
 
-            return command_exec + ' ' + argv.join(' ');
+            // return command_exec + ' ' + argv.join(' ');
+            return argv.join(' ');
+        }
+
+        protected preprocess_shell(val) {
+            return val.split(' ').join('\\\\ ');
+        }
+
+        protected preprocess_max(val) {
+            return '\\"' + val + '\\"';
         }
 
         // public run() {
@@ -102,7 +111,7 @@ export namespace cli {
         //     if (unset_params.length > 0) {
         //         throw 'unset parameters: ' + unset_params
         //     }
-        //     this.messenger.message(this.get_run_command(command_exec).split(' '));
+        //     this.messenger.message(this.get_run_parameters(command_exec).split(' '));
         // }
     }
 
@@ -110,12 +119,13 @@ export namespace cli {
 
         interpreter: string;
         script: string;
+        escape_paths: boolean;
         // flags: Flag[];
         // options: Option[];
         // args: Arg[];
         // messenger: Messenger;
 
-        constructor(interpreter, script, flags, options, args, messenger) {
+        constructor(interpreter, script, flags, options, args, messenger, escape_paths?: boolean) {
             super();
             this.interpreter = interpreter;
             this.script = script;
@@ -123,10 +133,17 @@ export namespace cli {
             this.options = options;
             this.args = args;
             this.messenger = messenger;
+            // TODO: do better
+            this.escape_paths = escape_paths;
         }
 
         public get_command_exec = () => {
-            return this.interpreter + ' ' + this.script;
+            if (this.escape_paths) {
+                return this.preprocess_max(this.preprocess_shell(this.interpreter) + ' ' + this.preprocess_shell(this.script));
+            } else {
+                return this.interpreter + ' ' + this.script;
+            }
+
         };
 
         public run() {
@@ -134,7 +151,9 @@ export namespace cli {
             if (unset_params.length > 0) {
                 throw 'unset parameters: ' + unset_params
             }
-            this.messenger.message(this.get_run_command(this.get_command_exec()).split(' '));
+            let command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
+            this.messenger.message(command_full);
+
         }
     }
 
@@ -164,7 +183,8 @@ export namespace cli {
             if (unset_params.length > 0) {
                 throw 'unset parameters: ' + unset_params
             }
-            this.messenger.message(this.get_run_command(this.get_command_exec()).split(' '));
+            let command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
+            this.messenger.message(command_full);
         }
 
         // // TODO: put counting logic here
@@ -221,7 +241,7 @@ export namespace cli {
         //     })[0];
         // }
         //
-        // public get_run_command() {
+        // public get_run_parameters() {
         //     let command_exec: string = this.get_command_exec();
         //
         //     let argv: string[] = [];
@@ -254,7 +274,7 @@ export namespace cli {
         //     if (unset_params.length > 0) {
         //         throw 'unset parameters: ' + unset_params
         //     }
-        //     this.messenger.message(this.get_run_command().split(' '));
+        //     this.messenger.message(this.get_run_parameters().split(' '));
         // }
     }
 
@@ -365,7 +385,7 @@ export namespace cli {
         }
 
         public get_name_exec() {
-            return '-' + this.name + ' ' + this._preprocess(this.val)
+            return '--' + this.name + ' ' + this._preprocess(this.val)
         }
 
         public b_set(): boolean {
