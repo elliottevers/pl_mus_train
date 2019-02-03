@@ -6,6 +6,24 @@ var log;
         function Logger(env) {
             this.env = env;
         }
+        Logger.log_max_static = function (message) {
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    post(s);
+                }
+                else if (message === null) {
+                    post("<null>");
+                }
+                else {
+                    post(message);
+                }
+            }
+            post("\n");
+        };
         Logger.prototype.log = function (message) {
             if (this.env === 'max') {
                 this.log_max(message);

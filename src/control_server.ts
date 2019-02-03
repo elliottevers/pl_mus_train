@@ -13,7 +13,7 @@ export {}
 
 declare let Global: any;
 
-let env: string = 'node';
+let env: string = 'max';
 
 if (env === 'max') {
     post('recompile successful');
@@ -24,8 +24,8 @@ let messenger = new Messenger(env, 0);
 
 let fretboard = new Fretboard(6, 12, messenger);
 
-let fret = (coordinate_scalar) => {
-    fretboard.fret(fretboard.get_coordinate_duple(coordinate_scalar))
+let fret = (position_string, position_fret) => {
+    fretboard.fret(Number(position_string), Number(position_fret));
 };
 
 let pluck = (position_string) => {
@@ -37,21 +37,21 @@ let dampen = (position_string) => {
 };
 
 let test = () => {
-    // TODO: why 1) off by one error 2) second pluck doesn't return 65?
-    fret(1);
-    fret(3);
+    fret(1, 1);
+    fret(1, 3);
     pluck(1);
     dampen(1);
+    fret(1, 0);
     pluck(1);
     dampen(1);
 };
 
-test();
+// test();
 
 if (typeof Global !== "undefined") {
     Global.control_server = {};
     Global.control_server.fret = fret;
     Global.control_server.pluck = pluck;
     Global.control_server.dampen = dampen;
-    Global.command_shell.test = test;
+    Global.control_server.test = test;
 }

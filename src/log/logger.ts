@@ -10,6 +10,25 @@ export namespace log {
             this.env = env;
         }
 
+        static log_max_static(message: string): void {
+            for(var i=0,len=arguments.length; i<len; i++) {
+                if(message && message.toString) {
+                    var s = message.toString();
+                    if(s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    post(s);
+                }
+                else if(message === null) {
+                    post("<null>");
+                }
+                else {
+                    post(message);
+                }
+            }
+            post("\n");
+        }
+
         log(message: string): void {
             if (this.env === 'max') {
                 this.log_max(message);

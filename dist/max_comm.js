@@ -26,9 +26,6 @@ var flag = new cli_1.cli.Flag('f');
 var path_interpreter = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/.venv_master_36/bin/python';
 var path_script = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/sandbox/max_comm.py';
 script = new cli_1.cli.Script(path_interpreter, path_script, [flag], [option], [arg], messenger, true);
-var test_undefined = function () {
-    post(script);
-};
 var test = function () {
     set_arg('argument', 'argument_test_val');
     set_option('o', 'option_test_val');
@@ -243,12 +240,11 @@ var set_option = function (name_opt, val_opt) {
 //     // messenger.message(log_cmd('/usr/local/bin/ffmpeg'));
 // };
 if (typeof Global !== "undefined") {
-    Global.command_shell = {};
-    Global.command_shell.set_arg = set_arg;
-    Global.command_shell.set_option = set_option;
-    Global.command_shell.set_flag = set_flag;
-    Global.command_shell.init = init;
-    Global.command_shell.run = run;
-    Global.command_shell.test_undefined = test_undefined;
+    Global.max_comm = {};
+    Global.max_comm.set_arg = set_arg;
+    Global.max_comm.set_option = set_option;
+    Global.max_comm.set_flag = set_flag;
+    Global.max_comm.init = init;
+    Global.max_comm.run = run;
 }
 //# sourceMappingURL=max_comm.js.map
