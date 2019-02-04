@@ -1,0 +1,1 @@
+var render = Global.monitor_server.render;
