@@ -16,19 +16,14 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var cli;
 (function (cli) {
-    var Executable = /** @class */ (function () {
-        function Executable(path, flags, options, args, messenger) {
-            this.path = path;
-            this.flags = flags;
-            this.options = options;
-            this.args = args;
-            this.messenger = messenger;
+    var Parameterized = /** @class */ (function () {
+        function Parameterized() {
         }
         // TODO: put counting logic here
-        Executable.prototype.b_primed = function () {
+        Parameterized.prototype.b_primed = function () {
             return this.get_unset_parameters().length > 0;
         };
-        Executable.prototype.get_unset_parameters = function () {
+        Parameterized.prototype.get_unset_parameters = function () {
             var unset_parameters = [];
             // flags
             for (var _i = 0, _a = this.flags; _i < _a.length; _i++) {
@@ -53,26 +48,26 @@ var cli;
             }
             return unset_parameters;
         };
-        Executable.prototype.get_command_exec = function () {
-            return this.path;
-        };
-        Executable.prototype.get_arg = function (name_arg) {
+        // public get_command_exec(): string {
+        //     return this.path;
+        // }
+        Parameterized.prototype.get_arg = function (name_arg) {
             return this.args.filter(function (arg) {
                 return arg.name === name_arg;
             })[0];
         };
-        Executable.prototype.get_opt = function (name_opt) {
+        Parameterized.prototype.get_opt = function (name_opt) {
             return this.options.filter(function (opt) {
                 return opt.name === name_opt;
             })[0];
         };
-        Executable.prototype.get_flag = function (name_flag) {
+        Parameterized.prototype.get_flag = function (name_flag) {
             return this.flags.filter(function (flag) {
                 return flag.name === name_flag;
             })[0];
         };
-        Executable.prototype.get_run_command = function () {
-            var command_exec = this.get_command_exec();
+        Parameterized.prototype.get_run_parameters = function () {
+            // let command_exec: string = this.get_command_exec();
             var argv = [];
             for (var _i = 0, _a = this.flags; _i < _a.length; _i++) {
                 var flag = _a[_i];
@@ -94,17 +89,82 @@ var cli;
                     argv.push(arg.get_name_exec());
                 }
             }
-            return command_exec + ' ' + argv.join(' ');
+            // return command_exec + ' ' + argv.join(' ');
+            return argv.join(' ');
         };
+        Parameterized.prototype.preprocess_shell = function (val) {
+            return val.split(' ').join('\\\\ ');
+        };
+        Parameterized.prototype.preprocess_max = function (val) {
+            return '\\"' + val + '\\"';
+        };
+        return Parameterized;
+    }());
+    var Script = /** @class */ (function (_super) {
+        __extends(Script, _super);
+        // flags: Flag[];
+        // options: Option[];
+        // args: Arg[];
+        // messenger: Messenger;
+        function Script(interpreter, script, flags, options, args, messenger, escape_paths) {
+            var _this = _super.call(this) || this;
+            _this.get_command_exec = function () {
+                if (_this.escape_paths) {
+                    return _this.preprocess_max(_this.preprocess_shell(_this.interpreter) + ' ' + _this.preprocess_shell(_this.script));
+                }
+                else {
+                    return _this.interpreter + ' ' + _this.script;
+                }
+            };
+            _this.interpreter = interpreter;
+            _this.script = script;
+            _this.flags = flags;
+            _this.options = options;
+            _this.args = args;
+            _this.messenger = messenger;
+            // TODO: do better
+            _this.escape_paths = escape_paths;
+            return _this;
+        }
+        Script.prototype.run = function () {
+            var unset_params = this.get_unset_parameters();
+            if (unset_params.length > 0) {
+                throw 'unset parameters: ' + unset_params;
+            }
+            var command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
+            this.messenger.message(command_full);
+        };
+        return Script;
+    }(Parameterized));
+    cli.Script = Script;
+    var Executable = /** @class */ (function (_super) {
+        __extends(Executable, _super);
+        // flags: Flag[];
+        // options: Option[];
+        // args: Arg[];
+        // messenger: Messenger;
+        function Executable(path, flags, options, args, messenger) {
+            var _this = _super.call(this) || this;
+            _this.get_command_exec = function () {
+                return _this.path;
+            };
+            _this.path = path;
+            _this.flags = flags;
+            _this.options = options;
+            _this.args = args;
+            _this.messenger = messenger;
+            return _this;
+        }
         Executable.prototype.run = function () {
             var unset_params = this.get_unset_parameters();
             if (unset_params.length > 0) {
                 throw 'unset parameters: ' + unset_params;
             }
-            this.messenger.message(this.get_run_command().split(' '));
+            var command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
+            this.messenger.message(command_full);
         };
         return Executable;
-    }());
+    }(Parameterized));
     cli.Executable = Executable;
     var MaxShellParameter = /** @class */ (function () {
         function MaxShellParameter() {
@@ -200,7 +260,7 @@ var cli;
             this.val = val;
         };
         Option.prototype.get_name_exec = function () {
-            return '-' + this.name + ' ' + this._preprocess(this.val);
+            return '--' + this.name + ' ' + this._preprocess(this.val);
         };
         Option.prototype.b_set = function () {
             return this.val !== null;
@@ -227,73 +287,121 @@ if (env === 'max') {
 var messenger;
 var logger;
 var outlet_shell_obj = 0;
-var executables = [];
-var executable;
-var dir = '/Users/elliottevers/Documents/git-repos.nosync/music/';
-var path_interpreter = dir + '.venv_36_test/bin/python';
-var init = function () {
-    messenger = new Messenger(env, outlet_shell_obj);
-    logger = new Logger(env);
-    var arg_url = new cli_1.cli.Arg('url');
-    var option_outfile = new cli_1.cli.Option('o', true);
-    var flag_audio_only = new cli_1.cli.Flag('x');
-    var executable_youtube_dl = new cli_1.cli.Executable('/usr/local/bin/youtube-dl', [flag_audio_only], [option_outfile], [arg_url], messenger);
-    executables.push(executable_youtube_dl);
-    var arg_file_out = new cli_1.cli.Arg('file_out', false, true);
-    var option_file_input = new cli_1.cli.Option('i', false, true);
-    var executable_ffmpeg = new cli_1.cli.Executable('/usr/local/bin/ffmpeg', [], [option_file_input], [arg_file_out], messenger);
-    executables.push(executable_ffmpeg);
+// let executables = [];
+// let executable: cli.Executable;
+// let dir = '/Users/elliottevers/Documents/git-repos.nosync/music/';
+// let path_interpreter = dir + '.venv_36_test/bin/python';
+messenger = new Messenger(env, outlet_shell_obj);
+logger = new Logger(env);
+// let arg_url = new cli.Arg('url');
+// let option_outfile = new cli.Option('o', true);
+// let flag_audio_only = new cli.Flag('x');
+//
+// let executable_youtube_dl = new cli.Executable(
+//     '/usr/local/bin/youtube-dl',
+//     [flag_audio_only],
+//     [option_outfile],
+//     [arg_url],
+//     messenger
+// );
+// executables.push(executable_youtube_dl);
+var arg_file_out = new cli_1.cli.Arg('file_out', false, true);
+var option_file_input = new cli_1.cli.Option('i', false, true);
+var executable_ffmpeg = new cli_1.cli.Executable('/usr/local/bin/ffmpeg', [], [option_file_input], [arg_file_out], messenger);
+// executables.push(executable_ffmpeg);
+// let init = () => {
+//
+//     messenger = new Messenger(env, outlet_shell_obj);
+//     logger = new Logger(env);
+//
+//     let arg_url = new cli.Arg('url');
+//     let option_outfile = new cli.Option('o', true);
+//     let flag_audio_only = new cli.Flag('x');
+//
+//     let executable_youtube_dl = new cli.Executable(
+//         '/usr/local/bin/youtube-dl',
+//         [flag_audio_only],
+//         [option_outfile],
+//         [arg_url],
+//         messenger
+//     );
+//
+//     executables.push(executable_youtube_dl);
+//
+//
+//     let arg_file_out = new cli.Arg('file_out', false, true);
+//
+//     let option_file_input = new cli.Option('i', false, true);
+//
+//     let executable_ffmpeg = new cli.Executable(
+//         '/usr/local/bin/ffmpeg',
+//         [],
+//         [option_file_input],
+//         [arg_file_out],
+//         messenger
+//     );
+//
+//     executables.push(executable_ffmpeg);
+//
+// };
+// let run_executable = (path_executable) => {
+//     _lookup_executable(path_executable).run()
+// };
+var run = function () {
+    executable_ffmpeg.run();
 };
-var run_executable = function (path_executable) {
-    lookup_executable(path_executable).run();
+var set_arg = function (name_arg, val_arg) {
+    // post(path_executable);
+    // post(name_arg);
+    // post(val_arg);
+    executable_ffmpeg.get_arg(name_arg).set(val_arg);
 };
-var set_arg = function (path_executable, name_arg, val_arg) {
-    post(path_executable);
-    post(name_arg);
-    post(val_arg);
-    lookup_executable(path_executable).get_arg(name_arg).set(val_arg);
+var set_flag = function (name_flag, val_flag) {
+    // post(path_executable);
+    // post(name_flag);
+    // post(val_flag);
+    executable_ffmpeg.get_flag(name_flag).set(val_flag);
 };
-var set_flag = function (path_executable, name_flag, val_flag) {
-    post(path_executable);
-    post(name_flag);
-    post(val_flag);
-    lookup_executable(path_executable).get_flag(name_flag).set(val_flag);
+var set_option = function (name_opt, val_opt) {
+    // post(path_executable);
+    // post(name_opt);
+    // post(val_opt);
+    executable_ffmpeg.get_opt(name_opt).set(val_opt);
 };
-var set_option = function (path_executable, name_opt, val_opt) {
-    post(path_executable);
-    post(name_opt);
-    post(val_opt);
-    lookup_executable(path_executable).get_opt(name_opt).set(val_opt);
-};
-var lookup_executable = function (path_executable) {
-    return executables.filter(function (executable) {
-        return executable.get_command_exec() === path_executable;
-    })[0];
-};
-var log_cmd = function (path_executable) {
-    logger.log(lookup_executable(path_executable).get_run_command().split(' '));
-    // return lookup_executable(path_executable).get_run_command().split(' ')
-};
+// let _lookup_executable = (path_executable) => {
+//     return executables.filter((executable) => {
+//         return executable.get_command_exec() === path_executable;
+//     })[0];
+// };
+// let log_cmd = (path_executable) => {
+//     logger.log(
+//         _lookup_executable(path_executable).get_run_command().split(' ')
+//     );
+//     // return _lookup_executable(path_executable).get_run_command().split(' ')
+//
+// };
 var test = function () {
     var git_repo = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync';
-    set_arg('/usr/local/bin/youtube-dl', 'url', 'https://www.youtube.com/watch?v=CbkvLYrEvF4');
-    set_option('/usr/local/bin/youtube-dl', 'o', git_repo + '/audio/youtube/tswift_teardrops.%(ext)s');
-    set_flag('/usr/local/bin/youtube-dl', 'x', 1);
+    //
+    // set_arg('/usr/local/bin/youtube-dl', 'url', 'https://www.youtube.com/watch?v=CbkvLYrEvF4');
+    // set_option('/usr/local/bin/youtube-dl', 'o', git_repo + '/audio/youtube/tswift_teardrops.%(ext)s');
+    // set_flag('/usr/local/bin/youtube-dl', 'x', 1);
     // messenger.message(log_cmd('/usr/local/bin/youtube-dl'));
-    set_arg('/usr/local/bin/ffmpeg', 'file_out', git_repo + '/audio/youtube/tswift_teardrops.mp3');
-    set_option('/usr/local/bin/ffmpeg', 'i', git_repo + '/audio/youtube/tswift_teardrops.*');
+    set_arg('file_out', git_repo + '/audio/youtube/tswift_teardrops.mp3');
+    set_option('i', git_repo + '/audio/youtube/tswift_teardrops.*');
     // messenger.message(log_cmd('/usr/local/bin/ffmpeg'));
 };
 if (typeof Global !== "undefined") {
-    Global.command_shell = {};
-    Global.command_shell.set_arg = set_arg;
-    Global.command_shell.set_option = set_option;
-    Global.command_shell.set_flag = set_flag;
-    Global.command_shell.init = init;
-    Global.command_shell.log_cmd = log_cmd;
-    Global.command_shell.run_executable = run_executable;
-    Global.command_shell.test = test;
-    Global.command_shell.lookup_executable = lookup_executable;
+    Global.convert_youtube = {};
+    Global.convert_youtube.set_arg = set_arg;
+    Global.convert_youtube.set_option = set_option;
+    Global.convert_youtube.set_flag = set_flag;
+    Global.convert_youtube.run = run;
+    // Global.command_shell.init = init;
+    // Global.command_shell.log_cmd = log_cmd;
+    // Global.command_shell.run_executable = run_executable;
+    Global.convert_youtube.test = test;
+    // Global.command_shell._lookup_executable = _lookup_executable;
 }
 
 },{"./cli/cli":1,"./log/logger":3,"./message/messenger":4}],3:[function(require,module,exports){
@@ -305,6 +413,24 @@ var log;
         function Logger(env) {
             this.env = env;
         }
+        Logger.log_max_static = function (message) {
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    post(s);
+                }
+                else if (message === null) {
+                    post("<null>");
+                }
+                else {
+                    post(message);
+                }
+            }
+            post("\n");
+        };
         Logger.prototype.log = function (message) {
             if (this.env === 'max') {
                 this.log_max(message);
@@ -414,12 +540,8 @@ var message;
 
 },{}]},{},[2]);
 
-var set_option = Global.command_shell.set_option;
-var set_arg = Global.command_shell.set_arg;
-var set_flag = Global.command_shell.set_flag;
-var log_cmd = Global.command_shell.log_cmd;
-var init = Global.command_shell.init;
-var run = Global.command_shell.run;
-var run_executable = Global.command_shell.run_executable;
-var test = Global.command_shell.test;
-var lookup_executable = Global.command_shell.lookup_executable;
+var set_arg = Global.convert_youtube.set_arg;
+var set_option = Global.convert_youtube.set_option;
+var set_flag = Global.convert_youtube.set_flag;
+var run = Global.convert_youtube.run;
+var test = Global.convert_youtube.test;

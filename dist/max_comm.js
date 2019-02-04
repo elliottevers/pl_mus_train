@@ -247,4 +247,4 @@ if (typeof Global !== "undefined") {
     Global.max_comm.init = init;
     Global.max_comm.run = run;
 }
-//# sourceMappingURL=max_comm.js.map
+//# sourceMappingURL=max_cli.js.map
