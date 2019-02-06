@@ -10,6 +10,9 @@ var message;
             this.outlet = outlet;
             this.key_route = key_route;
         }
+        Messenger.prototype.get_key_route = function () {
+            return this.key_route;
+        };
         Messenger.prototype.message = function (message) {
             if (this.env === 'max') {
                 if (this.key_route) {

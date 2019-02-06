@@ -7,7 +7,6 @@ export namespace message {
 
     export class Messenger {
 
-
         private env: string;
 
         private outlet: number;
@@ -18,6 +17,10 @@ export namespace message {
             this.env = env;
             this.outlet = outlet;
             this.key_route = key_route;
+        }
+
+        public get_key_route(): string {
+            return this.key_route;
         }
 
         message(message: any[]) {
