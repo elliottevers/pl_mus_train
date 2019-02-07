@@ -40,4 +40,4 @@ if (typeof Global !== "undefined") {
     Global.max_cli.set_flag = set_flag;
     Global.max_cli.run = run;
 }
-//# sourceMappingURL=max_cli.js.map
+//# sourceMappingURL=max_python_cli.js.map.js.map
