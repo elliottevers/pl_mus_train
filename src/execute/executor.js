@@ -131,7 +131,7 @@ var execute;
             else {
                 arg = this.arg;
             }
-            this.messenger.message([index_sequence, this.name_func, arg]);
+            this.messenger.message([index_sequence, arg]);
         };
         CallableMax.prototype.return = function (val_return) {
             if (this.func_preprocess_arg !== null) {

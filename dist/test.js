@@ -1,6 +1,10 @@
 "use strict";
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
+var messenger_1 = require("./message/messenger");
+var Messenger = messenger_1.message.Messenger;
+var executor_1 = require("./execute/executor");
+var SynchronousDagExecutor = executor_1.execute.SynchronousDagExecutor;
+var CallableMax = executor_1.execute.CallableMax;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -128,12 +132,31 @@ var invoke_sequentially = function (name_funcs) {
 // declare let __router: any;
 //
 // declare let __coll: any;
-var receives = function (name_method, val_return) {
-    executor.return(name_method, val_return);
+// let receives = (name_method, val_return) => {
+//     executor.return(name_method, val_return)
+//
+// };
+//
+// let sends = (name_method, arg_method) => {
+//     executor.call(name_method, arg_method)
+// };
+var initial = 2;
+// let postprocess_return_arg = 5;
+var called_pre_call_hook = false;
+var called_post_return_hook = false;
+var final;
+var returns = function (index_callable, val_return) {
+    executor.return(index_callable, val_return);
+    var next_result = executor.next();
+    if (!next_result.done) {
+        var next_callable = next_result.value['callable'];
+        next_callable.call(next_result.value['index']);
+    }
+    messenger.message(['done']);
 };
-var sends = function (name_method, arg_method) {
-    executor.call(name_method, arg_method);
-};
+// let calls = (index_callable, arg) => {
+//
+// };
 var main = function () {
     // set router to query mode
     // query coll length
@@ -147,16 +170,99 @@ var main = function () {
     // set router to bulk write mode
     // send coll "dump"
     // after last value is written, set route to stream mode
-    post('testing...');
-    post('\n');
-    post(_this.testing);
+    // post('testing...');
+    // post('\n');
+    // post(this.testing);
+    // let call_getter = (arg) => {
+    //     var_getter
+    // };
+    // let times_5 = (arg) => {
+    //     return arg**2
+    // };
+    var hook_preprocess_arg = function (arg) {
+        return arg * 3;
+    };
+    var hook_pre_call = function (arg) {
+        called_pre_call_hook = true;
+    };
+    var hook_post_return = function (val_return) {
+        called_post_return_hook = true;
+        final = val_return;
+    };
+    var hook_postprocess_return = function (val_return) {
+        return val_return;
+    };
+    var hook_preprocess_arg_set_final = function (arg) {
+        return final;
+    };
+    messenger = new Messenger(env, 0);
+    executor = new SynchronousDagExecutor([
+        new CallableMax(initial, hook_pre_call, hook_post_return, hook_preprocess_arg, hook_postprocess_return, messenger),
+        new CallableMax(null, null, null, hook_preprocess_arg_set_final, null, messenger)
+    ]);
+    executor.run();
+    // this.name_func = name_func;
+    // this.arg = arg;
+    // this.func_pre_call = func_pre_call;
+    // this.func_post_return = func_post_return;
+    // this.func_preprocess_arg = func_preprocess_arg;
+    // this.func_postprocess_return_val = func_postprocess_return_val;
+    // this.messenger = messenger;
+    // {'set_mode': Mode.Query},
+    // {'get_length_coll': null},
+    // {'get_min_coll': null},
+    // {'get_max_coll': null},
+    // {'set_scale_factor': scale_factor},
+    // {'set_mode': Mode.BulkWrite},
+    // {'dump_coll': null},
+    // {'set_mode': Mode.Stream}
+    // );
+    //
+    // let executor = new SynchronousDagExecutor(
+    //     {'set_mode': Mode.Query},
+    //     {'get_length_coll': null},
+    //     {'get_min_coll': null},
+    //     {'get_max_coll': null},
+    //     {'set_scale_factor': scale_factor},
+    //     {'set_mode': Mode.BulkWrite},
+    //     {'dump_coll': null},
+    //     {'set_mode': Mode.Stream}
+    // );
 };
-main();
+var test = function () {
+    main();
+    returns(0, 24);
+};
+test();
+// let variable = 'outside';
+//
+// let to_invoke = () => {
+//     console.log(variable)
+// };
+//
+// class Inside {
+//     func: any;
+//     constructor(func) {
+//         this.func = func;
+//     }
+//
+//     invoke() {
+//         let variable = 'inside';
+//         this.func.call()
+//     }
+// }
+//
+// let thing = new Inside(to_invoke);
+//
+// variable = 'outside changed';
+//
+// thing.invoke();
 var set_state_channels = function (mode) {
     // sends messages to configure gates
 };
 if (typeof Global !== "undefined") {
     Global.test = {};
     Global.test.main = main;
+    Global.test.test = test;
 }
 //# sourceMappingURL=test.js.map

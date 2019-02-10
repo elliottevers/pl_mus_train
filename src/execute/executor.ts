@@ -184,7 +184,7 @@ export namespace execute {
                 arg = this.arg;
             }
 
-            this.messenger.message([index_sequence, this.name_func, arg])
+            this.messenger.message([index_sequence, arg])
         }
 
         return(val_return) {
