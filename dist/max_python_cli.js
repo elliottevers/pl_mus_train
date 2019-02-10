@@ -11,36 +11,11 @@ if (env === 'max') {
 }
 var script;
 var messenger = new Messenger(env, 0);
-// let arg = new cli.Arg('argument');
-// let option = new cli.Option('o', false);
-// let flag = new cli.Flag('f');
-//
-// let path_interpreter = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/.venv_master_36/bin/python';
-//
-// let path_script = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/sandbox/max_comm.py';
-// script = new cli.Script(
-//     path_interpreter,
-//     path_script,
-//     [flag],
-//     [option],
-//     [arg],
-//     messenger,
-//     true
-// );
 var args = [];
 var options = [];
 var flags = [];
-// let args_history: string[] = [];
-// let options_history: string[] = [];
-// let flags_history: string[] = [];
-// let arg = new cli.Arg('argument');
-// let option = new cli.Option('o', false);
-// let flag = new cli.Flag('f');
 var path_interpreter;
 var path_script;
-// let path_interpreter = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/.venv_master_36/bin/python';
-//
-// let path_script = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/sandbox/max_comm.py';
 var run = function () {
     script = new cli_1.cli.Script(path_interpreter, path_script, flags, options, args, messenger, true);
     script.run();
