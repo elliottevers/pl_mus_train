@@ -233,7 +233,7 @@ var test = function () {
     main();
     returns(0, 24);
 };
-test();
+// test();
 // let variable = 'outside';
 //
 // let to_invoke = () => {
@@ -263,6 +263,7 @@ var set_state_channels = function (mode) {
 if (typeof Global !== "undefined") {
     Global.test = {};
     Global.test.main = main;
+    Global.test.returns = returns;
     Global.test.test = test;
 }
 //# sourceMappingURL=test.js.map

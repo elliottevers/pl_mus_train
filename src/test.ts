@@ -341,7 +341,7 @@ let test = () => {
     returns(0, 24);
 };
 
-test();
+// test();
 
 // let variable = 'outside';
 //
@@ -374,5 +374,6 @@ let set_state_channels = (mode) => {
 if (typeof Global !== "undefined") {
     Global.test = {};
     Global.test.main = main;
+    Global.test.returns = returns;
     Global.test.test = test;
 }
