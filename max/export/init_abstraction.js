@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // import {cli} from "./cli/cli";
 var messenger_1 = require("./message/messenger");
 var Messenger = messenger_1.message.Messenger;
-var env = 'node';
+var env = 'max';
 if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
@@ -72,7 +72,7 @@ var messenger;
 // let set_script = (path) => {
 //     path_script = path;
 // };
-var init = function (index) {
+var init_call_receiver = function (index) {
     // let init = (id, index) => {
     messenger = new Messenger(env, 0);
     // let name = [id, index, '#0'];
@@ -84,7 +84,7 @@ var init = function (index) {
     // receiver.connect()
     // messenger.message(['script', 'newobject', 'newobj', '@text', name_object])
 };
-var init_sender = function (name_first, i_first, name_last, i_last) {
+var init_call_sender = function (name_first, i_first, name_last, i_last) {
     messenger = new Messenger(env, 0);
     // let name = [id, index, '#0'];
     // let name = [id, index];
@@ -92,28 +92,81 @@ var init_sender = function (name_first, i_first, name_last, i_last) {
     var indices = Array.apply(null, { length: i_last - i_first + 1 }).map(Function.call, Number);
     var pixels_init_left = 100;
     var pixels_init_top = 300;
-    var router = patcher.newdefault(pixels_init_left, pixels_init_top, "route", [1, 2, 3]);
+    var router = patcher.newdefault(pixels_init_left, pixels_init_top, "route", indices);
     var pixels_offset_top = 40;
     var pixels_offset_left = 150;
     var sender;
     for (var _i = 0, indices_1 = indices; _i < indices_1.length; _i++) {
         var index = indices_1[_i];
-        var name_1 = ['position', index + 1];
+        var name_1 = ['call', index + 1];
         sender = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index + 1)), pixels_init_top + pixels_offset_top, "send", name_1.join('.'));
         patcher.connect(router, index, sender, 0);
     }
     var inlet = patcher.getnamed('inlet');
     patcher.connect(inlet, 0, router, 0);
 };
+var init_return_sender = function (index) {
+    var name = ['return', index];
+    var receiver = patcher.newdefault(100, 100, "send", name.join('.'));
+    var inlet = patcher.getnamed("inlet");
+    patcher.connect(inlet, 0, receiver, 0);
+    // messenger = new Messenger(env, 0);
+    // // let name = [id, index, '#0'];
+    // // let name = [id, index];
+    // // let name = ['position', index];
+    // let indices = Array.apply(null, {length: i_last - i_first + 1}).map(Function.call, Number);
+    //
+    // let pixels_init_left = 100;
+    // let pixels_init_top = 300;
+    //
+    // let router = patcher.newdefault(pixels_init_left, pixels_init_top, "route", indices);
+    //
+    // let pixels_offset_top = 40;
+    // let pixels_offset_left = 150;
+    //
+    // let sender;
+    //
+    // for (let index of indices) {
+    //     let name = ['position', index + 1];
+    //     sender = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index + 1)), pixels_init_top + pixels_offset_top, "send", name.join('.'));
+    //     patcher.connect(router, index, sender, 0);
+    // }
+    //
+    // let inlet = patcher.getnamed('inlet');
+    // patcher.connect(inlet, 0, router, 0);
+};
+var init_return_receiver = function (name_first, i_first, name_last, i_last) {
+    messenger = new Messenger(env, 0);
+    // let name = [id, index, '#0'];
+    // let name = [id, index];
+    // let name = ['position', index];
+    var indices = Array.apply(null, { length: i_last - i_first + 1 }).map(Function.call, Number);
+    var pixels_init_left = 100;
+    var pixels_init_top = 300;
+    var router = patcher.newdefault(pixels_init_left, pixels_init_top, "route", indices);
+    var pixels_offset_top = 40;
+    var pixels_offset_left = 150;
+    var sender;
+    for (var _i = 0, indices_2 = indices; _i < indices_2.length; _i++) {
+        var index = indices_2[_i];
+        var name_2 = ['return', index + 1];
+        sender = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index + 1)), pixels_init_top + pixels_offset_top, "send", name_2.join('.'));
+        patcher.connect(router, index, sender, 0);
+    }
+    var inlet = patcher.getnamed('inlet');
+    patcher.connect(inlet, 0, router, 0);
+};
 var test = function () {
-    init(1);
-    init_sender('first', 1, 'last', 4);
+    init_call_receiver(1);
+    init_call_sender('first', 1, 'last', 4);
 };
 // test();
 if (typeof Global !== "undefined") {
     Global.init_abstraction = {};
-    Global.init_abstraction.init = init;
-    Global.init_abstraction.init_sender = init_sender;
+    Global.init_abstraction.init_call_receiver = init_call_receiver;
+    Global.init_abstraction.init_call_sender = init_call_sender;
+    Global.init_abstraction.init_return_sender = init_return_sender;
+    Global.init_abstraction.init_return_receiver = init_return_receiver;
 }
 
 },{"./message/messenger":2}],2:[function(require,module,exports){
@@ -162,5 +215,7 @@ var message;
 
 },{}]},{},[1]);
 
-var init = Global.init_abstraction.init;
-var init_sender = Global.init_abstraction.init_sender;Global.init_abstraction.patcher = this.patcher;
+var init_call_receiver = Global.init_abstraction.init_call_receiver;
+var init_call_sender = Global.init_abstraction.init_call_sender;
+var init_return_receiver = Global.init_abstraction.init_return_receiver;
+var init_return_sender = Global.init_abstraction.init_return_sender;Global.init_abstraction.patcher = this.patcher;
