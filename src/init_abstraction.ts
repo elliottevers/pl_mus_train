@@ -98,27 +98,8 @@ let init_return_receiver = (name_first, i_first, name_last, i_last) => {
 };
 
 let init_setter = (index) => {
-
-    // let name = ['return', index];
-    // let receiver = patcher.newdefault(100, 100, "send", name.join('.'));
-    // let inlet = patcher.getnamed("inlet");
-    // patcher.connect(inlet, 0, receiver, 0);
-
-
-
-    messenger = new Messenger(env, 0);
-    // let name = [id, index, '#0'];
-    // let name = [id, index];
-    // let name = ['position', index];
-    // let indices = Array.apply(null, {length: i_last - i_first + 1}).map(Function.call, Number);
-
-    // let pixels_init_left = 100;
-    // let pixels_init_top = 300;
-    //
-    // let pixels_offset_top = 40;
-    // let pixels_offset_left = 150;
-
     let outlet = patcher.getnamed('outlet');
+
     let call_receiver = patcher.newdefault(361, 308, "call.receiver", index);
     let return_sender = patcher.newdefault(249, 414, "return.sender", index);
     let typecast_bang = patcher.newdefault(307, 359, "t", "b");
@@ -126,17 +107,6 @@ let init_setter = (index) => {
     patcher.connect(call_receiver, 0, outlet, 0);
     patcher.connect(call_receiver, 0, typecast_bang, 0);
     patcher.connect(typecast_bang, 0, return_sender, 0);
-
-    // let receiver;
-    // let prepender;
-    //
-    // for (let index of indices) {
-    //     let name = ['return', index];
-    //     receiver = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + pixels_offset_top, "receive", name.join('.'));
-    //     prepender = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 2 * pixels_offset_top, "prepend", "returns", index);
-    //     patcher.connect(receiver, 0, prepender, 0);
-    //     patcher.connect(prepender, 0, outlet, 0);
-    // }
 };
 
 let test = () => {
