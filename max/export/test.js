@@ -1,55 +1,9 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// import {Note, note as n} from "../note/note";
 var execute;
 (function (execute) {
-    // export class NoteIterator {
-    //
-    //     private notes: TreeModel.Node<Note>[];
-    //     public direction_forward: boolean;
-    //     private i: number;
-    //
-    //     constructor(notes: TreeModel.Node<Note>[], direction_forward: boolean) {
-    //         this.notes = notes;
-    //         this.direction_forward = direction_forward;
-    //         this.i = -1;
-    //     }
-    //
-    //     // TODO: type declarations
-    //     public next() {
-    //         let value_increment = (this.direction_forward) ? 1 : -1;
-    //
-    //         this.i += value_increment;
-    //
-    //         if (this.i < 0) {
-    //             throw 'note iterator < 0'
-    //         }
-    //
-    //         if (this.i < this.notes.length) {
-    //             return {
-    //                 value: this.notes[this.i],
-    //                 done: false
-    //             }
-    //         } else {
-    //             return {
-    //                 value: null,
-    //                 done: true
-    //             }
-    //         }
-    //     }
-    //
-    //     public current() {
-    //         if (this.i > -1) {
-    //             return this.notes[this.i];
-    //         } else {
-    //             return null;
-    //         }
-    //     }
-    // }
     var SynchronousDagExecutor = /** @class */ (function () {
-        // to_run: Callable;
-        // private running: Callable;
         function SynchronousDagExecutor(callables) {
             this.callables = callables;
         }
@@ -71,36 +25,12 @@ var execute;
                 };
             }
         };
-        // private call() {
-        //     this.callables[this.index_to_run].call(this.index_to_run);
-        //     this.index_running = this.index_to_run;
-        //     // this.running = this.to_run;
-        // }
-        // private get_index_running() {
-        //     return this.index_to_run
-        // }
-        // public return(name_func, val_return) {
-        //     let currently_running =  this.callables.filter((callable) =>{
-        //         return callable.name_func === name_func
-        //     });
-        //
-        //     val_return = currently_running[0].return(val_return);
-        //
-        //     if (this.callables.length < this.index_running) {
-        //         this.index_to_run += 1;
-        //     }
-        //
-        //     return val_return;
-        // }
         SynchronousDagExecutor.prototype.return = function (index_callable, val_return) {
-            // let currently_running =  this.callables.filter((callable) =>{
-            //     return callable.name_func === name_func
-            // });
+            if (val_return === 'bang') {
+                // denotes a void method
+                val_return = null;
+            }
             val_return = this.callables[index_callable].return(val_return);
-            // if (this.callables.length < this.index_running) {
-            //     this.index_to_run += 1;
-            // }
-            //
             return val_return;
         };
         SynchronousDagExecutor.prototype.run = function () {
@@ -135,7 +65,7 @@ var execute;
             this.messenger.message([index_sequence, arg]);
         };
         CallableMax.prototype.return = function (val_return) {
-            if (this.func_preprocess_arg !== null) {
+            if (this.func_postprocess_return_val !== null) {
                 val_return = this.func_postprocess_return_val.call(this, val_return);
             }
             if (this.func_post_return !== null) {
@@ -149,6 +79,99 @@ var execute;
 })(execute = exports.execute || (exports.execute = {}));
 
 },{}],2:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var log;
+(function (log) {
+    var Logger = /** @class */ (function () {
+        function Logger(env) {
+            this.env = env;
+        }
+        Logger.log_max_static = function (message) {
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    post(s);
+                }
+                else if (message === null) {
+                    post("<null>");
+                }
+                else {
+                    post(message);
+                }
+            }
+            post("\n");
+        };
+        Logger.prototype.log = function (message) {
+            if (this.env === 'max') {
+                this.log_max(message);
+            }
+            else if (this.env === 'node') {
+                this.log_node(message);
+            }
+            else {
+                post('env: ' + this.env);
+                post('\n');
+                throw 'environment invalid';
+            }
+        };
+        // TODO: make static
+        Logger.prototype.log_max = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                var message = arguments[i];
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    post(s);
+                }
+                else if (message === null) {
+                    post("<null>");
+                }
+                else {
+                    post(message);
+                }
+            }
+            post("\n");
+        };
+        // TODO: make static
+        Logger.prototype.log_node = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                var message = arguments[i];
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    console.log(s);
+                }
+                else if (message === null) {
+                    console.log("<null>");
+                }
+                else {
+                    console.log(message);
+                }
+            }
+            console.log("\n");
+        };
+        return Logger;
+    }());
+    log.Logger = Logger;
+})(log = exports.log || (exports.log = {}));
+
+},{}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
@@ -192,9 +215,11 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var logger_1 = require("./log/logger");
+var Logger = logger_1.log.Logger;
 var messenger_1 = require("./message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var executor_1 = require("./execute/executor");
@@ -212,23 +237,24 @@ var Mode;
     Mode["Query"] = "query";
 })(Mode || (Mode = {}));
 var executor;
-var messenger;
+var messenger_execute;
+// let messenger_log: Messenger;
+var logger;
 var scale_factor;
 var length_coll;
 var max_coll;
 var min_coll;
-var initial = 2;
-var called_pre_call_hook = false;
-var called_post_return_hook = false;
-var final;
+var channel_execute = 0;
 var returns = function (index_callable, val_return) {
     executor.return(index_callable, val_return);
     var next_result = executor.next();
     if (!next_result.done) {
         var next_callable = next_result.value['callable'];
         next_callable.call(next_result.value['index']);
+        return;
     }
-    messenger.message(['done']);
+    logger.log('done');
+    logger.log(['length: ', length_coll].join(''));
 };
 var main = function () {
     // set router to query mode
@@ -243,32 +269,59 @@ var main = function () {
     // set router to bulk write mode
     // send coll "dump"
     // after last value is written, set route to stream mode
-    var hook_preprocess_arg = function (arg) {
-        return arg * 3;
+    messenger_execute = new Messenger(env, channel_execute);
+    logger = new Logger(env);
+    var hook_set_length = function (val_return) {
+        length_coll = val_return;
+        logger.log('hook_set_length');
     };
-    var hook_pre_call = function (arg) {
-        called_pre_call_hook = true;
+    var hook_set_min = function (val_return) {
+        min_coll = val_return;
+        logger.log('hook_set_min');
     };
-    var hook_post_return = function (val_return) {
-        called_post_return_hook = true;
-        final = val_return;
+    var hook_set_max = function (val_return) {
+        max_coll = val_return;
+        logger.log('hook_set_max');
     };
-    var hook_postprocess_return = function (val_return) {
-        return val_return;
+    var hook_calculate_scale_factor = function (arg) {
+        logger.log('hook_calculate_scale_factor');
+        return max_coll + 100;
     };
-    var hook_preprocess_arg_set_final = function (arg) {
-        return final;
+    var hook_get_length = function (arg) {
+        logger.log('hook_get_length');
+        return length_coll;
     };
-    messenger = new Messenger(env, 0);
     executor = new SynchronousDagExecutor([
-        new CallableMax(initial, hook_pre_call, hook_post_return, hook_preprocess_arg, hook_postprocess_return, messenger),
-        new CallableMax(null, null, null, hook_preprocess_arg_set_final, null, messenger)
+        new CallableMax(// 0
+        Mode.Query, null, null, null, null, messenger_execute),
+        new CallableMax(// 1
+        'length', null, null, null, null, messenger_execute),
+        new CallableMax(// 2
+        'length', null, hook_set_length, null, null, messenger_execute),
+        new CallableMax(// 3
+        'min', null, null, null, null, messenger_execute),
+        new CallableMax(// 4
+        'min', null, hook_set_min, null, null, messenger_execute),
+        new CallableMax(// 5
+        'max', null, null, null, null, messenger_execute),
+        new CallableMax(// 6
+        'max', null, hook_set_max, null, null, messenger_execute),
+        new CallableMax(// 7
+        Mode.BulkWrite, null, null, null, null, messenger_execute),
+        new CallableMax(// 8
+        null, null, null, hook_calculate_scale_factor, null, messenger_execute),
+        new CallableMax(// 9
+        0, null, null, null, null, messenger_execute),
+        new CallableMax(// 10
+        null, null, null, hook_get_length, null, messenger_execute),
+        new CallableMax(// 11
+        'dump', null, null, null, null, messenger_execute),
+        new CallableMax(// 12
+        Mode.Stream, null, null, null, null, messenger_execute),
     ]);
     executor.run();
 };
 var test = function () {
-    main();
-    returns(0, 24);
 };
 // test();
 if (typeof Global !== "undefined") {
@@ -278,7 +331,7 @@ if (typeof Global !== "undefined") {
     Global.test.test = test;
 }
 
-},{"./execute/executor":1,"./message/messenger":2}]},{},[3]);
+},{"./execute/executor":1,"./log/logger":2,"./message/messenger":3}]},{},[4]);
 
 var main = Global.test.main;
 var returns = Global.test.returns;

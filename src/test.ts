@@ -31,7 +31,11 @@ enum Mode {
 
 let executor: SynchronousDagExecutor;
 
-let messenger: Messenger;
+let messenger_execute: Messenger;
+
+// let messenger_log: Messenger;
+
+let logger: Logger;
 
 let scale_factor: number;
 
@@ -41,13 +45,7 @@ let max_coll: number;
 
 let min_coll: number;
 
-let initial = 2;
-
-let called_pre_call_hook = false;
-
-let called_post_return_hook = false;
-
-let final: number;
+let channel_execute: number = 0;
 
 
 let returns = (index_callable, val_return) => {
@@ -60,11 +58,14 @@ let returns = (index_callable, val_return) => {
 
         let next_callable = next_result.value['callable'];
 
-        next_callable.call(next_result.value['index'])
+        next_callable.call(next_result.value['index']);
+
+        return;
     }
 
-    messenger.message(['done'])
+    logger.log('done');
 };
+
 
 let main = () => {
     // set router to query mode
@@ -91,54 +92,142 @@ let main = () => {
 
     // after last value is written, set route to stream mode
 
-    let hook_preprocess_arg = (arg) => {
-        return arg*3
+    messenger_execute = new Messenger(env, channel_execute);
+
+    logger = new Logger(env);
+
+    let hook_set_length = (val_return) => {
+        length_coll = val_return;
     };
 
-    let hook_pre_call = (arg) => {
-        called_pre_call_hook = true;
+    let hook_set_min = (val_return) => {
+        min_coll = val_return;
     };
 
-    let hook_post_return = (val_return) => {
-        called_post_return_hook = true;
-        final = val_return;
+    let hook_set_max = (val_return) => {
+        max_coll = val_return;
     };
 
-    let hook_postprocess_return = (val_return) => {
-        return val_return
+    let hook_calculate_scale_factor = (arg) => {
+        return max_coll + 100
     };
 
-    let hook_preprocess_arg_set_final = (arg) => {
-        return final
+    let hook_get_length = (arg) => {
+        return length_coll
     };
-
-    messenger = new Messenger(env, 0);
 
     executor = new SynchronousDagExecutor([
-        new CallableMax(
-            initial,
-            hook_pre_call,
-            hook_post_return,
-            hook_preprocess_arg,
-            hook_postprocess_return,
-            messenger
+        new CallableMax( // 0
+            Mode.Query,
+            null,
+            null,
+            null,
+            null,
+            messenger_execute
         ),
-        new CallableMax(
+        new CallableMax( // 1
+            'length',
             null,
             null,
             null,
-            hook_preprocess_arg_set_final,
             null,
-            messenger
-        )
+            messenger_execute
+        ),
+        new CallableMax( // 2
+            'length',
+            null,
+            hook_set_length,
+            null,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 3
+            'min',
+            null,
+            null,
+            null,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 4
+            'min',
+            null,
+            hook_set_min,
+            null,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 5
+            'max',
+            null,
+            null,
+            null,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 6
+            'max',
+            null,
+            hook_set_max,
+            null,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 7
+            Mode.BulkWrite,
+            null,
+            null,
+            null,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 8
+            null,
+            null,
+            null,
+            hook_calculate_scale_factor,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 9
+            0,
+            null,
+            null,
+            null,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 10
+            null,
+            null,
+            null,
+            hook_get_length,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 11
+            'dump',
+            null,
+            null,
+            null,
+            null,
+            messenger_execute
+        ),
+        new CallableMax( // 12
+            Mode.Stream,
+            null,
+            null,
+            null,
+            null,
+            messenger_execute
+        ),
     ]);
 
     executor.run()
 };
 
 let test = () => {
-    main();
-    returns(0, 24);
+
 };
 
 // test();

@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var logger_1 = require("./log/logger");
+var Logger = logger_1.log.Logger;
 var messenger_1 = require("./message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var executor_1 = require("./execute/executor");
@@ -17,23 +19,24 @@ var Mode;
     Mode["Query"] = "query";
 })(Mode || (Mode = {}));
 var executor;
-var messenger;
+var messenger_execute;
+// let messenger_log: Messenger;
+var logger;
 var scale_factor;
 var length_coll;
 var max_coll;
 var min_coll;
-var initial = 2;
-var called_pre_call_hook = false;
-var called_post_return_hook = false;
-var final;
+var channel_execute = 0;
 var returns = function (index_callable, val_return) {
     executor.return(index_callable, val_return);
     var next_result = executor.next();
     if (!next_result.done) {
         var next_callable = next_result.value['callable'];
         next_callable.call(next_result.value['index']);
+        return;
     }
-    messenger.message(['done']);
+    logger.log('done');
+    logger.log(['length: ', length_coll].join(''));
 };
 var main = function () {
     // set router to query mode
@@ -48,32 +51,59 @@ var main = function () {
     // set router to bulk write mode
     // send coll "dump"
     // after last value is written, set route to stream mode
-    var hook_preprocess_arg = function (arg) {
-        return arg * 3;
+    messenger_execute = new Messenger(env, channel_execute);
+    logger = new Logger(env);
+    var hook_set_length = function (val_return) {
+        length_coll = val_return;
+        logger.log('hook_set_length');
     };
-    var hook_pre_call = function (arg) {
-        called_pre_call_hook = true;
+    var hook_set_min = function (val_return) {
+        min_coll = val_return;
+        logger.log('hook_set_min');
     };
-    var hook_post_return = function (val_return) {
-        called_post_return_hook = true;
-        final = val_return;
+    var hook_set_max = function (val_return) {
+        max_coll = val_return;
+        logger.log('hook_set_max');
     };
-    var hook_postprocess_return = function (val_return) {
-        return val_return;
+    var hook_calculate_scale_factor = function (arg) {
+        logger.log('hook_calculate_scale_factor');
+        return max_coll + 100;
     };
-    var hook_preprocess_arg_set_final = function (arg) {
-        return final;
+    var hook_get_length = function (arg) {
+        logger.log('hook_get_length');
+        return length_coll;
     };
-    messenger = new Messenger(env, 0);
     executor = new SynchronousDagExecutor([
-        new CallableMax(initial, hook_pre_call, hook_post_return, hook_preprocess_arg, hook_postprocess_return, messenger),
-        new CallableMax(null, null, null, hook_preprocess_arg_set_final, null, messenger)
+        new CallableMax(// 0
+        Mode.Query, null, null, null, null, messenger_execute),
+        new CallableMax(// 1
+        'length', null, null, null, null, messenger_execute),
+        new CallableMax(// 2
+        'length', null, hook_set_length, null, null, messenger_execute),
+        new CallableMax(// 3
+        'min', null, null, null, null, messenger_execute),
+        new CallableMax(// 4
+        'min', null, hook_set_min, null, null, messenger_execute),
+        new CallableMax(// 5
+        'max', null, null, null, null, messenger_execute),
+        new CallableMax(// 6
+        'max', null, hook_set_max, null, null, messenger_execute),
+        new CallableMax(// 7
+        Mode.BulkWrite, null, null, null, null, messenger_execute),
+        new CallableMax(// 8
+        null, null, null, hook_calculate_scale_factor, null, messenger_execute),
+        new CallableMax(// 9
+        0, null, null, null, null, messenger_execute),
+        new CallableMax(// 10
+        null, null, null, hook_get_length, null, messenger_execute),
+        new CallableMax(// 11
+        'dump', null, null, null, null, messenger_execute),
+        new CallableMax(// 12
+        Mode.Stream, null, null, null, null, messenger_execute),
     ]);
     executor.run();
 };
 var test = function () {
-    main();
-    returns(0, 24);
 };
 // test();
 if (typeof Global !== "undefined") {
