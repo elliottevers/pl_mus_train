@@ -20,14 +20,17 @@ var Mode;
 })(Mode || (Mode = {}));
 var executor;
 var messenger_execute;
-// let messenger_log: Messenger;
 var logger;
 var scale_factor;
 var length_coll;
 var max_coll;
 var min_coll;
 var channel_execute = 0;
+var done = false;
 var returns = function (index_callable, val_return) {
+    if (done) {
+        return;
+    }
     executor.return(index_callable, val_return);
     var next_result = executor.next();
     if (!next_result.done) {
@@ -35,42 +38,26 @@ var returns = function (index_callable, val_return) {
         next_callable.call(next_result.value['index']);
         return;
     }
+    done = true;
     logger.log('done');
-    logger.log(['length: ', length_coll].join(''));
 };
 var main = function () {
-    // set router to query mode
-    // query coll length
-    // wait for response, with guarantee that no other responses could come back except that one
-    // query coll max
-    // wait
-    // query coll min
-    // wait
-    // calculate metadata
-    // set scale factor
-    // set router to bulk write mode
-    // send coll "dump"
-    // after last value is written, set route to stream mode
+    done = false;
     messenger_execute = new Messenger(env, channel_execute);
     logger = new Logger(env);
     var hook_set_length = function (val_return) {
         length_coll = val_return;
-        logger.log('hook_set_length');
     };
     var hook_set_min = function (val_return) {
         min_coll = val_return;
-        logger.log('hook_set_min');
     };
     var hook_set_max = function (val_return) {
         max_coll = val_return;
-        logger.log('hook_set_max');
     };
     var hook_calculate_scale_factor = function (arg) {
-        logger.log('hook_calculate_scale_factor');
-        return max_coll + 100;
+        return max_coll * 2;
     };
     var hook_get_length = function (arg) {
-        logger.log('hook_get_length');
         return length_coll;
     };
     executor = new SynchronousDagExecutor([
@@ -93,14 +80,20 @@ var main = function () {
         new CallableMax(// 8
         null, null, null, hook_calculate_scale_factor, null, messenger_execute),
         new CallableMax(// 9
-        0, null, null, null, null, messenger_execute),
-        new CallableMax(// 10
         null, null, null, hook_get_length, null, messenger_execute),
+        new CallableMax(// 10
+        0, null, null, null, null, messenger_execute),
         new CallableMax(// 11
+        'clear', null, null, null, null, messenger_execute),
+        new CallableMax(// 12 - initialize buffer size
+        null, null, null, hook_get_length, null, messenger_execute),
+        new CallableMax(// 13
         'dump', null, null, null, null, messenger_execute),
-        new CallableMax(// 12
+        new CallableMax(// 14 - send size of buffer out of outlet
+        null, null, null, hook_get_length, null, messenger_execute),
+        new CallableMax(// 15
         Mode.Stream, null, null, null, null, messenger_execute),
-    ]);
+    ], messenger_execute);
     executor.run();
 };
 var test = function () {

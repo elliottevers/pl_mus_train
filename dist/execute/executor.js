@@ -3,11 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var execute;
 (function (execute) {
     var SynchronousDagExecutor = /** @class */ (function () {
-        function SynchronousDagExecutor(callables) {
+        function SynchronousDagExecutor(callables, messenger) {
             this.callables = callables;
+            this.messenger = messenger;
         }
         SynchronousDagExecutor.prototype.next = function () {
-            this.index_to_run += 1;
+            // this.index_to_run += 1;
+            this.index_to_run = this.index_to_run + 1;
             if (this.index_to_run < this.callables.length) {
                 return {
                     value: {
@@ -34,6 +36,7 @@ var execute;
         };
         SynchronousDagExecutor.prototype.run = function () {
             this.index_to_run = 0;
+            this.messenger.message(['reset']);
             this.callables[this.index_to_run].call(this.index_to_run);
         };
         return SynchronousDagExecutor;

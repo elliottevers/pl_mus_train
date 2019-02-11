@@ -10,12 +10,17 @@ export namespace execute {
 
         index_to_run: number;
 
-        constructor(callables) {
+        messenger: Messenger;
+
+        constructor(callables, messenger) {
             this.callables = callables;
+            this.messenger = messenger;
         }
 
         public next() {
-            this.index_to_run += 1;
+            // this.index_to_run += 1;
+
+            this.index_to_run = this.index_to_run + 1;
 
             if (this.index_to_run < this.callables.length) {
                 return {
@@ -47,6 +52,7 @@ export namespace execute {
 
         public run() {
             this.index_to_run = 0;
+            this.messenger.message(['reset']);
             this.callables[this.index_to_run].call(this.index_to_run);
         }
     }

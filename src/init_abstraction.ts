@@ -22,7 +22,16 @@ declare let patcher: any;
 
 let messenger: Messenger;
 
+let ran_init_call_receiver = false;
+let ran_init_call_sender = false;
+let ran_init_return_sender = false;
+let ran_init_return_receiver = false;
+let ran_init_setter = false;
+
 let init_call_receiver = (index) => {
+    if (ran_init_call_receiver) {
+        return;
+    }
 // let init = (id, index) => {
     messenger = new Messenger(env, 0);
     // let name = [id, index, '#0'];
@@ -30,11 +39,23 @@ let init_call_receiver = (index) => {
     let name = ['call', index];
     let receiver = patcher.newdefault(100, 100, "receive", name.join('.'));
     let outlet = patcher.getnamed("outlet");
-    patcher.connect(receiver, 0, outlet, 0);
+    // patcher.connect(receiver, 0, outlet, 0);
     // messenger.message(['script', 'newobject', 'newobj', '@text', name_object])
+
+    let resetter = patcher.getnamed('reset');
+    let one_pass_gate = patcher.newdefault(100, 157, "one_pass_gate");
+
+    patcher.connect(resetter, 0, one_pass_gate, 1);
+    patcher.connect(receiver, 0, one_pass_gate, 0);
+    patcher.connect(one_pass_gate, 0, outlet, 0);
+
+    ran_init_call_receiver = true;
 };
 
 let init_call_sender = (name_first, i_first, name_last, i_last) => {
+    if (ran_init_call_sender) {
+        return;
+    }
 
     messenger = new Messenger(env, 0);
     // let name = [id, index, '#0'];
@@ -58,19 +79,40 @@ let init_call_sender = (name_first, i_first, name_last, i_last) => {
         patcher.connect(router, index, sender, 0);
     }
 
-    let inlet = patcher.getnamed('inlet');
-    patcher.connect(inlet, 0, router, 0);
+    let routepass_reset = patcher.getnamed('routepass_reset');
+    patcher.connect(routepass_reset, 1, router, 0);
+
+    ran_init_call_sender = true;
 };
 
 let init_return_sender = (index) => {
+    if (ran_init_return_sender) {
+        return;
+    }
 
     let name = ['return', index];
-    let receiver = patcher.newdefault(100, 100, "send", name.join('.'));
+    let sender = patcher.newdefault(469, 267, "send", name.join('.'));
     let inlet = patcher.getnamed("inlet");
-    patcher.connect(inlet, 0, receiver, 0);
+    // patcher.connect(inlet, 0, sender, 0);
+
+    let resetter = patcher.getnamed('reset');
+    let one_pass_gate = patcher.newdefault(469, 194, "one_pass_gate");
+    //
+
+    patcher.connect(inlet, 0, one_pass_gate, 0);
+    patcher.connect(resetter, 0, one_pass_gate, 1);
+    patcher.connect(one_pass_gate, 0, sender, 0);
+    // patcher.connect(resetter, 0, one_pass_gate, 1);
+    // patcher.connect(receiver, 0, one_pass_gate, 0);
+    // patcher.connect(one_pass_gate, 0, inlet, 0);
+    ran_init_return_sender = true;
 };
 
 let init_return_receiver = (name_first, i_first, name_last, i_last) => {
+    if (ran_init_return_receiver) {
+        return;
+    }
+
     messenger = new Messenger(env, 0);
     // let name = [id, index, '#0'];
     // let name = [id, index];
@@ -85,28 +127,56 @@ let init_return_receiver = (name_first, i_first, name_last, i_last) => {
 
     let outlet = patcher.getnamed('outlet');
 
+    // let receive_resetter = patcher.newdefault(1111, 8, "reset", "reset");
+
+    let resetter = patcher.getnamed('reset');
+
+    // patcher.connect(receive_resetter, 0, resetter, 0);
+
     let receiver;
     let prepender;
+    let one_pass_gate;
 
     for (let index of indices) {
         let name = ['return', index];
         receiver = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + pixels_offset_top, "receive", name.join('.'));
-        prepender = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 2 * pixels_offset_top, "prepend", "returns", index);
-        patcher.connect(receiver, 0, prepender, 0);
+        one_pass_gate = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 2 * pixels_offset_top, "one_pass_gate");
+        prepender = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 3 * pixels_offset_top, "prepend", "returns", index);
+        patcher.connect(receiver, 0, one_pass_gate, 0);
+        patcher.connect(one_pass_gate, 0, prepender, 0);
         patcher.connect(prepender, 0, outlet, 0);
+
+        patcher.connect(resetter, 0, one_pass_gate, 1);
     }
+
+    ran_init_return_receiver = true;
 };
 
 let init_setter = (index) => {
+    if (ran_init_setter) {
+        return;
+    }
+
     let outlet = patcher.getnamed('outlet');
 
     let call_receiver = patcher.newdefault(361, 308, "call.receiver", index);
-    let return_sender = patcher.newdefault(249, 414, "return.sender", index);
-    let typecast_bang = patcher.newdefault(307, 359, "t", "b");
+    let one_pass_gate_sender = patcher.newdefault(285, 357, "one_pass_gate");
+    let one_pass_gate_outlet = patcher.newdefault(361, 460, "one_pass_gate");
+    let typecast_bang = patcher.newdefault(238, 398, "t", "b");
+    let return_sender = patcher.newdefault(180, 453, "return.sender", index);
 
-    patcher.connect(call_receiver, 0, outlet, 0);
-    patcher.connect(call_receiver, 0, typecast_bang, 0);
+    let resetter = patcher.getnamed("reset");
+
+    patcher.connect(call_receiver, 0, one_pass_gate_outlet, 0);
+    patcher.connect(one_pass_gate_outlet, 0, outlet, 0);
+    patcher.connect(call_receiver, 0, one_pass_gate_sender, 0);
+    patcher.connect(one_pass_gate_sender, 0, typecast_bang, 0);
     patcher.connect(typecast_bang, 0, return_sender, 0);
+
+    patcher.connect(resetter, 0, one_pass_gate_sender, 1);
+    patcher.connect(resetter, 0, one_pass_gate_outlet, 1);
+
+    ran_init_setter = true;
 };
 
 let test = () => {

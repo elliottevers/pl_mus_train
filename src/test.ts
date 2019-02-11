@@ -33,8 +33,6 @@ let executor: SynchronousDagExecutor;
 
 let messenger_execute: Messenger;
 
-// let messenger_log: Messenger;
-
 let logger: Logger;
 
 let scale_factor: number;
@@ -47,8 +45,14 @@ let min_coll: number;
 
 let channel_execute: number = 0;
 
+let done = false;
+
 
 let returns = (index_callable, val_return) => {
+
+    if (done) {
+        return;
+    }
 
     executor.return(index_callable, val_return);
 
@@ -63,34 +67,15 @@ let returns = (index_callable, val_return) => {
         return;
     }
 
+    done = true;
+
     logger.log('done');
 };
 
 
 let main = () => {
-    // set router to query mode
 
-    // query coll length
-
-    // wait for response, with guarantee that no other responses could come back except that one
-
-    // query coll max
-
-    // wait
-
-    // query coll min
-
-    // wait
-
-    // calculate metadata
-
-    // set scale factor
-
-    // set router to bulk write mode
-
-    // send coll "dump"
-
-    // after last value is written, set route to stream mode
+    done = false;
 
     messenger_execute = new Messenger(env, channel_execute);
 
@@ -109,119 +94,146 @@ let main = () => {
     };
 
     let hook_calculate_scale_factor = (arg) => {
-        return max_coll + 100
+        return max_coll * 2
     };
 
     let hook_get_length = (arg) => {
         return length_coll
     };
 
-    executor = new SynchronousDagExecutor([
-        new CallableMax( // 0
-            Mode.Query,
-            null,
-            null,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 1
-            'length',
-            null,
-            null,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 2
-            'length',
-            null,
-            hook_set_length,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 3
-            'min',
-            null,
-            null,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 4
-            'min',
-            null,
-            hook_set_min,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 5
-            'max',
-            null,
-            null,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 6
-            'max',
-            null,
-            hook_set_max,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 7
-            Mode.BulkWrite,
-            null,
-            null,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 8
-            null,
-            null,
-            null,
-            hook_calculate_scale_factor,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 9
-            0,
-            null,
-            null,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 10
-            null,
-            null,
-            null,
-            hook_get_length,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 11
-            'dump',
-            null,
-            null,
-            null,
-            null,
-            messenger_execute
-        ),
-        new CallableMax( // 12
-            Mode.Stream,
-            null,
-            null,
-            null,
-            null,
-            messenger_execute
-        ),
-    ]);
+    executor = new SynchronousDagExecutor(
+            [
+            new CallableMax( // 0
+                Mode.Query,
+                null,
+                null,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 1
+                'length',
+                null,
+                null,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 2
+                'length',
+                null,
+                hook_set_length,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 3
+                'min',
+                null,
+                null,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 4
+                'min',
+                null,
+                hook_set_min,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 5
+                'max',
+                null,
+                null,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 6
+                'max',
+                null,
+                hook_set_max,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 7
+                Mode.BulkWrite,
+                null,
+                null,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 8
+                null,
+                null,
+                null,
+                hook_calculate_scale_factor,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 9
+                null,
+                null,
+                null,
+                hook_get_length,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 10
+                0,
+                null,
+                null,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 11
+                'clear',
+                null,
+                null,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 12 - initialize buffer size
+                null,
+                null,
+                null,
+                hook_get_length,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 13
+                'dump',
+                null,
+                null,
+                null,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 14 - send size of buffer out of outlet
+                null,
+                null,
+                null,
+                hook_get_length,
+                null,
+                messenger_execute
+            ),
+            new CallableMax( // 15
+                Mode.Stream,
+                null,
+                null,
+                null,
+                null,
+                messenger_execute
+            ),
+        ],
+        messenger_execute
+    );
 
     executor.run()
 };
