@@ -254,18 +254,19 @@ var cli;
     cli.Flag = Flag;
     var Option = /** @class */ (function (_super) {
         __extends(Option, _super);
-        function Option(name, needs_escaping_max, needs_escaping_shell) {
+        function Option(name, needs_escaping_max, needs_escaping_shell, num_dashes) {
             var _this = _super.call(this) || this;
             _this.name = name;
             _this.needs_escaping_max = needs_escaping_max;
             _this.needs_escaping_shell = needs_escaping_shell;
+            _this.num_dashes = num_dashes;
             return _this;
         }
         Option.prototype.set = function (val) {
             this.val = val;
         };
         Option.prototype.get_name_exec = function () {
-            return '--' + this.name + ' ' + this._preprocess(this.val);
+            return (this.num_dashes === 1 ? '-' : '--') + this.name + ' ' + this._preprocess(this.val);
         };
         Option.prototype.b_set = function () {
             return this.val !== null;

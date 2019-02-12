@@ -379,12 +379,14 @@ export namespace cli {
     export class Option extends MaxShellParameter {
         name: string;
         val: string;
+        num_dashes: number;
 
-        constructor(name, needs_escaping_max?: boolean, needs_escaping_shell?: boolean) {
+        constructor(name, needs_escaping_max?: boolean, needs_escaping_shell?: boolean, num_dashes?: number) {
             super();
             this.name = name;
             this.needs_escaping_max = needs_escaping_max;
             this.needs_escaping_shell = needs_escaping_shell;
+            this.num_dashes = num_dashes
         }
 
         public set(val) {
@@ -392,7 +394,7 @@ export namespace cli {
         }
 
         public get_name_exec() {
-            return '--' + this.name + ' ' + this._preprocess(this.val)
+            return (this.num_dashes === 1 ? '-' : '--') + this.name + ' ' + this._preprocess(this.val)
         }
 
         public b_set(): boolean {

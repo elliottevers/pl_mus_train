@@ -255,18 +255,19 @@ var cli;
     cli.Flag = Flag;
     var Option = /** @class */ (function (_super) {
         __extends(Option, _super);
-        function Option(name, needs_escaping_max, needs_escaping_shell) {
+        function Option(name, needs_escaping_max, needs_escaping_shell, num_dashes) {
             var _this = _super.call(this) || this;
             _this.name = name;
             _this.needs_escaping_max = needs_escaping_max;
             _this.needs_escaping_shell = needs_escaping_shell;
+            _this.num_dashes = num_dashes;
             return _this;
         }
         Option.prototype.set = function (val) {
             this.val = val;
         };
         Option.prototype.get_name_exec = function () {
-            return '--' + this.name + ' ' + this._preprocess(this.val);
+            return (this.num_dashes === 1 ? '-' : '--') + this.name + ' ' + this._preprocess(this.val);
         };
         Option.prototype.b_set = function () {
             return this.val !== null;
@@ -320,13 +321,13 @@ var set_flag = function (name_flag, val_flag) {
         flags.push(flag);
     }
 };
-var set_option = function (name_opt, val_opt) {
+var set_option = function (name_opt, val_opt, num_dashes) {
     if (_.contains(options.map(function (opt) { return opt.name; }), name_opt)) {
         var opt_existing = options.filter(function (opt) { return opt.name === name_opt; })[0];
         opt_existing.set(val_opt);
     }
     else {
-        var opt = new cli_1.cli.Option(name_opt, true);
+        var opt = new cli_1.cli.Option(name_opt, true, false, num_dashes);
         opt.set(val_opt);
         options.push(opt);
     }
