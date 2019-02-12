@@ -2,11 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 // declare let Global: any;
 // TODO: make dedicated library object for the following
-var messenger_1 = require("./message/messenger");
+var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
-var logger_1 = require("./log/logger");
+var logger_1 = require("../log/logger");
 var Logger = logger_1.log.Logger;
-var cli_1 = require("./cli/cli");
+var cli_1 = require("../cli/cli");
 var env = 'max';
 if (env === 'max') {
     autowatch = 1;

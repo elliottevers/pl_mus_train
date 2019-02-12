@@ -160,22 +160,29 @@ export namespace cli {
     export class Executable extends Parameterized implements Runnable {
 
         path: string;
+        escape_paths: boolean;
+
         // flags: Flag[];
         // options: Option[];
         // args: Arg[];
         // messenger: Messenger;
 
-        constructor(path, flags, options, args, messenger) {
+        constructor(path, flags, options, args, messenger, escape_paths?: boolean) {
             super();
             this.path = path;
             this.flags = flags;
             this.options = options;
             this.args = args;
             this.messenger = messenger;
+            this.escape_paths = escape_paths;
         }
 
         public get_command_exec = () => {
-            return this.path;
+            if (this.escape_paths) {
+                return this.preprocess_max(this.preprocess_shell(this.path));
+            } else {
+                return this.path;
+            }
         };
 
         public run() {

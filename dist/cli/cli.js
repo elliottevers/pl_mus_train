@@ -142,16 +142,22 @@ var cli;
         // options: Option[];
         // args: Arg[];
         // messenger: Messenger;
-        function Executable(path, flags, options, args, messenger) {
+        function Executable(path, flags, options, args, messenger, escape_paths) {
             var _this = _super.call(this) || this;
             _this.get_command_exec = function () {
-                return _this.path;
+                if (_this.escape_paths) {
+                    return _this.preprocess_max(_this.preprocess_shell(_this.path));
+                }
+                else {
+                    return _this.path;
+                }
             };
             _this.path = path;
             _this.flags = flags;
             _this.options = options;
             _this.args = args;
             _this.messenger = messenger;
+            _this.escape_paths = escape_paths;
             return _this;
         }
         Executable.prototype.run = function () {
