@@ -143,16 +143,22 @@ var cli;
         // options: Option[];
         // args: Arg[];
         // messenger: Messenger;
-        function Executable(path, flags, options, args, messenger) {
+        function Executable(path, flags, options, args, messenger, escape_paths) {
             var _this = _super.call(this) || this;
             _this.get_command_exec = function () {
-                return _this.path;
+                if (_this.escape_paths) {
+                    return _this.preprocess_max(_this.preprocess_shell(_this.path));
+                }
+                else {
+                    return _this.path;
+                }
             };
             _this.path = path;
             _this.flags = flags;
             _this.options = options;
             _this.args = args;
             _this.messenger = messenger;
+            _this.escape_paths = escape_paths;
             return _this;
         }
         Executable.prototype.run = function () {
@@ -249,18 +255,19 @@ var cli;
     cli.Flag = Flag;
     var Option = /** @class */ (function (_super) {
         __extends(Option, _super);
-        function Option(name, needs_escaping_max, needs_escaping_shell) {
+        function Option(name, needs_escaping_max, needs_escaping_shell, num_dashes) {
             var _this = _super.call(this) || this;
             _this.name = name;
             _this.needs_escaping_max = needs_escaping_max;
             _this.needs_escaping_shell = needs_escaping_shell;
+            _this.num_dashes = num_dashes;
             return _this;
         }
         Option.prototype.set = function (val) {
             this.val = val;
         };
         Option.prototype.get_name_exec = function () {
-            return '--' + this.name + ' ' + this._preprocess(this.val);
+            return (this.num_dashes === 1 ? '-' : '--') + this.name + ' ' + this._preprocess(this.val);
         };
         Option.prototype.b_set = function () {
             return this.val !== null;
@@ -284,36 +291,11 @@ if (env === 'max') {
 }
 var script;
 var messenger = new Messenger(env, 0);
-// let arg = new cli.Arg('argument');
-// let option = new cli.Option('o', false);
-// let flag = new cli.Flag('f');
-//
-// let path_interpreter = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/.venv_master_36/bin/python';
-//
-// let path_script = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/sandbox/max_comm.py';
-// script = new cli.Script(
-//     path_interpreter,
-//     path_script,
-//     [flag],
-//     [option],
-//     [arg],
-//     messenger,
-//     true
-// );
 var args = [];
 var options = [];
 var flags = [];
-// let args_history: string[] = [];
-// let options_history: string[] = [];
-// let flags_history: string[] = [];
-// let arg = new cli.Arg('argument');
-// let option = new cli.Option('o', false);
-// let flag = new cli.Flag('f');
 var path_interpreter;
 var path_script;
-// let path_interpreter = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/.venv_master_36/bin/python';
-//
-// let path_script = '/Users/elliottevers/Documents/Documents - Elliott’s MacBook Pro/git-repos.nosync/music/sandbox/max_comm.py';
 var run = function () {
     script = new cli_1.cli.Script(path_interpreter, path_script, flags, options, args, messenger, true);
     script.run();
@@ -363,7 +345,7 @@ var test = function () {
     set_flag('f', 1);
     set_arg('id_arg', 'argument_test_val_2');
 };
-test();
+// test();
 if (typeof Global !== "undefined") {
     Global.max_python_cli = {};
     Global.max_python_cli.set_arg = set_arg;

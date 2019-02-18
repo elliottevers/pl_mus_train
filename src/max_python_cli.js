@@ -65,7 +65,6 @@ var test = function () {
     set_flag('f', 1);
     set_arg('id_arg', 'argument_test_val_2');
 };
-test();
 if (typeof Global !== "undefined") {
     Global.max_python_cli = {};
     Global.max_python_cli.set_arg = set_arg;

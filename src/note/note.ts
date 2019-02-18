@@ -52,6 +52,24 @@ export namespace note {
 
         }
 
+        encode(): string {
+            return this.to_array().join(' ')
+        }
+
+        // to_json():any {
+        //     return {
+        //         pitch: this.pitch,
+        //         beat_start: this.beat_start,
+        //         beats_duration: this.beats_duration,
+        //         velocity: this.velocity,
+        //         muted: this.muted
+        //     }
+        // }
+
+        to_array():Array<number> {
+            return [this.pitch, this.beat_start, this.beats_duration, this.velocity, this.muted]
+        }
+
         get_beat_end():number {
             return this.beat_start + this.beats_duration;
         }

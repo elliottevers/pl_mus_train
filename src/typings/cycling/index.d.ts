@@ -87,175 +87,175 @@ declare function setoutletassist(outlet_number: number, object: any): void;
 //     send(message_name: string, ...message_arguments: any[]): void;
 // }
 
-
-/**
- * The Dict object in JS is a companion to the dict object you create in a Max patcher. It provides the ability to access structured data (a dictionary) associated with a name.
- * Example code can be found in the "js" tab of the dict help patcher.
- * https://docs.cycling74.com/max7/vignettes/jsdict
- */
-declare class Dict {
-    /**
-     * If no name is provided as an argument then a unique name will be generated for the dictionary.
-     * The following properties mirror the attributes of the same name from the Max dict object. See the dict reference for more details.
-     * @param {string} name [description]
-     */
-    constructor(name: string);
-
-    /**
-     * Access or set the name of a dict object as a property of the dict object
-     * @type {string}
-     */
-    name: string;
-
-    /**
-     * The quiet property functions the same as the @quiet attribute to dict in Max. It suppresses many errors or warnings if set to true.
-     * @type {boolean}
-     */
-    quiet: boolean;
-
-    /**
-     * Add values to the end of an array associated with the specified key.
-     * @param {string} key   [symbol]
-     * @param {any[]}  value [list]
-     */
-    append(key: string, value: any[]): void;
-
-    /**
-     * Erase the contents of the dictionary, restoring to a clean state
-     */
-    clear(): void;
-
-    /**
-     * Make a clone of the incoming dictionary.
-     * @param {string} name [symbol]
-     */
-    clone(name: string): void;
-
-    /**
-     * Return a 0 or 1 indicating the specified key exists (or doesn't) in the dictionary.
-     * @param  {string} key    [symbol]
-     * @return {number}        [description]
-     */
-    contains(key: string): number;
-
-    /**
-     * Return the value associated with a key.
-     * @param  {string} key    [symbol]
-     * @return {any}           [description]
-     */
-    get(key: string): any;
-
-    /**
-     * Return a list of all the keys in a dictionary.
-     * @return {any[]} [description]
-     */
-    getkeys(): any[];
-
-    /**
-     * Return a list of all the dictionaries that currently exist.
-     * @return {string[]} [description]
-     */
-    getnames(): string[];
-
-    /**
-     * Return the number of values associated with a key.
-     * @return {number} [description]
-     */
-    getsize(): number;
-
-    /**
-     * Return the type of the values associated with a key.
-     * @return {string} [description]
-     */
-    gettype(): string;
-
-    /**
-     * Replace the content of a dictionary.
-     * @param {string} key   [symbol]
-     * @param {string} value [symbol]
-     */
-    parse(key: string, value: string): void;
-
-    /**
-     * Pull the content of a named coll object into the dictionary.
-     * @param {string} coll_name [symbol]
-     */
-    pull_from_coll(coll_name: string): void;
-
-    /**
-     * Push the dictionary's content into a named coll object. The keys in the dictionary will become the indices in the coll, and the values for those indices the values of the dictionary's keys.
-     * @param {string} coll_name [symbol]
-     */
-    push_to_coll(coll_name: string): void;
-
-    /**
-     * Read the dictionary contents from a file.
-     * @param {string} filename [symbol]
-     */
-    readany(filename: string): void;
-
-    /**
-     * Remove a key and its associated value from the dictionary.
-     * @param {string} key [symbol]
-     */
-    remove(key: string): void;
-
-    /**
-     * Set the value for a key to a specified value, creating heirarchy.
-     * @param {string} key   [symbol]
-     * @param {any[]}  value [list]
-     */
-    replace(key: string, value: any[]): void;
-
-    /**
-     * Set the value for a key to a specified value.
-     * @param {string} key   [symbol]
-     * @param {any[]}  value [list]
-     */
-    set(key: string, value: any[]): void;
-
-    /**
-     * Set the value for a key to dictionary content defined using JSON.
-     * @param {string} key   [symbol]
-     * @param {any[]}  value [list]
-     */
-    setparse(key: string, value: any[]): void;
-
-    /**
-     * Open a save dialog to write the dictionary contents to a file.
-     */
-    writeagain(): void;
-
-    /**
-     * Return the content of the dictionary as a JSON string.
-     * @return {string} [description]
-     */
-    stringify(): string;
-
-    /**
-     * Read a file from disk in the JSON format.
-     * @param {string} filename [symbol]
-     */
-    import_json(filename: string): void;
-
-    /**
-     * Write a file to disk in the JSON format.
-     * @param {string} filename [symbol]
-     */
-    export_json(filename: string): void;
-
-    /**
-     * Read a file from disk in the YAML format.
-     * @param {string} filename [symbol]
-     */
-    import_yaml(filename: string): void;
-
-    /**
-     * Write a file to disk in the YAML format.
-     * @param {string} filename [symbol]
-     */
-    export_yaml(filename: string): void;
-}
+//
+// /**
+//  * The Dict object in JS is a companion to the dict object you create in a Max patcher. It provides the ability to access structured data (a dictionary) associated with a name.
+//  * Example code can be found in the "js" tab of the dict help patcher.
+//  * https://docs.cycling74.com/max7/vignettes/jsdict
+//  */
+// declare class Dict {
+//     /**
+//      * If no name is provided as an argument then a unique name will be generated for the dictionary.
+//      * The following properties mirror the attributes of the same name from the Max dict object. See the dict reference for more details.
+//      * @param {string} name [description]
+//      */
+//     constructor(name: string);
+//
+//     /**
+//      * Access or set the name of a dict object as a property of the dict object
+//      * @type {string}
+//      */
+//     name: string;
+//
+//     /**
+//      * The quiet property functions the same as the @quiet attribute to dict in Max. It suppresses many errors or warnings if set to true.
+//      * @type {boolean}
+//      */
+//     quiet: boolean;
+//
+//     /**
+//      * Add values to the end of an array associated with the specified key.
+//      * @param {string} key   [symbol]
+//      * @param {any[]}  value [list]
+//      */
+//     append(key: string, value: any[]): void;
+//
+//     /**
+//      * Erase the contents of the dictionary, restoring to a clean state
+//      */
+//     clear(): void;
+//
+//     /**
+//      * Make a clone of the incoming dictionary.
+//      * @param {string} name [symbol]
+//      */
+//     clone(name: string): void;
+//
+//     /**
+//      * Return a 0 or 1 indicating the specified key exists (or doesn't) in the dictionary.
+//      * @param  {string} key    [symbol]
+//      * @return {number}        [description]
+//      */
+//     contains(key: string): number;
+//
+//     /**
+//      * Return the value associated with a key.
+//      * @param  {string} key    [symbol]
+//      * @return {any}           [description]
+//      */
+//     get(key: string): any;
+//
+//     /**
+//      * Return a list of all the keys in a dictionary.
+//      * @return {any[]} [description]
+//      */
+//     getkeys(): any[];
+//
+//     /**
+//      * Return a list of all the dictionaries that currently exist.
+//      * @return {string[]} [description]
+//      */
+//     getnames(): string[];
+//
+//     /**
+//      * Return the number of values associated with a key.
+//      * @return {number} [description]
+//      */
+//     getsize(): number;
+//
+//     /**
+//      * Return the type of the values associated with a key.
+//      * @return {string} [description]
+//      */
+//     gettype(): string;
+//
+//     /**
+//      * Replace the content of a dictionary.
+//      * @param {string} key   [symbol]
+//      * @param {string} value [symbol]
+//      */
+//     parse(key: string, value: string): void;
+//
+//     /**
+//      * Pull the content of a named coll object into the dictionary.
+//      * @param {string} coll_name [symbol]
+//      */
+//     pull_from_coll(coll_name: string): void;
+//
+//     /**
+//      * Push the dictionary's content into a named coll object. The keys in the dictionary will become the indices in the coll, and the values for those indices the values of the dictionary's keys.
+//      * @param {string} coll_name [symbol]
+//      */
+//     push_to_coll(coll_name: string): void;
+//
+//     /**
+//      * Read the dictionary contents from a file.
+//      * @param {string} filename [symbol]
+//      */
+//     readany(filename: string): void;
+//
+//     /**
+//      * Remove a key and its associated value from the dictionary.
+//      * @param {string} key [symbol]
+//      */
+//     remove(key: string): void;
+//
+//     /**
+//      * Set the value for a key to a specified value, creating heirarchy.
+//      * @param {string} key   [symbol]
+//      * @param {any[]}  value [list]
+//      */
+//     replace(key: string, value: any[]): void;
+//
+//     /**
+//      * Set the value for a key to a specified value.
+//      * @param {string} key   [symbol]
+//      * @param {any[]}  value [list]
+//      */
+//     set(key: string, value: any[]): void;
+//
+//     /**
+//      * Set the value for a key to dictionary content defined using JSON.
+//      * @param {string} key   [symbol]
+//      * @param {any[]}  value [list]
+//      */
+//     setparse(key: string, value: any[]): void;
+//
+//     /**
+//      * Open a save dialog to write the dictionary contents to a file.
+//      */
+//     writeagain(): void;
+//
+//     /**
+//      * Return the content of the dictionary as a JSON string.
+//      * @return {string} [description]
+//      */
+//     stringify(): string;
+//
+//     /**
+//      * Read a file from disk in the JSON format.
+//      * @param {string} filename [symbol]
+//      */
+//     import_json(filename: string): void;
+//
+//     /**
+//      * Write a file to disk in the JSON format.
+//      * @param {string} filename [symbol]
+//      */
+//     export_json(filename: string): void;
+//
+//     /**
+//      * Read a file from disk in the YAML format.
+//      * @param {string} filename [symbol]
+//      */
+//     import_yaml(filename: string): void;
+//
+//     /**
+//      * Write a file to disk in the YAML format.
+//      * @param {string} filename [symbol]
+//      */
+//     export_yaml(filename: string): void;
+// }
 
 
 // /**
