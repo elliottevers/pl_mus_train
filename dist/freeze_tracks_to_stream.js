@@ -4,6 +4,8 @@ var messenger_1 = require("./message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var live_1 = require("./live/live");
 var clip_1 = require("./clip/clip");
+var logger_1 = require("./log/logger");
+var Logger = logger_1.log.Logger;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -37,9 +39,18 @@ var export_midi = function (filepath) {
     var messenger = new Messenger(env, 0);
     messenger.message([filepath]);
 };
+var test = function () {
+    var song = new live_1.live.LiveApiJs('live_set');
+    var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
+    var length_clip = clip_highlighted.get("length");
+    var tempo = song.get("tempo");
+    var logger = new Logger(env);
+    logger.log(clip_highlighted.live_api.id);
+};
 if (typeof Global !== "undefined") {
-    Global.midi_io = {};
-    Global.midi_io.export_midi = export_midi;
-    Global.midi_io.set_midi = set_midi;
+    Global.freeze_tracks_to_stream = {};
+    // Global.midi_io.export_midi = export_midi;
+    // Global.midi_io.set_midi = set_midi;
+    Global.freeze_tracks_to_stream.test = test;
 }
-//# sourceMappingURL=midi_io.js.map
+//# sourceMappingURL=freeze_tracks_to_stream.js.map

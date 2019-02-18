@@ -24,7 +24,6 @@ var log;
             }
             post("\n");
         };
-        // log(message: any): void {
         Logger.prototype.log = function (message) {
             if (this.env === 'max') {
                 this.log_max(message);

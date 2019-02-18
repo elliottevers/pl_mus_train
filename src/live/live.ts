@@ -52,6 +52,10 @@ export namespace live {
         call(func: string, ...args: any[]): any {
             return this.live_api.call(func, ...args);
         }
+
+        get_id(): any {
+            return this.live_api.id;
+        }
     }
 
     export class LiveClipVirtual implements ClipLive {
