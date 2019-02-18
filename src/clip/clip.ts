@@ -143,6 +143,45 @@ export namespace clip {
             )
         }
 
+        public static parse_note_messages(messages: string[]) {
+
+            let notes: TreeModel.Node<n.Note>[] = [];
+
+            for (let i_mess in messages) {
+                if (i_mess == String(0)) {
+                    continue
+                }
+
+                if (i_mess == String(messages.length - 1)) {
+                    continue
+                }
+
+                let tree: TreeModel = new TreeModel();
+
+                let splitted = messages[i_mess].split(' ');
+
+                notes.push(
+                    tree.parse(
+                        {
+                            id: -1, // TODO: hashing scheme for clip id and beat start
+                            note: new n.Note(
+                                Number(splitted[0]),
+                                Number(splitted[1]),
+                                Number(splitted[2]),
+                                Number(splitted[3]),
+                                Number(splitted[4])
+                            ),
+                            children: [
+
+                            ]
+                        }
+                    )
+                )
+            }
+
+            return notes
+        }
+
         // TODO: return list of tree nodes
         private static _parse_notes(notes: string[]): TreeModel.Node<n.Note>[] {
             let data: any = [];

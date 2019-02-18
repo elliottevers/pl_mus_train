@@ -89,6 +89,25 @@ var clip;
         Clip.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
             this.clip_dao.remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
         };
+        Clip.parse_note_messages = function (messages) {
+            var notes = [];
+            for (var i_mess in messages) {
+                if (i_mess == String(0)) {
+                    continue;
+                }
+                if (i_mess == String(messages.length - 1)) {
+                    continue;
+                }
+                var tree = new TreeModel();
+                var splitted = messages[i_mess].split(' ');
+                notes.push(tree.parse({
+                    id: -1,
+                    note: new note_1.note.Note(Number(splitted[0]), Number(splitted[1]), Number(splitted[2]), Number(splitted[3]), Number(splitted[4])),
+                    children: []
+                }));
+            }
+            return notes;
+        };
         // TODO: return list of tree nodes
         Clip._parse_notes = function (notes) {
             var data = [];
