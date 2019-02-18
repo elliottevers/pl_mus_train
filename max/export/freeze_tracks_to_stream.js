@@ -299,7 +299,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../note/note":6,"tree-model":9}],2:[function(require,module,exports){
+},{"../note/note":7,"tree-model":10}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("./message/messenger");
@@ -308,35 +308,86 @@ var live_1 = require("./live/live");
 var clip_1 = require("./clip/clip");
 var logger_1 = require("./log/logger");
 var Logger = logger_1.log.Logger;
+var io_1 = require("./io/io");
+var Exporter = io_1.io.Exporter;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
+var partmap_radio = {
+    0: 'melody',
+    1: 'chord',
+    2: 'bass',
+    3: 'segment',
+    4: 'key_center'
+};
+var exporter = new Exporter('/Users/elliottevers/Downloads/from_live.json');
+// TODO: assumes all clips are same length
+var add = function (index_part) {
+    var song = new live_1.live.LiveApiJs('live_set');
+    var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
+    var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(clip_highlighted, new messenger_1.message.Messenger(env, 0), false));
+    var beat_clip_end = clip_highlighted.get("length");
+    var notes = clip.get_notes(0, 0, beat_clip_end, 128);
+    exporter.set_notes(clip_highlighted.get_id(), notes, partmap_radio[index_part]);
+    exporter.set_tempo(song.get('tempo'));
+    exporter.set_length(beat_clip_end);
+};
+var remove = function (index_part) {
+    var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
+    exporter.unset_notes(clip_highlighted.get_id());
+};
+var export_clips = function () {
+    exporter.export_clips(['melody', 'chord', 'bass']);
+};
 var set_midi = function (filepath) {
-    var dict_import = new Dict("dict_import");
-    dict_import.import_json(filepath);
-    var notes = dict_import.get('melody::notes');
-    var live_api = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
-    var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
-    var notes_parsed = clip_1.clip.Clip.parse_note_messages(notes);
-    clip.set_notes(notes_parsed);
+    // let dict_import = new Dict("dict_import");
+    // dict_import.import_json(filepath);
+    // let notes = dict_import.get('melody::notes');
+    // let live_api: LiveApiJs = new li.LiveApiJs(
+    //     'live_set view highlighted_clip_slot clip'
+    // );
+    //
+    // let clip = new c.Clip(
+    //     new c.ClipDao(
+    //         live_api,
+    //         new m.Messenger(env, 0),
+    //         false
+    //     )
+    // );
+    // let notes_parsed = c.Clip.parse_note_messages(
+    //     notes
+    // );
+    //
+    // clip.set_notes(
+    //     notes_parsed
+    // );
 };
 var export_midi = function (filepath) {
     var dict_export = new Dict("dict_export");
     var live_api;
     live_api = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
     var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
-    var notes = clip.get_notes(0, 0, 8, 128);
+    // let notes = clip.get_notes(0, 0, 8, 128);
     // let name_part = 'melody';
-    var reps = [];
-    dict_export.replace("melody::notes", "");
-    reps.push(['notes', notes.length.toString()].join(' '));
-    for (var i_note in notes) {
-        reps.push(notes[i_note].model.note.encode());
-    }
-    reps.push(['notes', 'done'].join(' '));
-    dict_export.set.apply(dict_export, ["melody::notes"].concat(reps));
+    // let reps = [];
+    //
+    // dict_export.replace("melody::notes", "");
+    //
+    // reps.push(
+    //     ['notes', notes.length.toString()].join(' ')
+    // );
+    //
+    // for (let i_note in notes) {
+    //     reps.push(notes[i_note].model.note.encode());
+    // }
+    //
+    // reps.push(
+    //     ['notes', 'done'].join(' ')
+    // );
+    //
+    // // dict_export.set("melody::notes", ...reps);
     dict_export.export_json(filepath);
     var messenger = new Messenger(env, 0);
     messenger.message([filepath]);
@@ -347,16 +398,98 @@ var test = function () {
     var length_clip = clip_highlighted.get("length");
     var tempo = song.get("tempo");
     var logger = new Logger(env);
-    logger.log(clip_highlighted.live_api.id);
+    logger.log(clip_highlighted.get_id());
 };
 if (typeof Global !== "undefined") {
     Global.freeze_tracks_to_stream = {};
     // Global.midi_io.export_midi = export_midi;
     // Global.midi_io.set_midi = set_midi;
     Global.freeze_tracks_to_stream.test = test;
+    Global.freeze_tracks_to_stream.add = add;
+    Global.freeze_tracks_to_stream.remove = remove;
+    Global.freeze_tracks_to_stream.export_clips = export_clips;
 }
 
-},{"./clip/clip":1,"./live/live":3,"./log/logger":4,"./message/messenger":5}],3:[function(require,module,exports){
+},{"./clip/clip":1,"./io/io":3,"./live/live":4,"./log/logger":5,"./message/messenger":6}],3:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var clip_1 = require("../clip/clip");
+var messenger_1 = require("../message/messenger");
+var io;
+(function (io) {
+    var Messenger = messenger_1.message.Messenger;
+    var Exporter = /** @class */ (function () {
+        function Exporter(filepath_export, name_dict) {
+            this.filepath_export = filepath_export;
+            this.dict = new Dict(name_dict);
+            this.clips = {};
+        }
+        Exporter.prototype.set_notes = function (id_clip, notes, name_part) {
+            var clip = {};
+            clip['notes'] = notes;
+            clip['part'] = name_part;
+            this.clips[id_clip] = clip;
+        };
+        Exporter.prototype.unset_notes = function (id_clip) {
+            this.clips[id_clip] = null;
+        };
+        Exporter.prototype.set_tempo = function (bpm) {
+            this.tempo = bpm;
+        };
+        Exporter.prototype.set_length = function (beats) {
+            this.length_beats = beats;
+        };
+        Exporter.get_messages = function (notes) {
+            var messages = [];
+            messages.push(['notes', notes.length.toString()].join(' '));
+            for (var i_note in notes) {
+                messages.push(notes[i_note].model.note.encode());
+            }
+            messages.push(['notes', 'done'].join(' '));
+            return messages;
+        };
+        Exporter.prototype.export_clips = function (partnames) {
+            var _a;
+            var messenger = new Messenger('max', 0);
+            // messenger.message([this.clips.toString()]);
+            for (var id_clip in this.clips) {
+                var clip = this.clips[id_clip];
+                var name_part = clip['part'];
+                if (partnames.indexOf(name_part) !== -1) {
+                    var key = [name_part, 'notes'].join('::');
+                    this.dict.replace(key, "");
+                    // messenger.message(Exporter.get_messages(clip['notes']));
+                    (_a = this.dict).set.apply(_a, [key].concat(Exporter.get_messages(clip['notes'])));
+                    // TODO: tempo
+                    // TODO: length of song in beats
+                }
+            }
+            this.dict.replace('tempo', this.tempo);
+            this.dict.replace('length_beats', this.length_beats);
+            // this.dict.set(key, ...Exporter.get_messages(clip['notes']));
+            this.dict.export_json(this.filepath_export);
+        };
+        return Exporter;
+    }());
+    io.Exporter = Exporter;
+    var Importer = /** @class */ (function () {
+        function Importer(filepath_import, name_dict) {
+            this.filepath_import = filepath_import;
+            this.dict = new Dict(name_dict);
+        }
+        Importer.prototype.import = function () {
+            this.dict.import_json(this.filepath_import);
+        };
+        Importer.prototype.get_notes = function (name_part) {
+            var key = [name_part, 'notes'].join('::');
+            return clip_1.clip.Clip.parse_note_messages(this.dict.get(key));
+        };
+        return Importer;
+    }());
+    io.Importer = Importer;
+})(io = exports.io || (exports.io = {}));
+
+},{"../clip/clip":1,"../message/messenger":6}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live;
@@ -378,6 +511,9 @@ var live;
             }
             var _a;
             return (_a = this.live_api).call.apply(_a, [func].concat(args));
+        };
+        LiveApiJs.prototype.get_id = function () {
+            return this.live_api.id;
         };
         return LiveApiJs;
     }());
@@ -434,7 +570,7 @@ var live;
     live.LiveClipVirtual = LiveClipVirtual;
 })(live = exports.live || (exports.live = {}));
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var log;
@@ -527,7 +663,7 @@ var log;
     log.Logger = Logger;
 })(log = exports.log || (exports.log = {}));
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
@@ -571,7 +707,7 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note;
@@ -704,7 +840,7 @@ var note;
     note.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -728,7 +864,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -780,7 +916,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -1073,6 +1209,9 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":7,"mergesort":8}]},{},[2]);
+},{"find-insert-index":8,"mergesort":9}]},{},[2]);
 
 var test = Global.freeze_tracks_to_stream.test;
+var add = Global.freeze_tracks_to_stream.add;
+var remove = Global.freeze_tracks_to_stream.remove;
+var export_clips = Global.freeze_tracks_to_stream.export_clips;

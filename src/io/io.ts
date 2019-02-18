@@ -1,43 +1,11 @@
-// let exporter = new io.Exporter(
-//     filepath='slkdfjlsdkfjldkf'
-// );
-//
-// exporter.setNotes(
-//     notes=notes,
-//     name_part='melody'
-// );
-//
-// exporter.setNotes(
-//     notes=notes,
-//     name_part='chords'
-// );
-//
-// exporter.setNotes(
-//     notes=notes,
-//     name_part='bass'
-// );
-//
-// exporter.setTempo(
-//     bpm=bpm
-// );
-//
-// exporter.setLengthTrack(
-//     beats=beats
-// );
-
-
-
-// import {note as n} from "../note/note";
-// import TreeModel = require("tree-model");
-// import {live} from "../live/live";
-// import {message} from "../message/messenger";
-
 import {clip as c} from "../clip/clip";
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
+import {message} from "../message/messenger";
 
 export namespace io {
 
+    import Messenger = message.Messenger;
     declare let Dict: any;
 
     export class Exporter {
@@ -55,6 +23,7 @@ export namespace io {
         constructor(filepath_export, name_dict?:string) {
             this.filepath_export = filepath_export;
             this.dict = new Dict(name_dict);
+            this.clips = {};
         }
 
         public set_notes(id_clip: number, notes, name_part: string): void {
@@ -64,7 +33,7 @@ export namespace io {
             this.clips[id_clip] = clip;
         }
 
-        public unset_notes(id_clip: number, name_part: string): void {
+        public unset_notes(id_clip: number): void {
             this.clips[id_clip] = null;
         }
 
@@ -95,17 +64,24 @@ export namespace io {
         }
 
         public export_clips(partnames): void {
+            let messenger = new Messenger('max', 0);
+            // messenger.message([this.clips.toString()]);
             for (let id_clip in this.clips) {
                 let clip = this.clips[id_clip];
                 let name_part = clip['part'];
                 if (partnames.indexOf(name_part) !== -1) {
                     let key = [name_part, 'notes'].join('::');
-                    this.dict.replace("melody::notes", "");
+                    this.dict.replace(key, "");
+                    // messenger.message(Exporter.get_messages(clip['notes']));
                     this.dict.set(key, ...Exporter.get_messages(clip['notes']));
                     // TODO: tempo
                     // TODO: length of song in beats
                 }
             }
+            this.dict.replace('tempo', this.tempo);
+            this.dict.replace('length_beats', this.length_beats);
+            // this.dict.set(key, ...Exporter.get_messages(clip['notes']));
+            this.dict.export_json(this.filepath_export);
         }
     }
 

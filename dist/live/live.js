@@ -20,6 +20,9 @@ var live;
             var _a;
             return (_a = this.live_api).call.apply(_a, [func].concat(args));
         };
+        LiveApiJs.prototype.get_id = function () {
+            return this.live_api.id;
+        };
         return LiveApiJs;
     }());
     live.LiveApiJs = LiveApiJs;

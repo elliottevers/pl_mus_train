@@ -7,7 +7,6 @@ import {log} from "./log/logger";
 import Logger = log.Logger;
 import {io} from "./io/io";
 import Exporter = io.Exporter;
-import {cli} from "./cli/cli";
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -84,14 +83,15 @@ let remove = (index_part) => {
 
     exporter.unset_notes(
         clip_highlighted.get_id(),
-        partmap_radio[index_part]
+        // partmap_radio[index_part]
     );
 };
 
 
 let export_clips = () => {
     exporter.export_clips(
-        ['melody', 'chords', 'bass']
+        ['melody', 'chord', 'bass'],
+        // ['chord']
     )
 };
 
@@ -196,4 +196,7 @@ if (typeof Global !== "undefined") {
     // Global.midi_io.export_midi = export_midi;
     // Global.midi_io.set_midi = set_midi;
     Global.freeze_tracks_to_stream.test = test;
+    Global.freeze_tracks_to_stream.add = add;
+    Global.freeze_tracks_to_stream.remove = remove;
+    Global.freeze_tracks_to_stream.export_clips = export_clips;
 }

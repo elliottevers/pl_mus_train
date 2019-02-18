@@ -34,10 +34,10 @@ var add = function (index_part) {
 };
 var remove = function (index_part) {
     var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
-    exporter.unset_notes(clip_highlighted.get_id(), partmap_radio[index_part]);
+    exporter.unset_notes(clip_highlighted.get_id());
 };
 var export_clips = function () {
-    exporter.export_clips(['melody', 'chords', 'bass']);
+    exporter.export_clips(['melody', 'chord', 'bass']);
 };
 var set_midi = function (filepath) {
     // let dict_import = new Dict("dict_import");
@@ -103,5 +103,8 @@ if (typeof Global !== "undefined") {
     // Global.midi_io.export_midi = export_midi;
     // Global.midi_io.set_midi = set_midi;
     Global.freeze_tracks_to_stream.test = test;
+    Global.freeze_tracks_to_stream.add = add;
+    Global.freeze_tracks_to_stream.remove = remove;
+    Global.freeze_tracks_to_stream.export_clips = export_clips;
 }
 //# sourceMappingURL=freeze_tracks_to_stream.js.map
