@@ -79,6 +79,7 @@ export namespace io {
                 }
             }
             this.dict.replace('tempo', this.tempo);
+            // TODO: get the max of the lengths of each of the clips
             this.dict.replace('length_beats', this.length_beats);
             // this.dict.set(key, ...Exporter.get_messages(clip['notes']));
             this.dict.export_json(this.filepath_export);
