@@ -10,7 +10,7 @@
     "to_max": {
       "command": "./build_object_max.sh",
       "env": {
-        "JS_OBJ_MAX_EXPORT": "freeze_tracks_to_stream"
+        "JS_OBJ_MAX_EXPORT": "map_midi_to_fret"
       }
     }
   },
