@@ -36,12 +36,30 @@ export namespace map {
         };
 
         strings = {
-            6: _.range(control.string_to_root_note_map[6], 12),
-            5: _.range(control.string_to_root_note_map[5], 12),
-            4: _.range(control.string_to_root_note_map[4], 12),
-            3: _.range(control.string_to_root_note_map[3], 12),
-            2: _.range(control.string_to_root_note_map[2], 12),
-            1: _.range(control.string_to_root_note_map[1], 12)
+            6: _.range(
+                control.string_to_root_note_map[6],
+                control.string_to_root_note_map[6] + 12
+            ),
+            5: _.range(
+                control.string_to_root_note_map[5],
+                control.string_to_root_note_map[5] + 12
+            ),
+            4: _.range(
+                control.string_to_root_note_map[4],
+                control.string_to_root_note_map[4] + 12
+            ),
+            3: _.range(
+                control.string_to_root_note_map[3],
+                control.string_to_root_note_map[3] + 12
+            ),
+            2: _.range(
+                control.string_to_root_note_map[2],
+                control.string_to_root_note_map[2] + 12
+            ),
+            1: _.range(
+                control.string_to_root_note_map[1],
+                control.string_to_root_note_map[1] + 12
+            ),
         };
 
         constructor(messenger) {
@@ -51,28 +69,37 @@ export namespace map {
 
         play(note_midi) {
             let coordinate = this.map(note_midi);
-            this.messenger.message(this.coordinate_last_played.push(0));
-            this.messenger.message(coordinate.push(1));
+            if (this.coordinate_last_played != null) {
+                this.messenger.message(this.coordinate_last_played.concat([0]));
+            }
+            this.messenger.message(coordinate.concat([1]));
             this.coordinate_last_played = coordinate;
         }
 
-        private get_index_string(interval_generic) {
-            if (interval_generic > 18) {
+        private get_index_string(interval_generic, offset_octave) {
+            let interval = interval_generic + offset_octave * 7;
+            if (interval > 18) {
                 return 1
-            } else if (interval_generic < 1) {
+            } else if (interval < 1) {
                 return 6
             } else {
-                return this.map_generic_interval[interval_generic]
+                return this.map_generic_interval[interval]
             }
         }
 
         map(note_midi) {
+            let note_lower = this.strings[6][this.root[6]];
+            let note_upper = note_midi;
             let index_string = this.get_index_string(
                 FretMapper.get_interval_generic(
                     FretMapper.get_interval(
-                        note_midi,
-                        this.root[6]
+                        note_upper,
+                        note_lower
                     )
+                ),
+                FretMapper.get_offset_octave(
+                    note_upper,
+                    note_lower
                 )
             );
 
@@ -81,8 +108,19 @@ export namespace map {
             return [index_string, position_fret]
         }
 
-        static get_interval(lower, upper) {
-            return (upper - lower) % 12
+        static get_offset_octave(note_upper, note_lower): number {
+            let octaves = [-12, 0, 12, 24, 36];
+            let interval = note_upper - note_lower;
+            for (let i_octave in octaves) {
+                if (interval > octaves[Number(i_octave)] && interval < octaves[Number(i_octave) + 1] ) {
+                    return Number(i_octave) - 1;
+                }
+            }
+        }
+
+        static get_interval(upper, lower) {
+            let diff = (upper - lower);
+            return ((diff % 12) + 12) % 12;
         }
 
         static get_interval_generic(interval) {

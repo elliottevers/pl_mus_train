@@ -30,40 +30,55 @@ var map;
                 18: 1
             };
             this.strings = {
-                6: _.range(control_1.control.string_to_root_note_map[6], 12),
-                5: _.range(control_1.control.string_to_root_note_map[5], 12),
-                4: _.range(control_1.control.string_to_root_note_map[4], 12),
-                3: _.range(control_1.control.string_to_root_note_map[3], 12),
-                2: _.range(control_1.control.string_to_root_note_map[2], 12),
-                1: _.range(control_1.control.string_to_root_note_map[1], 12)
+                6: _.range(control_1.control.string_to_root_note_map[6], control_1.control.string_to_root_note_map[6] + 12),
+                5: _.range(control_1.control.string_to_root_note_map[5], control_1.control.string_to_root_note_map[5] + 12),
+                4: _.range(control_1.control.string_to_root_note_map[4], control_1.control.string_to_root_note_map[4] + 12),
+                3: _.range(control_1.control.string_to_root_note_map[3], control_1.control.string_to_root_note_map[3] + 12),
+                2: _.range(control_1.control.string_to_root_note_map[2], control_1.control.string_to_root_note_map[2] + 12),
+                1: _.range(control_1.control.string_to_root_note_map[1], control_1.control.string_to_root_note_map[1] + 12),
             };
             // TODO: create 'config' that generates 'root', 'map_generic_interval', 'notes_per_string'
             this.messenger = messenger;
         }
         FretMapper.prototype.play = function (note_midi) {
             var coordinate = this.map(note_midi);
-            this.messenger.message(this.coordinate_last_played.push(0));
-            this.messenger.message(coordinate.push(1));
+            if (this.coordinate_last_played != null) {
+                this.messenger.message(this.coordinate_last_played.concat([0]));
+            }
+            this.messenger.message(coordinate.concat([1]));
             this.coordinate_last_played = coordinate;
         };
-        FretMapper.prototype.get_index_string = function (interval_generic) {
-            if (interval_generic > 18) {
+        FretMapper.prototype.get_index_string = function (interval_generic, offset_octave) {
+            var interval = interval_generic + offset_octave * 7;
+            if (interval > 18) {
                 return 1;
             }
-            else if (interval_generic < 1) {
+            else if (interval < 1) {
                 return 6;
             }
             else {
-                return this.map_generic_interval[interval_generic];
+                return this.map_generic_interval[interval];
             }
         };
         FretMapper.prototype.map = function (note_midi) {
-            var index_string = this.get_index_string(FretMapper.get_interval_generic(FretMapper.get_interval(note_midi, this.root[6])));
+            var note_lower = this.strings[6][this.root[6]];
+            var note_upper = note_midi;
+            var index_string = this.get_index_string(FretMapper.get_interval_generic(FretMapper.get_interval(note_upper, note_lower)), FretMapper.get_offset_octave(note_upper, note_lower));
             var position_fret = this.strings[index_string].indexOf(note_midi);
             return [index_string, position_fret];
         };
-        FretMapper.get_interval = function (lower, upper) {
-            return (upper - lower) % 12;
+        FretMapper.get_offset_octave = function (note_upper, note_lower) {
+            var octaves = [-12, 0, 12, 24, 36];
+            var interval = note_upper - note_lower;
+            for (var i_octave in octaves) {
+                if (interval > octaves[Number(i_octave)] && interval < octaves[Number(i_octave) + 1]) {
+                    return Number(i_octave) - 1;
+                }
+            }
+        };
+        FretMapper.get_interval = function (upper, lower) {
+            var diff = (upper - lower);
+            return ((diff % 12) + 12) % 12;
         };
         FretMapper.get_interval_generic = function (interval) {
             switch (interval) {
