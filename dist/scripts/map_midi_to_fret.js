@@ -24,16 +24,14 @@ var test = function () {
 var midi = function (pitch_midi) {
     messenger = new Messenger(env, 0);
     if (pitch_midi == 69) {
-        messenger.message([1, 5]);
+        messenger.message([2, 5, 1]);
     }
     else {
-        messenger.message([1, 0]);
+        messenger.message([2, 5, 0]);
     }
 };
-// test();
 if (typeof Global !== "undefined") {
     Global.map_midi_to_fret = {};
     Global.map_midi_to_fret.midi = midi;
-    // Global.regex.conversion_filetype = conversion_filetype;
 }
 //# sourceMappingURL=map_midi_to_fret.js.map

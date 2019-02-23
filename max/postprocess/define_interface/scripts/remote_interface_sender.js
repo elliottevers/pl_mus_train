@@ -1,0 +1,1 @@
+var render = Global.remote_interface_sender.render;
