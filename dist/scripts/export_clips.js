@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var messenger_1 = require("./message/messenger");
-var live_1 = require("./live/live");
-var clip_1 = require("./clip/clip");
-var io_1 = require("./io/io");
+var messenger_1 = require("../message/messenger");
+var live_1 = require("../live/live");
+var clip_1 = require("../clip/clip");
+var io_1 = require("../io/io");
 var Exporter = io_1.io.Exporter;
 var env = 'max';
 if (env === 'max') {
@@ -55,5 +55,7 @@ if (typeof Global !== "undefined") {
     Global.export_clips.add = add;
     Global.export_clips.remove = remove;
     Global.export_clips.export_clips = export_clips;
+    Global.export_clips.set_length = set_length;
+    Global.export_clips.set_tempo = set_tempo;
 }
-//# sourceMappingURL=freeze_tracks_to_stream.js.map
+//# sourceMappingURL=export_clips.js.map

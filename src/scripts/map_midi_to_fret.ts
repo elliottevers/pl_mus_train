@@ -13,7 +13,7 @@ export {}
 
 declare let Global: any;
 
-let env: string = 'node';
+let env: string = 'max';
 
 if (env === 'max') {
     post('recompile successful');
@@ -25,14 +25,13 @@ let messenger: Messenger = new Messenger(env, 0);
 let fret_mapper: FretMapper = new FretMapper(messenger);
 
 let test = () => {
-    midi(45)
 };
 
 let midi = (pitch_midi) => {
     fret_mapper.play(pitch_midi)
 };
 
-test();
+// test();
 
 if (typeof Global !== "undefined") {
     Global.map_midi_to_fret = {};

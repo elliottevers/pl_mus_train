@@ -29,20 +29,26 @@ let frets = _.times(num_frets * num_strings, _.constant(0));
 
 let nuts = _.times(num_strings, _.constant(0));
 
+let interval_feedback: number = 0;
+
+let feedback = (interval) => {
+    interval_feedback = Math.round(Math.random() * 11);// = interval;
+};
+
 let render = (position_string, position_fret, state) => {
-    let feedback = Math.round(Math.random() * 6).toString();
     if (Number(position_fret) === 0) {
         let nuts_clone = _.clone(nuts);
         nuts_clone[position_string - 1] = state;
-        messenger.message(['nuts', state, feedback].concat(nuts_clone))
+        messenger.message(['nuts', state, interval_feedback].concat(nuts_clone))
     } else {
         let frets_clone = _.clone(frets);
         frets_clone[((position_string - 1) * num_frets) + position_fret - 1] = state;
-        messenger.message(['frets', state, feedback].concat(frets_clone));
+        messenger.message(['frets', state, interval_feedback].concat(frets_clone));
     }
 };
 
 if (typeof Global !== "undefined") {
     Global.remote_interface_sender = {};
     Global.remote_interface_sender.render = render;
+    Global.remote_interface_sender.feedback = feedback;
 }

@@ -1,11 +1,11 @@
-import {message as m, message} from "./message/messenger";
+import {message as m, message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live, live as li} from "./live/live";
-import {clip as c} from "./clip/clip";
+import {live, live as li} from "../live/live";
+import {clip as c} from "../clip/clip";
 import LiveApiJs = live.LiveApiJs;
-import {log} from "./log/logger";
+import {log} from "../log/logger";
 import Logger = log.Logger;
-import {io} from "./io/io";
+import {io} from "../io/io";
 import Exporter = io.Exporter;
 
 declare let autowatch: any;
@@ -121,4 +121,6 @@ if (typeof Global !== "undefined") {
     Global.export_clips.add = add;
     Global.export_clips.remove = remove;
     Global.export_clips.export_clips = export_clips;
+    Global.export_clips.set_length = set_length;
+    Global.export_clips.set_tempo = set_tempo;
 }
