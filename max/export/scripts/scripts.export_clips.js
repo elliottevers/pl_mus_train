@@ -303,8 +303,10 @@ var clip;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
+var messenger_1 = require("../message/messenger");
 var io;
 (function (io) {
+    var Messenger = messenger_1.message.Messenger;
     var Exporter = /** @class */ (function () {
         function Exporter(filepath_export, name_dict) {
             this.filepath_export = filepath_export;
@@ -334,6 +336,7 @@ var io;
         };
         Exporter.prototype.export_clips = function (partnames) {
             var _a;
+            var messenger = new Messenger('max', 0);
             for (var name_part in this.clips) {
                 var notes = this.clips[name_part];
                 if (partnames.indexOf(name_part) !== -1) {
@@ -345,6 +348,7 @@ var io;
             this.dict.replace('tempo', this.tempo);
             this.dict.replace('length_beats', this.length_beats);
             this.dict.export_json(this.filepath_export);
+            messenger.message(['python']);
         };
         return Exporter;
     }());
@@ -366,7 +370,7 @@ var io;
     io.Importer = Importer;
 })(io = exports.io || (exports.io = {}));
 
-},{"../clip/clip":1}],3:[function(require,module,exports){
+},{"../clip/clip":1,"../message/messenger":4}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live;
@@ -637,7 +641,7 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-var exporter = new Exporter('/Users/elliottevers/Downloads/from_live_2.json');
+var exporter = new Exporter('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/cache/json/live/from_live.json');
 var set_length = function () {
     var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
     exporter.set_length(clip_highlighted.get("length"));

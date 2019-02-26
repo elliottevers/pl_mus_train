@@ -10,7 +10,7 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-var exporter = new Exporter('/Users/elliottevers/Downloads/from_live_2.json');
+var exporter = new Exporter('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/cache/json/live/from_live.json');
 var set_length = function () {
     var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
     exporter.set_length(clip_highlighted.get("length"));

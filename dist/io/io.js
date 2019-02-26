@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
+var messenger_1 = require("../message/messenger");
 var io;
 (function (io) {
+    var Messenger = messenger_1.message.Messenger;
     var Exporter = /** @class */ (function () {
         function Exporter(filepath_export, name_dict) {
             this.filepath_export = filepath_export;
@@ -32,6 +34,7 @@ var io;
         };
         Exporter.prototype.export_clips = function (partnames) {
             var _a;
+            var messenger = new Messenger('max', 0);
             for (var name_part in this.clips) {
                 var notes = this.clips[name_part];
                 if (partnames.indexOf(name_part) !== -1) {
@@ -43,6 +46,7 @@ var io;
             this.dict.replace('tempo', this.tempo);
             this.dict.replace('length_beats', this.length_beats);
             this.dict.export_json(this.filepath_export);
+            messenger.message(['python']);
         };
         return Exporter;
     }());

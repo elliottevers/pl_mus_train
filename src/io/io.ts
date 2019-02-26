@@ -1,9 +1,11 @@
 import {clip as c} from "../clip/clip";
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
+import {message} from "../message/messenger";
 
 export namespace io {
 
+    import Messenger = message.Messenger;
     declare let Dict: any;
 
     export class Exporter {
@@ -59,6 +61,7 @@ export namespace io {
         }
 
         public export_clips(partnames): void {
+            let messenger = new Messenger('max', 0);
             for (let name_part in this.clips) {
                 let notes = this.clips[name_part];
                 if (partnames.indexOf(name_part) !== -1) {
@@ -70,6 +73,7 @@ export namespace io {
             this.dict.replace('tempo', this.tempo);
             this.dict.replace('length_beats', this.length_beats);
             this.dict.export_json(this.filepath_export);
+            messenger.message(['python'])
         }
     }
 

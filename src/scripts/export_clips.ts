@@ -27,7 +27,7 @@ if (env === 'max') {
 }
 
 let exporter = new Exporter(
-    '/Users/elliottevers/Downloads/from_live_2.json'
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/cache/json/live/from_live.json'
 );
 
 let set_length = () => {
