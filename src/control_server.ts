@@ -13,7 +13,7 @@ export {}
 
 declare let Global: any;
 
-let env: string = 'max';
+let env: string = 'node';
 
 if (env === 'max') {
     post('recompile successful');
@@ -24,8 +24,8 @@ let messenger = new Messenger(env, 0);
 
 let fretboard = new Fretboard(6, 12, messenger);
 
-let fret = (position_string, position_fret) => {
-    fretboard.fret(Number(position_string), Number(position_fret));
+let fret = (position_string, position_fret, status) => {
+    fretboard.fret(Number(position_string), Number(position_fret), Boolean(status));
 };
 
 let pluck = (position_string) => {
@@ -37,16 +37,20 @@ let dampen = (position_string) => {
 };
 
 let test = () => {
-    fret(1, 1);
-    fret(1, 3);
+    fret(1, 1, 1);
+    fret(1, 3, 1);
     pluck(1);
     dampen(1);
-    fret(1, 0);
+    fret(1, 1, 0);
+    fret(1, 3, 0);
+    fret(1, 1, 1);
     pluck(1);
     dampen(1);
+    fret(1, 1, 0);
+    pluck(1);
 };
 
-// test();
+test();
 
 if (typeof Global !== "undefined") {
     Global.control_server = {};

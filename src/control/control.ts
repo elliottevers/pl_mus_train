@@ -35,9 +35,9 @@ export namespace control {
             this.num_frets = num_frets;
         }
 
-        fret(position_string: number, position_fret: number) {
+        fret(position_string: number, position_fret: number, status: boolean) {
             let string_fretted = this.strings[position_string];
-            string_fretted.fret(position_fret);
+            string_fretted.fret(position_fret, status);
         }
 
         dampen(position_string: number) {
@@ -55,14 +55,12 @@ export namespace control {
 
         messenger: Messenger;
 
-        fret_highest_fretted: number;
+        frets: boolean[] = [false, false, false, false, false, false, false, false, false, false, false, false];
 
         constructor(note_root: midi, messenger: Messenger) {
             this.note_root = note_root;
             this.messenger = messenger;
-            this.fret_highest_fretted = 0;
         }
-
 
         // TODO: don't make this an argument
         dampen(position_string) {
@@ -79,12 +77,40 @@ export namespace control {
         }
 
         public will_sound_note():midi {
-            return this.get_note(this.fret_highest_fretted);
+            return this.get_note(this.get_fret_max())
         }
 
 
-        fret(position_fret: number) {
-            this.fret_highest_fretted = position_fret;
+        public get_fret_max():number {
+            let open = true;
+
+            let fretted: number[] = [];
+
+            let b_fretted: boolean;
+
+            for (let i_fret in this.frets) {
+
+                b_fretted = this.frets[i_fret];
+
+                if (open && b_fretted) {
+                    open = false
+                }
+
+                if (b_fretted) {
+                    fretted.push(Number(i_fret));
+                }
+            }
+
+            if (open) {
+                return 0
+            } else {
+                return Math.max(...fretted)
+            }
+        }
+
+
+        fret(position_fret: number, status: boolean) {
+            this.frets[position_fret] = status
         }
     }
 }

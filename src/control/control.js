@@ -21,9 +21,9 @@ var control;
             this.strings = strings;
             this.num_frets = num_frets;
         }
-        Fretboard.prototype.fret = function (position_string, position_fret) {
+        Fretboard.prototype.fret = function (position_string, position_fret, status) {
             var string_fretted = this.strings[position_string];
-            string_fretted.fret(position_fret);
+            string_fretted.fret(position_fret, status);
         };
         Fretboard.prototype.dampen = function (position_string) {
             this.strings[position_string].dampen(position_string);
@@ -36,9 +36,9 @@ var control;
     control.Fretboard = Fretboard;
     var String = /** @class */ (function () {
         function String(note_root, messenger) {
+            this.frets = [false, false, false, false, false, false, false, false, false, false, false, false];
             this.note_root = note_root;
             this.messenger = messenger;
-            this.fret_highest_fretted = 0;
         }
         // TODO: don't make this an argument
         String.prototype.dampen = function (position_string) {
@@ -52,10 +52,30 @@ var control;
             this.messenger.message(['string' + position_string, 'pluck', this.will_sound_note(), 127]);
         };
         String.prototype.will_sound_note = function () {
-            return this.get_note(this.fret_highest_fretted);
+            return this.get_note(this.get_fret_max());
         };
-        String.prototype.fret = function (position_fret) {
-            this.fret_highest_fretted = position_fret;
+        String.prototype.get_fret_max = function () {
+            var open = true;
+            var fretted = [];
+            var b_fretted;
+            for (var i_fret in this.frets) {
+                b_fretted = this.frets[i_fret];
+                if (open && b_fretted) {
+                    open = false;
+                }
+                if (b_fretted) {
+                    fretted.push(Number(i_fret));
+                }
+            }
+            if (open) {
+                return 0;
+            }
+            else {
+                return Math.max.apply(Math, fretted);
+            }
+        };
+        String.prototype.fret = function (position_fret, status) {
+            this.frets[position_fret] = status;
         };
         return String;
     }());
