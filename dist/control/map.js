@@ -71,7 +71,7 @@ var map;
             var octaves = [-12, 0, 12, 24, 36];
             var interval = note_upper - note_lower;
             for (var i_octave in octaves) {
-                if (interval > octaves[Number(i_octave)] && interval < octaves[Number(i_octave) + 1]) {
+                if (interval >= octaves[Number(i_octave)] && interval < octaves[Number(i_octave) + 1]) {
                     return Number(i_octave) - 1;
                 }
             }

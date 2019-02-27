@@ -112,7 +112,7 @@ export namespace map {
             let octaves = [-12, 0, 12, 24, 36];
             let interval = note_upper - note_lower;
             for (let i_octave in octaves) {
-                if (interval > octaves[Number(i_octave)] && interval < octaves[Number(i_octave) + 1] ) {
+                if (interval >= octaves[Number(i_octave)] && interval < octaves[Number(i_octave) + 1] ) {
                     return Number(i_octave) - 1;
                 }
             }

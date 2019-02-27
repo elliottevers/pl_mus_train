@@ -45,6 +45,15 @@ let render = (position_string, position_fret, state) => {
         frets_clone[((position_string - 1) * num_frets) + position_fret - 1] = state;
         messenger.message(['frets', state, interval_feedback].concat(frets_clone));
     }
+    // if (Number(position_fret) === 0) {
+    //     let nuts_clone = _.clone(nuts);
+    //     nuts_clone[position_string - 1] = state;
+    //     messenger.message(['nuts', state, interval_feedback].concat(nuts_clone))
+    // } else {
+    //     let frets_clone = _.clone(frets);
+    //     frets_clone[((position_string - 1) * num_frets) + position_fret - 1] = state;
+    //     messenger.message(['frets', state, interval_feedback].concat(frets_clone));
+    // }
 };
 
 if (typeof Global !== "undefined") {

@@ -12,6 +12,7 @@ if (env === 'max') {
 var messenger = new Messenger(env, 0);
 var fret_mapper = new FretMapper(messenger);
 var test = function () {
+    midi(55);
 };
 var midi = function (pitch_midi) {
     fret_mapper.play(pitch_midi);

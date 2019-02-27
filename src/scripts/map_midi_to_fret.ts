@@ -25,6 +25,7 @@ let messenger: Messenger = new Messenger(env, 0);
 let fret_mapper: FretMapper = new FretMapper(messenger);
 
 let test = () => {
+    midi(55)
 };
 
 let midi = (pitch_midi) => {
