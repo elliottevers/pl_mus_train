@@ -2,6 +2,8 @@ import {control} from "./control/control";
 import Fretboard = control.Fretboard;
 import {message} from "./message/messenger";
 import Messenger = message.Messenger;
+// import {log} from "./log/logger";
+// import Logger = log.Logger;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -24,7 +26,10 @@ let messenger = new Messenger(env, 0);
 
 let fretboard = new Fretboard(6, 12, messenger);
 
+// let logger = new Logger(env);
+
 let fret = (position_string, position_fret, status) => {
+    // logger.log(String(Boolean(status)));
     fretboard.fret(Number(position_string), Number(position_fret), Boolean(status));
 };
 
@@ -37,20 +42,24 @@ let dampen = (position_string) => {
 };
 
 let test = () => {
-    fret(1, 1, 1);
-    fret(1, 3, 1);
-    pluck(1);
-    dampen(1);
-    fret(1, 1, 0);
-    fret(1, 3, 0);
-    fret(1, 1, 1);
-    pluck(1);
-    dampen(1);
-    fret(1, 1, 0);
-    pluck(1);
+    // fret(1, 1, 1);
+    // fret(1, 3, 1);
+    // pluck(1);
+    // dampen(1);
+    // fret(1, 1, 0);
+    // fret(1, 3, 0);
+    // fret(1, 1, 1);
+    // pluck(1);
+    // dampen(1);
+    // fret(1, 1, 0);
+    // pluck(1);
+    fret(6, 3, 1);
+    pluck(6);
+    fret(6, 3, 0);
+    pluck(6)
 };
 
-test();
+// test();
 
 if (typeof Global !== "undefined") {
     Global.control_server = {};

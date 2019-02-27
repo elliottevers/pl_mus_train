@@ -1,28 +1,47 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var control_1 = require("./control/control");
-var Fretboard = control_1.control.Fretboard;
-var messenger_1 = require("./message/messenger");
-var Messenger = messenger_1.message.Messenger;
-var env = 'node';
+import {control} from "../control/control";
+import Fretboard = control.Fretboard;
+import {message} from "../message/messenger";
+import Messenger = message.Messenger;
+// import {log} from "./log/logger";
+// import Logger = log.Logger;
+
+declare let autowatch: any;
+declare let inlets: any;
+declare let outlets: any;
+declare function outlet(n: number, o: any): void;
+declare function post(message?: any): void;
+
+export {}
+
+declare let Global: any;
+
+let env: string = 'max';
+
 if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-var messenger = new Messenger(env, 0);
-var fretboard = new Fretboard(6, 12, messenger);
+
+let messenger = new Messenger(env, 0);
+
+let fretboard = new Fretboard(6, 12, messenger);
+
 // let logger = new Logger(env);
-var fret = function (position_string, position_fret, status) {
+
+let fret = (position_string, position_fret, status) => {
     // logger.log(String(Boolean(status)));
     fretboard.fret(Number(position_string), Number(position_fret), Boolean(status));
 };
-var pluck = function (position_string) {
+
+let pluck = (position_string) => {
     fretboard.pluck(position_string);
 };
-var dampen = function (position_string) {
+
+let dampen = (position_string) => {
     fretboard.dampen(position_string);
 };
-var test = function () {
+
+let test = () => {
     // fret(1, 1, 1);
     // fret(1, 3, 1);
     // pluck(1);
@@ -37,9 +56,11 @@ var test = function () {
     fret(6, 3, 1);
     pluck(6);
     fret(6, 3, 0);
-    pluck(6);
+    pluck(6)
 };
+
 // test();
+
 if (typeof Global !== "undefined") {
     Global.control_server = {};
     Global.control_server.fret = fret;
@@ -47,4 +68,3 @@ if (typeof Global !== "undefined") {
     Global.control_server.dampen = dampen;
     Global.control_server.test = test;
 }
-//# sourceMappingURL=control_server.js.map

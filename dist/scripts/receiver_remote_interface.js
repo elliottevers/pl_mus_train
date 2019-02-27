@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var control_1 = require("./control/control");
+var control_1 = require("../control/control");
 var Fretboard = control_1.control.Fretboard;
-var messenger_1 = require("./message/messenger");
+var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
-var env = 'node';
+var env = 'max';
 if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
@@ -47,4 +47,4 @@ if (typeof Global !== "undefined") {
     Global.control_server.dampen = dampen;
     Global.control_server.test = test;
 }
-//# sourceMappingURL=control_server.js.map
+//# sourceMappingURL=receiver_remote_interface.js.map
