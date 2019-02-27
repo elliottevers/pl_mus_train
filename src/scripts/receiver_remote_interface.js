@@ -11,9 +11,7 @@ if (env === 'max') {
 }
 var messenger = new Messenger(env, 0);
 var fretboard = new Fretboard(6, 12, messenger);
-// let logger = new Logger(env);
 var fret = function (position_string, position_fret, status) {
-    // logger.log(String(Boolean(status)));
     fretboard.fret(Number(position_string), Number(position_fret), Boolean(status));
 };
 var pluck = function (position_string) {
@@ -39,7 +37,6 @@ var test = function () {
     fret(6, 3, 0);
     pluck(6);
 };
-// test();
 if (typeof Global !== "undefined") {
     Global.control_server = {};
     Global.control_server.fret = fret;
