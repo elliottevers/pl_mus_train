@@ -56,19 +56,19 @@ let colormap_feedback = {
 
 // needs RGB as keys, and Lemur codes as values, since that's what user will be picking
 let colormap_render = {
-    "128,0,63":
-    "64,0,127":
-    "7,63,128":
-    "16,127,1":
-    "127,127,3":
-    "127,0,2":
-}
+    "128,0,63": 4128799,
+    "64,0,127": 2031679,
+    "7,63,128": 204607,
+    "16,127,1": 474880,
+    "127,127,3": 4144897,
+    "127,0,2": 4128768
+};
 
 // RBG keys, Lemur code values
 let colormap_default = {
-    "255,255,255":
-    "0,0,0":
-}
+    "255,255,255": 8355711,
+    "0,0,0": 0
+};
 
 // let render_1 = [7733265, 65793];
 // let render_2 = [7733355, 65793];
