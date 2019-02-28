@@ -1,0 +1,1 @@
+var accept = Global.compute_feedback.accept;

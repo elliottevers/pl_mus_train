@@ -24,7 +24,6 @@ if (env === 'max') {
 
 // lookup Lemur color by RGB of render value
 
-
 // 0
 // +1
 // +2
@@ -37,6 +36,21 @@ if (env === 'max') {
 // -3
 // -2
 // -1
+
+let map_feedback = [
+    1080834,
+    1015422,
+    475006,
+    126,
+    4128894,
+    8192126,
+    8192002,
+    8208131,
+    8283442,
+    8355634,
+    6651698,
+    4161027
+];
 
 // needs feedback values as keys, and Lemur codes as values
 let colormap_feedback = {
@@ -70,28 +84,29 @@ let colormap_default = {
     "0,0,0": 0
 };
 
-// let render_1 = [7733265, 65793];
-// let render_2 = [7733355, 65793];
-// let render_3 = [1900662, 65793];
-// let render_4 = [21361, 65793];
-// let render_5 = [28986, 65793];
-// let render_6 = [7372646, 65793];
-
 let messenger: Messenger = new Messenger(env, 0);
 
-let fret_mapper: FretMapper = new FretMapper(messenger);
-
 let test = () => {
-    // midi(55)
+
 };
 
-// let midi = (pitch_midi) => {
-//     fret_mapper.play(pitch_midi)
-// };
+let render_lemur = (r,g,b) => {
+    messenger.message(colormap_render[[r,g,b].toString()])
+};
+
+let feedback_lemur = (diff) => {
+    messenger.message([map_feedback[diff]])
+};
+
+let render_default_lemur = (r,g,b) => {
+    messenger.message(colormap_default[[r,g,b].toString()])
+};
 
 // test();
 
 if (typeof Global !== "undefined") {
-    Global.map_midi_to_fret = {};
-    Global.map_midi_to_fret.midi = midi;
+    Global.color_getter = {};
+    Global.color_getter.render_lemur = render_lemur;
+    Global.color_getter.render_default_lemur = render_default_lemur;
+    Global.color_getter.feedback_lemur = feedback_lemur;
 }
