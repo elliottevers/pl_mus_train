@@ -10,6 +10,14 @@ var phrase;
             this.beat_end = beat_end;
             this.clip = clip;
         }
+        Phrase.parse = function (clip_segments, beat_start, beat_end) {
+            var endpoints_segments = [];
+            for (var _i = 0, _a = clip_segments.get_notes(beat_start, 0, beat_end, 0); _i < _a.length; _i++) {
+                var note = _a[_i];
+            }
+            notes = clip_segments.get_notes();
+            return segments;
+        };
         Phrase.prototype.set_note_iterator = function (notes, direction_forward) {
             this.note_iterator = new n.note.NoteIterator(notes, direction_forward);
         };

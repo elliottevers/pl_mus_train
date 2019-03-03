@@ -26,9 +26,9 @@ var window;
         };
         // TODO: this assumes it only gets called once
         // TODO: assumes we only have one note to begin with
-        Pwindow.prototype.set_clip = function (clip) {
-            this.add_clip(clip);
-            var note = clip.get_notes_within_markers()[0]; // first clip only has one note
+        Pwindow.prototype.set_root = function (clip_root) {
+            this.add_clip(clip_root);
+            var note = clip_root.get_notes_within_markers()[0]; // first clip only has one note
             note.model.id = 0; // index of first clip
             this.root_parse_tree = note;
             this.leaves = [note];

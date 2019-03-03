@@ -1,9 +1,12 @@
 import n = require('../note/note');
 import c = require('../clip/clip');
 import TreeModel = require("tree-model");
+import {clip} from "../clip/clip";
 
 // TODO: use namespaces better
 export namespace phrase {
+
+    import Clip = clip.Clip;
 
     export class Phrase {
 
@@ -16,6 +19,15 @@ export namespace phrase {
             this.beat_start = beat_start;
             this.beat_end = beat_end;
             this.clip = clip;
+        }
+
+        public static parse(clip_segments: Clip, beat_start, beat_end) {
+            let endpoints_segments = [];
+            for (let note of clip_segments.get_notes(beat_start, 0, beat_end, 0)) {
+
+            }
+            notes = clip_segments.get_notes()
+            return segments
         }
 
         public set_note_iterator(notes: TreeModel.Node<n.note.Note>[], direction_forward: boolean): void {

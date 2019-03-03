@@ -35,9 +35,9 @@ export namespace window {
 
         // TODO: this assumes it only gets called once
         // TODO: assumes we only have one note to begin with
-        set_clip(clip: c.Clip) {
-            this.add_clip(clip);
-            let note = clip.get_notes_within_markers()[0];  // first clip only has one note
+        set_root(clip_root: c.Clip) {
+            this.add_clip(clip_root);
+            let note = clip_root.get_notes_within_markers()[0];  // first clip only has one note
             note.model.id = 0;  // index of first clip
             this.root_parse_tree = note;
             this.leaves = [note];
