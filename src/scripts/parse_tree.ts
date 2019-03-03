@@ -7,6 +7,8 @@ import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {log} from "../log/logger";
 import {song as s} from "../song/song";
+import {phrase} from "../phrase/phrase";
+import Phrase = phrase.Phrase;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -27,17 +29,17 @@ if (env === 'max') {
 
 let messenger: Messenger = new Messenger(env, 0);
 
-let song_dao = new s.SongDao(
-    new li.LiveApiJs("live_set"),
-    new m.Messenger(env, 1, "song"),
-    true
-);
-
-let song: s.Song = new s.Song(song_dao);
-
-let boundary_change_record_interval = (int) => {
-    song.set_session_record(int);
-};
+// let song_dao = new s.SongDao(
+//     new li.LiveApiJs("live_set"),
+//     new m.Messenger(env, 0, "song"),
+//     true
+// );
+//
+// let song: s.Song = new s.Song(song_dao);
+//
+// let boundary_change_record_interval = (int) => {
+//     song.set_session_record(int);
+// };
 
 let pwindow: w.Pwindow;
 
@@ -83,25 +85,60 @@ let confirm = () => {
         // logger.log(message);
     }
 
-    clip_target.remove_notes(
-        0,
-        0,
-        0,
-        128
-    );
+    phrase_current = phrase_iterator.next()
 
-    clip_target.set_notes(
-        notes_leaves
-    );
+    // clip_target.remove_notes(
+    //     phrase_current.beat_start,
+    //     0,
+    //     phrase_current.beat_end,
+    //     128
+    // );
+
+    // clip_target.set_notes(
+    //     notes_leaves
+    // );
 };
 
 let reset = () => {
     clip_user_input.remove_notes(
-        bound_lower,
+        phrase_current.beat_start,
         0,
-        bound_upper,
+        phrase_current.beat_end,
         128
     );
+};
+
+let init_train = () => {
+    // var data_phrases = [
+    //     [0, 8], [8, 20]
+    // ];
+    //
+    // var phrases = [];
+    //
+    // // var forward_notes = true;
+    //
+    // for (var i = 0; i < data_phrases.length; i++) {
+    //     var beat_start = data_phrases[i][0];
+    //     var beat_end = data_phrases[i][1];
+    //
+    //     var phrase = new Phrase(beat_start, beat_end, clip_target);
+    //
+    //     phrase.load_notes();
+    //
+    //     phrases.push(
+    //         phrase
+    //     )
+    // }
+
+
+
+    // need segment iterator
+
+    // get length of song
+
+    // get fixed key center estimate (should be the notes of the segment track
+
+    //
 };
 
 let init_render = () => {
@@ -117,25 +154,25 @@ let init_render = () => {
     pwindow.set_clip(clip_target);
 };
 
-let set_clip_target = () => {
-    let live_api_to_target = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot clip'
-    );
-
-    let key_route = 'clip_target';
-
-    clip_target = new c.Clip(
-        new c.ClipDao(
-            live_api_to_target,
-            new m.Messenger(env, 0),
-            true,
-            key_route
-        )
-    );
-    clip_target.set_path_deferlow(
-        'set_path_clip_target'
-    )
-};
+// let set_clip_target = () => {
+//     let live_api_to_target = new li.LiveApiJs(
+//         'live_set view highlighted_clip_slot clip'
+//     );
+//
+//     let key_route = 'clip_target';
+//
+//     clip_target = new c.Clip(
+//         new c.ClipDao(
+//             live_api_to_target,
+//             new m.Messenger(env, 0),
+//             true,
+//             key_route
+//         )
+//     );
+//     clip_target.set_path_deferlow(
+//         'set_path_clip_target'
+//     )
+// };
 
 let set_clip_user_input = () => {
     let live_api_user_input = new li.LiveApiJs(
@@ -171,7 +208,7 @@ if (typeof Global !== "undefined") {
     Global.parse_tree.confirm = confirm;
     Global.parse_tree.reset = reset;
     Global.parse_tree.init_render = init_render;
-    Global.parse_tree.set_clip_target = set_clip_target;
+    // Global.parse_tree.set_clip_target = set_clip_target;
     Global.parse_tree.set_clip_user_input = set_clip_user_input;
     Global.parse_tree.set_bound_upper = set_bound_upper;
     Global.parse_tree.set_bound_lower = set_bound_lower;

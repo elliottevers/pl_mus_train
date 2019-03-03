@@ -16,6 +16,10 @@ var phrase;
         Phrase.prototype.get_interval_beats = function () {
             return [this.beat_start, this.beat_end];
         };
+        Phrase.prototype.load_notes = function () {
+            var notes = this.clip.get_notes(this.beat_start, 0, this.beat_end, 128);
+            this.set_note_iterator(notes, true);
+        };
         return Phrase;
     }());
     phrase.Phrase = Phrase;

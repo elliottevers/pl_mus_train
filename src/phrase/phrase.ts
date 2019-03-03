@@ -29,6 +29,20 @@ export namespace phrase {
             return [this.beat_start, this.beat_end];
         }
 
+        public load_notes(): void {
+            let notes = this.clip.get_notes(
+                this.beat_start,
+                0,
+                this.beat_end,
+                128
+            );
+
+            this.set_note_iterator(
+                notes,
+                true
+            );
+        }
+
         // TODO: make 'direction' a type alias
         // TODO: why is this referencing an non-existant method? Have we regressed?
         // public load_notes_within_markers(direction_forward: boolean) {
