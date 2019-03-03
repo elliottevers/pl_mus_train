@@ -1,11 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var clip_1 = require("./clip/clip");
-var messenger_1 = require("./message/messenger");
-var logger_1 = require("./log/logger");
 var live_1 = require("./live/live");
-var window_1 = require("./render/window");
-var song_1 = require("./song/song");
 // import Song = song.Song;
 // const sinon = require("sinon");
 var bound_lower, bound_upper;
@@ -17,26 +12,32 @@ var env = 'max';
 if (env === 'max') {
     autowatch = 1;
 }
-var live_api_user_input;
-var live_api_to_elaborate;
-var live_api_elaboration;
-var clip_user_input;
-var clip_to_elaborate;
-var clip_elaboration;
-var pwindow;
-var elaboration;
+// let live_api_user_input: LiveApiJs;
+// let live_api_to_elaborate: LiveApiJs;
+// let live_api_elaboration: LiveApiJs;
+// let clip_user_input: c.Clip;
+// let clip_to_elaborate: c.Clip;
+// let clip_elaboration: c.Clip;
+// let pwindow: w.Pwindow;
+// let elaboration: TreeModel.Node<n.Note>[];
 // let index_track = 18;
 // let index_clip_slot = 0;
 //
 // let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
 //
 // live_api_user_input = new li.LiveApiJs(index_track_user_input, index_clip_slot_user_input);
-var song_dao = new song_1.song.SongDao(new live_1.live.LiveApiJs("live_set"), new messenger_1.message.Messenger(env, 1, "song"), true);
-var song = new song_1.song.Song(song_dao);
-var toggle = true;
-var boundary_change_record_interval = function (int) {
-    song.set_session_record(int);
-};
+// let song_dao = new s.SongDao(
+//     new li.LiveApiJs("live_set"),
+//     new m.Messenger(env, 1, "song"),
+//     true
+// );
+//
+// let song: s.Song = new s.Song(song_dao);
+//
+// let boundary_change_record_interval = (int) => {
+//     song.set_session_record(int);
+// };
+// let toggle: boolean = true;
 var test = function () {
     // clip_elaboration.remove_notes(
     //     0,
@@ -63,32 +64,42 @@ var test = function () {
         clip_user_input.set_loop_bracket_lower(2);
     }
 };
-var set_bound_upper = function (beat) {
-    bound_upper = Number(beat);
-};
-var set_bound_lower = function (beat) {
-    bound_lower = Number(beat);
-};
+// let set_bound_upper = (beat) => {
+//     bound_upper = Number(beat);
+// };
+//
+// let set_bound_lower = (beat) => {
+//     bound_lower = Number(beat);
+// };
 var confirm = function () {
-    elaboration = clip_user_input.get_notes(bound_lower, 0, bound_upper, 128);
-    pwindow.elaborate(elaboration, bound_lower, bound_upper);
-    var messages_notes = pwindow.get_messages_render_clips();
-    var messages_tree = pwindow.get_messages_render_tree();
-    // most recent summarization
-    var notes_leaves = pwindow.get_notes_leaves();
-    var logger = new logger_1.log.Logger(env);
-    var messenger = new messenger_1.message.Messenger(env, 0);
-    messenger.message(["clear"]);
-    for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
-        var message = messages_notes_1[_i];
-        messenger.message(message);
-        logger.log(message);
-    }
-    for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
-        var message = messages_tree_1[_a];
-        messenger.message(message);
-        logger.log(message);
-    }
+    // elaboration = clip_user_input.get_notes(bound_lower, 0, bound_upper, 128);
+    // pwindow.elaborate(
+    //     elaboration,
+    //     bound_lower,
+    //     bound_upper
+    // );
+    //
+    // let messages_notes = pwindow.get_messages_render_clips();
+    //
+    // let messages_tree = pwindow.get_messages_render_tree();
+    //
+    // // most recent summarization
+    // let notes_leaves = pwindow.get_notes_leaves();
+    // let logger = new log.Logger(env);
+    //
+    // let messenger = new m.Messenger(env, 0);
+    //
+    // messenger.message(["clear"]);
+    //
+    // for (let message of messages_notes) {
+    //     messenger.message(message);
+    //     logger.log(message);
+    // }
+    //
+    // for (let message of messages_tree) {
+    //     messenger.message(message);
+    //     logger.log(message);
+    // }
     // logger.log('about to remove notes');
     // clip_elaboration.remove_notes(
     //     notes_leaves[0].model.note.beat_start,
@@ -96,12 +107,20 @@ var confirm = function () {
     //     notes_leaves[notes_leaves.length - 1].model.note.get_beat_end() - notes_leaves[0].model.note.beat_start,
     //     128
     // );
-    clip_elaboration.remove_notes(0, 0, 0, 128);
-    clip_elaboration.set_notes(notes_leaves);
+    // clip_elaboration.remove_notes(
+    //     0,
+    //     0,
+    //     0,
+    //     128
+    // );
+    //
+    // clip_elaboration.set_notes(
+    //     notes_leaves
+    // );
 };
-var reset = function () {
-    clip_user_input.remove_notes(bound_lower, 0, bound_upper, 128);
-};
+// let reset = () => {
+//     clip_user_input.remove_notes(bound_lower, 0, bound_upper, 128);
+// };
 // maybe init?
 var main = function (index_track_to_elaborate, index_clip_slot_to_elaborate, index_track_user_input, index_clip_slot_user_input, index_track_elaboration, index_clip_slot_elaboration) {
     // var clip_1 = new c.Clip(new cd.ClipDao(index_track_1, index_clip_slot_universal, messenger, deferlow));
@@ -235,15 +254,38 @@ var main = function (index_track_to_elaborate, index_clip_slot_to_elaborate, ind
     // clip_2.load_notes_within_markers();
     // clip_3.load_notes_within_markers();
     // clip_4.load_notes_within_markers();
-    // TODO: make configurable
-    var dim = 16 * 6 * 4;
-    pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
+    // // TODO: make configurable
+    // let dim = 16 * 6 * 4;
+    //
+    // pwindow = new w.Pwindow(
+    //     dim,
+    //     dim,
+    //     new m.Messenger(env, 0)
+    // );
     // TODO: sample workflowd
-    clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 1, "user_input"), true));
-    clip_to_elaborate = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_to_elaborate, new messenger_1.message.Messenger(env, 1, "to_elaborate"), true));
-    clip_elaboration = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_elaboration, new messenger_1.message.Messenger(env, 1, "elaboration"), true));
+    // clip_user_input = new c.Clip(
+    //     new c.ClipDao(
+    //         live_api_user_input,
+    //         new m.Messenger(env, 1, "user_input"),
+    //         true
+    //     )
+    // );
+    // clip_to_elaborate = new c.Clip(
+    //     new c.ClipDao(
+    //         live_api_to_elaborate,
+    //         new m.Messenger(env, 1, "to_elaborate"),
+    //         true
+    //     )
+    // );
+    // clip_elaboration = new c.Clip(
+    //     new c.ClipDao(
+    //         live_api_elaboration,
+    //         new m.Messenger(env, 1, "elaboration"),
+    //         true
+    //     )
+    // );
     // collect index of clip to sumarize from user
-    pwindow.set_clip(clip_to_elaborate);
+    // pwindow.set_clip(clip_to_elaborate);
     // these will be notes collected within the bound specified by the user
     // pwindow.elaborate(
     //     clip_2.get_notes_within_markers(),

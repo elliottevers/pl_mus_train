@@ -8,6 +8,16 @@ var clip;
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
         }
+        Clip.prototype.get_path = function () {
+            // let path = this.clip_dao.get_path();
+            // return path.split(' ').map((string) =>{
+            //     return string.replace(/\\/g, "");
+            // }).join(' ');
+            return this.clip_dao.get_path();
+        };
+        Clip.prototype.set_path_deferlow = function (key_route) {
+            this.clip_dao.set_path_deferlow(key_route, this.get_path());
+        };
         Clip.prototype.get_num_measures = function () {
             return (this.get_end_marker() - this.get_start_marker()) / 4;
         };
@@ -168,14 +178,29 @@ var clip;
     }());
     clip.Clip = Clip;
     var ClipDao = /** @class */ (function () {
-        // how to implement LiveAPI - get, set, call
-        function ClipDao(clip_live, messenger, deferlow) {
-            // let path = "live_set tracks " + index_track + " clip_slots " + index_clip_slot + " clip";
-            // this.clip_live = new LiveAPI(null, path);
+        function ClipDao(clip_live, messenger, deferlow, key_route) {
             this.clip_live = clip_live;
             this.messenger = messenger;
+            if (deferlow && !key_route) {
+                throw new Error('key route not specified when using deferlow');
+            }
             this.deferlow = deferlow;
+            this.key_route = key_route;
         }
+        ClipDao.prototype.set_path_deferlow = function (name_clip, path_live) {
+            var mess = [name_clip];
+            for (var _i = 0, _a = path_live.split(' '); _i < _a.length; _i++) {
+                var word = _a[_i];
+                var cleansed = word.replace(/"/g, "");
+                if (isNaN(Number(cleansed))) {
+                    mess.push(cleansed);
+                }
+                else {
+                    mess.push(Number(cleansed));
+                }
+            }
+            this.messenger.message(mess);
+        };
         // TODO: check if these actually return arrays
         ClipDao.prototype.get_end_marker = function () {
             return this.clip_live.get('end_marker')[0];
@@ -184,9 +209,12 @@ var clip;
         ClipDao.prototype.get_start_marker = function () {
             return this.clip_live.get('start_marker')[0];
         };
+        ClipDao.prototype.get_path = function () {
+            return this.clip_live.get_path();
+        };
         ClipDao.prototype.set_loop_bracket_lower = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["set", "loop_start", beat]);
+                this.messenger.message([this.key_route, "set", "loop_start", beat]);
             }
             else {
                 this.clip_live.set('loop_start', beat);
@@ -194,29 +222,21 @@ var clip;
         };
         ClipDao.prototype.set_loop_bracket_upper = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["set", "loop_end", beat]);
+                this.messenger.message([this.key_route, "set", "loop_end", beat]);
             }
             else {
                 this.clip_live.set('loop_end', beat);
             }
         };
         ClipDao.prototype.get_loop_bracket_lower = function () {
-            // if (this.deferlow) {
-            //     this.messenger.message(["set", "loop_start", beat])
-            // } else {
             return this.clip_live.get('loop_start');
-            // }
         };
         ClipDao.prototype.get_loop_bracket_upper = function () {
-            // if (this.deferlow) {
-            //     this.messenger.message(["set", "loop_end", beat])
-            // } else {
             return this.clip_live.get('loop_end');
-            // }
         };
         ClipDao.prototype.set_clip_endpoint_lower = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["set", "start_marker", beat]);
+                this.messenger.message([this.key_route, "set", "start_marker", beat]);
             }
             else {
                 this.clip_live.set('start_marker', beat);
@@ -224,7 +244,7 @@ var clip;
         };
         ClipDao.prototype.set_clip_endpoint_upper = function (beat) {
             if (this.deferlow) {
-                this.messenger.message(["set", "end_marker", beat]);
+                this.messenger.message([this.key_route, "set", "end_marker", beat]);
             }
             else {
                 this.clip_live.set('end_marker', beat);
@@ -232,7 +252,7 @@ var clip;
         };
         ClipDao.prototype.fire = function () {
             if (this.deferlow) {
-                this.messenger.message(["call", "fire"]);
+                this.messenger.message([this.key_route, "call", "fire"]);
             }
             else {
                 this.clip_live.call('fire');
@@ -241,7 +261,7 @@ var clip;
         ;
         ClipDao.prototype.stop = function () {
             if (this.deferlow) {
-                this.messenger.message(["call", "stop"]);
+                this.messenger.message([this.key_route, "call", "stop"]);
             }
             else {
                 this.clip_live.call('stop');
@@ -249,16 +269,20 @@ var clip;
         };
         ;
         ClipDao.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            // if (this.deferlow) {
-            //
-            // } else {
             return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
-            // }
         };
         ;
         ClipDao.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
             if (this.deferlow) {
-                this.messenger.message(["call", "remove_notes", beat_start, pitch_midi_min, beat_end, pitch_midi_max]);
+                this.messenger.message([
+                    this.key_route,
+                    "call",
+                    "remove_notes",
+                    beat_start,
+                    pitch_midi_min,
+                    beat_end,
+                    pitch_midi_max
+                ]);
             }
             else {
                 this.clip_live.call('remove_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
@@ -267,11 +291,12 @@ var clip;
         ;
         ClipDao.prototype.set_notes = function (notes) {
             if (this.deferlow) {
-                this.messenger.message(['call', 'set_notes']);
-                this.messenger.message(['call', 'notes', notes.length]);
+                this.messenger.message([this.key_route, 'call', 'set_notes']);
+                this.messenger.message([this.key_route, 'call', 'notes', notes.length]);
                 for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
                     var node = notes_1[_i];
                     this.messenger.message([
+                        this.key_route,
                         'call',
                         'note',
                         node.model.note.pitch,
@@ -281,7 +306,7 @@ var clip;
                         node.model.note.muted
                     ]);
                 }
-                this.messenger.message(['call', 'done']);
+                this.messenger.message([this.key_route, 'call', 'done']);
             }
             else {
                 this.clip_live.call('set_notes');
