@@ -35,5 +35,4 @@ let accept = (user_input, ground_truth) => {
 if (typeof Global !== "undefined") {
     Global.compute_feedback = {};
     Global.compute_feedback.accept = accept;
-    // Global.color_getter.render_default_lemur = render_default_lemur;
 }

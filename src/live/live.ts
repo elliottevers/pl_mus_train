@@ -56,6 +56,10 @@ export namespace live {
         get_id(): any {
             return this.live_api.id;
         }
+
+        get_path(): any {
+            return this.live_api.path;
+        }
     }
 
     export class LiveClipVirtual implements ClipLive {
