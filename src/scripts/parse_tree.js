@@ -21,6 +21,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 var messenger = new Messenger(env, 0);
+var logger = new Logger(env);
 // let song_dao = new s.SongDao(
 //     new li.LiveApiJs("live_set"),
 //     new m.Messenger(env, 0, "song"),
@@ -70,31 +71,33 @@ var confirm = function () {
     }
     segment_current = val_segment_next;
     // TODO: send messages to deferlow object
-    segment_current.set_endpoints_loop();
+    var interval = segment_current.get_endpoints_loop();
+    segment_current.set_endpoints_loop(interval[0], interval[1]);
 };
 var reset = function () {
     clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end, 128);
 };
 function set_clip_segment() {
     var vector_path_live = Array.prototype.slice.call(arguments);
-    var logger = new Logger(env);
-    logger.log('ran');
+    // let logger = new Logger(env);
     // logger.log(vector_path_live);
     var live_api_clip_segment = new live_1.live.LiveApiJs(utils_1.utils.PathLive.to_string(vector_path_live));
     // logger.log(utils.PathLive.to_string(vector_path_live));
     clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_clip_segment, new messenger_1.message.Messenger(env, 0), false));
-    logger.log(clip_segment.clip_dao.get_path());
-    // clip_segment.set_clip_endpoint_lower(
-    //     1
-    // );
-    //
-    // clip_segment.set_clip_endpoint_upper(
-    //     17
+    // logger.log(
+    //     clip_segment.clip_dao.get_path()
     // )
+    clip_segment.set_clip_endpoint_lower(1);
+    clip_segment.set_clip_endpoint_upper(16 * 4);
 }
 var begin_train = function () {
     var val_segment_next = segment_iterator.next();
     segment_current = val_segment_next.value;
+    // logger.log(segment_current.get_endpoints_loop().toString());
+    // segment_current.set_endpoints_loop();
+    var interval = segment_current.get_endpoints_loop();
+    // logger.log(JSON.stringify(interval));
+    segment_current.set_endpoints_loop(interval[0], interval[1]);
     clip_user_input.fire();
 };
 var pause_train = function () {
@@ -107,20 +110,26 @@ var set_clip_user_input = function () {
     var key_route = 'clip_user_input';
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), true, key_route));
     var tree = new TreeModel();
+    // for (let note of notes_segments) {
+    //     logger.log(JSON.stringify(note))
+    // }
+    // logger.log(
+    //     notes_segments[notes_segments.length - 1].model.note.beat_end
+    // );
     var note_root = tree.parse({
         id: -1,
-        note: new note_1.note.Note(notes_segments[0].model.note.pitch, notes_segments[0].model.note.beat_start, notes_segments[-1].model.note.beat_end - notes_segments[0].model.note.beat_start, 90, 0),
+        note: new note_1.note.Note(notes_segments[0].model.note.pitch, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start, 90, 0),
         children: []
     });
+    clip_user_input.set_path_deferlow('set_path_clip_user_input');
     clip_user_input.set_notes([note_root]);
     var dim = 16 * 6 * 4;
     pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
     pwindow.set_root(clip_user_input);
-    clip_user_input.set_path_deferlow('set_path_clip_user_input');
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
-        segments.push(new Segment(note.model.note.beat_start, note.model.note.beat_end, clip_user_input));
+        segments.push(new Segment(note.model.note.beat_start, note.model.note.get_beat_end(), clip_user_input));
     }
     segment_iterator = new SegmentIterator(segments, true);
 };

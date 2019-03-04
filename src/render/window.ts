@@ -4,10 +4,12 @@ import {clip as c} from "../clip/clip";
 import {note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
+import {log} from "../log/logger";
 
 export namespace window {
 
     import LiveClipVirtual = live.LiveClipVirtual;
+    import Logger = log.Logger;
 
     const red = [255, 0, 0];
     const black = [0, 0, 0];
@@ -37,6 +39,8 @@ export namespace window {
         // TODO: assumes we only have one note to begin with
         set_root(clip_root: c.Clip) {
             this.add_clip(clip_root);
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
             let note = clip_root.get_notes_within_markers()[0];  // first clip only has one note
             note.model.id = 0;  // index of first clip
             this.root_parse_tree = note;

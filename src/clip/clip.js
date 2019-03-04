@@ -184,12 +184,14 @@ var clip;
             this.deferlow = deferlow;
             this.key_route = key_route;
         }
-        ClipDao.prototype.set_path_deferlow = function (name_clip, path_live) {
-            var mess = [name_clip];
+        ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            var mess = [key_route_override];
             for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
                 var word = _a[_i];
                 mess.push(word);
             }
+            // let logger = new Logger('max');
+            // logger.log(mess.toString());
             this.messenger.message(mess);
         };
         // TODO: check if these actually return arrays

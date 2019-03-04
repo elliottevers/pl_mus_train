@@ -17,9 +17,13 @@ export namespace segment {
             this.clip = clip;
         }
 
-        public set_endpoints_loop() {
-            this.clip.set_loop_bracket_lower(this.beat_start);
-            this.clip.set_clip_endpoint_upper(this.beat_end);
+        public get_endpoints_loop() {
+            return [this.beat_start, this.beat_end]
+        }
+
+        public set_endpoints_loop(beat_start, beat_end) {
+            this.clip.set_loop_bracket_lower(beat_start);
+            this.clip.set_loop_bracket_upper(beat_end);
         }
 
         public get_beat_lower() {

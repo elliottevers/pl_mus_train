@@ -35,6 +35,8 @@ if (env === 'max') {
 
 let messenger: Messenger = new Messenger(env, 0);
 
+let logger = new Logger(env);
+
 // let song_dao = new s.SongDao(
 //     new li.LiveApiJs("live_set"),
 //     new m.Messenger(env, 0, "song"),
@@ -109,7 +111,9 @@ let confirm = () => {
     segment_current = val_segment_next;
 
     // TODO: send messages to deferlow object
-    segment_current.set_endpoints_loop();
+    let interval = segment_current.get_endpoints_loop();
+
+    segment_current.set_endpoints_loop(interval[0], interval[1]);
 };
 
 let reset = () => {
@@ -125,9 +129,7 @@ function set_clip_segment() {
 
     let vector_path_live = Array.prototype.slice.call(arguments);
 
-    let logger = new Logger(env);
-
-    logger.log('ran');
+    // let logger = new Logger(env);
 
     // logger.log(vector_path_live);
 
@@ -145,23 +147,32 @@ function set_clip_segment() {
         )
     );
 
-    logger.log(
-        clip_segment.clip_dao.get_path()
-    )
-
-    // clip_segment.set_clip_endpoint_lower(
-    //     1
-    // );
-    //
-    // clip_segment.set_clip_endpoint_upper(
-    //     17
+    // logger.log(
+    //     clip_segment.clip_dao.get_path()
     // )
+
+    clip_segment.set_clip_endpoint_lower(
+        1
+    );
+
+    clip_segment.set_clip_endpoint_upper(
+        16 * 4
+    )
 }
 
 let begin_train = () => {
     let val_segment_next = segment_iterator.next();
 
     segment_current = val_segment_next.value;
+
+    // logger.log(segment_current.get_endpoints_loop().toString());
+    // segment_current.set_endpoints_loop();
+
+    let interval = segment_current.get_endpoints_loop();
+
+    // logger.log(JSON.stringify(interval));
+
+    segment_current.set_endpoints_loop(interval[0], interval[1]);
 
     clip_user_input.fire();
 };
@@ -192,13 +203,20 @@ let set_clip_user_input = () => {
 
     let tree: TreeModel = new TreeModel();
 
+    // for (let note of notes_segments) {
+    //     logger.log(JSON.stringify(note))
+    // }
+    // logger.log(
+    //     notes_segments[notes_segments.length - 1].model.note.beat_end
+    // );
+
     let note_root = tree.parse(
         {
             id: -1, // TODO: hashing scheme for clip id and beat start
             note: new n.Note(
                 notes_segments[0].model.note.pitch,
                 notes_segments[0].model.note.beat_start,
-                notes_segments[-1].model.note.beat_end - notes_segments[0].model.note.beat_start,
+                notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start,
                 90,
                 0
             ),
@@ -206,6 +224,10 @@ let set_clip_user_input = () => {
 
             ]
         }
+    );
+
+    clip_user_input.set_path_deferlow(
+        'set_path_clip_user_input'
     );
 
     clip_user_input.set_notes(
@@ -224,17 +246,13 @@ let set_clip_user_input = () => {
         clip_user_input
     );
 
-    clip_user_input.set_path_deferlow(
-        'set_path_clip_user_input'
-    );
-
     let segments: Segment[] = [];
 
     for (let note of notes_segments) {
         segments.push(
             new Segment(
                 note.model.note.beat_start,
-                note.model.note.beat_end,
+                note.model.note.get_beat_end(),
                 clip_user_input
             )
         )

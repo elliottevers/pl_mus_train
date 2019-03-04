@@ -185,12 +185,14 @@ var clip;
             this.deferlow = deferlow;
             this.key_route = key_route;
         }
-        ClipDao.prototype.set_path_deferlow = function (name_clip, path_live) {
-            var mess = [name_clip];
+        ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            var mess = [key_route_override];
             for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
                 var word = _a[_i];
                 mess.push(word);
             }
+            // let logger = new Logger('max');
+            // logger.log(mess.toString());
             this.messenger.message(mess);
         };
         // TODO: check if these actually return arrays
@@ -703,6 +705,8 @@ var window;
         // TODO: assumes we only have one note to begin with
         Pwindow.prototype.set_root = function (clip_root) {
             this.add_clip(clip_root);
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
             var note = clip_root.get_notes_within_markers()[0]; // first clip only has one note
             note.model.id = 0; // index of first clip
             this.root_parse_tree = note;
@@ -988,6 +992,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 var messenger = new Messenger(env, 0);
+var logger = new Logger(env);
 // let song_dao = new s.SongDao(
 //     new li.LiveApiJs("live_set"),
 //     new m.Messenger(env, 0, "song"),
@@ -1037,32 +1042,34 @@ var confirm = function () {
     }
     segment_current = val_segment_next;
     // TODO: send messages to deferlow object
-    segment_current.set_endpoints_loop();
+    var interval = segment_current.get_endpoints_loop();
+    segment_current.set_endpoints_loop(interval[0], interval[1]);
 };
 var reset = function () {
     clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end, 128);
 };
 function set_clip_segment() {
     var vector_path_live = Array.prototype.slice.call(arguments);
-    var logger = new Logger(env);
-    logger.log('ran');
+    // let logger = new Logger(env);
     // logger.log(vector_path_live);
     var live_api_clip_segment = new live_1.live.LiveApiJs(utils_1.utils.PathLive.to_string(vector_path_live));
     // logger.log(utils.PathLive.to_string(vector_path_live));
     clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_clip_segment, new messenger_1.message.Messenger(env, 0), false));
-    logger.log(clip_segment.clip_dao.get_path());
-    // clip_segment.set_clip_endpoint_lower(
-    //     1
-    // );
-    //
-    // clip_segment.set_clip_endpoint_upper(
-    //     17
+    // logger.log(
+    //     clip_segment.clip_dao.get_path()
     // )
+    clip_segment.set_clip_endpoint_lower(1);
+    clip_segment.set_clip_endpoint_upper(16 * 4);
 }
 var begin_train = function () {
     var val_segment_next = segment_iterator.next();
     segment_current = val_segment_next.value;
-    clip_user_input.fire();
+    // logger.log(segment_current.get_endpoints_loop().toString());
+    // segment_current.set_endpoints_loop();
+    var interval = segment_current.get_endpoints_loop();
+    logger.log(JSON.stringify(interval));
+    segment_current.set_endpoints_loop(interval[0], interval[1]);
+    // clip_user_input.fire();
 };
 var pause_train = function () {
     clip_user_input.stop();
@@ -1074,20 +1081,26 @@ var set_clip_user_input = function () {
     var key_route = 'clip_user_input';
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), true, key_route));
     var tree = new TreeModel();
+    // for (let note of notes_segments) {
+    //     logger.log(JSON.stringify(note))
+    // }
+    // logger.log(
+    //     notes_segments[notes_segments.length - 1].model.note.beat_end
+    // );
     var note_root = tree.parse({
         id: -1,
-        note: new note_1.note.Note(notes_segments[0].model.note.pitch, notes_segments[0].model.note.beat_start, notes_segments[-1].model.note.beat_end - notes_segments[0].model.note.beat_start, 90, 0),
+        note: new note_1.note.Note(notes_segments[0].model.note.pitch, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start, 90, 0),
         children: []
     });
+    clip_user_input.set_path_deferlow('set_path_clip_user_input');
     clip_user_input.set_notes([note_root]);
     var dim = 16 * 6 * 4;
     pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
     pwindow.set_root(clip_user_input);
-    clip_user_input.set_path_deferlow('set_path_clip_user_input');
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
-        segments.push(new Segment(note.model.note.beat_start, note.model.note.beat_end, clip_user_input));
+        segments.push(new Segment(note.model.note.beat_start, note.model.note.get_beat_end(), clip_user_input));
     }
     segment_iterator = new SegmentIterator(segments, true);
 };
@@ -1113,9 +1126,12 @@ var segment;
             this.beat_end = beat_end;
             this.clip = clip;
         }
-        Segment.prototype.set_endpoints_loop = function () {
-            this.clip.set_loop_bracket_lower(this.beat_start);
-            this.clip.set_clip_endpoint_upper(this.beat_end);
+        Segment.prototype.get_endpoints_loop = function () {
+            return [this.beat_start, this.beat_end];
+        };
+        Segment.prototype.set_endpoints_loop = function (beat_start, beat_end) {
+            this.clip.set_loop_bracket_lower(beat_start);
+            this.clip.set_loop_bracket_upper(beat_end);
         };
         Segment.prototype.get_beat_lower = function () {
             return this.clip.get_start_marker();

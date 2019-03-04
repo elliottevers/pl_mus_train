@@ -9,9 +9,12 @@ var segment;
             this.beat_end = beat_end;
             this.clip = clip;
         }
-        Segment.prototype.set_endpoints_loop = function () {
-            this.clip.set_loop_bracket_lower(this.beat_start);
-            this.clip.set_clip_endpoint_upper(this.beat_end);
+        Segment.prototype.get_endpoints_loop = function () {
+            return [this.beat_start, this.beat_end];
+        };
+        Segment.prototype.set_endpoints_loop = function (beat_start, beat_end) {
+            this.clip.set_loop_bracket_lower(beat_start);
+            this.clip.set_loop_bracket_upper(beat_end);
         };
         Segment.prototype.get_beat_lower = function () {
             return this.clip.get_start_marker();

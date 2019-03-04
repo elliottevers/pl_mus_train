@@ -299,13 +299,14 @@ export namespace clip {
             this.key_route = key_route;
         }
 
-        set_path_deferlow(name_clip: string, path_live: string): void {
-            let mess: any[] = [name_clip];
+        set_path_deferlow(key_route_override: string, path_live: string): void {
+            let mess: any[] = [key_route_override];
 
             for (let word of utils.PathLive.to_message(path_live)) {
                 mess.push(word)
             }
-
+            // let logger = new Logger('max');
+            // logger.log(mess.toString());
             this.messenger.message(mess)
         }
 
