@@ -10,11 +10,23 @@ var phrase;
             this.beat_end = beat_end;
             this.clip = clip;
         }
+        // public static parse(clip_segments: Clip, beat_start, beat_end) {
+        //     let endpoints_segments = [];
+        //     for (let note of clip_segments.get_notes(beat_start, 0, beat_end, 0)) {
+        //
+        //     }
+        //     notes = clip_segments.get_notes()
+        //     return segments
+        // }
         Phrase.prototype.set_note_iterator = function (notes, direction_forward) {
             this.note_iterator = new n.note.NoteIterator(notes, direction_forward);
         };
         Phrase.prototype.get_interval_beats = function () {
             return [this.beat_start, this.beat_end];
+        };
+        Phrase.prototype.load_notes = function () {
+            var notes = this.clip.get_notes(this.beat_start, 0, this.beat_end, 128);
+            this.set_note_iterator(notes, true);
         };
         return Phrase;
     }());

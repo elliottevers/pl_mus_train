@@ -21,14 +21,14 @@ export namespace phrase {
             this.clip = clip;
         }
 
-        public static parse(clip_segments: Clip, beat_start, beat_end) {
-            let endpoints_segments = [];
-            for (let note of clip_segments.get_notes(beat_start, 0, beat_end, 0)) {
-
-            }
-            notes = clip_segments.get_notes()
-            return segments
-        }
+        // public static parse(clip_segments: Clip, beat_start, beat_end) {
+        //     let endpoints_segments = [];
+        //     for (let note of clip_segments.get_notes(beat_start, 0, beat_end, 0)) {
+        //
+        //     }
+        //     notes = clip_segments.get_notes()
+        //     return segments
+        // }
 
         public set_note_iterator(notes: TreeModel.Node<n.note.Note>[], direction_forward: boolean): void {
             this.note_iterator = new n.note.NoteIterator(

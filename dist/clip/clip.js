@@ -2,10 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
-var logger_1 = require("../log/logger");
+var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
-    var Logger = logger_1.log.Logger;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
@@ -190,22 +189,10 @@ var clip;
             this.key_route = key_route;
         }
         ClipDao.prototype.set_path_deferlow = function (name_clip, path_live) {
-            var logger = new Logger('max');
-            // logger.log(path_live);
             var mess = [name_clip];
-            for (var _i = 0, _a = path_live.split(' '); _i < _a.length; _i++) {
+            for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
                 var word = _a[_i];
-                logger.log(typeof word);
-                // logger.log(word.replace(/"/g, ""));
-                // return string.replace(/"/g, "");
-                var cleansed = word.replace(/"/g, "");
-                if (isNaN(Number(cleansed))) {
-                    mess.push(cleansed);
-                }
-                else {
-                    mess.push(Number(cleansed));
-                }
-                // mess.push(word.replace(/"/g, ""))
+                mess.push(word);
             }
             this.messenger.message(mess);
         };

@@ -1,0 +1,1 @@
+var get_selected_track = Global.path_getter.get_selected_track;

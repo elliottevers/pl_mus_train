@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
+var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
     var Clip = /** @class */ (function () {
@@ -189,15 +190,9 @@ var clip;
         }
         ClipDao.prototype.set_path_deferlow = function (name_clip, path_live) {
             var mess = [name_clip];
-            for (var _i = 0, _a = path_live.split(' '); _i < _a.length; _i++) {
+            for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
                 var word = _a[_i];
-                var cleansed = word.replace(/"/g, "");
-                if (isNaN(Number(cleansed))) {
-                    mess.push(cleansed);
-                }
-                else {
-                    mess.push(Number(cleansed));
-                }
+                mess.push(word);
             }
             this.messenger.message(mess);
         };

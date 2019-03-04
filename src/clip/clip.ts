@@ -3,6 +3,7 @@ import TreeModel = require("tree-model");
 import {live} from "../live/live";
 import {message} from "../message/messenger";
 import {log} from "../log/logger";
+import {utils} from "../utils/utils";
 
 export namespace clip {
 
@@ -304,14 +305,8 @@ export namespace clip {
         set_path_deferlow(name_clip: string, path_live: string): void {
             let mess: any[] = [name_clip];
 
-            for (let word of path_live.split(' ')) {
-                let cleansed = word.replace(/"/g, "");
-
-                if (isNaN(Number(cleansed))) {
-                    mess.push(cleansed)
-                } else {
-                    mess.push(Number(cleansed))
-                }
+            for (let word of utils.PathLive.to_message(path_live)) {
+                mess.push(word)
             }
 
             this.messenger.message(mess)

@@ -7,7 +7,8 @@ var clip_1 = require("../clip/clip");
 var window_1 = require("../render/window");
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
-var logger_1 = require("../log/logger");
+// import Phrase = phrase.Phrase;
+// import Note = note.Note;
 var segment_1 = require("../segment/segment");
 var Segment = segment_1.segment.Segment;
 var SegmentIterator = segment_1.segment.SegmentIterator;
@@ -32,7 +33,7 @@ var pwindow;
 var elaboration;
 var clip_user_input;
 var clip_segment;
-var logger = new logger_1.log.Logger(env);
+// let logger = new log.Logger(env);
 var segment_current;
 var segment_iterator;
 var confirm = function () {
@@ -99,8 +100,8 @@ var set_clip_user_input = function () {
     clip_user_input.set_path_deferlow('set_path_clip_user_input');
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
-        var note_2 = notes_segments_1[_i];
-        segments.push(new Segment(note_2.model.note.beat_start, note_2.model.note.beat_end, clip_user_input));
+        var note = notes_segments_1[_i];
+        segments.push(new Segment(note.model.note.beat_start, note.model.note.beat_end, clip_user_input));
     }
     segment_iterator = new SegmentIterator(segments, true);
 };

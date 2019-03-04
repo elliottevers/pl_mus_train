@@ -26,6 +26,9 @@ var live;
         LiveApiJs.prototype.get_path = function () {
             return this.live_api.path;
         };
+        LiveApiJs.prototype.get_children = function () {
+            return this.live_api.children;
+        };
         return LiveApiJs;
     }());
     live.LiveApiJs = LiveApiJs;

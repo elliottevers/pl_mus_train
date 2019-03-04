@@ -3,13 +3,13 @@ import Messenger = message.Messenger;
 import {live as li} from "../live/live";
 import {clip as c} from "../clip/clip";
 import {window as w} from "../render/window";
-import {note, note as n} from "../note/note";
+import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {log} from "../log/logger";
 import {song as s} from "../song/song";
 import {phrase} from "../phrase/phrase";
-import Phrase = phrase.Phrase;
-import Note = note.Note;
+// import Phrase = phrase.Phrase;
+// import Note = note.Note;
 import {segment} from "../segment/segment";
 import Segment = segment.Segment;
 import SegmentIterator = segment.SegmentIterator;
@@ -53,7 +53,7 @@ let clip_user_input: c.Clip;
 
 let clip_segment: c.Clip;
 
-let logger = new log.Logger(env);
+// let logger = new log.Logger(env);
 
 let segment_current: Segment;
 

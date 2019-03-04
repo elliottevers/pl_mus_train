@@ -57,8 +57,12 @@ export namespace live {
             return this.live_api.id;
         }
 
-        get_path(): any {
+        get_path(): string {
             return this.live_api.path;
+        }
+
+        get_children(): any {
+            return this.live_api.children;
         }
     }
 
