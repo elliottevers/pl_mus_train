@@ -1,4 +1,4 @@
-import {message as m, message} from "../message/messenger";
+import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live as li} from "../live/live";
 import {log} from "../log/logger";
@@ -24,17 +24,18 @@ if (env === 'max') {
 }
 
 let get_selected_track = () => {
-    let clip_highlighted = new li.LiveApiJs(
-        'live_set view selected_track clip_slots 0'
+    let track_highlighted = new li.LiveApiJs(
+        'live_set view selected_track clip_slots 0 clip'
     );
 
     // let logger = new Logger(env);
 
-    let path_live = clip_highlighted.get_path();
+    let path_live = track_highlighted.get_path();
 
     let messenger = new Messenger(env, 0);
 
     messenger.message(utils.PathLive.to_message(path_live))
+
 
     // logger.log(
     //     clip_highlighted.get_path().split(' ')

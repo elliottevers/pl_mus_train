@@ -5,7 +5,8 @@ var utils;
     var PathLive = /** @class */ (function () {
         function PathLive() {
         }
-        PathLive.to_message = function (path_live) {
+        // pre-sending message
+        PathLive.to_vector = function (path_live) {
             var message = [];
             for (var _i = 0, _a = path_live.split(' '); _i < _a.length; _i++) {
                 var word = _a[_i];
@@ -18,6 +19,13 @@ var utils;
                 }
             }
             return message;
+        };
+        PathLive.to_message = function (path_live) {
+            return PathLive.to_vector(path_live);
+        };
+        // parsing sent message
+        PathLive.to_string = function (vector_path_live) {
+            return PathLive.to_message(vector_path_live.join(' ')).join(' ');
         };
         return PathLive;
     }());

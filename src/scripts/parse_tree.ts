@@ -13,6 +13,8 @@ import {phrase} from "../phrase/phrase";
 import {segment} from "../segment/segment";
 import Segment = segment.Segment;
 import SegmentIterator = segment.SegmentIterator;
+import {utils} from "../utils/utils";
+import Logger = log.Logger;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -119,28 +121,54 @@ let reset = () => {
     );
 };
 
-let set_clip_segment = (path_live) => {
+function set_clip_segment() {
+
+    let vector_path_live = Array.prototype.slice.call(arguments);
+
+    let logger = new Logger(env);
+
+    logger.log('ran');
+
+    // logger.log(vector_path_live);
+
     let live_api_clip_segment = new li.LiveApiJs(
-        path_live
+        utils.PathLive.to_string(vector_path_live)
     );
+
+    // logger.log(utils.PathLive.to_string(vector_path_live));
 
     clip_segment = new c.Clip(
         new c.ClipDao(
             live_api_clip_segment,
             new m.Messenger(env, 0),
-            true
+            false
         )
     );
-};
 
-let init_train = () => {
+    logger.log(
+        clip_segment.clip_dao.get_path()
+    )
+
+    // clip_segment.set_clip_endpoint_lower(
+    //     1
+    // );
+    //
+    // clip_segment.set_clip_endpoint_upper(
+    //     17
+    // )
+}
+
+let begin_train = () => {
     let val_segment_next = segment_iterator.next();
 
     segment_current = val_segment_next.value;
 
-    clip_user_input.fire()
+    clip_user_input.fire();
 };
 
+let pause_train = () => {
+    clip_user_input.stop();
+};
 
 let set_clip_user_input = () => {
     let live_api_user_input = new li.LiveApiJs(
@@ -224,5 +252,6 @@ if (typeof Global !== "undefined") {
     Global.parse_tree.reset = reset;
     Global.parse_tree.set_clip_user_input = set_clip_user_input;
     Global.parse_tree.set_clip_segment = set_clip_segment;
-    Global.parse_tree.init_train = init_train;
+    Global.parse_tree.begin_train = begin_train;
+    Global.parse_tree.pause_train = pause_train;
 }

@@ -135,18 +135,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
-var utils_1 = require("../utils/utils");
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
 var get_selected_track = function () {
-    var clip_highlighted = new live_1.live.LiveApiJs('live_set view selected_track clip_slots 0');
+    var track_highlighted = new live_1.live.LiveApiJs('live_set view selected_track clip_slots 0 clip');
     // let logger = new Logger(env);
-    var path_live = clip_highlighted.get_path();
+    var path_live = track_highlighted.get_path();
     var messenger = new Messenger(env, 0);
-    messenger.message(utils_1.utils.PathLive.to_message(path_live));
+    // messenger.message(utils.PathLive.to_message(path_live))
     // logger.log(
     //     clip_highlighted.get_path().split(' ')
     // )
@@ -160,33 +159,6 @@ if (typeof Global !== "undefined") {
     Global.path_getter.get_selected_track = get_selected_track;
 }
 
-},{"../live/live":1,"../message/messenger":2,"../utils/utils":4}],4:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var utils;
-(function (utils) {
-    var PathLive = /** @class */ (function () {
-        function PathLive() {
-        }
-        PathLive.to_message = function (path_live) {
-            var message = [];
-            for (var _i = 0, _a = path_live.split(' '); _i < _a.length; _i++) {
-                var word = _a[_i];
-                var cleansed = word.replace(/"/g, "");
-                if (isNaN(Number(cleansed))) {
-                    message.push(cleansed);
-                }
-                else {
-                    message.push(Number(cleansed));
-                }
-            }
-            return message;
-        };
-        return PathLive;
-    }());
-    utils.PathLive = PathLive;
-})(utils = exports.utils || (exports.utils = {}));
-
-},{}]},{},[3]);
+},{"../live/live":1,"../message/messenger":2}]},{},[3]);
 
 var get_selected_track = Global.path_getter.get_selected_track;

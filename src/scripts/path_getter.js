@@ -10,9 +10,9 @@ if (env === 'max') {
     autowatch = 1;
 }
 var get_selected_track = function () {
-    var clip_highlighted = new live_1.live.LiveApiJs('live_set view selected_track clip_slots 0');
+    var track_highlighted = new live_1.live.LiveApiJs('live_set view selected_track clip_slots 0 clip');
     // let logger = new Logger(env);
-    var path_live = clip_highlighted.get_path();
+    var path_live = track_highlighted.get_path();
     var messenger = new Messenger(env, 0);
     messenger.message(utils_1.utils.PathLive.to_message(path_live));
     // logger.log(

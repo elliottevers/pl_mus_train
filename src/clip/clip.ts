@@ -12,7 +12,8 @@ export namespace clip {
 
     export class Clip {
 
-        private clip_dao;
+        // private clip_dao;
+        public clip_dao;
 
         private notes: TreeModel.Node<n.Note>[];
 
@@ -21,10 +22,6 @@ export namespace clip {
         }
 
         get_path(): string {
-            // let path = this.clip_dao.get_path();
-            // return path.split(' ').map((string) =>{
-            //     return string.replace(/\\/g, "");
-            // }).join(' ');
             return this.clip_dao.get_path();
         }
 

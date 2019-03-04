@@ -2,7 +2,8 @@ export namespace utils {
 
     export class PathLive  {
 
-        public static to_message(path_live: string) {
+        // pre-sending message
+        public static to_vector(path_live: string) {
             let message = [];
 
             for (let word of path_live.split(' ')) {
@@ -16,6 +17,15 @@ export namespace utils {
             }
 
             return message
+        }
+
+        public static to_message(path_live: string) {
+            return PathLive.to_vector(path_live)
+        }
+
+        // parsing sent message
+        public static to_string(vector_path_live: string[]) {
+            return PathLive.to_message(vector_path_live.join(' ')).join(' ');
         }
     }
 }

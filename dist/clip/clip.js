@@ -10,10 +10,6 @@ var clip;
             this.clip_dao = clip_dao;
         }
         Clip.prototype.get_path = function () {
-            // let path = this.clip_dao.get_path();
-            // return path.split(' ').map((string) =>{
-            //     return string.replace(/\\/g, "");
-            // }).join(' ');
             return this.clip_dao.get_path();
         };
         Clip.prototype.set_path_deferlow = function (key_route) {

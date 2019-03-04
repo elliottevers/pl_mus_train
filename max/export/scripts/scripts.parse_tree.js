@@ -3,19 +3,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
-var logger_1 = require("../log/logger");
+var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
-    var Logger = logger_1.log.Logger;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
         }
         Clip.prototype.get_path = function () {
-            // let path = this.clip_dao.get_path();
-            // return path.split(' ').map((string) =>{
-            //     return string.replace(/\\/g, "");
-            // }).join(' ');
             return this.clip_dao.get_path();
         };
         Clip.prototype.set_path_deferlow = function (key_route) {
@@ -191,22 +186,10 @@ var clip;
             this.key_route = key_route;
         }
         ClipDao.prototype.set_path_deferlow = function (name_clip, path_live) {
-            var logger = new Logger('max');
-            // logger.log(path_live);
             var mess = [name_clip];
-            for (var _i = 0, _a = path_live.split(' '); _i < _a.length; _i++) {
+            for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
                 var word = _a[_i];
-                logger.log(typeof word);
-                // logger.log(word.replace(/"/g, ""));
-                // return string.replace(/"/g, "");
-                var cleansed = word.replace(/"/g, "");
-                if (isNaN(Number(cleansed))) {
-                    mess.push(cleansed);
-                }
-                else {
-                    mess.push(Number(cleansed));
-                }
-                // mess.push(word.replace(/"/g, ""))
+                mess.push(word);
             }
             this.messenger.message(mess);
         };
@@ -332,7 +315,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../log/logger":3,"../note/note":5,"tree-model":12}],2:[function(require,module,exports){
+},{"../note/note":5,"../utils/utils":9,"tree-model":13}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live;
@@ -360,6 +343,9 @@ var live;
         };
         LiveApiJs.prototype.get_path = function () {
             return this.live_api.path;
+        };
+        LiveApiJs.prototype.get_children = function () {
+            return this.live_api.children;
         };
         return LiveApiJs;
     }());
@@ -715,9 +701,9 @@ var window;
         };
         // TODO: this assumes it only gets called once
         // TODO: assumes we only have one note to begin with
-        Pwindow.prototype.set_clip = function (clip) {
-            this.add_clip(clip);
-            var note = clip.get_notes_within_markers()[0]; // first clip only has one note
+        Pwindow.prototype.set_root = function (clip_root) {
+            this.add_clip(clip_root);
+            var note = clip_root.get_notes_within_markers()[0]; // first clip only has one note
             note.model.id = 0; // index of first clip
             this.root_parse_tree = note;
             this.leaves = [note];
@@ -978,7 +964,7 @@ var window;
     window.Pwindow = Pwindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":1,"../live/live":2,"lodash":10}],7:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"lodash":11}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -986,26 +972,43 @@ var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
 var window_1 = require("../render/window");
+var note_1 = require("../note/note");
+var TreeModel = require("tree-model");
 var logger_1 = require("../log/logger");
-var song_1 = require("../song/song");
+// import Phrase = phrase.Phrase;
+// import Note = note.Note;
+var segment_1 = require("../segment/segment");
+var Segment = segment_1.segment.Segment;
+var SegmentIterator = segment_1.segment.SegmentIterator;
+var utils_1 = require("../utils/utils");
+var Logger = logger_1.log.Logger;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
 var messenger = new Messenger(env, 0);
-var song_dao = new song_1.song.SongDao(new live_1.live.LiveApiJs("live_set"), new messenger_1.message.Messenger(env, 1, "song"), true);
-var song = new song_1.song.Song(song_dao);
-var boundary_change_record_interval = function (int) {
-    song.set_session_record(int);
-};
+// let song_dao = new s.SongDao(
+//     new li.LiveApiJs("live_set"),
+//     new m.Messenger(env, 0, "song"),
+//     true
+// );
+//
+// let song: s.Song = new s.Song(song_dao);
+//
+// let boundary_change_record_interval = (int) => {
+//     song.set_session_record(int);
+// };
 var pwindow;
 var elaboration;
 var clip_user_input;
-var clip_target;
-var bound_lower, bound_upper;
-var logger = new logger_1.log.Logger(env);
+var clip_segment;
+// let logger = new log.Logger(env);
+var segment_current;
+var segment_iterator;
 var confirm = function () {
+    var bound_lower = segment_current.get_beat_lower();
+    var bound_upper = segment_current.get_beat_upper();
     elaboration = clip_user_input.get_notes(bound_lower, 0, bound_upper, 128);
     pwindow.elaborate(elaboration, bound_lower, bound_upper);
     var messages_notes = pwindow.get_messages_render_clips();
@@ -1026,77 +1029,178 @@ var confirm = function () {
         messenger.message(message_2);
         // logger.log(message);
     }
-    clip_target.remove_notes(0, 0, 0, 128);
-    clip_target.set_notes(notes_leaves);
+    var segment_next = segment_iterator.next();
+    var val_segment_next = segment_next.value;
+    if (segment_next.done) {
+        clip_user_input.stop();
+        return;
+    }
+    segment_current = val_segment_next;
+    // TODO: send messages to deferlow object
+    segment_current.set_endpoints_loop();
 };
 var reset = function () {
-    clip_user_input.remove_notes(bound_lower, 0, bound_upper, 128);
+    clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end, 128);
 };
-var init_render = function () {
-    // TODO: make configurable
-    var dim = 16 * 6 * 4;
-    pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
-    pwindow.set_clip(clip_target);
+function set_clip_segment() {
+    var vector_path_live = Array.prototype.slice.call(arguments);
+    var logger = new Logger(env);
+    logger.log('ran');
+    // logger.log(vector_path_live);
+    var live_api_clip_segment = new live_1.live.LiveApiJs(utils_1.utils.PathLive.to_string(vector_path_live));
+    // logger.log(utils.PathLive.to_string(vector_path_live));
+    clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_clip_segment, new messenger_1.message.Messenger(env, 0), false));
+    logger.log(clip_segment.clip_dao.get_path());
+    // clip_segment.set_clip_endpoint_lower(
+    //     1
+    // );
+    //
+    // clip_segment.set_clip_endpoint_upper(
+    //     17
+    // )
+}
+var begin_train = function () {
+    var val_segment_next = segment_iterator.next();
+    segment_current = val_segment_next.value;
+    clip_user_input.fire();
 };
-var set_clip_target = function () {
-    var live_api_to_target = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
-    var key_route = 'clip_target';
-    clip_target = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_to_target, new messenger_1.message.Messenger(env, 0), true, key_route));
-    clip_target.set_path_deferlow('set_path_clip_target');
+var pause_train = function () {
+    clip_user_input.stop();
 };
 var set_clip_user_input = function () {
     var live_api_user_input = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
+    // TODO: get notes from segment clip
+    var notes_segments = clip_segment.get_notes_within_markers();
     var key_route = 'clip_user_input';
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), true, key_route));
+    var tree = new TreeModel();
+    var note_root = tree.parse({
+        id: -1,
+        note: new note_1.note.Note(notes_segments[0].model.note.pitch, notes_segments[0].model.note.beat_start, notes_segments[-1].model.note.beat_end - notes_segments[0].model.note.beat_start, 90, 0),
+        children: []
+    });
+    clip_user_input.set_notes([note_root]);
+    var dim = 16 * 6 * 4;
+    pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
+    pwindow.set_root(clip_user_input);
     clip_user_input.set_path_deferlow('set_path_clip_user_input');
-};
-var set_bound_upper = function (beat) {
-    bound_upper = Number(beat);
-};
-var set_bound_lower = function (beat) {
-    bound_lower = Number(beat);
+    var segments = [];
+    for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
+        var note = notes_segments_1[_i];
+        segments.push(new Segment(note.model.note.beat_start, note.model.note.beat_end, clip_user_input));
+    }
+    segment_iterator = new SegmentIterator(segments, true);
 };
 if (typeof Global !== "undefined") {
     Global.parse_tree = {};
     Global.parse_tree.confirm = confirm;
     Global.parse_tree.reset = reset;
-    Global.parse_tree.init_render = init_render;
-    Global.parse_tree.set_clip_target = set_clip_target;
     Global.parse_tree.set_clip_user_input = set_clip_user_input;
-    Global.parse_tree.set_bound_upper = set_bound_upper;
-    Global.parse_tree.set_bound_lower = set_bound_lower;
+    Global.parse_tree.set_clip_segment = set_clip_segment;
+    Global.parse_tree.begin_train = begin_train;
+    Global.parse_tree.pause_train = pause_train;
 }
 
-},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../render/window":6,"../song/song":8}],8:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../note/note":5,"../render/window":6,"../segment/segment":8,"../utils/utils":9,"tree-model":13}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var song;
-(function (song) {
-    var Song = /** @class */ (function () {
-        function Song(song_dao) {
-            this.song_dao = song_dao;
+// TODO: use namespaces better
+var segment;
+(function (segment) {
+    var Segment = /** @class */ (function () {
+        function Segment(beat_start, beat_end, clip) {
+            this.beat_start = beat_start;
+            this.beat_end = beat_end;
+            this.clip = clip;
         }
-        Song.prototype.set_session_record = function (int) {
-            this.song_dao.set_session_record(int);
+        Segment.prototype.set_endpoints_loop = function () {
+            this.clip.set_loop_bracket_lower(this.beat_start);
+            this.clip.set_clip_endpoint_upper(this.beat_end);
         };
-        return Song;
+        Segment.prototype.get_beat_lower = function () {
+            return this.clip.get_start_marker();
+        };
+        Segment.prototype.get_beat_upper = function () {
+            return this.clip.get_end_marker();
+        };
+        return Segment;
     }());
-    song.Song = Song;
-    var SongDao = /** @class */ (function () {
-        function SongDao(clip_live, messenger, deferlow) {
-            this.clip_live = clip_live;
-            this.messenger = messenger;
-            this.deferlow = deferlow;
+    segment.Segment = Segment;
+    var SegmentIterator = /** @class */ (function () {
+        function SegmentIterator(segments, direction_forward) {
+            this.segments = segments;
+            this.direction_forward = direction_forward;
+            this.i = -1;
         }
-        SongDao.prototype.set_session_record = function (int) {
-            this.clip_live.set("session_record", int);
+        // TODO: type declarations
+        SegmentIterator.prototype.next = function () {
+            var value_increment = (this.direction_forward) ? 1 : -1;
+            this.i += value_increment;
+            if (this.i < 0) {
+                throw 'note iterator < 0';
+            }
+            if (this.i < this.segments.length) {
+                return {
+                    value: this.segments[this.i],
+                    done: false
+                };
+            }
+            else {
+                return {
+                    value: null,
+                    done: true
+                };
+            }
         };
-        return SongDao;
+        SegmentIterator.prototype.current = function () {
+            if (this.i > -1) {
+                return this.segments[this.i];
+            }
+            else {
+                return null;
+            }
+        };
+        return SegmentIterator;
     }());
-    song.SongDao = SongDao;
-})(song = exports.song || (exports.song = {}));
+    segment.SegmentIterator = SegmentIterator;
+})(segment = exports.segment || (exports.segment = {}));
 
 },{}],9:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var utils;
+(function (utils) {
+    var PathLive = /** @class */ (function () {
+        function PathLive() {
+        }
+        // pre-sending message
+        PathLive.to_vector = function (path_live) {
+            var message = [];
+            for (var _i = 0, _a = path_live.split(' '); _i < _a.length; _i++) {
+                var word = _a[_i];
+                var cleansed = word.replace(/"/g, "");
+                if (isNaN(Number(cleansed))) {
+                    message.push(cleansed);
+                }
+                else {
+                    message.push(Number(cleansed));
+                }
+            }
+            return message;
+        };
+        PathLive.to_message = function (path_live) {
+            return PathLive.to_vector(path_live);
+        };
+        // parsing sent message
+        PathLive.to_string = function (vector_path_live) {
+            return PathLive.to_message(vector_path_live.join(' ')).join(' ');
+        };
+        return PathLive;
+    }());
+    utils.PathLive = PathLive;
+})(utils = exports.utils || (exports.utils = {}));
+
+},{}],10:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1120,7 +1224,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -18231,7 +18335,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -18283,7 +18387,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -18576,12 +18680,12 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":9,"mergesort":11}]},{},[7]);
+},{"find-insert-index":10,"mergesort":12}]},{},[7]);
 
 var confirm = Global.parse_tree.confirm;
 var reset = Global.parse_tree.reset;
-var init_render = Global.parse_tree.init_render;
-var set_clip_target = Global.parse_tree.set_clip_target;
 var set_clip_user_input = Global.parse_tree.set_clip_user_input;
-var set_bound_upper = Global.parse_tree.set_bound_upper;
-var set_bound_lower = Global.parse_tree.set_bound_lower;
+var set_clip_user_input = Global.parse_tree.set_clip_user_input;
+var set_clip_segment = Global.parse_tree.set_clip_segment;
+var begin_train = Global.parse_tree.begin_train;
+var pause_train = Global.parse_tree.pause_train;

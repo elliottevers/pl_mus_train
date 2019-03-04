@@ -7,11 +7,14 @@ var clip_1 = require("../clip/clip");
 var window_1 = require("../render/window");
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
+var logger_1 = require("../log/logger");
 // import Phrase = phrase.Phrase;
 // import Note = note.Note;
 var segment_1 = require("../segment/segment");
 var Segment = segment_1.segment.Segment;
 var SegmentIterator = segment_1.segment.SegmentIterator;
+var utils_1 = require("../utils/utils");
+var Logger = logger_1.log.Logger;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -72,14 +75,30 @@ var confirm = function () {
 var reset = function () {
     clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end, 128);
 };
-var set_clip_segment = function (path_live) {
-    var live_api_clip_segment = new live_1.live.LiveApiJs(path_live);
-    clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_clip_segment, new messenger_1.message.Messenger(env, 0), true));
-};
-var init_train = function () {
+function set_clip_segment() {
+    var vector_path_live = Array.prototype.slice.call(arguments);
+    var logger = new Logger(env);
+    logger.log('ran');
+    // logger.log(vector_path_live);
+    var live_api_clip_segment = new live_1.live.LiveApiJs(utils_1.utils.PathLive.to_string(vector_path_live));
+    // logger.log(utils.PathLive.to_string(vector_path_live));
+    clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_clip_segment, new messenger_1.message.Messenger(env, 0), false));
+    logger.log(clip_segment.clip_dao.get_path());
+    // clip_segment.set_clip_endpoint_lower(
+    //     1
+    // );
+    //
+    // clip_segment.set_clip_endpoint_upper(
+    //     17
+    // )
+}
+var begin_train = function () {
     var val_segment_next = segment_iterator.next();
     segment_current = val_segment_next.value;
     clip_user_input.fire();
+};
+var pause_train = function () {
+    clip_user_input.stop();
 };
 var set_clip_user_input = function () {
     var live_api_user_input = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
@@ -111,6 +130,7 @@ if (typeof Global !== "undefined") {
     Global.parse_tree.reset = reset;
     Global.parse_tree.set_clip_user_input = set_clip_user_input;
     Global.parse_tree.set_clip_segment = set_clip_segment;
-    Global.parse_tree.init_train = init_train;
+    Global.parse_tree.begin_train = begin_train;
+    Global.parse_tree.pause_train = pause_train;
 }
 //# sourceMappingURL=parse_tree.js.map
