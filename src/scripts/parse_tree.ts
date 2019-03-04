@@ -117,10 +117,17 @@ let confirm = () => {
 };
 
 let reset = () => {
+    clip_user_input.set_notes(
+        segment_current.get_notes()
+    );
+};
+
+let erase = () => {
+    // logger.log(JSON.stringify(segment_current.get_beat_lower()));
     clip_user_input.remove_notes(
-        segment_current.beat_start,
+        segment_current.get_beat_lower(),
         0,
-        segment_current.beat_end,
+        segment_current.get_beat_upper(),
         128
     );
 };
@@ -161,78 +168,8 @@ function set_clip_segment() {
 }
 
 let begin_train = () => {
-    let val_segment_next = segment_iterator.next();
-
-    segment_current = val_segment_next.value;
-
-    // logger.log(segment_current.get_endpoints_loop().toString());
-    // segment_current.set_endpoints_loop();
-
-    let interval = segment_current.get_endpoints_loop();
-
-    // logger.log(JSON.stringify(interval));
-
-    segment_current.set_endpoints_loop(interval[0], interval[1]);
-
-    clip_user_input.fire();
-};
-
-let pause_train = () => {
-    clip_user_input.stop();
-};
-
-let set_clip_user_input = () => {
-    let live_api_user_input = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot clip'
-    );
-
-    // TODO: get notes from segment clip
 
     let notes_segments: TreeModel.Node<n.Note>[] = clip_segment.get_notes_within_markers();
-
-    let key_route = 'clip_user_input';
-
-    clip_user_input = new c.Clip(
-        new c.ClipDao(
-            live_api_user_input,
-            new m.Messenger(env, 0),
-            true,
-            key_route
-        )
-    );
-
-    let tree: TreeModel = new TreeModel();
-
-    // for (let note of notes_segments) {
-    //     logger.log(JSON.stringify(note))
-    // }
-    // logger.log(
-    //     notes_segments[notes_segments.length - 1].model.note.beat_end
-    // );
-
-    let note_root = tree.parse(
-        {
-            id: -1, // TODO: hashing scheme for clip id and beat start
-            note: new n.Note(
-                notes_segments[0].model.note.pitch,
-                notes_segments[0].model.note.beat_start,
-                notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start,
-                90,
-                0
-            ),
-            children: [
-
-            ]
-        }
-    );
-
-    clip_user_input.set_path_deferlow(
-        'set_path_clip_user_input'
-    );
-
-    clip_user_input.set_notes(
-        [note_root]
-    );
 
     let dim = 16 * 6 * 4;
 
@@ -261,15 +198,127 @@ let set_clip_user_input = () => {
     segment_iterator = new SegmentIterator(
         segments,
         true
-    )
+    );
+
+    let val_segment_next = segment_iterator.next();
+
+    segment_current = val_segment_next.value;
+
+    // logger.log(segment_current.get_endpoints_loop().toString());
+    // segment_current.set_endpoints_loop();
+
+    let interval = segment_current.get_endpoints_loop();
+
+    // logger.log(JSON.stringify(interval));
+
+    segment_current.set_endpoints_loop(interval[0], interval[1]);
+
+    clip_user_input.fire();
+};
+
+let pause_train = () => {
+    clip_user_input.stop();
+};
+
+let resume_train = () => {
+    clip_user_input.fire();
+};
+
+let set_clip_user_input = () => {
+    let live_api_user_input = new li.LiveApiJs(
+        'live_set view highlighted_clip_slot clip'
+    );
+
+    // TODO: get notes from segment clip
+
+    let notes_segments: TreeModel.Node<n.Note>[] = clip_segment.get_notes_within_markers();
+
+    let key_route = 'clip_user_input';
+
+    clip_user_input = new c.Clip(
+        new c.ClipDao(
+            live_api_user_input,
+            new m.Messenger(env, 0),
+            true,
+            key_route
+        )
+    );
+
+    // let tree: TreeModel = new TreeModel();
+
+    // for (let note of notes_segments) {
+    //     logger.log(JSON.stringify(note))
+    // }
+    // logger.log(
+    //     notes_segments[notes_segments.length - 1].model.note.beat_end
+    // );
+
+    // let note_root = tree.parse(
+    //     {
+    //         id: -1, // TODO: hashing scheme for clip id and beat start
+    //         note: new n.Note(
+    //             notes_segments[0].model.note.pitch,
+    //             notes_segments[0].model.note.beat_start,
+    //             notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start,
+    //             90,
+    //             0
+    //         ),
+    //         children: [
+    //
+    //         ]
+    //     }
+    // );
+
+    clip_user_input.set_path_deferlow(
+        'set_path_clip_user_input'
+    );
+
+    // clip_user_input.set_notes(
+    //     [note_root]
+    // );
+
+    clip_user_input.set_notes(
+        notes_segments
+    );
+
+    // let dim = 16 * 6 * 4;
+    //
+    // pwindow = new w.Pwindow(
+    //     dim,
+    //     dim,
+    //     new m.Messenger(env, 0)
+    // );
+    //
+    // pwindow.set_root(
+    //     clip_user_input
+    // );
+    //
+    // let segments: Segment[] = [];
+    //
+    // for (let note of notes_segments) {
+    //     segments.push(
+    //         new Segment(
+    //             note.model.note.beat_start,
+    //             note.model.note.get_beat_end(),
+    //             clip_user_input
+    //         )
+    //     )
+    // }
+    //
+    // segment_iterator = new SegmentIterator(
+    //     segments,
+    //     true
+    // )
 };
 
 if (typeof Global !== "undefined") {
     Global.parse_tree = {};
     Global.parse_tree.confirm = confirm;
     Global.parse_tree.reset = reset;
+    Global.parse_tree.erase = erase;
     Global.parse_tree.set_clip_user_input = set_clip_user_input;
     Global.parse_tree.set_clip_segment = set_clip_segment;
     Global.parse_tree.begin_train = begin_train;
     Global.parse_tree.pause_train = pause_train;
+    Global.parse_tree.resume_train = resume_train;
 }

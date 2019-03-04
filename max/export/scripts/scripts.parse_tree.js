@@ -26,6 +26,10 @@ var clip;
             return this.clip_dao.get_start_marker();
         };
         // TODO: annotations
+        Clip.prototype.load_notes_within_loop_brackets = function () {
+            this.notes = this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128);
+        };
+        // TODO: annotations
         Clip.prototype.load_notes_within_markers = function () {
             this.notes = this.get_notes(this.get_start_marker(), 0, this.get_end_marker(), 128);
         };
@@ -61,10 +65,10 @@ var clip;
             this.clip_dao.set_loop_bracket_upper(beat);
         };
         Clip.prototype.get_loop_bracket_lower = function () {
-            return this.clip_dao.get_loop_bracket_lower();
+            return this.clip_dao.get_loop_bracket_lower()[0];
         };
         Clip.prototype.get_loop_bracket_upper = function () {
-            return this.clip_dao.get_loop_bracket_upper();
+            return this.clip_dao.get_loop_bracket_upper()[0];
         };
         Clip.prototype.set_clip_endpoint_lower = function (beat) {
             this.clip_dao.set_clip_endpoint_lower(beat);
@@ -976,8 +980,6 @@ var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
 var window_1 = require("../render/window");
-var note_1 = require("../note/note");
-var TreeModel = require("tree-model");
 var logger_1 = require("../log/logger");
 // import Phrase = phrase.Phrase;
 // import Note = note.Note;
@@ -1046,7 +1048,11 @@ var confirm = function () {
     segment_current.set_endpoints_loop(interval[0], interval[1]);
 };
 var reset = function () {
-    clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end, 128);
+    clip_user_input.set_notes(segment_current.get_notes());
+};
+var erase = function () {
+    // logger.log(JSON.stringify(segment_current.get_beat_lower()));
+    clip_user_input.remove_notes(segment_current.get_beat_lower(), 0, segment_current.get_beat_upper(), 128);
 };
 function set_clip_segment() {
     var vector_path_live = Array.prototype.slice.call(arguments);
@@ -1062,38 +1068,7 @@ function set_clip_segment() {
     clip_segment.set_clip_endpoint_upper(16 * 4);
 }
 var begin_train = function () {
-    var val_segment_next = segment_iterator.next();
-    segment_current = val_segment_next.value;
-    // logger.log(segment_current.get_endpoints_loop().toString());
-    // segment_current.set_endpoints_loop();
-    var interval = segment_current.get_endpoints_loop();
-    logger.log(JSON.stringify(interval));
-    segment_current.set_endpoints_loop(interval[0], interval[1]);
-    // clip_user_input.fire();
-};
-var pause_train = function () {
-    clip_user_input.stop();
-};
-var set_clip_user_input = function () {
-    var live_api_user_input = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
-    // TODO: get notes from segment clip
     var notes_segments = clip_segment.get_notes_within_markers();
-    var key_route = 'clip_user_input';
-    clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), true, key_route));
-    var tree = new TreeModel();
-    // for (let note of notes_segments) {
-    //     logger.log(JSON.stringify(note))
-    // }
-    // logger.log(
-    //     notes_segments[notes_segments.length - 1].model.note.beat_end
-    // );
-    var note_root = tree.parse({
-        id: -1,
-        note: new note_1.note.Note(notes_segments[0].model.note.pitch, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start, 90, 0),
-        children: []
-    });
-    clip_user_input.set_path_deferlow('set_path_clip_user_input');
-    clip_user_input.set_notes([note_root]);
     var dim = 16 * 6 * 4;
     pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
     pwindow.set_root(clip_user_input);
@@ -1103,18 +1078,96 @@ var set_clip_user_input = function () {
         segments.push(new Segment(note.model.note.beat_start, note.model.note.get_beat_end(), clip_user_input));
     }
     segment_iterator = new SegmentIterator(segments, true);
+    var val_segment_next = segment_iterator.next();
+    segment_current = val_segment_next.value;
+    // logger.log(segment_current.get_endpoints_loop().toString());
+    // segment_current.set_endpoints_loop();
+    var interval = segment_current.get_endpoints_loop();
+    // logger.log(JSON.stringify(interval));
+    segment_current.set_endpoints_loop(interval[0], interval[1]);
+    clip_user_input.fire();
+};
+var pause_train = function () {
+    clip_user_input.stop();
+};
+var resume_train = function () {
+    clip_user_input.fire();
+};
+var set_clip_user_input = function () {
+    var live_api_user_input = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
+    // TODO: get notes from segment clip
+    var notes_segments = clip_segment.get_notes_within_markers();
+    var key_route = 'clip_user_input';
+    clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), true, key_route));
+    // let tree: TreeModel = new TreeModel();
+    // for (let note of notes_segments) {
+    //     logger.log(JSON.stringify(note))
+    // }
+    // logger.log(
+    //     notes_segments[notes_segments.length - 1].model.note.beat_end
+    // );
+    // let note_root = tree.parse(
+    //     {
+    //         id: -1, // TODO: hashing scheme for clip id and beat start
+    //         note: new n.Note(
+    //             notes_segments[0].model.note.pitch,
+    //             notes_segments[0].model.note.beat_start,
+    //             notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start,
+    //             90,
+    //             0
+    //         ),
+    //         children: [
+    //
+    //         ]
+    //     }
+    // );
+    clip_user_input.set_path_deferlow('set_path_clip_user_input');
+    // clip_user_input.set_notes(
+    //     [note_root]
+    // );
+    clip_user_input.set_notes(notes_segments);
+    // let dim = 16 * 6 * 4;
+    //
+    // pwindow = new w.Pwindow(
+    //     dim,
+    //     dim,
+    //     new m.Messenger(env, 0)
+    // );
+    //
+    // pwindow.set_root(
+    //     clip_user_input
+    // );
+    //
+    // let segments: Segment[] = [];
+    //
+    // for (let note of notes_segments) {
+    //     segments.push(
+    //         new Segment(
+    //             note.model.note.beat_start,
+    //             note.model.note.get_beat_end(),
+    //             clip_user_input
+    //         )
+    //     )
+    // }
+    //
+    // segment_iterator = new SegmentIterator(
+    //     segments,
+    //     true
+    // )
 };
 if (typeof Global !== "undefined") {
     Global.parse_tree = {};
     Global.parse_tree.confirm = confirm;
     Global.parse_tree.reset = reset;
+    Global.parse_tree.erase = erase;
     Global.parse_tree.set_clip_user_input = set_clip_user_input;
     Global.parse_tree.set_clip_segment = set_clip_segment;
     Global.parse_tree.begin_train = begin_train;
     Global.parse_tree.pause_train = pause_train;
+    Global.parse_tree.resume_train = resume_train;
 }
 
-},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../note/note":5,"../render/window":6,"../segment/segment":8,"../utils/utils":9,"tree-model":13}],8:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../render/window":6,"../segment/segment":8,"../utils/utils":9}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // TODO: use namespaces better
@@ -1126,18 +1179,21 @@ var segment;
             this.beat_end = beat_end;
             this.clip = clip;
         }
+        Segment.prototype.get_notes = function () {
+            return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128);
+        };
         Segment.prototype.get_endpoints_loop = function () {
             return [this.beat_start, this.beat_end];
         };
         Segment.prototype.set_endpoints_loop = function (beat_start, beat_end) {
-            this.clip.set_loop_bracket_lower(beat_start);
             this.clip.set_loop_bracket_upper(beat_end);
+            this.clip.set_loop_bracket_lower(beat_start);
         };
         Segment.prototype.get_beat_lower = function () {
-            return this.clip.get_start_marker();
+            return this.clip.get_loop_bracket_lower();
         };
         Segment.prototype.get_beat_upper = function () {
-            return this.clip.get_end_marker();
+            return this.clip.get_loop_bracket_upper();
         };
         return Segment;
     }());
@@ -18700,8 +18756,9 @@ module.exports = (function () {
 
 var confirm = Global.parse_tree.confirm;
 var reset = Global.parse_tree.reset;
-var set_clip_user_input = Global.parse_tree.set_clip_user_input;
+var erase = Global.parse_tree.erase;
 var set_clip_user_input = Global.parse_tree.set_clip_user_input;
 var set_clip_segment = Global.parse_tree.set_clip_segment;
 var begin_train = Global.parse_tree.begin_train;
 var pause_train = Global.parse_tree.pause_train;
+var resume_train = Global.parse_tree.resume_train;

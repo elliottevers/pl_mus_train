@@ -1,4 +1,6 @@
 import {clip} from "../clip/clip";
+import {note as n} from "../note/note";
+import TreeModel = require("tree-model");
 
 // TODO: use namespaces better
 export namespace segment {
@@ -17,21 +19,30 @@ export namespace segment {
             this.clip = clip;
         }
 
+        public get_notes(): TreeModel.Node<n.Note>[] {
+            return this.clip.get_notes(
+                this.beat_start,
+                0,
+                this.beat_end,
+                128
+            )
+        }
+
         public get_endpoints_loop() {
             return [this.beat_start, this.beat_end]
         }
 
         public set_endpoints_loop(beat_start, beat_end) {
-            this.clip.set_loop_bracket_lower(beat_start);
             this.clip.set_loop_bracket_upper(beat_end);
+            this.clip.set_loop_bracket_lower(beat_start);
         }
 
         public get_beat_lower() {
-            return this.clip.get_start_marker()
+            return this.clip.get_loop_bracket_lower()
         }
 
         public get_beat_upper() {
-            return this.clip.get_end_marker()
+            return this.clip.get_loop_bracket_upper()
         }
     }
 

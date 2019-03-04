@@ -45,6 +45,16 @@ export namespace clip {
         }
 
         // TODO: annotations
+        load_notes_within_loop_brackets(): void {
+            this.notes = this.get_notes(
+                this.get_loop_bracket_lower(),
+                0,
+                this.get_loop_bracket_upper(),
+                128
+            )
+        }
+
+        // TODO: annotations
         load_notes_within_markers(): void {
             this.notes = this.get_notes(
                 this.get_start_marker(),
@@ -93,11 +103,11 @@ export namespace clip {
         }
 
         get_loop_bracket_lower(): number {
-            return this.clip_dao.get_loop_bracket_lower();
+            return this.clip_dao.get_loop_bracket_lower()[0];
         }
 
         get_loop_bracket_upper(): number {
-            return this.clip_dao.get_loop_bracket_upper();
+            return this.clip_dao.get_loop_bracket_upper()[0];
         }
 
         set_clip_endpoint_lower(beat: number): void {

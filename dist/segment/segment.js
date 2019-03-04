@@ -9,18 +9,21 @@ var segment;
             this.beat_end = beat_end;
             this.clip = clip;
         }
+        Segment.prototype.get_notes = function () {
+            return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128);
+        };
         Segment.prototype.get_endpoints_loop = function () {
             return [this.beat_start, this.beat_end];
         };
         Segment.prototype.set_endpoints_loop = function (beat_start, beat_end) {
-            this.clip.set_loop_bracket_lower(beat_start);
             this.clip.set_loop_bracket_upper(beat_end);
+            this.clip.set_loop_bracket_lower(beat_start);
         };
         Segment.prototype.get_beat_lower = function () {
-            return this.clip.get_start_marker();
+            return this.clip.get_loop_bracket_lower();
         };
         Segment.prototype.get_beat_upper = function () {
-            return this.clip.get_end_marker();
+            return this.clip.get_loop_bracket_upper();
         };
         return Segment;
     }());

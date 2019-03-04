@@ -25,6 +25,10 @@ var clip;
             return this.clip_dao.get_start_marker();
         };
         // TODO: annotations
+        Clip.prototype.load_notes_within_loop_brackets = function () {
+            this.notes = this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128);
+        };
+        // TODO: annotations
         Clip.prototype.load_notes_within_markers = function () {
             this.notes = this.get_notes(this.get_start_marker(), 0, this.get_end_marker(), 128);
         };
@@ -60,10 +64,10 @@ var clip;
             this.clip_dao.set_loop_bracket_upper(beat);
         };
         Clip.prototype.get_loop_bracket_lower = function () {
-            return this.clip_dao.get_loop_bracket_lower();
+            return this.clip_dao.get_loop_bracket_lower()[0];
         };
         Clip.prototype.get_loop_bracket_upper = function () {
-            return this.clip_dao.get_loop_bracket_upper();
+            return this.clip_dao.get_loop_bracket_upper()[0];
         };
         Clip.prototype.set_clip_endpoint_lower = function (beat) {
             this.clip_dao.set_clip_endpoint_lower(beat);
