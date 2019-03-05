@@ -2,9 +2,6 @@ declare function outlet(n: number, o: any): void;
 
 export namespace message {
 
-    // TODO: the following
-    // type Env = 'max' | 'node';
-
     export class Messenger {
 
         private env: string;
@@ -24,6 +21,32 @@ export namespace message {
         }
 
         message(message: any[]) {
+
+            switch (this.env) {
+                case 'max': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_max(message);
+                    break;
+                }
+                case 'node': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node(message);
+                    break;
+                }
+                case 'node_for_max': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node_for_max(message);
+                    break;
+                }
+
+
+            }
             if (this.env === 'max') {
                 if (this.key_route) {
                     message.unshift(this.key_route);
@@ -46,6 +69,11 @@ export namespace message {
             console.log("\n");
             console.log(message);
             console.log("\n");
+        }
+
+        message_node_for_max(message: any[]): void {
+            const Max = require('max-api');
+            Max.outlet(message);
         }
     }
 }

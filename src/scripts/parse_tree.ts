@@ -19,6 +19,7 @@ import LiveClipVirtual = live.LiveClipVirtual;
 import {parse} from "../parse/parse";
 import TreeDepthIterator = parse.TreeDepthIterator;
 import ParseTreeIterator = parse.ParseTreeIterator;
+import ParseMatrix = parse.ParseMatrix;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -30,7 +31,7 @@ export {}
 
 declare let Global: any;
 
-let env: string = 'max';
+let env: string = 'node';
 
 if (env === 'max') {
     post('recompile successful');
@@ -42,7 +43,7 @@ let messenger: Messenger = new Messenger(env, 0);
 let logger = new Logger(env);
 
 let song_dao = new s.SongDao(
-    new li.LiveApiJs("live_set"),
+    new li.LiveApiJs("live_set", env),
     new m.Messenger(env, 0, "song"),
     true
 );
@@ -71,20 +72,29 @@ let layer_parse_tree_current: number;
 
 let depth_parse_tree: number;
 
-let confirm = () => {
+let parse_matrix: ParseMatrix;
 
-    elaboration = clip_user_input.get_notes(
-        segment_current.beat_start,
-        0,
-        segment_current.beat_end - segment_current.beat_start,
-        128
-    );
+let notes_segments: TreeModel.Node<n.Note>[];
+
+
+let add_to_tree = (notes, beat_start, beat_end) => {
+    add_to_tree_export(notes, beat_start, beat_end, clip_user_input, song, messenger)
+};
+
+
+export let add_to_tree_export = (notes, beat_start, beat_end, clip_user_input, song, messenger) => {
 
     pwindow.elaborate(
-        elaboration,
-        segment_current.beat_start,
-        segment_current.beat_end,
-        layer_parse_tree_current
+        notes,
+        beat_start,
+        beat_end,
+        tree_depth_iterator.get_index_current()
+    );
+
+    parse_matrix.set_notes(
+        tree_depth_iterator.get_index_current(),
+        segment_iterator.get_index_current(),
+        notes
     );
 
     let messages_notes = pwindow.get_messages_render_clips();
@@ -109,8 +119,11 @@ let confirm = () => {
 
     let val_segment_next = segment_next.value;
 
+    layer_parse_tree_current = tree_depth_iterator.get_index_current();
+
     if (segment_next.done) {
 
+        // TODO: handle for testing
         song.set_overdub(0);
 
         song.set_session_record(0);
@@ -122,7 +135,6 @@ let confirm = () => {
 
     segment_current = val_segment_next;
 
-    // TODO: send messages to deferlow object
     let interval = segment_current.get_endpoints_loop();
 
     clip_user_input.set_endpoints_loop(
@@ -131,9 +143,28 @@ let confirm = () => {
     );
 };
 
+let confirm = () => {
+
+    elaboration = clip_user_input.get_notes(
+        segment_current.beat_start,
+        0,
+        segment_current.beat_end - segment_current.beat_start,
+        128
+    );
+
+    add_to_tree(
+        elaboration,
+        segment_current.beat_start,
+        segment_current.beat_end
+    );
+};
+
 let reset = () => {
     clip_user_input.set_notes(
-        segment_current.get_notes()
+        parse_matrix.get_notes(
+            tree_depth_iterator.get_index_current(),
+            segment_iterator.get_index_current()
+        )
     );
 };
 
@@ -171,16 +202,58 @@ function set_clip_segment() {
 
     clip_segment.set_clip_endpoint_upper(
         16 * 4
-    )
+    );
+
+    notes_segments = clip_segment.get_notes_within_markers();
 }
 
 let set_depth_tree = (depth) => {
+    set_depth_tree_export(depth)
+};
+
+export let set_depth_tree_export = (depth) => {
     depth_parse_tree = depth;
 };
 
 let begin_train = () => {
+    begin_train_export(notes_segments, clip_user_input, song, add_to_tree, messenger)
+};
 
-    let notes_segments: TreeModel.Node<n.Note>[] = clip_segment.get_notes_within_markers();
+export let begin_train_export = (notes_segments, clip_user_input, song, callback_add_to_tree, messenger) => {
+
+    let segments: Segment[] = [];
+
+    for (let note of notes_segments) {
+        let clip_dao_virtual = new LiveClipVirtual([note]);
+        let clip_segment_virtual = new c.Clip(clip_dao_virtual);
+        segments.push(
+            new Segment(
+                note.model.note.beat_start,
+                note.model.note.get_beat_end(),
+                clip_segment_virtual
+            )
+        )
+    }
+
+    parse_matrix = new ParseMatrix(
+        depth_parse_tree,
+        segments.length
+    );
+
+    segment_iterator = new SegmentIterator(
+        segments,
+        true
+    );
+
+    tree_depth_iterator = new TreeDepthIterator(
+        depth_parse_tree,
+        true
+    );
+
+    parse_tree_iterator = new ParseTreeIterator(
+        segment_iterator,
+        tree_depth_iterator
+    );
 
     let tree: TreeModel = new TreeModel();
 
@@ -205,58 +278,35 @@ let begin_train = () => {
     pwindow = new w.Pwindow(
         dim,
         dim,
-        new m.Messenger(env, 0)
+        messenger
     );
+
+    parse_tree_iterator.next();
 
     pwindow.set_root(
         note_root
     );
 
-    layer_parse_tree_current = 1;
-
-    let segments: Segment[] = [];
-
-    for (let note of notes_segments) {
-        let clip_dao_virtual = new LiveClipVirtual([note]);
-        let clip_segment_virtual = new c.Clip(clip_dao_virtual);
-        segments.push(
-            new Segment(
-                note.model.note.beat_start,
-                note.model.note.get_beat_end(),
-                clip_segment_virtual
-            )
-        )
+    for (let i in notes_segments) {
+        callback_add_to_tree.call(
+            this,
+            [
+                notes_segments[Number(i)]
+            ],
+            notes_segments[Number(i)].model.note.beat_start,
+            notes_segments[Number(i)].model.note.get_beat_end(),
+            clip_user_input,
+            song,
+            messenger
+        );
     }
-
-    segment_iterator = new SegmentIterator(
-        segments,
-        true
-    );
-
-    tree_depth_iterator = new TreeDepthIterator(
-        depth_parse_tree,
-        true
-    );
-
-    parse_tree_iterator = new ParseTreeIterator(
-        segment_iterator,
-        tree_depth_iterator
-    );
-
-    let val_segment_next = parse_tree_iterator.next();
-
-    segment_current = val_segment_next.value;
-
-    let interval = segment_current.get_endpoints_loop();
-
-    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
 
     song.set_overdub(1);
 
     song.set_session_record(1);
 
     // TODO: uncomment
-    // clip_user_input.fire();
+    clip_user_input.fire();
 };
 
 let pause_train = () => {
@@ -274,7 +324,7 @@ let set_clip_user_input = () => {
 
     // TODO: get notes from segment clip
 
-    let notes_segments: TreeModel.Node<n.Note>[] = clip_segment.get_notes_within_markers();
+    // let notes_segments: TreeModel.Node<n.Note>[] = clip_segment.get_notes_within_markers();
 
     let key_route = 'clip_user_input';
 
@@ -290,6 +340,8 @@ let set_clip_user_input = () => {
     clip_user_input.set_path_deferlow(
         'set_path_clip_user_input'
     );
+
+    let beats_duration_song = 16 * 4;
 
     clip_user_input.remove_notes(
         notes_segments[0].model.note.beat_start,

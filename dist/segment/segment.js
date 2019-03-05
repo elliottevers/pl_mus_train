@@ -59,6 +59,9 @@ var segment;
         SegmentIterator.prototype.reset = function () {
             this.i = -1;
         };
+        SegmentIterator.prototype.get_index_current = function () {
+            return this.i;
+        };
         return SegmentIterator;
     }());
     segment.SegmentIterator = SegmentIterator;

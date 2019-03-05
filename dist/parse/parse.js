@@ -3,9 +3,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("underscore");
 var parse;
 (function (parse) {
+    var ParseMatrix = /** @class */ (function () {
+        function ParseMatrix(height, width) {
+            this.data = [];
+            for (var i = 0; i < height; i++) {
+                this.data[i] = new Array(width);
+            }
+        }
+        ParseMatrix.prototype.set_notes = function (i_height, i_width, notes) {
+            this.data[i_height][i_width] = notes;
+        };
+        ParseMatrix.prototype.get_notes = function (i_height, i_width) {
+            return this.data[i_height][i_width];
+        };
+        return ParseMatrix;
+    }());
+    parse.ParseMatrix = ParseMatrix;
     var TreeDepthIterator = /** @class */ (function () {
         function TreeDepthIterator(depth, direction_forward) {
-            this.layers = _.range(1, depth);
+            this.layers = _.range(depth);
             this.direction_forward = direction_forward;
             this.i = -1;
         }
@@ -37,6 +53,9 @@ var parse;
                 return null;
             }
         };
+        TreeDepthIterator.prototype.get_index_current = function () {
+            return this.i;
+        };
         return TreeDepthIterator;
     }());
     parse.TreeDepthIterator = TreeDepthIterator;
@@ -47,13 +66,17 @@ var parse;
         }
         // TODO: type declarations
         ParseTreeIterator.prototype.next = function () {
+            // initialize
+            if (this.iterator_tree.get_index_current() == -1) {
+                this.iterator_tree.next();
+            }
             // let layer_current = this.iterator_tree.current();
             var segment_result_next = this.iterator_segment.next();
             var segment_next = segment_result_next.value;
             if (!segment_result_next.done) {
-                this.current = segment_next;
+                this.segment_current = segment_next;
                 return {
-                    value: this.current,
+                    value: this.segment_current,
                     done: false
                 };
             }
@@ -66,9 +89,9 @@ var parse;
                 this.layer_current = this.iterator_tree.current();
                 segment_result_next = this.iterator_segment.next();
                 segment_next = segment_result_next.value;
-                this.current = segment_next;
+                this.segment_current = segment_next;
                 return {
-                    value: this.current,
+                    value: this.segment_current,
                     done: false
                 };
             }

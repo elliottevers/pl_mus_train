@@ -1,4 +1,6 @@
 import {segment} from "../segment/segment";
+import {note} from "../note/note";
+import TreeModel = require("tree-model");
 
 const _ = require("underscore");
 
@@ -13,13 +15,33 @@ export namespace parse {
         get_best_candidate(list_candidate_note);
     }
 
+    export class ParseMatrix {
+
+        data: TreeModel.Node<note.Note>[][][];
+
+        constructor(height: number, width: number) {
+            this.data = [];
+            for(let i=0; i<height; i++) {
+                this.data[i] = new Array(width);
+            }
+        }
+
+        set_notes(i_height, i_width, notes): void {
+            this.data[i_height][i_width] = notes
+        }
+
+        get_notes(i_height, i_width): TreeModel.Node<note.Note>[] {
+            return this.data[i_height][i_width]
+        }
+    }
+
     export class TreeDepthIterator {
         public direction_forward: boolean;
         private i: number;
         private layers: number[];
 
         constructor(depth: number, direction_forward: boolean) {
-            this.layers = _.range(1, depth);
+            this.layers = _.range(depth);
             this.direction_forward = direction_forward;
             this.i = -1;
         }
@@ -54,12 +76,16 @@ export namespace parse {
                 return null;
             }
         }
+
+        public get_index_current() {
+            return this.i
+        }
     }
 
     export class ParseTreeIterator {
         private iterator_segment;
         private iterator_tree;
-        public current;
+        public segment_current;
         public layer_current;
 
         constructor(iterator_segment: SegmentIterator, iterator_tree: TreeDepthIterator) {
@@ -70,6 +96,11 @@ export namespace parse {
         // TODO: type declarations
         public next() {
 
+            // initialize
+            if (this.iterator_tree.get_index_current() == -1) {
+                this.iterator_tree.next()
+            }
+
             // let layer_current = this.iterator_tree.current();
 
             let segment_result_next = this.iterator_segment.next();
@@ -77,9 +108,9 @@ export namespace parse {
             let segment_next = segment_result_next.value;
 
             if (!segment_result_next.done) {
-                this.current = segment_next;
+                this.segment_current = segment_next;
                 return {
-                    value: this.current,
+                    value: this.segment_current,
                     done: false
                 }
             }
@@ -100,10 +131,10 @@ export namespace parse {
 
                 segment_next = segment_result_next.value;
 
-                this.current = segment_next;
+                this.segment_current = segment_next;
 
                 return {
-                    value: this.current,
+                    value: this.segment_current,
                     done: false
                 }
             }

@@ -3,8 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var live;
 (function (live) {
     var LiveApiJs = /** @class */ (function () {
-        function LiveApiJs(path) {
-            this.live_api = new LiveAPI(null, path);
+        function LiveApiJs(path, env) {
+            if (env == 'node') {
+            }
+            else {
+                this.live_api = new LiveAPI(null, path);
+            }
         }
         LiveApiJs.prototype.get = function (property) {
             return this.live_api.get(property);

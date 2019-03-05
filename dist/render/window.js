@@ -3,9 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
+var logger_1 = require("../log/logger");
+var CircularJSON = require('circular-json');
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
+    var Logger = logger_1.log.Logger;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
@@ -20,6 +23,7 @@ var window;
             this.messenger = messenger;
             this.clips = [];
             this.beats_per_measure = 4;
+            this.logger = new Logger('max');
         }
         Pwindow.prototype.get_notes_leaves = function () {
             return this.leaves;
@@ -41,12 +45,7 @@ var window;
             this.leaves = [note_root];
         };
         Pwindow.prototype.elaborate = function (elaboration, beat_start, beat_end, index_layer) {
-            // splice clip into clip
-            // TODO: pick up here on adding the fourth and last clip
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(elaboration));
             if (index_layer + 1 > this.clips.length) {
-                // let notes_elaboration = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
                 var clip_dao_virtual = new LiveClipVirtual(elaboration);
                 var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
                 this.add_clip(clip_virtual);
@@ -55,19 +54,10 @@ var window;
                 var clip_last = this.clips[this.clips.length - 1];
                 clip_last.set_notes(elaboration);
             }
-            // let notes_elaboration = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
-            // // add clip to this.clips
-            // let clip_dao_virtual = new LiveClipVirtual(notes_elaboration);
-            // let clip_virtual = new c.Clip(clip_dao_virtual);
-            // // logger.log(JSON.stringify(clip_virtual));
-            // this.add_clip(clip_virtual);
-            // logger.log(JSON.stringify(this.leaves));
             // TODO: maintain a list of current leaves
             var leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.get_leaves_within_interval(beat_start, beat_end)));
+            // this.logger.log(JSON.stringify(leaves_within_interval));
             this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
-            // TODO: note working for the fourth and last clip
             this.update_leaves(leaves_within_interval);
             // set list of current leaves
         };
@@ -89,6 +79,7 @@ var window;
                 // return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
                 return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) || (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start);
             });
+            this.logger.log(CircularJSON.stringify(this.leaves));
             return val;
         };
         // NB: this makes the assumption that the end marker is at the end of the clip

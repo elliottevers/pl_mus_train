@@ -37,8 +37,12 @@ export namespace live {
     export class LiveApiJs implements iLiveApiJs {
         private live_api: any;
 
-        constructor(path: string) {
-            this.live_api = new LiveAPI(null, path);
+        constructor(path: string, env?: string) {
+            if (env == 'node') {
+
+            } else {
+                this.live_api = new LiveAPI(null, path);
+            }
         }
 
         get(property: string): any {

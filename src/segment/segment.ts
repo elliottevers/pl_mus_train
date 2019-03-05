@@ -91,5 +91,9 @@ export namespace segment {
         public reset() {
             this.i = -1;
         }
+
+        public get_index_current() {
+            return this.i;
+        }
     }
 }

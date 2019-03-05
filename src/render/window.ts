@@ -5,6 +5,7 @@ import {note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
 import {log} from "../log/logger";
+let CircularJSON = require('circular-json');
 
 export namespace window {
 
@@ -22,6 +23,7 @@ export namespace window {
         beats_per_measure: number;
         root_parse_tree: TreeModel.Node<n.Note>;
         leaves: TreeModel.Node<n.Note>[];
+        logger: Logger;
 
         constructor(height: number, width: number, messenger: m.Messenger) {
             this.height = height;
@@ -29,32 +31,29 @@ export namespace window {
             this.messenger = messenger;
             this.clips = [];
             this.beats_per_measure = 4;
+            this.logger = new Logger('max');
         }
 
         get_notes_leaves(): TreeModel.Node<n.Note>[] {
             return this.leaves;
         }
 
-        // TODO: this assumes it only gets called once
-        // TODO: assumes we only have one note to begin with
-        // set_root(clip_root: c.Clip) {
         set_root(note_root: TreeModel.Node<n.Note>) {
             let clip_dao_virtual = new LiveClipVirtual([note_root]);
 
             let clip_virtual = new c.Clip(clip_dao_virtual);
 
             this.add_clip(clip_virtual);
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
-            // let note = clip_root.get_notes_within_markers()[0];  // first clip only has one note
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(note));
+
             note_root.model.id = 0;  // index of first clip
+
             this.root_parse_tree = note_root;
+
             this.leaves = [note_root];
         }
 
         elaborate(elaboration: TreeModel.Node<n.Note>[], beat_start: number, beat_end: number, index_layer: number): void {
+
 
             if (index_layer + 1 > this.clips.length) {
                 let clip_dao_virtual = new LiveClipVirtual(elaboration);
@@ -65,13 +64,11 @@ export namespace window {
                 clip_last.set_notes(elaboration)
             }
 
-            // TODO: maintain a list of current leaves
             let leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
 
             this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
 
             this.update_leaves(leaves_within_interval);
-            // set list of current leaves
         }
 
         splice_notes(notes_subset: TreeModel.Node<n.Note>[], clip: c.Clip, interval_beats: number[]): TreeModel.Node<n.Note>[] {
@@ -95,6 +92,7 @@ export namespace window {
                 return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) || (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start)
 
             });
+            // this.logger.log(CircularJSON.stringify(this.leaves));
             return val;
         }
 
