@@ -49,10 +49,6 @@ let song_dao = new s.SongDao(
 
 let song: s.Song = new s.Song(song_dao);
 
-// let boundary_change_record_interval = (int) => {
-//     song.set_session_record(int);
-// };
-
 let pwindow: w.Pwindow;
 
 let elaboration: TreeModel.Node<n.Note>[];
@@ -76,10 +72,6 @@ let layer_parse_tree_current: number;
 let depth_parse_tree: number;
 
 let confirm = () => {
-    //
-    // let bound_lower = segment_current.beat_start;
-    //
-    // let bound_upper = segment_current.beat_end - segment_current.beat_start;
 
     elaboration = clip_user_input.get_notes(
         segment_current.beat_start,
@@ -133,7 +125,10 @@ let confirm = () => {
     // TODO: send messages to deferlow object
     let interval = segment_current.get_endpoints_loop();
 
-    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+    clip_user_input.set_endpoints_loop(
+        interval[0],
+        interval[1]
+    );
 };
 
 let reset = () => {
@@ -143,12 +138,12 @@ let reset = () => {
 };
 
 let erase = () => {
-    // logger.log(JSON.stringify(segment_current.get_beat_lower()));
     let epsilon = 1/(48 * 2);
+
     clip_user_input.remove_notes(
         segment_current.beat_start - epsilon,
         0,
-        segment_current.beat_end,
+        segment_current.beat_end - segment_current.beat_start,
         128
     );
 };
@@ -157,15 +152,9 @@ function set_clip_segment() {
 
     let vector_path_live = Array.prototype.slice.call(arguments);
 
-    // let logger = new Logger(env);
-
-    // logger.log(vector_path_live);
-
     let live_api_clip_segment = new li.LiveApiJs(
         utils.PathLive.to_string(vector_path_live)
     );
-
-    // logger.log(utils.PathLive.to_string(vector_path_live));
 
     clip_segment = new c.Clip(
         new c.ClipDao(
@@ -174,10 +163,6 @@ function set_clip_segment() {
             false
         )
     );
-
-    // logger.log(
-    //     clip_segment.clip_dao.get_path()
-    // )
 
     // TODO: in information retreival phase, save the start and end points of the song and retreive them here
     clip_segment.set_clip_endpoint_lower(
@@ -223,8 +208,6 @@ let begin_train = () => {
         new m.Messenger(env, 0)
     );
 
-    // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
-
     pwindow.set_root(
         note_root
     );
@@ -264,14 +247,8 @@ let begin_train = () => {
 
     segment_current = val_segment_next.value;
 
-    // logger.log(segment_current.get_endpoints_loop().toString());
-    // segment_current.set_endpoints_loop();
-
     let interval = segment_current.get_endpoints_loop();
 
-    // logger.log(JSON.stringify(interval));
-
-    // segment_current.set_endpoints_loop(interval[0], interval[1]);
     clip_user_input.set_endpoints_loop(interval[0], interval[1]);
 
     song.set_overdub(1);
@@ -310,71 +287,20 @@ let set_clip_user_input = () => {
         )
     );
 
-    // let tree: TreeModel = new TreeModel();
-
-    // for (let note of notes_segments) {
-    //     logger.log(JSON.stringify(note))
-    // }
-    // logger.log(
-    //     notes_segments[notes_segments.length - 1].model.note.beat_end
-    // );
-
-    // let note_root = tree.parse(
-    //     {
-    //         id: -1, // TODO: hashing scheme for clip id and beat start
-    //         note: new n.Note(
-    //             notes_segments[0].model.note.pitch,
-    //             notes_segments[0].model.note.beat_start,
-    //             notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start,
-    //             90,
-    //             0
-    //         ),
-    //         children: [
-    //
-    //         ]
-    //     }
-    // );
-
     clip_user_input.set_path_deferlow(
         'set_path_clip_user_input'
     );
 
-    // clip_user_input.set_notes(
-    //     [note_root]
-    // );
+    clip_user_input.remove_notes(
+        notes_segments[0].model.note.beat_start,
+        0,
+        beats_duration_song,
+        128
+    );
 
     clip_user_input.set_notes(
         notes_segments
     );
-
-    // let dim = 16 * 6 * 4;
-    //
-    // pwindow = new w.Pwindow(
-    //     dim,
-    //     dim,
-    //     new m.Messenger(env, 0)
-    // );
-    //
-    // pwindow.set_root(
-    //     clip_user_input
-    // );
-    //
-    // let segments: Segment[] = [];
-    //
-    // for (let note of notes_segments) {
-    //     segments.push(
-    //         new Segment(
-    //             note.model.note.beat_start,
-    //             note.model.note.get_beat_end(),
-    //             clip_user_input
-    //         )
-    //     )
-    // }
-    //
-    // segment_iterator = new SegmentIterator(
-    //     segments,
-    //     true
-    // )
 };
 
 if (typeof Global !== "undefined") {

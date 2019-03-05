@@ -175,11 +175,11 @@ export namespace clip {
             )
         }
 
-        public remove_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): void {
+        public remove_notes(beat_start: number, pitch_midi_min: number, beat_duration: number, pitch_midi_max: number): void {
             this.clip_dao.remove_notes(
                 beat_start,
                 pitch_midi_min,
-                beat_end,
+                beat_duration,
                 pitch_midi_max
             )
         }

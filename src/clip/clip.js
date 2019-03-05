@@ -113,8 +113,8 @@ var clip;
         Clip.prototype._get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
             return this.clip_dao.get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
         };
-        Clip.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            this.clip_dao.remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+        Clip.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
+            this.clip_dao.remove_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max);
         };
         Clip.parse_note_messages = function (messages) {
             var notes = [];
