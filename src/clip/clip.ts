@@ -21,6 +21,16 @@ export namespace clip {
             this.clip_dao = clip_dao;
         }
 
+        public set_endpoints_loop(beat_start, beat_end) {
+            if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
+                this.clip_dao.set_loop_bracket_upper(beat_end);
+                this.clip_dao.set_loop_bracket_lower(beat_start);
+            } else {
+                this.clip_dao.set_loop_bracket_lower(beat_start);
+                this.clip_dao.set_loop_bracket_upper(beat_end);
+            }
+        }
+
         get_path(): string {
             return this.clip_dao.get_path();
         }
@@ -133,12 +143,19 @@ export namespace clip {
             return this.notes;
         }
 
-        public get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): TreeModel.Node<n.Note>[] {
+        get_notes_within_loop_brackets(): TreeModel.Node<n.Note>[] {
+            if (!this.notes) {
+                this.load_notes_within_loop_brackets()
+            }
+            return this.notes;
+        }
+
+        public get_notes(beat_start: number, pitch_midi_min: number, beat_duration: number, pitch_midi_max: number): TreeModel.Node<n.Note>[] {
             return Clip._parse_notes(
                 this._get_notes(
                     beat_start,
                     pitch_midi_min,
-                    beat_end,
+                    beat_duration,
                     pitch_midi_max
                 )
             );

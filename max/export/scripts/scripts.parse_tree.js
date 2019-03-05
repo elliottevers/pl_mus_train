@@ -10,6 +10,16 @@ var clip;
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
         }
+        Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
+            if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
+                this.clip_dao.set_loop_bracket_upper(beat_end);
+                this.clip_dao.set_loop_bracket_lower(beat_start);
+            }
+            else {
+                this.clip_dao.set_loop_bracket_lower(beat_start);
+                this.clip_dao.set_loop_bracket_upper(beat_end);
+            }
+        };
         Clip.prototype.get_path = function () {
             return this.clip_dao.get_path();
         };
@@ -88,8 +98,8 @@ var clip;
             }
             return this.notes;
         };
-        Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max));
+        Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
+            return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max));
         };
         Clip.prototype.set_notes = function (notes) {
             this.clip_dao.set_notes(notes);
@@ -684,9 +694,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
+var logger_1 = require("../log/logger");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
+    var Logger = logger_1.log.Logger;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
@@ -712,6 +724,8 @@ var window;
             // let logger = new Logger('max');
             // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
             var note = clip_root.get_notes_within_markers()[0]; // first clip only has one note
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(note));
             note.model.id = 0; // index of first clip
             this.root_parse_tree = note;
             this.leaves = [note];
@@ -719,13 +733,19 @@ var window;
         Pwindow.prototype.elaborate = function (elaboration, beat_start, beat_end) {
             // splice clip into clip
             // TODO: pick up here on adding the fourth and last clip
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(elaboration));
             var notes_new = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
             // add clip to this.clips
             var clip_dao_new = new LiveClipVirtual(notes_new);
             var clip_new = new clip_1.clip.Clip(clip_dao_new);
+            // logger.log(JSON.stringify(clip_new));
             this.add_clip(clip_new);
+            // logger.log(JSON.stringify(this.leaves));
             // TODO: maintain a list of current leaves
             var leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(this.get_leaves_within_interval(beat_start, beat_end)));
             this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
             // TODO: note working for the fourth and last clip
             this.update_leaves(leaves_within_interval);
@@ -972,7 +992,7 @@ var window;
     window.Pwindow = Pwindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":1,"../live/live":2,"lodash":11}],7:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"lodash":11}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -980,6 +1000,8 @@ var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
 var window_1 = require("../render/window");
+var note_1 = require("../note/note");
+var TreeModel = require("tree-model");
 var logger_1 = require("../log/logger");
 // import Phrase = phrase.Phrase;
 // import Note = note.Note;
@@ -988,6 +1010,7 @@ var Segment = segment_1.segment.Segment;
 var SegmentIterator = segment_1.segment.SegmentIterator;
 var utils_1 = require("../utils/utils");
 var Logger = logger_1.log.Logger;
+var LiveClipVirtual = live_1.live.LiveClipVirtual;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -1014,10 +1037,12 @@ var clip_segment;
 var segment_current;
 var segment_iterator;
 var confirm = function () {
-    var bound_lower = segment_current.get_beat_lower();
-    var bound_upper = segment_current.get_beat_upper();
-    elaboration = clip_user_input.get_notes(bound_lower, 0, bound_upper, 128);
-    pwindow.elaborate(elaboration, bound_lower, bound_upper);
+    //
+    // let bound_lower = segment_current.beat_start;
+    //
+    // let bound_upper = segment_current.beat_end - segment_current.beat_start;
+    elaboration = clip_user_input.get_notes(segment_current.beat_start, 0, segment_current.beat_end - segment_current.beat_start, 128);
+    pwindow.elaborate(elaboration, segment_current.beat_start, segment_current.beat_end);
     var messages_notes = pwindow.get_messages_render_clips();
     var messages_tree = pwindow.get_messages_render_tree();
     // most recent summarization
@@ -1045,14 +1070,14 @@ var confirm = function () {
     segment_current = val_segment_next;
     // TODO: send messages to deferlow object
     var interval = segment_current.get_endpoints_loop();
-    segment_current.set_endpoints_loop(interval[0], interval[1]);
+    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
 };
 var reset = function () {
     clip_user_input.set_notes(segment_current.get_notes());
 };
 var erase = function () {
     // logger.log(JSON.stringify(segment_current.get_beat_lower()));
-    clip_user_input.remove_notes(segment_current.get_beat_lower(), 0, segment_current.get_beat_upper(), 128);
+    clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end, 128);
 };
 function set_clip_segment() {
     var vector_path_live = Array.prototype.slice.call(arguments);
@@ -1069,13 +1094,26 @@ function set_clip_segment() {
 }
 var begin_train = function () {
     var notes_segments = clip_segment.get_notes_within_markers();
+    var tree = new TreeModel();
+    var note_root = tree.parse({
+        id: -1,
+        note: new note_1.note.Note(notes_segments[0].model.note.pitch, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start, 90, 0),
+        children: []
+    });
+    // let notes_new = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
+    // // add clip to this.clips
+    var clip_dao_virtual = new LiveClipVirtual([note_root]);
+    var clip_root = new clip_1.clip.Clip(clip_dao_virtual);
     var dim = 16 * 6 * 4;
     pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
-    pwindow.set_root(clip_user_input);
+    // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
+    pwindow.set_root(clip_root);
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
-        segments.push(new Segment(note.model.note.beat_start, note.model.note.get_beat_end(), clip_user_input));
+        var clip_dao_virtual_1 = new LiveClipVirtual([note]);
+        var clip_segment_virtual = new clip_1.clip.Clip(clip_dao_virtual_1);
+        segments.push(new Segment(note.model.note.beat_start, note.model.note.get_beat_end(), clip_segment_virtual));
     }
     segment_iterator = new SegmentIterator(segments, true);
     var val_segment_next = segment_iterator.next();
@@ -1084,8 +1122,10 @@ var begin_train = function () {
     // segment_current.set_endpoints_loop();
     var interval = segment_current.get_endpoints_loop();
     // logger.log(JSON.stringify(interval));
-    segment_current.set_endpoints_loop(interval[0], interval[1]);
-    clip_user_input.fire();
+    // segment_current.set_endpoints_loop(interval[0], interval[1]);
+    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+    // TODO: uncomment
+    // clip_user_input.fire();
 };
 var pause_train = function () {
     clip_user_input.stop();
@@ -1167,7 +1207,7 @@ if (typeof Global !== "undefined") {
     Global.parse_tree.resume_train = resume_train;
 }
 
-},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../render/window":6,"../segment/segment":8,"../utils/utils":9}],8:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../note/note":5,"../render/window":6,"../segment/segment":8,"../utils/utils":9,"tree-model":13}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // TODO: use namespaces better
@@ -1188,12 +1228,6 @@ var segment;
         Segment.prototype.set_endpoints_loop = function (beat_start, beat_end) {
             this.clip.set_loop_bracket_upper(beat_end);
             this.clip.set_loop_bracket_lower(beat_start);
-        };
-        Segment.prototype.get_beat_lower = function () {
-            return this.clip.get_loop_bracket_lower();
-        };
-        Segment.prototype.get_beat_upper = function () {
-            return this.clip.get_loop_bracket_upper();
         };
         return Segment;
     }());

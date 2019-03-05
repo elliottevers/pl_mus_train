@@ -5,6 +5,8 @@ var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
 var window_1 = require("../render/window");
+var note_1 = require("../note/note");
+var TreeModel = require("tree-model");
 var logger_1 = require("../log/logger");
 // import Phrase = phrase.Phrase;
 // import Note = note.Note;
@@ -13,6 +15,7 @@ var Segment = segment_1.segment.Segment;
 var SegmentIterator = segment_1.segment.SegmentIterator;
 var utils_1 = require("../utils/utils");
 var Logger = logger_1.log.Logger;
+var LiveClipVirtual = live_1.live.LiveClipVirtual;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -39,10 +42,12 @@ var clip_segment;
 var segment_current;
 var segment_iterator;
 var confirm = function () {
-    var bound_lower = segment_current.get_beat_lower();
-    var bound_upper = segment_current.get_beat_upper();
-    elaboration = clip_user_input.get_notes(bound_lower, 0, bound_upper, 128);
-    pwindow.elaborate(elaboration, bound_lower, bound_upper);
+    //
+    // let bound_lower = segment_current.beat_start;
+    //
+    // let bound_upper = segment_current.beat_end - segment_current.beat_start;
+    elaboration = clip_user_input.get_notes(segment_current.beat_start, 0, segment_current.beat_end - segment_current.beat_start, 128);
+    pwindow.elaborate(elaboration, segment_current.beat_start, segment_current.beat_end);
     var messages_notes = pwindow.get_messages_render_clips();
     var messages_tree = pwindow.get_messages_render_tree();
     // most recent summarization
@@ -70,14 +75,14 @@ var confirm = function () {
     segment_current = val_segment_next;
     // TODO: send messages to deferlow object
     var interval = segment_current.get_endpoints_loop();
-    segment_current.set_endpoints_loop(interval[0], interval[1]);
+    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
 };
 var reset = function () {
     clip_user_input.set_notes(segment_current.get_notes());
 };
 var erase = function () {
     // logger.log(JSON.stringify(segment_current.get_beat_lower()));
-    clip_user_input.remove_notes(segment_current.get_beat_lower(), 0, segment_current.get_beat_upper(), 128);
+    clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end, 128);
 };
 function set_clip_segment() {
     var vector_path_live = Array.prototype.slice.call(arguments);
@@ -94,13 +99,26 @@ function set_clip_segment() {
 }
 var begin_train = function () {
     var notes_segments = clip_segment.get_notes_within_markers();
+    var tree = new TreeModel();
+    var note_root = tree.parse({
+        id: -1,
+        note: new note_1.note.Note(notes_segments[0].model.note.pitch, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start, 90, 0),
+        children: []
+    });
+    // let notes_new = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
+    // // add clip to this.clips
+    var clip_dao_virtual = new LiveClipVirtual([note_root]);
+    var clip_root = new clip_1.clip.Clip(clip_dao_virtual);
     var dim = 16 * 6 * 4;
     pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
-    pwindow.set_root(clip_user_input);
+    // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
+    pwindow.set_root(clip_root);
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
-        segments.push(new Segment(note.model.note.beat_start, note.model.note.get_beat_end(), clip_user_input));
+        var clip_dao_virtual_1 = new LiveClipVirtual([note]);
+        var clip_segment_virtual = new clip_1.clip.Clip(clip_dao_virtual_1);
+        segments.push(new Segment(note.model.note.beat_start, note.model.note.get_beat_end(), clip_segment_virtual));
     }
     segment_iterator = new SegmentIterator(segments, true);
     var val_segment_next = segment_iterator.next();
@@ -109,8 +127,10 @@ var begin_train = function () {
     // segment_current.set_endpoints_loop();
     var interval = segment_current.get_endpoints_loop();
     // logger.log(JSON.stringify(interval));
-    segment_current.set_endpoints_loop(interval[0], interval[1]);
-    clip_user_input.fire();
+    // segment_current.set_endpoints_loop(interval[0], interval[1]);
+    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+    // TODO: uncomment
+    // clip_user_input.fire();
 };
 var pause_train = function () {
     clip_user_input.stop();

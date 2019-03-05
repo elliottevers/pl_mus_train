@@ -1,6 +1,6 @@
 import {message as m, message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live as li} from "../live/live";
+import {live, live as li} from "../live/live";
 import {clip as c} from "../clip/clip";
 import {window as w} from "../render/window";
 import {note as n} from "../note/note";
@@ -15,6 +15,7 @@ import Segment = segment.Segment;
 import SegmentIterator = segment.SegmentIterator;
 import {utils} from "../utils/utils";
 import Logger = log.Logger;
+import LiveClipVirtual = live.LiveClipVirtual;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -64,17 +65,22 @@ let segment_current: Segment;
 let segment_iterator: SegmentIterator;
 
 let confirm = () => {
+    //
+    // let bound_lower = segment_current.beat_start;
+    //
+    // let bound_upper = segment_current.beat_end - segment_current.beat_start;
 
-    let bound_lower = segment_current.get_beat_lower();
-
-    let bound_upper = segment_current.get_beat_upper();
-
-    elaboration = clip_user_input.get_notes(bound_lower, 0, bound_upper, 128);
+    elaboration = clip_user_input.get_notes(
+        segment_current.beat_start,
+        0,
+        segment_current.beat_end - segment_current.beat_start,
+        128
+    );
 
     pwindow.elaborate(
         elaboration,
-        bound_lower,
-        bound_upper
+        segment_current.beat_start,
+        segment_current.beat_end
     );
 
     let messages_notes = pwindow.get_messages_render_clips();
@@ -82,7 +88,7 @@ let confirm = () => {
     let messages_tree = pwindow.get_messages_render_tree();
 
     // most recent summarization
-    let notes_leaves = pwindow.get_notes_leaves();
+    // let notes_leaves = pwindow.get_notes_leaves();
 
     // send rendering messages
     messenger.message(["clear"]);
@@ -113,7 +119,7 @@ let confirm = () => {
     // TODO: send messages to deferlow object
     let interval = segment_current.get_endpoints_loop();
 
-    segment_current.set_endpoints_loop(interval[0], interval[1]);
+    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
 };
 
 let reset = () => {
@@ -125,9 +131,9 @@ let reset = () => {
 let erase = () => {
     // logger.log(JSON.stringify(segment_current.get_beat_lower()));
     clip_user_input.remove_notes(
-        segment_current.get_beat_lower(),
+        segment_current.beat_start,
         0,
-        segment_current.get_beat_upper(),
+        segment_current.beat_end,
         128
     );
 };
@@ -171,6 +177,24 @@ let begin_train = () => {
 
     let notes_segments: TreeModel.Node<n.Note>[] = clip_segment.get_notes_within_markers();
 
+    let tree: TreeModel = new TreeModel();
+
+    let note_root = tree.parse(
+        {
+            id: -1, // TODO: hashing scheme for clip id and beat start
+            note: new n.Note(
+                notes_segments[0].model.note.pitch,
+                notes_segments[0].model.note.beat_start,
+                notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start,
+                90,
+                0
+            ),
+            children: [
+
+            ]
+        }
+    );
+
     let dim = 16 * 6 * 4;
 
     pwindow = new w.Pwindow(
@@ -179,18 +203,22 @@ let begin_train = () => {
         new m.Messenger(env, 0)
     );
 
+    // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
+
     pwindow.set_root(
-        clip_user_input
+        note_root
     );
 
     let segments: Segment[] = [];
 
     for (let note of notes_segments) {
+        let clip_dao_virtual = new LiveClipVirtual([note]);
+        let clip_segment_virtual = new c.Clip(clip_dao_virtual);
         segments.push(
             new Segment(
                 note.model.note.beat_start,
                 note.model.note.get_beat_end(),
-                clip_user_input
+                clip_segment_virtual
             )
         )
     }
@@ -211,9 +239,11 @@ let begin_train = () => {
 
     // logger.log(JSON.stringify(interval));
 
-    segment_current.set_endpoints_loop(interval[0], interval[1]);
+    // segment_current.set_endpoints_loop(interval[0], interval[1]);
+    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
 
-    clip_user_input.fire();
+    // TODO: uncomment
+    // clip_user_input.fire();
 };
 
 let pause_train = () => {

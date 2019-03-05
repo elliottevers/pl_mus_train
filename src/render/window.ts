@@ -37,28 +37,49 @@ export namespace window {
 
         // TODO: this assumes it only gets called once
         // TODO: assumes we only have one note to begin with
-        set_root(clip_root: c.Clip) {
-            this.add_clip(clip_root);
+        // set_root(clip_root: c.Clip) {
+        set_root(note_root: TreeModel.Node<n.Note>) {
+            let clip_dao_virtual = new LiveClipVirtual([note_root]);
+
+            let clip_virtual = new c.Clip(clip_dao_virtual);
+
+            this.add_clip(clip_virtual);
             // let logger = new Logger('max');
             // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
-            let note = clip_root.get_notes_within_markers()[0];  // first clip only has one note
-            note.model.id = 0;  // index of first clip
-            this.root_parse_tree = note;
-            this.leaves = [note];
+            // let note = clip_root.get_notes_within_markers()[0];  // first clip only has one note
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(note));
+            note_root.model.id = 0;  // index of first clip
+            this.root_parse_tree = note_root;
+            this.leaves = [note_root];
         }
 
-        elaborate(elaboration: TreeModel.Node<n.Note>[], beat_start: number, beat_end: number): void {
+        elaborate(elaboration: TreeModel.Node<n.Note>[], beat_start: number, beat_end: number, index_layer: number): void {
             // splice clip into clip
             // TODO: pick up here on adding the fourth and last clip
-            let notes_new = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
-            // add clip to this.clips
-            let clip_dao_new = new LiveClipVirtual(notes_new);
-            let clip_new = new c.Clip(clip_dao_new);
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(elaboration));
 
-            this.add_clip(clip_new);
-
+            if (index_layer + 1 > this.clips.length) {
+                // let notes_elaboration = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
+                let clip_dao_virtual = new LiveClipVirtual(elaboration);
+                let clip_virtual = new c.Clip(clip_dao_virtual);
+                this.add_clip(clip_virtual);
+            } else {
+                let clip_last = this.clips[this.clips.length - 1];
+                clip_last.set_notes(elaboration)
+            }
+            // let notes_elaboration = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
+            // // add clip to this.clips
+            // let clip_dao_virtual = new LiveClipVirtual(notes_elaboration);
+            // let clip_virtual = new c.Clip(clip_dao_virtual);
+            // // logger.log(JSON.stringify(clip_virtual));
+            // this.add_clip(clip_virtual);
+            // logger.log(JSON.stringify(this.leaves));
             // TODO: maintain a list of current leaves
             let leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.get_leaves_within_interval(beat_start, beat_end)));
             this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
             // TODO: note working for the fourth and last clip
             this.update_leaves(leaves_within_interval);
@@ -82,7 +103,9 @@ export namespace window {
 
         get_leaves_within_interval(beat_start: number, beat_end: number): TreeModel.Node<n.Note>[] {
             let val =  this.leaves.filter((node) =>{
-                return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
+                // return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
+                return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) || (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start)
+
             });
             return val;
         }
@@ -244,14 +267,37 @@ export namespace window {
                         // assuming monophony, i.e., no overlap
                         return leaf_to_splice.model.note.beat_start === leaf.model.note.beat_start
                     });
+
+                    let beat_end_children_greatest = -Infinity, beat_start_children_least = Infinity;
+
                     for (let child of leaf.children) {
+                        if (child.model.note.get_beat_end() > beat_end_children_greatest) {
+                            beat_end_children_greatest = child.model.note.get_beat_end();
+                        }
+                        if (child.model.note.beat_start < beat_start_children_least) {
+                            beat_start_children_least = child.model.note.beat_start;
+                        }
                         children_to_insert.push(child);
                     }
-                    leaves_spliced.splice(
-                        i_leaf_to_splice,
-                        1,
-                        ...children_to_insert
-                    )
+
+                    if (leaf.model.note.get_beat_end() > beat_end_children_greatest || leaf.model.note.beat_start < beat_start_children_least) {
+                        leaves_spliced.splice(
+                            i_leaf_to_splice,
+                            0,
+                            ...children_to_insert
+                        )
+                    } else {
+                        leaves_spliced.splice(
+                            i_leaf_to_splice,
+                            1,
+                            ...children_to_insert
+                        )
+                    }
+                    // leaves_spliced.splice(
+                    //     i_leaf_to_splice,
+                    //     1,
+                    //     ...children_to_insert
+                    // )
                 }
             }
 

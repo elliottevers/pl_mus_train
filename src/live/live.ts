@@ -106,6 +106,12 @@ export namespace live {
             return
         }
 
+        set_notes(notes: TreeModel.Node<n.Note>[]): void {
+            for (let note of notes) {
+                this.notes.push(note)
+            }
+        }
+
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
             let prefix, notes, suffix;
             prefix = ["notes", this.notes.length.toString()];

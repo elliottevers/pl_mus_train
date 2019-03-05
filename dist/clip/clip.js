@@ -9,6 +9,16 @@ var clip;
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
         }
+        Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
+            if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
+                this.clip_dao.set_loop_bracket_upper(beat_end);
+                this.clip_dao.set_loop_bracket_lower(beat_start);
+            }
+            else {
+                this.clip_dao.set_loop_bracket_lower(beat_start);
+                this.clip_dao.set_loop_bracket_upper(beat_end);
+            }
+        };
         Clip.prototype.get_path = function () {
             return this.clip_dao.get_path();
         };
@@ -87,8 +97,8 @@ var clip;
             }
             return this.notes;
         };
-        Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max));
+        Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
+            return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max));
         };
         Clip.prototype.set_notes = function (notes) {
             this.clip_dao.set_notes(notes);

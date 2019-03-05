@@ -60,6 +60,12 @@ var live;
         LiveClipVirtual.prototype.stop = function () {
             return;
         };
+        LiveClipVirtual.prototype.set_notes = function (notes) {
+            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                var note = notes_1[_i];
+                this.notes.push(note);
+            }
+        };
         LiveClipVirtual.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
             var prefix, notes, suffix;
             prefix = ["notes", this.notes.length.toString()];

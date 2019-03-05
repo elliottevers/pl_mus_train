@@ -37,13 +37,13 @@ export namespace segment {
             this.clip.set_loop_bracket_lower(beat_start);
         }
 
-        public get_beat_lower() {
-            return this.clip.get_loop_bracket_lower()
-        }
-
-        public get_beat_upper() {
-            return this.clip.get_loop_bracket_upper()
-        }
+        // public get_beat_lower() {
+        //     return this.clip.get_loop_bracket_lower()
+        // }
+        //
+        // public get_beat_upper() {
+        //     return this.clip.get_loop_bracket_upper()
+        // }
     }
 
     export class SegmentIterator {

@@ -19,12 +19,6 @@ var segment;
             this.clip.set_loop_bracket_upper(beat_end);
             this.clip.set_loop_bracket_lower(beat_start);
         };
-        Segment.prototype.get_beat_lower = function () {
-            return this.clip.get_loop_bracket_lower();
-        };
-        Segment.prototype.get_beat_upper = function () {
-            return this.clip.get_loop_bracket_upper();
-        };
         return Segment;
     }());
     segment.Segment = Segment;

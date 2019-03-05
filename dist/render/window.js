@@ -3,9 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
+var logger_1 = require("../log/logger");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
+    var Logger = logger_1.log.Logger;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
@@ -31,6 +33,8 @@ var window;
             // let logger = new Logger('max');
             // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
             var note = clip_root.get_notes_within_markers()[0]; // first clip only has one note
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(note));
             note.model.id = 0; // index of first clip
             this.root_parse_tree = note;
             this.leaves = [note];
@@ -38,13 +42,19 @@ var window;
         Pwindow.prototype.elaborate = function (elaboration, beat_start, beat_end) {
             // splice clip into clip
             // TODO: pick up here on adding the fourth and last clip
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(elaboration));
             var notes_new = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
             // add clip to this.clips
             var clip_dao_new = new LiveClipVirtual(notes_new);
             var clip_new = new clip_1.clip.Clip(clip_dao_new);
+            // logger.log(JSON.stringify(clip_new));
             this.add_clip(clip_new);
+            // logger.log(JSON.stringify(this.leaves));
             // TODO: maintain a list of current leaves
             var leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(this.get_leaves_within_interval(beat_start, beat_end)));
             this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
             // TODO: note working for the fourth and last clip
             this.update_leaves(leaves_within_interval);
