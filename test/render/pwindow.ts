@@ -11,7 +11,7 @@ import TreeModel = require("tree-model");
 
 describe('Pwindow', test(()=>{
 
-    it('incrementally renders tree (does not need to render an entire clip at once)', test(()=>{
+    it('incrementally renders notes of tree (does not need to render an entire clip at once)', test(()=>{
         let env: string = 'node';
 
         let pwindow = new w.Pwindow(
@@ -92,7 +92,7 @@ describe('Pwindow', test(()=>{
                 note: new n.Note(
                     52,
                     1,
-                    2,
+                    1,
                     127,
                     0
                 ),
@@ -108,7 +108,7 @@ describe('Pwindow', test(()=>{
                 note: new n.Note(
                     54,
                     2,
-                    3,
+                    1,
                     127,
                     0
                 ),
@@ -124,7 +124,7 @@ describe('Pwindow', test(()=>{
                 note: new n.Note(
                     55,
                     3,
-                    4,
+                    1,
                     127,
                     0
                 ),
@@ -135,7 +135,9 @@ describe('Pwindow', test(()=>{
         );
 
 
-        pwindow.set_root(note_root);
+        pwindow.set_root(
+            note_root
+        );
 
         pwindow.elaborate(
             [note_2_1],
@@ -180,40 +182,43 @@ describe('Pwindow', test(()=>{
         );
 
 
-        let messages = pwindow.get_messages_render_tree();
-
-        return;
+        let messages = pwindow.get_messages_render_clips();
 
         // TODO: tack on colors to end of message, make color configurable
         // TODO: make order of messages not matter
         assert.deepEqual(
-            messages[4],
-            ['linesegment', 240, 312, 288, 105.6, 255, 0, 0],
-        );
-
-        assert.deepEqual(
-            messages[5],
-            ['linesegment', 336, 296, 288, 105.6, 255, 0, 0],
-        );
-
-        assert.deepEqual(
             messages[0],
-            ['linesegment', 96, 182.4, 192, 48, 255, 0, 0],
+            [ 'paintrect', 0, 0, 8, 20, 0, 0, 0 ],
         );
 
         assert.deepEqual(
             messages[1],
-            ['linesegment', 288, 105.6, 192, 48, 255, 0, 0],
+            [ 'paintrect', 0, 36, 4, 40, 0, 0, 0 ],
         );
 
         assert.deepEqual(
             messages[2],
-            ['linesegment', 48, 278.4, 96, 182.4, 255, 0, 0]
+            [ 'paintrect', 4, 20, 8, 24, 0, 0, 0 ],
         );
 
         assert.deepEqual(
             messages[3],
-            ['linesegment', 144, 240, 96, 182.4, 255, 0, 0],
+            [ 'paintrect', 0, 56.66666666666667, 2, 60, 0, 0, 0 ],
+        );
+
+        assert.deepEqual(
+            messages[4],
+            [ 'paintrect', 2, 50, 4, 53.333333333333336, 0, 0, 0 ]
+        );
+
+        assert.deepEqual(
+            messages[5],
+            [ 'paintrect', 4, 43.333333333333336, 6, 46.666666666666664, 0, 0, 0 ],
+        );
+
+        assert.deepEqual(
+            messages[6],
+            [ 'paintrect', 6, 40, 8, 43.333333333333336, 0, 0, 0 ],
         );
     }));
 }));
