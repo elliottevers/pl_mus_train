@@ -6,3 +6,4 @@ var set_clip_segment = Global.parse_tree.set_clip_segment;
 var begin_train = Global.parse_tree.begin_train;
 var pause_train = Global.parse_tree.pause_train;
 var resume_train = Global.parse_tree.resume_train;
+var set_depth_tree = Global.parse_tree.set_depth_tree;

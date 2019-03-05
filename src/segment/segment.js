@@ -33,7 +33,7 @@ var segment;
             var value_increment = (this.direction_forward) ? 1 : -1;
             this.i += value_increment;
             if (this.i < 0) {
-                throw 'note iterator < 0';
+                throw 'segment iterator < 0';
             }
             if (this.i < this.segments.length) {
                 return {
@@ -55,6 +55,9 @@ var segment;
             else {
                 return null;
             }
+        };
+        SegmentIterator.prototype.reset = function () {
+            this.i = -1;
         };
         return SegmentIterator;
     }());

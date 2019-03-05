@@ -16,6 +16,10 @@ export namespace song {
         set_session_record(int) {
             this.song_dao.set_session_record(int);
         }
+
+        set_overdub(int) {
+            this.song_dao.set_overdub(int);
+        }
     }
 
     export class SongDao {
@@ -32,6 +36,10 @@ export namespace song {
 
         set_session_record(int) {
             this.clip_live.set("session_record", int);
+        }
+
+        set_overdub(int) {
+            this.clip_live.set("overdub", int);
         }
     }
 }

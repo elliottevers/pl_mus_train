@@ -3,11 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
-var logger_1 = require("../log/logger");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
-    var Logger = logger_1.log.Logger;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
@@ -28,33 +26,46 @@ var window;
         };
         // TODO: this assumes it only gets called once
         // TODO: assumes we only have one note to begin with
-        Pwindow.prototype.set_root = function (clip_root) {
-            this.add_clip(clip_root);
+        // set_root(clip_root: c.Clip) {
+        Pwindow.prototype.set_root = function (note_root) {
+            var clip_dao_virtual = new LiveClipVirtual([note_root]);
+            var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
+            this.add_clip(clip_virtual);
             // let logger = new Logger('max');
             // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
-            var note = clip_root.get_notes_within_markers()[0]; // first clip only has one note
+            // let note = clip_root.get_notes_within_markers()[0];  // first clip only has one note
             // let logger = new Logger('max');
             // logger.log(JSON.stringify(note));
-            note.model.id = 0; // index of first clip
-            this.root_parse_tree = note;
-            this.leaves = [note];
+            note_root.model.id = 0; // index of first clip
+            this.root_parse_tree = note_root;
+            this.leaves = [note_root];
         };
-        Pwindow.prototype.elaborate = function (elaboration, beat_start, beat_end) {
+        Pwindow.prototype.elaborate = function (elaboration, beat_start, beat_end, index_layer) {
             // splice clip into clip
             // TODO: pick up here on adding the fourth and last clip
             // let logger = new Logger('max');
             // logger.log(JSON.stringify(elaboration));
-            var notes_new = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
-            // add clip to this.clips
-            var clip_dao_new = new LiveClipVirtual(notes_new);
-            var clip_new = new clip_1.clip.Clip(clip_dao_new);
-            // logger.log(JSON.stringify(clip_new));
-            this.add_clip(clip_new);
+            if (index_layer + 1 > this.clips.length) {
+                // let notes_elaboration = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
+                var clip_dao_virtual = new LiveClipVirtual(elaboration);
+                var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
+                this.add_clip(clip_virtual);
+            }
+            else {
+                var clip_last = this.clips[this.clips.length - 1];
+                clip_last.set_notes(elaboration);
+            }
+            // let notes_elaboration = this.splice_notes(elaboration, this.clips[this.clips.length - 1], [beat_start, beat_end]);
+            // // add clip to this.clips
+            // let clip_dao_virtual = new LiveClipVirtual(notes_elaboration);
+            // let clip_virtual = new c.Clip(clip_dao_virtual);
+            // // logger.log(JSON.stringify(clip_virtual));
+            // this.add_clip(clip_virtual);
             // logger.log(JSON.stringify(this.leaves));
             // TODO: maintain a list of current leaves
             var leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(this.get_leaves_within_interval(beat_start, beat_end)));
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.get_leaves_within_interval(beat_start, beat_end)));
             this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
             // TODO: note working for the fourth and last clip
             this.update_leaves(leaves_within_interval);
@@ -75,7 +86,8 @@ var window;
         };
         Pwindow.prototype.get_leaves_within_interval = function (beat_start, beat_end) {
             var val = this.leaves.filter(function (node) {
-                return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end;
+                // return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
+                return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) || (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start);
             });
             return val;
         };
@@ -214,12 +226,30 @@ var window;
                         // assuming monophony, i.e., no overlap
                         return leaf_to_splice.model.note.beat_start === leaf.model.note.beat_start;
                     });
+                    var beat_end_children_greatest = -Infinity, beat_start_children_least = Infinity;
                     for (var _i = 0, _a = leaf.children; _i < _a.length; _i++) {
                         var child = _a[_i];
+                        if (child.model.note.get_beat_end() > beat_end_children_greatest) {
+                            beat_end_children_greatest = child.model.note.get_beat_end();
+                        }
+                        if (child.model.note.beat_start < beat_start_children_least) {
+                            beat_start_children_least = child.model.note.beat_start;
+                        }
                         children_to_insert.push(child);
                     }
-                    leaves_spliced.splice.apply(leaves_spliced, [i_leaf_to_splice,
-                        1].concat(children_to_insert));
+                    if (leaf.model.note.get_beat_end() > beat_end_children_greatest || leaf.model.note.beat_start < beat_start_children_least) {
+                        leaves_spliced.splice.apply(leaves_spliced, [i_leaf_to_splice,
+                            0].concat(children_to_insert));
+                    }
+                    else {
+                        leaves_spliced.splice.apply(leaves_spliced, [i_leaf_to_splice,
+                            1].concat(children_to_insert));
+                    }
+                    // leaves_spliced.splice(
+                    //     i_leaf_to_splice,
+                    //     1,
+                    //     ...children_to_insert
+                    // )
                 }
             };
             for (var _i = 0, leaves_1 = leaves; _i < leaves_1.length; _i++) {

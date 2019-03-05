@@ -97,6 +97,12 @@ var clip;
             }
             return this.notes;
         };
+        Clip.prototype.get_notes_within_loop_brackets = function () {
+            if (!this.notes) {
+                this.load_notes_within_loop_brackets();
+            }
+            return this.notes;
+        };
         Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
             return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max));
         };

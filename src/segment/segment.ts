@@ -64,7 +64,7 @@ export namespace segment {
             this.i += value_increment;
 
             if (this.i < 0) {
-                throw 'note iterator < 0'
+                throw 'segment iterator < 0'
             }
 
             if (this.i < this.segments.length) {
@@ -86,6 +86,10 @@ export namespace segment {
             } else {
                 return null;
             }
+        }
+
+        public reset() {
+            this.i = -1;
         }
     }
 }

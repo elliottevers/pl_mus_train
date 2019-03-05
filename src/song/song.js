@@ -9,6 +9,9 @@ var song;
         Song.prototype.set_session_record = function (int) {
             this.song_dao.set_session_record(int);
         };
+        Song.prototype.set_overdub = function (int) {
+            this.song_dao.set_overdub(int);
+        };
         return Song;
     }());
     song.Song = Song;
@@ -20,6 +23,9 @@ var song;
         }
         SongDao.prototype.set_session_record = function (int) {
             this.clip_live.set("session_record", int);
+        };
+        SongDao.prototype.set_overdub = function (int) {
+            this.clip_live.set("overdub", int);
         };
         return SongDao;
     }());
