@@ -174,15 +174,21 @@ describe('Pwindow', test(()=>{
             2
         );
 
-        pwindow.elaborate(
-            [note_3_4],
-            3,
-            4,
-            2
-        );
+        // pwindow.elaborate(
+        //     [note_3_4],
+        //     3,
+        //     4,
+        //     2
+        // );
 
 
         let messages = pwindow.get_messages_render_clips();
+
+        // for (let m of messages) {
+        //     console.log(m.join(' '));
+        // }
+        //
+        // return;
 
         // TODO: tack on colors to end of message, make color configurable
         // TODO: make order of messages not matter
@@ -216,9 +222,9 @@ describe('Pwindow', test(()=>{
             [ 'paintrect', 4, 43.333333333333336, 6, 46.666666666666664, 0, 0, 0 ],
         );
 
-        assert.deepEqual(
-            messages[6],
-            [ 'paintrect', 6, 40, 8, 43.333333333333336, 0, 0, 0 ],
-        );
+        // assert.deepEqual(
+        //     messages[6],
+        //     [ 'paintrect', 6, 40, 8, 43.333333333333336, 0, 0, 0 ],
+        // );
     }));
 }));
