@@ -78,7 +78,7 @@ export namespace parse {
         }
 
         public get_index_current() {
-            return this.i
+            return this.i + 1 // TODO: the root is the first index
         }
     }
 
@@ -97,7 +97,7 @@ export namespace parse {
         public next() {
 
             // initialize
-            if (this.iterator_tree.get_index_current() == -1) {
+            if (this.iterator_tree.get_index_current() == 0) {
                 this.iterator_tree.next()
             }
 

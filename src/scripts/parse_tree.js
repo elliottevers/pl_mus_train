@@ -1,5 +1,4 @@
 "use strict";
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
@@ -128,13 +127,44 @@ exports.begin_train_export = function (notes_segments, clip_user_input, song, ca
     });
     var dim = 16 * 6 * 4;
     pwindow = new window_1.window.Pwindow(dim, dim, messenger);
-    parse_tree_iterator.next();
     pwindow.set_root(note_root);
-    for (var i in notes_segments) {
-        callback_add_to_tree.call(_this, [
-            notes_segments[Number(i)]
-        ], notes_segments[Number(i)].model.note.beat_start, notes_segments[Number(i)].model.note.get_beat_end(), clip_user_input, song, messenger);
+    parse_tree_iterator.next();
+    pwindow.elaborate(notes_segments, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end(), 1);
+    // pwindow.add_first_layer(
+    //     notes_segments,
+    //     1
+    // );
+    // pwindow.update_leaves(
+    //     notes_segments
+    // );
+    var messages_notes = pwindow.get_messages_render_clips();
+    var messages_tree = pwindow.get_messages_render_tree();
+    var msg_clear = ["clear"];
+    msg_clear.unshift('render');
+    messenger.message(msg_clear);
+    for (var _a = 0, messages_notes_2 = messages_notes; _a < messages_notes_2.length; _a++) {
+        var message_3 = messages_notes_2[_a];
+        message_3.unshift('render');
+        messenger.message(message_3);
     }
+    for (var _b = 0, messages_tree_2 = messages_tree; _b < messages_tree_2.length; _b++) {
+        var message_4 = messages_tree_2[_b];
+        message_4.unshift('render');
+        messenger.message(message_4);
+    }
+    // for (let i in notes_segments) {
+    //     callback_add_to_tree.call(
+    //         this,
+    //         [
+    //             notes_segments[Number(i)]
+    //         ],
+    //         notes_segments[Number(i)].model.note.beat_start,
+    //         notes_segments[Number(i)].model.note.get_beat_end(),
+    //         clip_user_input,
+    //         song,
+    //         messenger
+    //     );
+    // }
     song.set_overdub(1);
     song.set_session_record(1);
     // TODO: uncomment

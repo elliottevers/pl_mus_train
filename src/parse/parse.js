@@ -54,7 +54,7 @@ var parse;
             }
         };
         TreeDepthIterator.prototype.get_index_current = function () {
-            return this.i;
+            return this.i + 1; // TODO: the root is the first index
         };
         return TreeDepthIterator;
     }());
@@ -67,7 +67,7 @@ var parse;
         // TODO: type declarations
         ParseTreeIterator.prototype.next = function () {
             // initialize
-            if (this.iterator_tree.get_index_current() == -1) {
+            if (this.iterator_tree.get_index_current() == 0) {
                 this.iterator_tree.next();
             }
             // let layer_current = this.iterator_tree.current();

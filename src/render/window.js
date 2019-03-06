@@ -47,7 +47,12 @@ var window;
                 clip_last.set_notes(elaboration);
             }
             var leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
-            this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
+            if (index_layer == 1) {
+                this.add_first_layer(elaboration, this.clips.length - 1);
+            }
+            else {
+                this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
+            }
             this.update_leaves(leaves_within_interval);
         };
         Pwindow.prototype.splice_notes = function (notes_subset, clip, interval_beats) {
@@ -176,6 +181,14 @@ var window;
             return messages;
         };
         ;
+        Pwindow.prototype.add_first_layer = function (notes, index_new_layer) {
+            // var note_parent_best, b_successful;
+            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                var node = notes_1[_i];
+                node.model.id = index_new_layer;
+                this.root_parse_tree.addChild(node);
+            }
+        };
         // NB: only works top down currently
         // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
         Pwindow.prototype.add_layer = function (notes_parent, notes_child, index_new_layer) {
@@ -217,7 +230,8 @@ var window;
                         }
                         children_to_insert.push(child);
                     }
-                    if (leaf.model.note.get_beat_end() > beat_end_children_greatest || leaf.model.note.beat_start < beat_start_children_least) {
+                    if (false) {
+                        // if (leaf.model.note.get_beat_end() > beat_end_children_greatest || leaf.model.note.beat_start < beat_start_children_least) {
                         leaves_spliced.splice.apply(leaves_spliced, [i_leaf_to_splice,
                             0].concat(children_to_insert));
                     }

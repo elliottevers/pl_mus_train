@@ -54,7 +54,6 @@ export namespace window {
 
         elaborate(elaboration: TreeModel.Node<n.Note>[], beat_start: number, beat_end: number, index_layer: number): void {
 
-
             if (index_layer + 1 > this.clips.length) {
                 let clip_dao_virtual = new LiveClipVirtual(elaboration);
                 let clip_virtual = new c.Clip(clip_dao_virtual);
@@ -66,7 +65,11 @@ export namespace window {
 
             let leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
 
-            this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
+            if (index_layer == 1) {
+                this.add_first_layer(elaboration, this.clips.length - 1)
+            } else {
+                this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
+            }
 
             this.update_leaves(leaves_within_interval);
         }
@@ -221,6 +224,15 @@ export namespace window {
             return messages;
         };
 
+        private add_first_layer(notes: TreeModel.Node<n.Note>[], index_new_layer: number): void {
+            // var note_parent_best, b_successful;
+
+            for (let node of notes) {
+                node.model.id = index_new_layer;
+                this.root_parse_tree.addChild(node);
+            }
+        }
+
         // NB: only works top down currently
         // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
         private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[], index_new_layer: number): void {
@@ -266,7 +278,8 @@ export namespace window {
                         children_to_insert.push(child);
                     }
 
-                    if (leaf.model.note.get_beat_end() > beat_end_children_greatest || leaf.model.note.beat_start < beat_start_children_least) {
+                    if (false) {
+                    // if (leaf.model.note.get_beat_end() > beat_end_children_greatest || leaf.model.note.beat_start < beat_start_children_least) {
                         leaves_spliced.splice(
                             i_leaf_to_splice,
                             0,
