@@ -1,12 +1,14 @@
 import {segment} from "../segment/segment";
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
+import {log} from "../log/logger";
 
 const _ = require("underscore");
 
 
 export namespace parse {
     import SegmentIterator = segment.SegmentIterator;
+    import Logger = log.Logger;
 
     export interface Parsable {
         choose(): boolean;
@@ -18,19 +20,30 @@ export namespace parse {
     export class ParseMatrix {
 
         data: TreeModel.Node<note.Note>[][][];
+        logger: Logger;
 
         constructor(height: number, width: number) {
             this.data = [];
             for(let i=0; i<height; i++) {
                 this.data[i] = new Array(width);
             }
+            this.logger = new Logger('max')
         }
 
         set_notes(i_height, i_width, notes): void {
+            // this.logger.log(i_height);
+            // this.logger.log(i_width);
+            // this.logger.log(JSON.stringify(notes));
             this.data[i_height][i_width] = notes
         }
 
         get_notes(i_height, i_width): TreeModel.Node<note.Note>[] {
+            // this.logger.log(JSON.stringify(this.data));
+            // for (let datum of this.data) {
+            //     this.logger.log(datum.toString())
+            // }
+            // this.logger.log(i_height);
+            // this.logger.log(i_width);
             return this.data[i_height][i_width]
         }
     }

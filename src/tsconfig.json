@@ -52,6 +52,13 @@
 //    "declaration": true,
     "inlineSources": true,
     "lib": ["es2015"]
+//    "typeRoots": ["typings/cycling"]
+//    "baseUrl": ".",
+//    "paths": {
+//      "max-api": [
+//        "./src/typings/max_api"
+//      ]
+//    }
   }
 }
 

@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
 (function (message_1) {
-    // TODO: the following
-    // type Env = 'max' | 'node';
     var Messenger = /** @class */ (function () {
         function Messenger(env, outlet, key_route) {
             this.env = env;
@@ -14,18 +12,40 @@ var message;
             return this.key_route;
         };
         Messenger.prototype.message = function (message) {
-            if (this.env === 'max') {
-                if (this.key_route) {
-                    message.unshift(this.key_route);
+            switch (this.env) {
+                case 'max': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_max(message);
+                    break;
                 }
-                this.message_max(message);
-            }
-            else if (this.env === 'node') {
-                if (this.key_route) {
-                    message.unshift(this.key_route);
+                case 'node': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node(message);
+                    break;
                 }
-                this.message_node(message);
+                case 'node_for_max': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node_for_max(message);
+                    break;
+                }
             }
+            // if (this.env === 'max') {
+            //     if (this.key_route) {
+            //         message.unshift(this.key_route);
+            //     }
+            //     this.message_max(message);
+            // } else if (this.env === 'node') {
+            //     if (this.key_route) {
+            //         message.unshift(this.key_route);
+            //     }
+            //     this.message_node(message);
+            // }
         };
         Messenger.prototype.message_max = function (message) {
             outlet(this.outlet, message);
@@ -35,6 +55,10 @@ var message;
             console.log("\n");
             console.log(message);
             console.log("\n");
+        };
+        Messenger.prototype.message_node_for_max = function (message) {
+            // const m = require('./max-api');
+            // m.Max.outlet(message);
         };
         return Messenger;
     }());

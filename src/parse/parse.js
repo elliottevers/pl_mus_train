@@ -1,19 +1,31 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var logger_1 = require("../log/logger");
 var _ = require("underscore");
 var parse;
 (function (parse) {
+    var Logger = logger_1.log.Logger;
     var ParseMatrix = /** @class */ (function () {
         function ParseMatrix(height, width) {
             this.data = [];
             for (var i = 0; i < height; i++) {
                 this.data[i] = new Array(width);
             }
+            this.logger = new Logger('max');
         }
         ParseMatrix.prototype.set_notes = function (i_height, i_width, notes) {
+            // this.logger.log(i_height);
+            // this.logger.log(i_width);
+            // this.logger.log(JSON.stringify(notes));
             this.data[i_height][i_width] = notes;
         };
         ParseMatrix.prototype.get_notes = function (i_height, i_width) {
+            // this.logger.log(JSON.stringify(this.data));
+            // for (let datum of this.data) {
+            //     this.logger.log(datum.toString())
+            // }
+            // this.logger.log(i_height);
+            // this.logger.log(i_width);
             return this.data[i_height][i_width];
         };
         return ParseMatrix;

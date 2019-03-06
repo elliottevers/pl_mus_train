@@ -10,6 +10,12 @@
     "suppressImplicitAnyIndexErrors": true,
     "typeRoots": [ "node_modules/@types" ],
     "inlineSources": true
+//    "baseUrl": ".",
+//    "paths": {
+//      "max-api": [
+//        "./src/typings/max_api"
+//      ]
+//    }
   },
   "exclude": [
     "node_modules",

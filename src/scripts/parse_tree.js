@@ -21,7 +21,7 @@ var parse_1 = require("../parse/parse");
 var TreeDepthIterator = parse_1.parse.TreeDepthIterator;
 var ParseTreeIterator = parse_1.parse.ParseTreeIterator;
 var ParseMatrix = parse_1.parse.ParseMatrix;
-var env = 'node';
+var env = 'max';
 if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
@@ -83,20 +83,23 @@ var confirm = function () {
     add_to_tree(elaboration, segment_current.beat_start, segment_current.beat_end);
 };
 var reset = function () {
-    clip_user_input.set_notes(parse_matrix.get_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current()));
+    clip_user_input.set_notes(parse_matrix.get_notes(tree_depth_iterator.get_index_current() - 1, segment_iterator.get_index_current()));
 };
 var erase = function () {
-    var epsilon = 1 / (48 * 2);
-    clip_user_input.remove_notes(segment_current.beat_start - epsilon, 0, segment_current.beat_end - segment_current.beat_start, 128);
+    // let epsilon = 1/(48 * 2);
+    clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end - segment_current.beat_start, 128);
 };
 function set_clip_segment() {
     var vector_path_live = Array.prototype.slice.call(arguments);
+    // logger.log(utils.PathLive.to_string(vector_path_live));
     var live_api_clip_segment = new live_1.live.LiveApiJs(utils_1.utils.PathLive.to_string(vector_path_live));
+    // logger.log(live_api_clip_segment.call('get_notes', "-1", 0, "100", "128"));
     clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_clip_segment, new messenger_1.message.Messenger(env, 0), false));
     // TODO: in information retreival phase, save the start and end points of the song and retreive them here
     clip_segment.set_clip_endpoint_lower(1);
     clip_segment.set_clip_endpoint_upper(16 * 4);
     notes_segments = clip_segment.get_notes_within_markers();
+    // logger.log(JSON.stringify(notes_segments));
 }
 var set_depth_tree = function (depth) {
     exports.set_depth_tree_export(depth);
@@ -132,10 +135,13 @@ exports.begin_train_export = function (notes_segments, clip_user_input, song, ca
     pwindow.set_root(note_root);
     parse_tree_iterator.next('root');
     pwindow.elaborate(notes_segments, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end(), 1);
-    for (var _a = 0, notes_segments_2 = notes_segments; _a < notes_segments_2.length; _a++) {
-        var i = notes_segments_2[_a];
+    for (var i in notes_segments) {
+        parse_matrix.set_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current(), [notes_segments[Number(i)]]);
         parse_tree_iterator.next();
     }
+    segment_current = segment_iterator.current();
+    var interval = segment_current.get_endpoints_loop();
+    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
     // parse_tree_iterator.next();
     // let messages_notes = pwindow.get_messages_render_clips();
     //
@@ -173,8 +179,16 @@ var set_clip_user_input = function () {
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), true, key_route));
     clip_user_input.set_path_deferlow('set_path_clip_user_input');
     var beats_duration_song = 16 * 4;
+    // logger.log(JSON.stringify(notes_segments));
     clip_user_input.remove_notes(notes_segments[0].model.note.beat_start, 0, beats_duration_song, 128);
     clip_user_input.set_notes(notes_segments);
+    // clip_user_input.set_loop_bracket_upper(
+    //     notes_segments[0].model.note.beat_start
+    // );
+    //
+    // clip_user_input.set_loop_bracket_upper(
+    //     notes_segments[0].model.note.get_beat_end()
+    // );
 };
 if (typeof Global !== "undefined") {
     Global.parse_tree = {};

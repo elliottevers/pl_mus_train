@@ -4,8 +4,6 @@ import {begin_train_export, set_depth_tree_export, add_to_tree_export} from "../
 import {message} from "../../src/message/messenger";
 import Messenger = message.Messenger;
 
-
-
 // stubs
 let song = {
     set_overdub: (int) => {},
@@ -205,7 +203,8 @@ set_depth_tree_export(4);
 
 let env: string;
 env = 'node';
-env = 'node_for_max';
+// env = 'node_for_max';
+// const Max = require('max-api');
 
 let messenger = new Messenger(env, 0);
 

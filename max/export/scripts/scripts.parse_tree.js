@@ -3,12 +3,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
+var logger_1 = require("../log/logger");
 var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
+    var Logger = logger_1.log.Logger;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
+            this.logger = new Logger('max');
         }
         Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
             if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
@@ -41,12 +44,14 @@ var clip;
         };
         // TODO: annotations
         Clip.prototype.load_notes_within_markers = function () {
-            this.notes = this.get_notes(this.get_start_marker(), 0, this.get_end_marker(), 128);
+            this.notes = this.get_notes(0, // this.get_start_marker(),
+            0, 16 * 4, // this.get_end_marker(),
+            128);
         };
         // TODO: annotations
         Clip.prototype.get_pitch_max = function () {
             var pitch_max = 0;
-            for (var _i = 0, _a = this.get_notes_within_markers(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch > pitch_max) {
                     pitch_max = node.model.note.pitch;
@@ -57,7 +62,7 @@ var clip;
         // TODO: annotations
         Clip.prototype.get_pitch_min = function () {
             var pitch_min = 128;
-            for (var _i = 0, _a = this.get_notes_within_markers(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch < pitch_min) {
                     pitch_min = node.model.note.pitch;
@@ -93,15 +98,25 @@ var clip;
             this.clip_dao.stop();
         };
         Clip.prototype.get_notes_within_markers = function () {
-            if (!this.notes) {
-                this.load_notes_within_markers();
-            }
+            // if (!this.notes) {
+            this.load_notes_within_markers();
+            // }
+            // this.logger.log(
+            //     JSON.stringify(
+            //         this.get_notes(
+            //             0, // this.get_start_marker(),
+            //             0,
+            //             16 * 4, // this.get_end_marker(),
+            //             128
+            //         )
+            //     )
+            // );
             return this.notes;
         };
         Clip.prototype.get_notes_within_loop_brackets = function () {
-            if (!this.notes) {
-                this.load_notes_within_loop_brackets();
-            }
+            // if (!this.notes) {
+            this.load_notes_within_loop_brackets();
+            // }
             return this.notes;
         };
         Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
@@ -115,7 +130,8 @@ var clip;
             return this.clip_dao.get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
         };
         Clip.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
-            this.clip_dao.remove_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max);
+            var epsilon = 1 / (48 * 2);
+            this.clip_dao.remove_notes(beat_start - epsilon, pitch_midi_min, beat_duration, pitch_midi_max);
         };
         Clip.parse_note_messages = function (messages) {
             var notes = [];
@@ -196,7 +212,8 @@ var clip;
     }());
     clip.Clip = Clip;
     var ClipDao = /** @class */ (function () {
-        function ClipDao(clip_live, messenger, deferlow, key_route) {
+        // private logger: Logger;
+        function ClipDao(clip_live, messenger, deferlow, key_route, env) {
             this.clip_live = clip_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -204,6 +221,8 @@ var clip;
             }
             this.deferlow = deferlow;
             this.key_route = key_route;
+            this.env = env;
+            // this.logger = new Logger('max');
         }
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
@@ -217,10 +236,14 @@ var clip;
         };
         // TODO: check if these actually return arrays
         ClipDao.prototype.get_end_marker = function () {
+            // return this.clip_live.get('end_marker')[0];
+            // this.logger.log(JSON.stringify(this.clip_live.get('end_marker')));
             return this.clip_live.get('end_marker')[0];
         };
         // TODO: check if these actually return arrays
         ClipDao.prototype.get_start_marker = function () {
+            // return this.clip_live.get('start_marker')[0];
+            // this.logger.log(JSON.stringify(this.clip_live.get('start_marker')));
             return this.clip_live.get('start_marker')[0];
         };
         ClipDao.prototype.get_path = function () {
@@ -283,7 +306,12 @@ var clip;
         };
         ;
         ClipDao.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            if (this.env === 'node_for_max') {
+                return this.notes_cached;
+            }
+            else {
+                return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            }
         };
         ;
         ClipDao.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
@@ -304,11 +332,25 @@ var clip;
         };
         ;
         ClipDao.prototype.set_notes = function (notes) {
-            if (this.deferlow) {
+            if (this.env === 'node_for_max') {
+                var notes_cached = [];
+                notes_cached.push('notes');
+                notes_cached.push(notes.length.toString());
+                for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                    var note = notes_1[_i];
+                    notes_cached.push(note.model.note.pitch.toString());
+                    notes_cached.push(note.model.note.beat_start.toString());
+                    notes_cached.push(note.model.note.beats_duration.toString());
+                    notes_cached.push(note.model.note.velocity.toString());
+                    notes_cached.push(note.model.note.muted.toString());
+                }
+                notes_cached.push('done');
+            }
+            else if (this.deferlow) {
                 this.messenger.message([this.key_route, 'call', 'set_notes']);
                 this.messenger.message([this.key_route, 'call', 'notes', notes.length]);
-                for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
-                    var node = notes_1[_i];
+                for (var _a = 0, notes_2 = notes; _a < notes_2.length; _a++) {
+                    var node = notes_2[_a];
                     this.messenger.message([
                         this.key_route,
                         'call',
@@ -325,8 +367,8 @@ var clip;
             else {
                 this.clip_live.call('set_notes');
                 this.clip_live.call('notes', notes.length);
-                for (var _a = 0, notes_2 = notes; _a < notes_2.length; _a++) {
-                    var node = notes_2[_a];
+                for (var _b = 0, notes_3 = notes; _b < notes_3.length; _b++) {
+                    var node = notes_3[_b];
                     this.clip_live.call("note", node.model.note.pitch, node.model.note.beat_start.toFixed(4), node.model.note.beats_duration.toFixed(4), node.model.note.velocity, node.model.note.muted);
                 }
                 this.clip_live.call("done");
@@ -337,14 +379,18 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../note/note":5,"../utils/utils":11,"tree-model":16}],2:[function(require,module,exports){
+},{"../log/logger":3,"../note/note":5,"../utils/utils":11,"tree-model":15}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live;
 (function (live) {
     var LiveApiJs = /** @class */ (function () {
-        function LiveApiJs(path) {
-            this.live_api = new LiveAPI(null, path);
+        function LiveApiJs(path, env) {
+            if (env == 'node') {
+            }
+            else {
+                this.live_api = new LiveAPI(null, path);
+            }
         }
         LiveApiJs.prototype.get = function (property) {
             return this.live_api.get(property);
@@ -376,11 +422,29 @@ var live;
         function LiveClipVirtual(notes) {
             this.notes = notes;
         }
+        // load_notes_within_loop_brackets(): void {
+        //     this.notes = this.get_notes(
+        //         this.get_loop_bracket_lower(),
+        //         0,
+        //         this.get_loop_bracket_upper(),
+        //         128
+        //     )
+        // }
         LiveClipVirtual.prototype.get_end_marker = function () {
-            return this.notes[this.notes.length - 1].model.note.get_beat_end();
+            return this.beat_end;
+            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
         };
         LiveClipVirtual.prototype.get_start_marker = function () {
-            return this.notes[0].model.note.beat_start;
+            return this.beat_start;
+            // return this.notes[0].model.note.beat_start;
+        };
+        LiveClipVirtual.prototype.get_loop_bracket_upper = function () {
+            return [this.beat_end];
+            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
+        };
+        LiveClipVirtual.prototype.get_loop_bracket_lower = function () {
+            return [this.beat_start];
+            // return this.notes[0].model.note.beat_start;
         };
         LiveClipVirtual.prototype.set_loop_bracket_lower = function (beat) {
             return;
@@ -528,8 +592,6 @@ var log;
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
 (function (message_1) {
-    // TODO: the following
-    // type Env = 'max' | 'node';
     var Messenger = /** @class */ (function () {
         function Messenger(env, outlet, key_route) {
             this.env = env;
@@ -540,18 +602,40 @@ var message;
             return this.key_route;
         };
         Messenger.prototype.message = function (message) {
-            if (this.env === 'max') {
-                if (this.key_route) {
-                    message.unshift(this.key_route);
+            switch (this.env) {
+                case 'max': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_max(message);
+                    break;
                 }
-                this.message_max(message);
-            }
-            else if (this.env === 'node') {
-                if (this.key_route) {
-                    message.unshift(this.key_route);
+                case 'node': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node(message);
+                    break;
                 }
-                this.message_node(message);
+                case 'node_for_max': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node_for_max(message);
+                    break;
+                }
             }
+            // if (this.env === 'max') {
+            //     if (this.key_route) {
+            //         message.unshift(this.key_route);
+            //     }
+            //     this.message_max(message);
+            // } else if (this.env === 'node') {
+            //     if (this.key_route) {
+            //         message.unshift(this.key_route);
+            //     }
+            //     this.message_node(message);
+            // }
         };
         Messenger.prototype.message_max = function (message) {
             outlet(this.outlet, message);
@@ -561,6 +645,10 @@ var message;
             console.log("\n");
             console.log(message);
             console.log("\n");
+        };
+        Messenger.prototype.message_node_for_max = function (message) {
+            // const m = require('./max-api');
+            // m.Max.outlet(message);
         };
         return Messenger;
     }());
@@ -703,20 +791,32 @@ var note;
 },{}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var logger_1 = require("../log/logger");
 var _ = require("underscore");
 var parse;
 (function (parse) {
+    var Logger = logger_1.log.Logger;
     var ParseMatrix = /** @class */ (function () {
         function ParseMatrix(height, width) {
             this.data = [];
             for (var i = 0; i < height; i++) {
                 this.data[i] = new Array(width);
             }
+            this.logger = new Logger('max');
         }
         ParseMatrix.prototype.set_notes = function (i_height, i_width, notes) {
+            this.logger.log(i_height);
+            this.logger.log(i_width);
+            // this.logger.log(JSON.stringify(notes));
             this.data[i_height][i_width] = notes;
         };
         ParseMatrix.prototype.get_notes = function (i_height, i_width) {
+            // this.logger.log(JSON.stringify(this.data));
+            // for (let datum of this.data) {
+            //     this.logger.log(datum.toString())
+            // }
+            this.logger.log(i_height);
+            this.logger.log(i_width);
             return this.data[i_height][i_width];
         };
         return ParseMatrix;
@@ -726,7 +826,7 @@ var parse;
         function TreeDepthIterator(depth, direction_forward) {
             this.layers = _.range(depth);
             this.direction_forward = direction_forward;
-            this.i = -1;
+            this.i = 0;
         }
         // TODO: type declarations
         TreeDepthIterator.prototype.next = function () {
@@ -757,7 +857,7 @@ var parse;
             }
         };
         TreeDepthIterator.prototype.get_index_current = function () {
-            return this.i;
+            return this.i; // TODO: the root is the first index
         };
         return TreeDepthIterator;
     }());
@@ -768,7 +868,12 @@ var parse;
             this.iterator_tree = iterator_tree;
         }
         // TODO: type declarations
-        ParseTreeIterator.prototype.next = function () {
+        ParseTreeIterator.prototype.next = function (type_node) {
+            if (type_node === 'root') {
+                // initialize
+                this.iterator_tree.next();
+                return;
+            }
             // initialize
             if (this.iterator_tree.get_index_current() == -1) {
                 this.iterator_tree.next();
@@ -808,14 +913,14 @@ var parse;
     parse.ParseTreeIterator = ParseTreeIterator;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"underscore":17}],7:[function(require,module,exports){
+},{"../log/logger":3,"underscore":16}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
 var logger_1 = require("../log/logger");
-var CircularJSON = require('circular-json');
+// let CircularJSON = require('circular-json');
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
@@ -839,18 +944,12 @@ var window;
         Pwindow.prototype.get_notes_leaves = function () {
             return this.leaves;
         };
-        // TODO: this assumes it only gets called once
-        // TODO: assumes we only have one note to begin with
-        // set_root(clip_root: c.Clip) {
         Pwindow.prototype.set_root = function (note_root) {
             var clip_dao_virtual = new LiveClipVirtual([note_root]);
             var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
+            clip_virtual.clip_dao.beat_start = note_root.model.note.beat_start;
+            clip_virtual.clip_dao.beat_end = note_root.model.note.get_beat_end();
             this.add_clip(clip_virtual);
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(clip_root.get_notes_within_markers()));
-            // let note = clip_root.get_notes_within_markers()[0];  // first clip only has one note
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(note));
             note_root.model.id = 0; // index of first clip
             this.root_parse_tree = note_root;
             this.leaves = [note_root];
@@ -858,22 +957,27 @@ var window;
         Pwindow.prototype.elaborate = function (elaboration, beat_start, beat_end, index_layer) {
             if (index_layer + 1 > this.clips.length) {
                 var clip_dao_virtual = new LiveClipVirtual(elaboration);
+                clip_dao_virtual.beat_start = elaboration[0].model.note.beat_start;
+                clip_dao_virtual.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
                 var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
                 this.add_clip(clip_virtual);
             }
             else {
                 var clip_last = this.clips[this.clips.length - 1];
+                clip_last.clip_dao.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
                 clip_last.set_notes(elaboration);
             }
-            // TODO: maintain a list of current leaves
             var leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
-            // this.logger.log(JSON.stringify(leaves_within_interval));
-            this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
+            if (index_layer == 1) {
+                this.add_first_layer(elaboration, this.clips.length - 1);
+            }
+            else {
+                this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
+            }
             this.update_leaves(leaves_within_interval);
-            // set list of current leaves
         };
         Pwindow.prototype.splice_notes = function (notes_subset, clip, interval_beats) {
-            var notes_clip = _.cloneDeep(clip.get_notes_within_markers());
+            var notes_clip = _.cloneDeep(clip.get_notes_within_loop_brackets());
             var num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
             var index_start = this.get_note_index_at_beat(interval_beats[0], notes_clip);
             notes_clip.splice.apply(notes_clip, [index_start, num_notes_to_replace].concat(notes_subset));
@@ -888,9 +992,11 @@ var window;
         Pwindow.prototype.get_leaves_within_interval = function (beat_start, beat_end) {
             var val = this.leaves.filter(function (node) {
                 // return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
-                return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) || (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start);
+                return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) ||
+                    (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start) ||
+                    (node.model.note.get_beat_end() >= beat_end && node.model.note.beat_start <= beat_start);
             });
-            this.logger.log(CircularJSON.stringify(this.leaves));
+            // this.logger.log(CircularJSON.stringify(this.leaves));
             return val;
         };
         // NB: this makes the assumption that the end marker is at the end of the clip
@@ -998,6 +1104,14 @@ var window;
             return messages;
         };
         ;
+        Pwindow.prototype.add_first_layer = function (notes, index_new_layer) {
+            // var note_parent_best, b_successful;
+            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                var node = notes_1[_i];
+                node.model.id = index_new_layer;
+                this.root_parse_tree.addChild(node);
+            }
+        };
         // NB: only works top down currently
         // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
         Pwindow.prototype.add_layer = function (notes_parent, notes_child, index_new_layer) {
@@ -1039,7 +1153,8 @@ var window;
                         }
                         children_to_insert.push(child);
                     }
-                    if (leaf.model.note.get_beat_end() > beat_end_children_greatest || leaf.model.note.beat_start < beat_start_children_least) {
+                    if (false) {
+                        // if (leaf.model.note.get_beat_end() > beat_end_children_greatest || leaf.model.note.beat_start < beat_start_children_least) {
                         leaves_spliced.splice.apply(leaves_spliced, [i_leaf_to_splice,
                             0].concat(children_to_insert));
                     }
@@ -1079,7 +1194,7 @@ var window;
         Pwindow.prototype.get_messages_render_notes = function (index_clip) {
             var clip = this.clips[index_clip];
             var quadruplets = [];
-            for (var _i = 0, _a = clip.get_notes_within_markers(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = clip.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
@@ -1133,7 +1248,7 @@ var window;
     window.Pwindow = Pwindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"circular-json":12,"lodash":14}],8:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"lodash":13}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -1164,7 +1279,7 @@ if (env === 'max') {
 }
 var messenger = new Messenger(env, 0);
 var logger = new Logger(env);
-var song_dao = new song_1.song.SongDao(new live_1.live.LiveApiJs("live_set"), new messenger_1.message.Messenger(env, 0, "song"), true);
+var song_dao = new song_1.song.SongDao(new live_1.live.LiveApiJs("live_set", env), new messenger_1.message.Messenger(env, 0, "song"), true);
 var song = new song_1.song.Song(song_dao);
 var pwindow;
 var elaboration;
@@ -1178,8 +1293,11 @@ var parse_tree_iterator;
 var layer_parse_tree_current;
 var depth_parse_tree;
 var parse_matrix;
+var notes_segments;
 var add_to_tree = function (notes, beat_start, beat_end) {
-    // parse_tree_iterator.next();
+    exports.add_to_tree_export(notes, beat_start, beat_end, clip_user_input, song, messenger);
+};
+exports.add_to_tree_export = function (notes, beat_start, beat_end, clip_user_input, song, messenger) {
     pwindow.elaborate(notes, beat_start, beat_end, tree_depth_iterator.get_index_current());
     parse_matrix.set_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current(), notes);
     var messages_notes = pwindow.get_messages_render_clips();
@@ -1201,131 +1319,49 @@ var add_to_tree = function (notes, beat_start, beat_end) {
     var val_segment_next = segment_next.value;
     layer_parse_tree_current = tree_depth_iterator.get_index_current();
     if (segment_next.done) {
+        // TODO: handle for testing
         song.set_overdub(0);
         song.set_session_record(0);
         clip_user_input.stop();
         return;
     }
     segment_current = val_segment_next;
-    // TODO: send messages to deferlow object
     var interval = segment_current.get_endpoints_loop();
     clip_user_input.set_endpoints_loop(interval[0], interval[1]);
 };
 var confirm = function () {
     elaboration = clip_user_input.get_notes(segment_current.beat_start, 0, segment_current.beat_end - segment_current.beat_start, 128);
     add_to_tree(elaboration, segment_current.beat_start, segment_current.beat_end);
-    // logger.log(JSON.stringify(layer_parse_tree_current));
-    // pwindow.elaborate(
-    //     elaboration,
-    //     segment_current.beat_start,
-    //     segment_current.beat_end,
-    //     layer_parse_tree_current
-    // );
-    //
-    // // logger.log(JSON.stringify(tree_depth_iterator.get_index_current()));
-    // // logger.log(JSON.stringify(segment_iterator.get_index_current()));
-    //
-    // parse_matrix.set_notes(
-    //     tree_depth_iterator.get_index_current(),
-    //     segment_iterator.get_index_current(),
-    //     elaboration
-    // );
-    //
-    // let messages_notes = pwindow.get_messages_render_clips();
-    //
-    // let messages_tree = pwindow.get_messages_render_tree();
-    //
-    // let msg_clear = ["clear"];
-    // msg_clear.unshift('render');
-    // messenger.message(msg_clear);
-    //
-    // for (let message of messages_notes) {
-    //     message.unshift('render');
-    //     messenger.message(message);
-    // }
-    //
-    // for (let message of messages_tree) {
-    //     message.unshift('render');
-    //     messenger.message(message);
-    // }
-    // let segment_next = parse_tree_iterator.next();
-    //
-    // let val_segment_next = segment_next.value;
-    //
-    // layer_parse_tree_current = tree_depth_iterator.get_index_current();
-    // if (segment_next.done) {
-    //
-    //     song.set_overdub(0);
-    //
-    //     song.set_session_record(0);
-    //
-    //     clip_user_input.stop();
-    //
-    //     return
-    // }
-    //
-    // segment_current = val_segment_next;
-    //
-    // // TODO: send messages to deferlow object
-    // let interval = segment_current.get_endpoints_loop();
-    //
-    // clip_user_input.set_endpoints_loop(
-    //     interval[0],
-    //     interval[1]
-    // );
 };
 var reset = function () {
-    clip_user_input.set_notes(
-    // segment_current.get_notes()
-    parse_matrix.get_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current()));
+    clip_user_input.set_notes(parse_matrix.get_notes(tree_depth_iterator.get_index_current() - 1, segment_iterator.get_index_current()));
 };
 var erase = function () {
-    var epsilon = 1 / (48 * 2);
-    clip_user_input.remove_notes(segment_current.beat_start - epsilon, 0, segment_current.beat_end - segment_current.beat_start, 128);
+    // let epsilon = 1/(48 * 2);
+    clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end - segment_current.beat_start, 128);
 };
 function set_clip_segment() {
     var vector_path_live = Array.prototype.slice.call(arguments);
+    // logger.log(utils.PathLive.to_string(vector_path_live));
     var live_api_clip_segment = new live_1.live.LiveApiJs(utils_1.utils.PathLive.to_string(vector_path_live));
+    // logger.log(live_api_clip_segment.call('get_notes', "-1", 0, "100", "128"));
     clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_clip_segment, new messenger_1.message.Messenger(env, 0), false));
     // TODO: in information retreival phase, save the start and end points of the song and retreive them here
     clip_segment.set_clip_endpoint_lower(1);
     clip_segment.set_clip_endpoint_upper(16 * 4);
+    notes_segments = clip_segment.get_notes_within_markers();
+    // logger.log(JSON.stringify(notes_segments));
 }
 var set_depth_tree = function (depth) {
+    exports.set_depth_tree_export(depth);
+};
+exports.set_depth_tree_export = function (depth) {
     depth_parse_tree = depth;
 };
 var begin_train = function () {
-    var notes_segments = clip_segment.get_notes_within_markers();
-    // let tree: TreeModel = new TreeModel();
-    //
-    // let note_root = tree.parse(
-    //     {
-    //         id: -1, // TODO: hashing scheme for clip id and beat start
-    //         note: new n.Note(
-    //             notes_segments[0].model.note.pitch,
-    //             notes_segments[0].model.note.beat_start,
-    //             notes_segments[notes_segments.length - 1].model.note.get_beat_end() - notes_segments[0].model.note.beat_start,
-    //             90,
-    //             0
-    //         ),
-    //         children: [
-    //
-    //         ]
-    //     }
-    // );
-    //
-    // let dim = 16 * 6 * 4;
-    //
-    // pwindow = new w.Pwindow(
-    //     dim,
-    //     dim,
-    //     new m.Messenger(env, 0)
-    // );
-    //
-    // pwindow.set_root(
-    //     note_root
-    // );
-    // layer_parse_tree_current = 1;
+    exports.begin_train_export(notes_segments, clip_user_input, song, add_to_tree, messenger);
+};
+exports.begin_train_export = function (notes_segments, clip_user_input, song, callback_add_to_tree, messenger) {
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
@@ -1344,68 +1380,37 @@ var begin_train = function () {
         children: []
     });
     var dim = 16 * 6 * 4;
-    pwindow = new window_1.window.Pwindow(dim, dim, new messenger_1.message.Messenger(env, 0));
+    pwindow = new window_1.window.Pwindow(dim, dim, messenger);
     // initialize
-    // tree_depth_iterator.next();
     parse_tree_iterator.next();
     pwindow.set_root(note_root);
-    // tree_depth_iterator.next();
+    parse_tree_iterator.next('root');
+    pwindow.elaborate(notes_segments, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end(), 1);
     for (var i in notes_segments) {
-        add_to_tree([
-            notes_segments[Number(i)]
-        ], notes_segments[Number(i)].model.note.beat_start, notes_segments[Number(i)].model.note.get_beat_end());
-        // parse_tree_iterator.next();
-        //
-        // pwindow.elaborate(
-        //     [notes_segments[Number(i)]],
-        //     notes_segments[Number(i)].model.note.beat_start,
-        //     notes_segments[Number(i)].model.note.get_beat_end(),
-        //     tree_depth_iterator.get_index_current()
-        // );
-        //
-        // parse_matrix.set_notes(
-        //     tree_depth_iterator.get_index_current(),
-        //     Number(i),
-        //     [notes_segments[Number(i)]]
-        // );
-        //
-        // let messages_notes = pwindow.get_messages_render_clips();
-        //
-        // let messages_tree = pwindow.get_messages_render_tree();
-        //
-        // let msg_clear = ["clear"];
-        // msg_clear.unshift('render');
-        // messenger.message(msg_clear);
-        //
-        // for (let message of messages_notes) {
-        //     message.unshift('render');
-        //     messenger.message(message);
-        // }
-        //
-        // for (let message of messages_tree) {
-        //     message.unshift('render');
-        //     messenger.message(message);
-        // }
+        parse_matrix.set_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current(), [notes_segments[Number(i)]]);
+        parse_tree_iterator.next();
     }
-    // layer_parse_tree_current = tree_depth_iterator.get_index_current();
-    // parse_tree_iterator = new ParseTreeIterator(
-    //     segment_iterator,
-    //     tree_depth_iterator
-    // );
-    // let val_segment_next = parse_tree_iterator.next();
+    segment_current = segment_iterator.current();
+    var interval = segment_current.get_endpoints_loop();
+    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+    // parse_tree_iterator.next();
+    // let messages_notes = pwindow.get_messages_render_clips();
     //
-    // segment_current = val_segment_next.value;
+    // let messages_tree = pwindow.get_messages_render_tree();
     //
-    // layer_parse_tree_current = tree_depth_iterator.get_index_current();
-    // for (let i in notes_segments) {
-    //     parse_matrix.set_notes(
-    //         tree_depth_iterator.get_index_current(),
-    //         Number(i),
-    //         [notes_segments[Number(i)]]
-    //     );
+    // let msg_clear = ["clear"];
+    // msg_clear.unshift('render');
+    // messenger.message(msg_clear);
+    //
+    // for (let message of messages_notes) {
+    //     message.unshift('render');
+    //     messenger.message(message);
     // }
-    // let interval = segment_current.get_endpoints_loop();
-    // clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+    //
+    // for (let message of messages_tree) {
+    //     message.unshift('render');
+    //     messenger.message(message);
+    // }
     song.set_overdub(1);
     song.set_session_record(1);
     // TODO: uncomment
@@ -1420,13 +1425,21 @@ var resume_train = function () {
 var set_clip_user_input = function () {
     var live_api_user_input = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
     // TODO: get notes from segment clip
-    var notes_segments = clip_segment.get_notes_within_markers();
+    // let notes_segments: TreeModel.Node<n.Note>[] = clip_segment.get_notes_within_markers();
     var key_route = 'clip_user_input';
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), true, key_route));
     clip_user_input.set_path_deferlow('set_path_clip_user_input');
     var beats_duration_song = 16 * 4;
+    // logger.log(JSON.stringify(notes_segments));
     clip_user_input.remove_notes(notes_segments[0].model.note.beat_start, 0, beats_duration_song, 128);
     clip_user_input.set_notes(notes_segments);
+    // clip_user_input.set_loop_bracket_upper(
+    //     notes_segments[0].model.note.beat_start
+    // );
+    //
+    // clip_user_input.set_loop_bracket_upper(
+    //     notes_segments[0].model.note.get_beat_end()
+    // );
 };
 if (typeof Global !== "undefined") {
     Global.parse_tree = {};
@@ -1441,7 +1454,7 @@ if (typeof Global !== "undefined") {
     Global.parse_tree.set_depth_tree = set_depth_tree;
 }
 
-},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../note/note":5,"../parse/parse":6,"../render/window":7,"../segment/segment":9,"../song/song":10,"../utils/utils":11,"tree-model":16}],9:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../note/note":5,"../parse/parse":6,"../render/window":7,"../segment/segment":9,"../song/song":10,"../utils/utils":11,"tree-model":15}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // TODO: use namespaces better
@@ -1582,215 +1595,6 @@ var utils;
 })(utils = exports.utils || (exports.utils = {}));
 
 },{}],12:[function(require,module,exports){
-/*!
-Copyright (C) 2013-2017 by Andrea Giammarchi - @WebReflection
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-*/
-var
-  // should be a not so common char
-  // possibly one JSON does not encode
-  // possibly one encodeURIComponent does not encode
-  // right now this char is '~' but this might change in the future
-  specialChar = '~',
-  safeSpecialChar = '\\x' + (
-    '0' + specialChar.charCodeAt(0).toString(16)
-  ).slice(-2),
-  escapedSafeSpecialChar = '\\' + safeSpecialChar,
-  specialCharRG = new RegExp(safeSpecialChar, 'g'),
-  safeSpecialCharRG = new RegExp(escapedSafeSpecialChar, 'g'),
-
-  safeStartWithSpecialCharRG = new RegExp('(?:^|([^\\\\]))' + escapedSafeSpecialChar),
-
-  indexOf = [].indexOf || function(v){
-    for(var i=this.length;i--&&this[i]!==v;);
-    return i;
-  },
-  $String = String  // there's no way to drop warnings in JSHint
-                    // about new String ... well, I need that here!
-                    // faked, and happy linter!
-;
-
-function generateReplacer(value, replacer, resolve) {
-  var
-    doNotIgnore = false,
-    inspect = !!replacer,
-    path = [],
-    all  = [value],
-    seen = [value],
-    mapp = [resolve ? specialChar : '[Circular]'],
-    last = value,
-    lvl  = 1,
-    i, fn
-  ;
-  if (inspect) {
-    fn = typeof replacer === 'object' ?
-      function (key, value) {
-        return key !== '' && replacer.indexOf(key) < 0 ? void 0 : value;
-      } :
-      replacer;
-  }
-  return function(key, value) {
-    // the replacer has rights to decide
-    // if a new object should be returned
-    // or if there's some key to drop
-    // let's call it here rather than "too late"
-    if (inspect) value = fn.call(this, key, value);
-
-    // first pass should be ignored, since it's just the initial object
-    if (doNotIgnore) {
-      if (last !== this) {
-        i = lvl - indexOf.call(all, this) - 1;
-        lvl -= i;
-        all.splice(lvl, all.length);
-        path.splice(lvl - 1, path.length);
-        last = this;
-      }
-      // console.log(lvl, key, path);
-      if (typeof value === 'object' && value) {
-    	// if object isn't referring to parent object, add to the
-        // object path stack. Otherwise it is already there.
-        if (indexOf.call(all, value) < 0) {
-          all.push(last = value);
-        }
-        lvl = all.length;
-        i = indexOf.call(seen, value);
-        if (i < 0) {
-          i = seen.push(value) - 1;
-          if (resolve) {
-            // key cannot contain specialChar but could be not a string
-            path.push(('' + key).replace(specialCharRG, safeSpecialChar));
-            mapp[i] = specialChar + path.join(specialChar);
-          } else {
-            mapp[i] = mapp[0];
-          }
-        } else {
-          value = mapp[i];
-        }
-      } else {
-        if (typeof value === 'string' && resolve) {
-          // ensure no special char involved on deserialization
-          // in this case only first char is important
-          // no need to replace all value (better performance)
-          value = value .replace(safeSpecialChar, escapedSafeSpecialChar)
-                        .replace(specialChar, safeSpecialChar);
-        }
-      }
-    } else {
-      doNotIgnore = true;
-    }
-    return value;
-  };
-}
-
-function retrieveFromPath(current, keys) {
-  for(var i = 0, length = keys.length; i < length; current = current[
-    // keys should be normalized back here
-    keys[i++].replace(safeSpecialCharRG, specialChar)
-  ]);
-  return current;
-}
-
-function generateReviver(reviver) {
-  return function(key, value) {
-    var isString = typeof value === 'string';
-    if (isString && value.charAt(0) === specialChar) {
-      return new $String(value.slice(1));
-    }
-    if (key === '') value = regenerate(value, value, {});
-    // again, only one needed, do not use the RegExp for this replacement
-    // only keys need the RegExp
-    if (isString) value = value .replace(safeStartWithSpecialCharRG, '$1' + specialChar)
-                                .replace(escapedSafeSpecialChar, safeSpecialChar);
-    return reviver ? reviver.call(this, key, value) : value;
-  };
-}
-
-function regenerateArray(root, current, retrieve) {
-  for (var i = 0, length = current.length; i < length; i++) {
-    current[i] = regenerate(root, current[i], retrieve);
-  }
-  return current;
-}
-
-function regenerateObject(root, current, retrieve) {
-  for (var key in current) {
-    if (current.hasOwnProperty(key)) {
-      current[key] = regenerate(root, current[key], retrieve);
-    }
-  }
-  return current;
-}
-
-function regenerate(root, current, retrieve) {
-  return current instanceof Array ?
-    // fast Array reconstruction
-    regenerateArray(root, current, retrieve) :
-    (
-      current instanceof $String ?
-        (
-          // root is an empty string
-          current.length ?
-            (
-              retrieve.hasOwnProperty(current) ?
-                retrieve[current] :
-                retrieve[current] = retrieveFromPath(
-                  root, current.split(specialChar)
-                )
-            ) :
-            root
-        ) :
-        (
-          current instanceof Object ?
-            // dedicated Object parser
-            regenerateObject(root, current, retrieve) :
-            // value as it is
-            current
-        )
-    )
-  ;
-}
-
-var CircularJSON = {
-  stringify: function stringify(value, replacer, space, doNotResolve) {
-    return CircularJSON.parser.stringify(
-      value,
-      generateReplacer(value, replacer, !doNotResolve),
-      space
-    );
-  },
-  parse: function parse(text, reviver) {
-    return CircularJSON.parser.parse(
-      text,
-      generateReviver(reviver)
-    );
-  },
-  // A parser should be an API 1:1 compatible with JSON
-  // it should expose stringify and parse methods.
-  // The default parser is the native JSON.
-  parser: JSON
-};
-
-module.exports = CircularJSON;
-
-},{}],13:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1814,7 +1618,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -18925,7 +18729,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -18977,7 +18781,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -19270,7 +19074,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":13,"mergesort":15}],17:[function(require,module,exports){
+},{"find-insert-index":12,"mergesort":14}],16:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org

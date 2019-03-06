@@ -31,7 +31,7 @@ export {}
 
 declare let Global: any;
 
-let env: string = 'node';
+let env: string = 'max';
 
 if (env === 'max') {
     post('recompile successful');
@@ -162,17 +162,17 @@ let confirm = () => {
 let reset = () => {
     clip_user_input.set_notes(
         parse_matrix.get_notes(
-            tree_depth_iterator.get_index_current(),
+            tree_depth_iterator.get_index_current() - 1,
             segment_iterator.get_index_current()
         )
     );
 };
 
 let erase = () => {
-    let epsilon = 1/(48 * 2);
+    // let epsilon = 1/(48 * 2);
 
     clip_user_input.remove_notes(
-        segment_current.beat_start - epsilon,
+        segment_current.beat_start,
         0,
         segment_current.beat_end - segment_current.beat_start,
         128
@@ -183,9 +183,13 @@ function set_clip_segment() {
 
     let vector_path_live = Array.prototype.slice.call(arguments);
 
+    // logger.log(utils.PathLive.to_string(vector_path_live));
+
     let live_api_clip_segment = new li.LiveApiJs(
         utils.PathLive.to_string(vector_path_live)
     );
+
+    // logger.log(live_api_clip_segment.call('get_notes', "-1", 0, "100", "128"));
 
     clip_segment = new c.Clip(
         new c.ClipDao(
@@ -205,6 +209,8 @@ function set_clip_segment() {
     );
 
     notes_segments = clip_segment.get_notes_within_markers();
+
+    // logger.log(JSON.stringify(notes_segments));
 }
 
 let set_depth_tree = (depth) => {
@@ -297,9 +303,23 @@ export let begin_train_export = (notes_segments, clip_user_input, song, callback
         1
     );
 
-    for (let i of notes_segments) {
+    for (let i in notes_segments) {
+        parse_matrix.set_notes(
+            tree_depth_iterator.get_index_current(),
+            segment_iterator.get_index_current(),
+            [notes_segments[Number(i)]]
+        );
         parse_tree_iterator.next();
     }
+
+    segment_current = segment_iterator.current();
+
+    let interval = segment_current.get_endpoints_loop();
+
+    clip_user_input.set_endpoints_loop(
+        interval[0],
+        interval[1]
+    );
 
     // parse_tree_iterator.next();
 
@@ -362,7 +382,7 @@ let set_clip_user_input = () => {
     );
 
     let beats_duration_song = 16 * 4;
-
+    // logger.log(JSON.stringify(notes_segments));
     clip_user_input.remove_notes(
         notes_segments[0].model.note.beat_start,
         0,
@@ -373,6 +393,14 @@ let set_clip_user_input = () => {
     clip_user_input.set_notes(
         notes_segments
     );
+
+    // clip_user_input.set_loop_bracket_upper(
+    //     notes_segments[0].model.note.beat_start
+    // );
+    //
+    // clip_user_input.set_loop_bracket_upper(
+    //     notes_segments[0].model.note.get_beat_end()
+    // );
 };
 
 if (typeof Global !== "undefined") {

@@ -2,12 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
+var logger_1 = require("../log/logger");
 var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
+    var Logger = logger_1.log.Logger;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
+            this.logger = new Logger('max');
         }
         Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
             if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
@@ -40,7 +43,9 @@ var clip;
         };
         // TODO: annotations
         Clip.prototype.load_notes_within_markers = function () {
-            this.notes = this.get_notes(this.get_start_marker(), 0, this.get_end_marker(), 128);
+            this.notes = this.get_notes(0, // this.get_start_marker(),
+            0, 16 * 4, // this.get_end_marker(),
+            128);
         };
         // TODO: annotations
         Clip.prototype.get_pitch_max = function () {
@@ -92,9 +97,19 @@ var clip;
             this.clip_dao.stop();
         };
         Clip.prototype.get_notes_within_markers = function () {
-            if (!this.notes) {
-                this.load_notes_within_markers();
-            }
+            // if (!this.notes) {
+            this.load_notes_within_markers();
+            // }
+            // this.logger.log(
+            //     JSON.stringify(
+            //         this.get_notes(
+            //             0, // this.get_start_marker(),
+            //             0,
+            //             16 * 4, // this.get_end_marker(),
+            //             128
+            //         )
+            //     )
+            // );
             return this.notes;
         };
         Clip.prototype.get_notes_within_loop_brackets = function () {
@@ -114,7 +129,8 @@ var clip;
             return this.clip_dao.get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
         };
         Clip.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
-            this.clip_dao.remove_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max);
+            var epsilon = 1 / (48 * 2);
+            this.clip_dao.remove_notes(beat_start - epsilon, pitch_midi_min, beat_duration, pitch_midi_max);
         };
         Clip.parse_note_messages = function (messages) {
             var notes = [];
@@ -195,6 +211,7 @@ var clip;
     }());
     clip.Clip = Clip;
     var ClipDao = /** @class */ (function () {
+        // private logger: Logger;
         function ClipDao(clip_live, messenger, deferlow, key_route, env) {
             this.clip_live = clip_live;
             this.messenger = messenger;
@@ -204,6 +221,7 @@ var clip;
             this.deferlow = deferlow;
             this.key_route = key_route;
             this.env = env;
+            // this.logger = new Logger('max');
         }
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
@@ -217,10 +235,14 @@ var clip;
         };
         // TODO: check if these actually return arrays
         ClipDao.prototype.get_end_marker = function () {
+            // return this.clip_live.get('end_marker')[0];
+            // this.logger.log(JSON.stringify(this.clip_live.get('end_marker')));
             return this.clip_live.get('end_marker')[0];
         };
         // TODO: check if these actually return arrays
         ClipDao.prototype.get_start_marker = function () {
+            // return this.clip_live.get('start_marker')[0];
+            // this.logger.log(JSON.stringify(this.clip_live.get('start_marker')));
             return this.clip_live.get('start_marker')[0];
         };
         ClipDao.prototype.get_path = function () {

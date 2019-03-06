@@ -17,8 +17,11 @@ export namespace clip {
 
         private notes: TreeModel.Node<n.Note>[];
 
+        private logger: Logger;
+
         constructor(clip_dao) {
             this.clip_dao = clip_dao;
+            this.logger = new Logger('max')
         }
 
         public set_endpoints_loop(beat_start, beat_end) {
@@ -67,9 +70,9 @@ export namespace clip {
         // TODO: annotations
         load_notes_within_markers(): void {
             this.notes = this.get_notes(
-                this.get_start_marker(),
+                0, // this.get_start_marker(),
                 0,
-                this.get_end_marker(),
+                16 * 4, // this.get_end_marker(),
                 128
             )
         }
@@ -137,15 +140,25 @@ export namespace clip {
         }
 
         get_notes_within_markers(): TreeModel.Node<n.Note>[] {
-            if (!this.notes) {
-                this.load_notes_within_markers()
-            }
+            // if (!this.notes) {
+            this.load_notes_within_markers();
+            // }
+            // this.logger.log(
+            //     JSON.stringify(
+            //         this.get_notes(
+            //             0, // this.get_start_marker(),
+            //             0,
+            //             16 * 4, // this.get_end_marker(),
+            //             128
+            //         )
+            //     )
+            // );
             return this.notes;
         }
 
         get_notes_within_loop_brackets(): TreeModel.Node<n.Note>[] {
             // if (!this.notes) {
-            this.load_notes_within_loop_brackets()
+            this.load_notes_within_loop_brackets();
             // }
             return this.notes;
         }
@@ -176,8 +189,9 @@ export namespace clip {
         }
 
         public remove_notes(beat_start: number, pitch_midi_min: number, beat_duration: number, pitch_midi_max: number): void {
+            let epsilon = 1/(48 * 2);
             this.clip_dao.remove_notes(
-                beat_start,
+                beat_start - epsilon,
                 pitch_midi_min,
                 beat_duration,
                 pitch_midi_max
@@ -317,6 +331,7 @@ export namespace clip {
         private key_route: string;
         private env: string;
         private notes_cached: string[];
+        // private logger: Logger;
 
         constructor(clip_live: live.iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
             this.clip_live = clip_live;
@@ -327,6 +342,7 @@ export namespace clip {
             this.deferlow = deferlow;
             this.key_route = key_route;
             this.env = env;
+            // this.logger = new Logger('max');
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {
@@ -342,11 +358,15 @@ export namespace clip {
 
         // TODO: check if these actually return arrays
         get_end_marker(): number {
+            // return this.clip_live.get('end_marker')[0];
+            // this.logger.log(JSON.stringify(this.clip_live.get('end_marker')));
             return this.clip_live.get('end_marker')[0];
         }
 
         // TODO: check if these actually return arrays
         get_start_marker(): number {
+            // return this.clip_live.get('start_marker')[0];
+            // this.logger.log(JSON.stringify(this.clip_live.get('start_marker')));
             return this.clip_live.get('start_marker')[0];
         }
 
