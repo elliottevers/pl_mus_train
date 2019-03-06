@@ -79,9 +79,14 @@ var note_3_6 = tree.parse({
     note: new note_1.note.Note(45, 59, 2, 90, 0),
     children: []
 });
+var note_4_1 = tree.parse({
+    id: -1,
+    note: new note_1.note.Note(51, 7, 1, 90, 0),
+    children: []
+});
 notes_segments = [note_2_1, note_2_2, note_2_3];
 // notes_segments = [note_2_1, note_2_2];
-parse_tree_1.set_depth_tree_export(3);
+parse_tree_1.set_depth_tree_export(4);
 var env;
 env = 'node';
 env = 'node_for_max';
@@ -95,6 +100,7 @@ parse_tree_1.begin_train_export(notes_segments, clip_user_input, song, parse_tre
 parse_tree_1.add_to_tree_export([note_3_1, note_3_2], note_2_1.model.note.beat_start, note_2_1.model.note.get_beat_end(), clip_user_input, song, messenger);
 parse_tree_1.add_to_tree_export([note_3_3, note_3_4], note_2_2.model.note.beat_start, note_2_2.model.note.get_beat_end(), clip_user_input, song, messenger);
 parse_tree_1.add_to_tree_export([note_3_5, note_3_6], note_2_3.model.note.beat_start, note_2_3.model.note.get_beat_end(), clip_user_input, song, messenger);
+parse_tree_1.add_to_tree_export([note_4_1], note_2_1.model.note.beat_start, note_2_1.model.note.get_beat_end(), clip_user_input, song, messenger);
 // add_to_tree(note_2_2)
 // add_to_tree(note_2_3)
 // add_to_tree(note_3_1)

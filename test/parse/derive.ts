@@ -186,11 +186,27 @@ let note_3_6 = tree.parse(
     }
 );
 
+let note_4_1 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            51,
+            7,
+            1,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
 notes_segments = [note_2_1, note_2_2, note_2_3];
 
 // notes_segments = [note_2_1, note_2_2];
 
-set_depth_tree_export(3);
+set_depth_tree_export(4);
 let env: string;
 env = 'node';
 env = 'node_for_max';
@@ -227,6 +243,15 @@ add_to_tree_export(
     [note_3_5, note_3_6],
     note_2_3.model.note.beat_start,
     note_2_3.model.note.get_beat_end(),
+    clip_user_input,
+    song,
+    messenger
+);
+
+add_to_tree_export(
+    [note_4_1],
+    note_2_1.model.note.beat_start,
+    note_2_1.model.note.get_beat_end(),
     clip_user_input,
     song,
     messenger
