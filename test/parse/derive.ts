@@ -154,6 +154,38 @@ let note_3_4 = tree.parse(
     }
 );
 
+let note_3_5 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            40,
+            54,
+            4,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+let note_3_6 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            45,
+            59,
+            2,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
 notes_segments = [note_2_1, note_2_2, note_2_3];
 
 // notes_segments = [note_2_1, note_2_2];
@@ -161,7 +193,7 @@ notes_segments = [note_2_1, note_2_2, note_2_3];
 set_depth_tree_export(3);
 let env: string;
 env = 'node';
-// env = 'node_for_max';
+env = 'node_for_max';
 
 // let messenger = new Messenger(node, 0);
 let messenger = new Messenger(env, 0);
@@ -186,6 +218,15 @@ add_to_tree_export(
     [note_3_3, note_3_4],
     note_2_2.model.note.beat_start,
     note_2_2.model.note.get_beat_end(),
+    clip_user_input,
+    song,
+    messenger
+);
+
+add_to_tree_export(
+    [note_3_5, note_3_6],
+    note_2_3.model.note.beat_start,
+    note_2_3.model.note.get_beat_end(),
     clip_user_input,
     song,
     messenger

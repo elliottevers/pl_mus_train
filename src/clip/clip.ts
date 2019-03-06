@@ -78,7 +78,7 @@ export namespace clip {
         get_pitch_max(): number {
             let pitch_max = 0;
 
-            for (let node of this.get_notes_within_markers()) {
+            for (let node of this.get_notes_within_loop_brackets()) {
                 if (node.model.note.pitch > pitch_max) {
                     pitch_max = node.model.note.pitch;
                 }
@@ -91,7 +91,7 @@ export namespace clip {
         get_pitch_min(): number {
             let pitch_min = 128;
 
-            for (let node of this.get_notes_within_markers()) {
+            for (let node of this.get_notes_within_loop_brackets()) {
                 if (node.model.note.pitch < pitch_min) {
                     pitch_min = node.model.note.pitch;
                 }
@@ -144,9 +144,9 @@ export namespace clip {
         }
 
         get_notes_within_loop_brackets(): TreeModel.Node<n.Note>[] {
-            if (!this.notes) {
-                this.load_notes_within_loop_brackets()
-            }
+            // if (!this.notes) {
+            this.load_notes_within_loop_brackets()
+            // }
             return this.notes;
         }
 
@@ -315,8 +315,10 @@ export namespace clip {
         private messenger: Messenger;
         private deferlow: boolean;
         private key_route: string;
+        private env: string;
+        private notes_cached: string[];
 
-        constructor(clip_live: live.iLiveApiJs, messenger, deferlow?: boolean, key_route?: string) {
+        constructor(clip_live: live.iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
             this.clip_live = clip_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -324,6 +326,7 @@ export namespace clip {
             }
             this.deferlow = deferlow;
             this.key_route = key_route;
+            this.env = env;
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {
@@ -408,13 +411,17 @@ export namespace clip {
         };
 
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
-            return this.clip_live.call(
-                'get_notes',
-                beat_start,
-                pitch_midi_min,
-                beat_end,
-                pitch_midi_max
-            );
+            if (this.env === 'node_for_max') {
+                return this.notes_cached
+            } else {
+                return this.clip_live.call(
+                    'get_notes',
+                    beat_start,
+                    pitch_midi_min,
+                    beat_end,
+                    pitch_midi_max
+                );
+            }
         };
 
         remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void {
@@ -442,7 +449,19 @@ export namespace clip {
         };
 
         set_notes(notes: TreeModel.Node<n.Note>[]): void {
-            if (this.deferlow) {
+            if (this.env === 'node_for_max') {
+                let notes_cached = [];
+                notes_cached.push('notes');
+                notes_cached.push(notes.length.toString());
+                for (let note of notes) {
+                    notes_cached.push(note.model.note.pitch.toString());
+                    notes_cached.push(note.model.note.beat_start.toString());
+                    notes_cached.push(note.model.note.beats_duration.toString());
+                    notes_cached.push(note.model.note.velocity.toString());
+                    notes_cached.push(note.model.note.muted.toString());
+                }
+                notes_cached.push('done');
+            } else if (this.deferlow) {
                 this.messenger.message([this.key_route, 'call', 'set_notes']);
                 this.messenger.message([this.key_route, 'call', 'notes', notes.length]);
                 for (let node of notes) {

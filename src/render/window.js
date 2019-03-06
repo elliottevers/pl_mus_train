@@ -4,7 +4,7 @@ var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
 var logger_1 = require("../log/logger");
-var CircularJSON = require('circular-json');
+// let CircularJSON = require('circular-json');
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
@@ -31,6 +31,8 @@ var window;
         Pwindow.prototype.set_root = function (note_root) {
             var clip_dao_virtual = new LiveClipVirtual([note_root]);
             var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
+            clip_virtual.clip_dao.beat_start = note_root.model.note.beat_start;
+            clip_virtual.clip_dao.beat_end = note_root.model.note.get_beat_end();
             this.add_clip(clip_virtual);
             note_root.model.id = 0; // index of first clip
             this.root_parse_tree = note_root;
@@ -39,11 +41,14 @@ var window;
         Pwindow.prototype.elaborate = function (elaboration, beat_start, beat_end, index_layer) {
             if (index_layer + 1 > this.clips.length) {
                 var clip_dao_virtual = new LiveClipVirtual(elaboration);
+                clip_dao_virtual.beat_start = elaboration[0].model.note.beat_start;
+                clip_dao_virtual.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
                 var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
                 this.add_clip(clip_virtual);
             }
             else {
                 var clip_last = this.clips[this.clips.length - 1];
+                clip_last.clip_dao.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
                 clip_last.set_notes(elaboration);
             }
             var leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
@@ -56,7 +61,7 @@ var window;
             this.update_leaves(leaves_within_interval);
         };
         Pwindow.prototype.splice_notes = function (notes_subset, clip, interval_beats) {
-            var notes_clip = _.cloneDeep(clip.get_notes_within_markers());
+            var notes_clip = _.cloneDeep(clip.get_notes_within_loop_brackets());
             var num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
             var index_start = this.get_note_index_at_beat(interval_beats[0], notes_clip);
             notes_clip.splice.apply(notes_clip, [index_start, num_notes_to_replace].concat(notes_subset));
@@ -273,7 +278,7 @@ var window;
         Pwindow.prototype.get_messages_render_notes = function (index_clip) {
             var clip = this.clips[index_clip];
             var quadruplets = [];
-            for (var _i = 0, _a = clip.get_notes_within_markers(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = clip.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }

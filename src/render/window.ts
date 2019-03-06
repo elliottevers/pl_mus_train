@@ -5,7 +5,7 @@ import {note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
 import {log} from "../log/logger";
-let CircularJSON = require('circular-json');
+// let CircularJSON = require('circular-json');
 
 export namespace window {
 
@@ -43,6 +43,9 @@ export namespace window {
 
             let clip_virtual = new c.Clip(clip_dao_virtual);
 
+            clip_virtual.clip_dao.beat_start = note_root.model.note.beat_start;
+            clip_virtual.clip_dao.beat_end = note_root.model.note.get_beat_end();
+
             this.add_clip(clip_virtual);
 
             note_root.model.id = 0;  // index of first clip
@@ -56,11 +59,16 @@ export namespace window {
 
             if (index_layer + 1 > this.clips.length) {
                 let clip_dao_virtual = new LiveClipVirtual(elaboration);
+
+                clip_dao_virtual.beat_start = elaboration[0].model.note.beat_start;
+                clip_dao_virtual.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
+
                 let clip_virtual = new c.Clip(clip_dao_virtual);
                 this.add_clip(clip_virtual);
             } else {
                 let clip_last = this.clips[this.clips.length - 1];
-                clip_last.set_notes(elaboration)
+                clip_last.clip_dao.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
+                clip_last.set_notes(elaboration);
             }
 
             let leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
@@ -75,7 +83,7 @@ export namespace window {
         }
 
         splice_notes(notes_subset: TreeModel.Node<n.Note>[], clip: c.Clip, interval_beats: number[]): TreeModel.Node<n.Note>[] {
-            let notes_clip = _.cloneDeep(clip.get_notes_within_markers());
+            let notes_clip = _.cloneDeep(clip.get_notes_within_loop_brackets());
             let num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
             let index_start = this.get_note_index_at_beat(interval_beats[0], notes_clip);
             notes_clip.splice(index_start, num_notes_to_replace, ...notes_subset);
@@ -326,7 +334,7 @@ export namespace window {
         get_messages_render_notes(index_clip: number) {
             var clip = this.clips[index_clip];
             let quadruplets = [];
-            for (let node of clip.get_notes_within_markers()) {
+            for (let node of clip.get_notes_within_loop_brackets()) {
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {

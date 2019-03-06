@@ -72,18 +72,42 @@ export namespace live {
 
     export class LiveClipVirtual implements ClipLive {
 
+        beat_start: number;
+        beat_end: number;
+
         notes: TreeModel.Node<n.Note>[];
 
         constructor(notes: TreeModel.Node<n.Note>[]) {
             this.notes = notes;
         }
 
+        // load_notes_within_loop_brackets(): void {
+        //     this.notes = this.get_notes(
+        //         this.get_loop_bracket_lower(),
+        //         0,
+        //         this.get_loop_bracket_upper(),
+        //         128
+        //     )
+        // }
+
         get_end_marker(): number {
-            return this.notes[this.notes.length - 1].model.note.get_beat_end()
+            return this.beat_end
+            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
         }
 
         get_start_marker(): number {
-            return this.notes[0].model.note.beat_start;
+            return this.beat_start
+            // return this.notes[0].model.note.beat_start;
+        }
+
+        get_loop_bracket_upper(): number[] {
+            return [this.beat_end]
+            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
+        }
+
+        get_loop_bracket_lower(): number[] {
+            return [this.beat_start]
+            // return this.notes[0].model.note.beat_start;
         }
 
         set_loop_bracket_lower(beat: number): void {

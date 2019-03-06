@@ -45,7 +45,7 @@ var clip;
         // TODO: annotations
         Clip.prototype.get_pitch_max = function () {
             var pitch_max = 0;
-            for (var _i = 0, _a = this.get_notes_within_markers(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch > pitch_max) {
                     pitch_max = node.model.note.pitch;
@@ -56,7 +56,7 @@ var clip;
         // TODO: annotations
         Clip.prototype.get_pitch_min = function () {
             var pitch_min = 128;
-            for (var _i = 0, _a = this.get_notes_within_markers(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch < pitch_min) {
                     pitch_min = node.model.note.pitch;
@@ -98,9 +98,9 @@ var clip;
             return this.notes;
         };
         Clip.prototype.get_notes_within_loop_brackets = function () {
-            if (!this.notes) {
-                this.load_notes_within_loop_brackets();
-            }
+            // if (!this.notes) {
+            this.load_notes_within_loop_brackets();
+            // }
             return this.notes;
         };
         Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
@@ -195,7 +195,7 @@ var clip;
     }());
     clip.Clip = Clip;
     var ClipDao = /** @class */ (function () {
-        function ClipDao(clip_live, messenger, deferlow, key_route) {
+        function ClipDao(clip_live, messenger, deferlow, key_route, env) {
             this.clip_live = clip_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -203,6 +203,7 @@ var clip;
             }
             this.deferlow = deferlow;
             this.key_route = key_route;
+            this.env = env;
         }
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
@@ -282,7 +283,12 @@ var clip;
         };
         ;
         ClipDao.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            if (this.env === 'node_for_max') {
+                return this.notes_cached;
+            }
+            else {
+                return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            }
         };
         ;
         ClipDao.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
@@ -303,11 +309,25 @@ var clip;
         };
         ;
         ClipDao.prototype.set_notes = function (notes) {
-            if (this.deferlow) {
+            if (this.env === 'node_for_max') {
+                var notes_cached = [];
+                notes_cached.push('notes');
+                notes_cached.push(notes.length.toString());
+                for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                    var note = notes_1[_i];
+                    notes_cached.push(note.model.note.pitch.toString());
+                    notes_cached.push(note.model.note.beat_start.toString());
+                    notes_cached.push(note.model.note.beats_duration.toString());
+                    notes_cached.push(note.model.note.velocity.toString());
+                    notes_cached.push(note.model.note.muted.toString());
+                }
+                notes_cached.push('done');
+            }
+            else if (this.deferlow) {
                 this.messenger.message([this.key_route, 'call', 'set_notes']);
                 this.messenger.message([this.key_route, 'call', 'notes', notes.length]);
-                for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
-                    var node = notes_1[_i];
+                for (var _a = 0, notes_2 = notes; _a < notes_2.length; _a++) {
+                    var node = notes_2[_a];
                     this.messenger.message([
                         this.key_route,
                         'call',
@@ -324,8 +344,8 @@ var clip;
             else {
                 this.clip_live.call('set_notes');
                 this.clip_live.call('notes', notes.length);
-                for (var _a = 0, notes_2 = notes; _a < notes_2.length; _a++) {
-                    var node = notes_2[_a];
+                for (var _b = 0, notes_3 = notes; _b < notes_3.length; _b++) {
+                    var node = notes_3[_b];
                     this.clip_live.call("note", node.model.note.pitch, node.model.note.beat_start.toFixed(4), node.model.note.beats_duration.toFixed(4), node.model.note.velocity, node.model.note.muted);
                 }
                 this.clip_live.call("done");

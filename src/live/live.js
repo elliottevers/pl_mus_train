@@ -40,11 +40,29 @@ var live;
         function LiveClipVirtual(notes) {
             this.notes = notes;
         }
+        // load_notes_within_loop_brackets(): void {
+        //     this.notes = this.get_notes(
+        //         this.get_loop_bracket_lower(),
+        //         0,
+        //         this.get_loop_bracket_upper(),
+        //         128
+        //     )
+        // }
         LiveClipVirtual.prototype.get_end_marker = function () {
-            return this.notes[this.notes.length - 1].model.note.get_beat_end();
+            return this.beat_end;
+            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
         };
         LiveClipVirtual.prototype.get_start_marker = function () {
-            return this.notes[0].model.note.beat_start;
+            return this.beat_start;
+            // return this.notes[0].model.note.beat_start;
+        };
+        LiveClipVirtual.prototype.get_loop_bracket_upper = function () {
+            return [this.beat_end];
+            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
+        };
+        LiveClipVirtual.prototype.get_loop_bracket_lower = function () {
+            return [this.beat_start];
+            // return this.notes[0].model.note.beat_start;
         };
         LiveClipVirtual.prototype.set_loop_bracket_lower = function (beat) {
             return;
