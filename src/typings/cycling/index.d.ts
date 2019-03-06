@@ -258,195 +258,195 @@ declare function setoutletassist(outlet_number: number, object: any): void;
 // }
 
 
-// /**
-//  * The File object provides a means of reading and writing files from Javascript.
-//  * https://docs.cycling74.com/max7/vignettes/jsfileobject
-//  */
-// declare class File {
-//     /**
-//      * filename can be a file in the Max search path, an absolute path, or a relative path. Acceptable values for access can be "read", "write", or "readwrite". The default value for access is "read". Acceptable values for typelist are four character filetype codes listed in the file max-fileformats.txt, which is located at /Library/Application Support/Cycling ’74 on Macintosh and C:\Program Files\Common Files\Cycling ’74 on Windows. By default, typelist is empty. If able to, the File constructor opens the file specified by filename, provided it is one of the types in typelist.
-//      * @param {string} filename [description]
-//      * @param {string} access   [description]
-//      * @param {string} typelist [description]
-//      */
-//     constructor(filename: string, access: string, typelist: string);
-//
-//     /**
-//      * File access permissions: "read", "write", or "readwrite". By default, this value is "read".
-//      * @type {string}
-//      */
-//     access: string;
-//
-//     /**
-//      * The assumed file byteorder (endianness): "big", "little", or "native". By default, this value is "native".
-//      * @type {string}
-//      */
-//     byteorder: string;
-//
-//     /**
-//      * The location of the end of file, in bytes.
-//      * @type {number}
-//      */
-//     eof: number;
-//
-//     /**
-//      * The current filename.
-//      * @type {string}
-//      */
-//     filename: string;
-//
-//     /**
-//      * The four-character code associated. See Filetypes Recognized in Max for possible values.
-//      * (In Max 7 documentation, Filetypes link points to the wrong page. This has been reported.)
-//      * @type {string}
-//      */
-//     filetype: string;
-//
-//     /**
-//      * The absolute path to parent folder.
-//      * @type {string}
-//      */
-//     foldername: string;
-//
-//     /**
-//      * Return a true/false indicating if the File constructor is successful in finding and opening the file.
-//      * @type {boolean}
-//      */
-//     isopen: boolean;
-//
-//     /**
-//      * The line break convention to use when writing lines: "dos", "mac", "unix", or "native". By default, this value is "native".
-//      * @type {string}
-//      */
-//     linebreak: string;
-//
-//     /**
-//      * The current file position, in bytes.
-//      * @type {number}
-//      */
-//     position: number;
-//
-//     /**
-//      * An array file type codes to filter by when opening a file. By default, this is the empty array.
-//      * @type {string[]}
-//      */
-//     typelist: string[];
-//
-//     /**
-//      * Opens the file specified by the filename argument. If no argument is specified, it will open the last opened file.
-//      * @param {string} filename [description]
-//      */
-//     open(filename?: string): void;
-//
-//     /**
-//      * Closes the currently open file.
-//      */
-//     close(): void; // TODO: Docs say string [symbol] ???
-//
-//     /**
-//      * Writes the characters contained in the string argument as characters to the file, starting at the current file position, and inserts a line break appropriate to the linebreak property. The file position is updated accordingly.
-//      * @param {string} characters [description]
-//      */
-//     writeline(characters: string): void;
-//
-//     /**
-//      * Reads and returns a string containing up to maximum_count characters or up to the first line break as read from the file, starting at the current file position. The file position is updated accordingly.
-//      * @param  {number} maximum_count [description]
-//      * @return {string}               [description]
-//      */
-//     readline(maximum_count: number): string;
-//
-//     /**
-//      * Writes the characters contained in the string argument as characters to the file, starting at the current file position. Unlike writeline(), no line break is inserted. The file position is updated accordingly.
-//      * @param {string} characters [description]
-//      */
-//     writestring(characters: string): void;
-//
-//     /**
-//      * Reads and returns a string containing up to char_count characters as read from the file, starting at the current file position. Unlike readline(), line breaks are not considered. The file position is updated accordingly.
-//      * @param  {number} char_count [description]
-//      * @return {string}            [description]
-//      */
-//     readstring(char_count: number): string;
-//
-//     /**
-//      * Writes the numbers contained in the byte_array argument as bytes to the file, starting at the current file position. The file position is updated accordingly.
-//      * @param {number[]} byte_array [description]
-//      */
-//     writebytes(byte_array: number[]): void;
-//
-//     /**
-//      * Reads and returns an array containing up to byte_count numbers, read as bytes from the file, starting at the current file position. The file position is updated accordingly.
-//      * @param  {number}   byte_count [description]
-//      * @return {number[]}            [description]
-//      */
-//     readbytes(byte_count: number): number[];
-//
-//     /**
-//      * Writes the single character strings contained in the char_array argument as characters to the file, starting at the current file position. The file position is updated accordingly.
-//      * @param {string[]} char_array [description]
-//      */
-//     writechars(char_array: string[]): void;
-//
-//     /**
-//      * Reads and returns an array containing the single character strings, read as characters from the file, starting at the current file position. The file position is updated accordingly.
-//      * @param  {number}   char_count [description]
-//      * @return {string[]}            [description]
-//      */
-//     readchars(char_count: number): string[];
-//
-//     /**
-//      * Writes the numbers contained in the int16_array argument as signed 16-bit integers to the file, starting at the current file position. The byteorder property is taken into account when writing these values. The file position is updated accordingly.
-//      * @param {number[]} int16_array [description]
-//      */
-//     writeint16(int16_array: number[]): void;
-//
-//     /**
-//      * Reads and returns an array containing the numbers read as signed 16-bit integers from the file starting at the current file position. The byteorder property is taken into account when reading these values. The file position is updated accordingly.
-//      * @param  {number}   int16_count [description]
-//      * @return {number[]}             [description]
-//      */
-//     readint16(int16_count: number): number[];
-//
-//     /**
-//      * Writes the numbers contained in the int32_array argument as signed 32-bit integers to the file, starting at the current file position. The byteorder property is taken into account when writing these values. The file position is updated accordingly.
-//      * @param {number[]} int32_array [description]
-//      */
-//     writeint32(int32_array: number[]): void;
-//
-//     /**
-//      * Reads and returns an array containing the numbers read as signed 32-bit integers from the file starting at the current file position. The byteorder property is taken into account when reading these values. The file position is updated accordingly.
-//      * @param  {number}   int32_count [description]
-//      * @return {number[]}             [description]
-//      */
-//     readint32(int32_count: number): number[];
-//
-//     /**
-//      * Writes the numbers contained in the float32_array argument as 32-bit floating point numbers to the file, starting at the current file position. The byteorder property is taken into account when writing these values. The file position is updated accordingly.
-//      * @param {number[]} int32_array [description]
-//      */
-//     writefloat32(int32_array: number[]): void;
-//
-//     /**
-//      * Reads and returns an array containing the numbers read as 32-bit floating point numbers from the file starting at the current file position. The byteorder property is taken into account when reading these values. The file position is updated accordingly.
-//      * @param  {number}   float32_count [description]
-//      * @return {number[]}               [description]
-//      */
-//     readfloat32(float32_count: number): number[];
-//
-//     /**
-//      * Writes the numbers contained in the float64_array argument as 64-bit floating point numbers to the file, starting at the current file position. The byteorder property is taken into account when writing these values. The file position is updated accordingly.
-//      * @param {number[]} int64_array [description]
-//      */
-//     writefloat64(int64_array: number[]): void;
-//
-//     /**
-//      * Reads and returns an array containing the numbers read as 64-bit floating point numbers from the file starting at the current file position. The byteorder property is taken into account when reading these values. The file position is updated accordingly.
-//      * @param  {number}   float64_count [description]
-//      * @return {number[]}               [description]
-//      */
-//     readfloat64(float64_count: number): number[];
-// }
+/**
+ * The File object provides a means of reading and writing files from Javascript.
+ * https://docs.cycling74.com/max7/vignettes/jsfileobject
+ */
+declare class File {
+    /**
+     * filename can be a file in the Max search path, an absolute path, or a relative path. Acceptable values for access can be "read", "write", or "readwrite". The default value for access is "read". Acceptable values for typelist are four character filetype codes listed in the file max-fileformats.txt, which is located at /Library/Application Support/Cycling ’74 on Macintosh and C:\Program Files\Common Files\Cycling ’74 on Windows. By default, typelist is empty. If able to, the File constructor opens the file specified by filename, provided it is one of the types in typelist.
+     * @param {string} filename [description]
+     * @param {string} access   [description]
+     * @param {string} typelist [description]
+     */
+    constructor(filename: string, access: string, typelist: string);
+
+    /**
+     * File access permissions: "read", "write", or "readwrite". By default, this value is "read".
+     * @type {string}
+     */
+    access: string;
+
+    /**
+     * The assumed file byteorder (endianness): "big", "little", or "native". By default, this value is "native".
+     * @type {string}
+     */
+    byteorder: string;
+
+    /**
+     * The location of the end of file, in bytes.
+     * @type {number}
+     */
+    eof: number;
+
+    /**
+     * The current filename.
+     * @type {string}
+     */
+    filename: string;
+
+    /**
+     * The four-character code associated. See Filetypes Recognized in Max for possible values.
+     * (In Max 7 documentation, Filetypes link points to the wrong page. This has been reported.)
+     * @type {string}
+     */
+    filetype: string;
+
+    /**
+     * The absolute path to parent folder.
+     * @type {string}
+     */
+    foldername: string;
+
+    /**
+     * Return a true/false indicating if the File constructor is successful in finding and opening the file.
+     * @type {boolean}
+     */
+    isopen: boolean;
+
+    /**
+     * The line break convention to use when writing lines: "dos", "mac", "unix", or "native". By default, this value is "native".
+     * @type {string}
+     */
+    linebreak: string;
+
+    /**
+     * The current file position, in bytes.
+     * @type {number}
+     */
+    position: number;
+
+    /**
+     * An array file type codes to filter by when opening a file. By default, this is the empty array.
+     * @type {string[]}
+     */
+    typelist: string[];
+
+    /**
+     * Opens the file specified by the filename argument. If no argument is specified, it will open the last opened file.
+     * @param {string} filename [description]
+     */
+    open(filename?: string): void;
+
+    /**
+     * Closes the currently open file.
+     */
+    close(): void; // TODO: Docs say string [symbol] ???
+
+    /**
+     * Writes the characters contained in the string argument as characters to the file, starting at the current file position, and inserts a line break appropriate to the linebreak property. The file position is updated accordingly.
+     * @param {string} characters [description]
+     */
+    writeline(characters: string): void;
+
+    /**
+     * Reads and returns a string containing up to maximum_count characters or up to the first line break as read from the file, starting at the current file position. The file position is updated accordingly.
+     * @param  {number} maximum_count [description]
+     * @return {string}               [description]
+     */
+    readline(maximum_count: number): string;
+
+    /**
+     * Writes the characters contained in the string argument as characters to the file, starting at the current file position. Unlike writeline(), no line break is inserted. The file position is updated accordingly.
+     * @param {string} characters [description]
+     */
+    writestring(characters: string): void;
+
+    /**
+     * Reads and returns a string containing up to char_count characters as read from the file, starting at the current file position. Unlike readline(), line breaks are not considered. The file position is updated accordingly.
+     * @param  {number} char_count [description]
+     * @return {string}            [description]
+     */
+    readstring(char_count: number): string;
+
+    /**
+     * Writes the numbers contained in the byte_array argument as bytes to the file, starting at the current file position. The file position is updated accordingly.
+     * @param {number[]} byte_array [description]
+     */
+    writebytes(byte_array: number[]): void;
+
+    /**
+     * Reads and returns an array containing up to byte_count numbers, read as bytes from the file, starting at the current file position. The file position is updated accordingly.
+     * @param  {number}   byte_count [description]
+     * @return {number[]}            [description]
+     */
+    readbytes(byte_count: number): number[];
+
+    /**
+     * Writes the single character strings contained in the char_array argument as characters to the file, starting at the current file position. The file position is updated accordingly.
+     * @param {string[]} char_array [description]
+     */
+    writechars(char_array: string[]): void;
+
+    /**
+     * Reads and returns an array containing the single character strings, read as characters from the file, starting at the current file position. The file position is updated accordingly.
+     * @param  {number}   char_count [description]
+     * @return {string[]}            [description]
+     */
+    readchars(char_count: number): string[];
+
+    /**
+     * Writes the numbers contained in the int16_array argument as signed 16-bit integers to the file, starting at the current file position. The byteorder property is taken into account when writing these values. The file position is updated accordingly.
+     * @param {number[]} int16_array [description]
+     */
+    writeint16(int16_array: number[]): void;
+
+    /**
+     * Reads and returns an array containing the numbers read as signed 16-bit integers from the file starting at the current file position. The byteorder property is taken into account when reading these values. The file position is updated accordingly.
+     * @param  {number}   int16_count [description]
+     * @return {number[]}             [description]
+     */
+    readint16(int16_count: number): number[];
+
+    /**
+     * Writes the numbers contained in the int32_array argument as signed 32-bit integers to the file, starting at the current file position. The byteorder property is taken into account when writing these values. The file position is updated accordingly.
+     * @param {number[]} int32_array [description]
+     */
+    writeint32(int32_array: number[]): void;
+
+    /**
+     * Reads and returns an array containing the numbers read as signed 32-bit integers from the file starting at the current file position. The byteorder property is taken into account when reading these values. The file position is updated accordingly.
+     * @param  {number}   int32_count [description]
+     * @return {number[]}             [description]
+     */
+    readint32(int32_count: number): number[];
+
+    /**
+     * Writes the numbers contained in the float32_array argument as 32-bit floating point numbers to the file, starting at the current file position. The byteorder property is taken into account when writing these values. The file position is updated accordingly.
+     * @param {number[]} int32_array [description]
+     */
+    writefloat32(int32_array: number[]): void;
+
+    /**
+     * Reads and returns an array containing the numbers read as 32-bit floating point numbers from the file starting at the current file position. The byteorder property is taken into account when reading these values. The file position is updated accordingly.
+     * @param  {number}   float32_count [description]
+     * @return {number[]}               [description]
+     */
+    readfloat32(float32_count: number): number[];
+
+    /**
+     * Writes the numbers contained in the float64_array argument as 64-bit floating point numbers to the file, starting at the current file position. The byteorder property is taken into account when writing these values. The file position is updated accordingly.
+     * @param {number[]} int64_array [description]
+     */
+    writefloat64(int64_array: number[]): void;
+
+    /**
+     * Reads and returns an array containing the numbers read as 64-bit floating point numbers from the file starting at the current file position. The byteorder property is taken into account when reading these values. The file position is updated accordingly.
+     * @param  {number}   float64_count [description]
+     * @return {number[]}               [description]
+     */
+    readfloat64(float64_count: number): number[];
+}
 
 
 /**

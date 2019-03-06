@@ -3,16 +3,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
-var logger_1 = require("../log/logger");
-// let CircularJSON = require('circular-json');
+var CircularJSON = require('circular-json');
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
-    var Logger = logger_1.log.Logger;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
-        function Pwindow(height, width, messenger) {
+        function Pwindow(height, width, messenger
+        // root_parse_tree?: TreeModel.Node<n.Note>,
+        // leaves?: TreeModel.Node<n.Note>[],
+        // clips?: c.Clip[]
+        ) {
             this.beat_to_pixel = function (beat) {
                 var num_pixels_in_clip = this.width;
                 var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
@@ -23,8 +25,52 @@ var window;
             this.messenger = messenger;
             this.clips = [];
             this.beats_per_measure = 4;
-            this.logger = new Logger('max');
+            // this.logger = new Logger('max');
+            // this.root_parse_tree = root_parse_tree;
+            // this.leaves = leaves;
+            // this.clips = clips;
         }
+        Pwindow.prototype.render = function () {
+            var messages_notes = this.get_messages_render_clips();
+            var messages_tree = this.get_messages_render_tree();
+            var msg_clear = ["clear"];
+            msg_clear.unshift('render');
+            this.messenger.message(msg_clear);
+            for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
+                var message = messages_notes_1[_i];
+                message.unshift('render');
+                this.messenger.message(message);
+            }
+            for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
+                var message = messages_tree_1[_a];
+                message.unshift('render');
+                this.messenger.message(message);
+            }
+        };
+        Pwindow.prototype.save = function () {
+            // let serialized = JSON.stringify(this.root_parse_tree.model);
+            // let filpath = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/test.json';
+            // var f = new File(filpath,"write","JSON");
+            // // var s2 = "I am a file named " + f.filename + ", located in " + f.foldername;
+            //
+            // if (f.isopen) {
+            //     post("writing string to file");
+            //     f.writestring(serialized); //writes a string
+            //     f.close();
+            // } else {
+            //     post("could not create file");
+            // }
+            // save clips, leaves, and root of tree
+            // clip.stop()
+        };
+        Pwindow.prototype.load = function () {
+            // restore tree on pwindow
+            // find last clip (serialize leaves as well?)
+            // set loop endpoints of last clip
+            // fire clip, set session record, set overdub
+            // JSON.stringify(this.clips);
+            // JSON.stringify(this.leaves);
+        };
         Pwindow.prototype.get_notes_leaves = function () {
             return this.leaves;
         };

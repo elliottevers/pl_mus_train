@@ -45,17 +45,6 @@ export namespace message {
                     break;
                 }
             }
-            // if (this.env === 'max') {
-            //     if (this.key_route) {
-            //         message.unshift(this.key_route);
-            //     }
-            //     this.message_max(message);
-            // } else if (this.env === 'node') {
-            //     if (this.key_route) {
-            //         message.unshift(this.key_route);
-            //     }
-            //     this.message_node(message);
-            // }
         }
 
         message_max(message: any[]): void {
@@ -70,8 +59,8 @@ export namespace message {
         }
 
         message_node_for_max(message: any[]): void {
-            // const m = require('./max-api');
-            // m.Max.outlet(message);
+            // const Max = require('max-api');
+            // Max.outlet(message);
         }
     }
 }

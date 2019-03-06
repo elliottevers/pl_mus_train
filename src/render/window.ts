@@ -5,7 +5,7 @@ import {note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
 import {log} from "../log/logger";
-// let CircularJSON = require('circular-json');
+let CircularJSON = require('circular-json');
 
 export namespace window {
 
@@ -25,13 +25,69 @@ export namespace window {
         leaves: TreeModel.Node<n.Note>[];
         logger: Logger;
 
-        constructor(height: number, width: number, messenger: m.Messenger) {
+        constructor(
+            height: number,
+            width: number,
+            messenger: m.Messenger
+            // root_parse_tree?: TreeModel.Node<n.Note>,
+            // leaves?: TreeModel.Node<n.Note>[],
+            // clips?: c.Clip[]
+        ) {
             this.height = height;
             this.width = width;
             this.messenger = messenger;
             this.clips = [];
             this.beats_per_measure = 4;
-            this.logger = new Logger('max');
+            // this.logger = new Logger('max');
+            // this.root_parse_tree = root_parse_tree;
+            // this.leaves = leaves;
+            // this.clips = clips;
+        }
+
+        render() {
+            let messages_notes = this.get_messages_render_clips();
+
+            let messages_tree = this.get_messages_render_tree();
+
+            let msg_clear = ["clear"];
+            msg_clear.unshift('render');
+            this.messenger.message(msg_clear);
+
+            for (let message of messages_notes) {
+                message.unshift('render');
+                this.messenger.message(message);
+            }
+
+            for (let message of messages_tree) {
+                message.unshift('render');
+                this.messenger.message(message);
+            }
+        }
+
+        save(): void {
+            // let serialized = JSON.stringify(this.root_parse_tree.model);
+            // let filpath = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/test.json';
+            // var f = new File(filpath,"write","JSON");
+            // // var s2 = "I am a file named " + f.filename + ", located in " + f.foldername;
+            //
+            // if (f.isopen) {
+            //     post("writing string to file");
+            //     f.writestring(serialized); //writes a string
+            //     f.close();
+            // } else {
+            //     post("could not create file");
+            // }
+            // save clips, leaves, and root of tree
+            // clip.stop()
+        }
+
+        load(): void {
+            // restore tree on pwindow
+            // find last clip (serialize leaves as well?)
+            // set loop endpoints of last clip
+            // fire clip, set session record, set overdub
+            // JSON.stringify(this.clips);
+            // JSON.stringify(this.leaves);
         }
 
         get_notes_leaves(): TreeModel.Node<n.Note>[] {
@@ -44,6 +100,7 @@ export namespace window {
             let clip_virtual = new c.Clip(clip_dao_virtual);
 
             clip_virtual.clip_dao.beat_start = note_root.model.note.beat_start;
+
             clip_virtual.clip_dao.beat_end = note_root.model.note.get_beat_end();
 
             this.add_clip(clip_virtual);

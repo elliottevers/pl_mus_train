@@ -35,17 +35,6 @@ var message;
                     break;
                 }
             }
-            // if (this.env === 'max') {
-            //     if (this.key_route) {
-            //         message.unshift(this.key_route);
-            //     }
-            //     this.message_max(message);
-            // } else if (this.env === 'node') {
-            //     if (this.key_route) {
-            //         message.unshift(this.key_route);
-            //     }
-            //     this.message_node(message);
-            // }
         };
         Messenger.prototype.message_max = function (message) {
             outlet(this.outlet, message);
@@ -57,8 +46,8 @@ var message;
             console.log("\n");
         };
         Messenger.prototype.message_node_for_max = function (message) {
-            // const m = require('./max-api');
-            // m.Max.outlet(message);
+            // const Max = require('max-api');
+            // Max.outlet(message);
         };
         return Messenger;
     }());

@@ -1,6 +1,13 @@
 import {note as n, note} from "../../src/note/note";
 import TreeModel = require("tree-model");
-import {begin_train_export, set_depth_tree_export, add_to_tree_export} from "../../src/scripts/parse_tree";
+import {
+    set_depth_tree_export,
+    add_to_tree_export,
+    pwindow,
+    parse_matrix,
+    // load_export,
+    initialize_parse_tree, grow_from_matrix, render, wipe_render
+} from "../../src/scripts/parse_tree";
 import {message} from "../../src/message/messenger";
 import Messenger = message.Messenger;
 
@@ -203,13 +210,14 @@ set_depth_tree_export(4);
 
 let env: string;
 env = 'node';
-// env = 'node_for_max';
+env = 'node_for_max';
 // const Max = require('max-api');
 
 let messenger = new Messenger(env, 0);
 
+wipe_render(messenger);
 
-begin_train_export(notes_segments, clip_user_input, song, add_to_tree_export, messenger);
+initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree_export, messenger);
 
 add_to_tree_export(
     [note_3_1, note_3_2],
@@ -255,3 +263,26 @@ add_to_tree_export(
     song,
     messenger
 );
+
+wipe_render(messenger);
+
+
+// pwindow.render();
+
+parse_matrix.save('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/parse_matrix.json');
+
+// let ds = parse_matrix.load('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/parse_matrix.json');
+//
+//
+// initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree_export, messenger);
+//
+// grow_from_matrix(parse_matrix);
+//
+// render();
+//
+// // let msg_clear = ["clear"];
+// // msg_clear.unshift('render');
+// // messenger.message(msg_clear);
+//
+// // TODO: serialize parse matrix, deserialize, replay building
+// // TODO: can we delay render?

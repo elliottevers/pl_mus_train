@@ -379,7 +379,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../log/logger":3,"../note/note":5,"../utils/utils":11,"tree-model":15}],2:[function(require,module,exports){
+},{"../log/logger":3,"../note/note":5,"../utils/utils":11,"tree-model":16}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live;
@@ -625,17 +625,6 @@ var message;
                     break;
                 }
             }
-            // if (this.env === 'max') {
-            //     if (this.key_route) {
-            //         message.unshift(this.key_route);
-            //     }
-            //     this.message_max(message);
-            // } else if (this.env === 'node') {
-            //     if (this.key_route) {
-            //         message.unshift(this.key_route);
-            //     }
-            //     this.message_node(message);
-            // }
         };
         Messenger.prototype.message_max = function (message) {
             outlet(this.outlet, message);
@@ -647,8 +636,8 @@ var message;
             console.log("\n");
         };
         Messenger.prototype.message_node_for_max = function (message) {
-            // const m = require('./max-api');
-            // m.Max.outlet(message);
+            // const Max = require('max-api');
+            // Max.outlet(message);
         };
         return Messenger;
     }());
@@ -791,6 +780,7 @@ var note;
 },{}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var TreeModel = require("tree-model");
 var logger_1 = require("../log/logger");
 var _ = require("underscore");
 var parse;
@@ -805,19 +795,65 @@ var parse;
             this.logger = new Logger('max');
         }
         ParseMatrix.prototype.set_notes = function (i_height, i_width, notes) {
-            this.logger.log(i_height);
-            this.logger.log(i_width);
-            // this.logger.log(JSON.stringify(notes));
             this.data[i_height][i_width] = notes;
         };
         ParseMatrix.prototype.get_notes = function (i_height, i_width) {
-            // this.logger.log(JSON.stringify(this.data));
-            // for (let datum of this.data) {
-            //     this.logger.log(datum.toString())
-            // }
-            this.logger.log(i_height);
-            this.logger.log(i_width);
             return this.data[i_height][i_width];
+        };
+        ParseMatrix.serialize = function (notes) {
+            return notes.map(function (note) {
+                return JSON.stringify(note.model);
+            });
+        };
+        ParseMatrix.deserialize = function (notes_serialized) {
+            if (notes_serialized === null) {
+                return null;
+            }
+            var tree = new TreeModel();
+            return notes_serialized.map(function (note) {
+                return tree.parse(JSON.parse(note));
+            });
+        };
+        ParseMatrix.prototype.save = function (filename) {
+            var data_serializable = this.data;
+            for (var i_row in this.data) {
+                for (var i_col in this.data[Number(i_row)]) {
+                    data_serializable[Number(i_row)][Number(i_col)] = ParseMatrix.serialize(this.data[Number(i_row)][Number(i_col)]);
+                }
+            }
+            var f = new File(filename, "write", "JSON");
+            if (f.isopen) {
+                post("saving session");
+                f.writestring(JSON.stringify(data_serializable)); //writes a string
+                f.close();
+            }
+            else {
+                post("could not save session");
+            }
+        };
+        ParseMatrix.load = function (filename) {
+            var f = new File(filename, "read", "JSON");
+            var a, data_serialized;
+            if (f.isopen) {
+                post("reading file");
+                // @ts-ignore
+                while ((a = f.readline()) != null) {
+                    data_serialized = JSON.parse(a);
+                }
+                f.close();
+            }
+            else {
+                post("could not open file");
+            }
+            var data_deserialized = data_serialized;
+            for (var i_row in data_serialized) {
+                for (var i_col in data_serialized[Number(i_row)]) {
+                    // post(i_row);
+                    // post(i_col);
+                    data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)]);
+                }
+            }
+            return data_deserialized;
         };
         return ParseMatrix;
     }());
@@ -913,22 +949,24 @@ var parse;
     parse.ParseTreeIterator = ParseTreeIterator;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../log/logger":3,"underscore":16}],7:[function(require,module,exports){
+},{"../log/logger":3,"tree-model":16,"underscore":17}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
-var logger_1 = require("../log/logger");
-// let CircularJSON = require('circular-json');
+var CircularJSON = require('circular-json');
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
-    var Logger = logger_1.log.Logger;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var Pwindow = /** @class */ (function () {
-        function Pwindow(height, width, messenger) {
+        function Pwindow(height, width, messenger
+        // root_parse_tree?: TreeModel.Node<n.Note>,
+        // leaves?: TreeModel.Node<n.Note>[],
+        // clips?: c.Clip[]
+        ) {
             this.beat_to_pixel = function (beat) {
                 var num_pixels_in_clip = this.width;
                 var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
@@ -939,8 +977,52 @@ var window;
             this.messenger = messenger;
             this.clips = [];
             this.beats_per_measure = 4;
-            this.logger = new Logger('max');
+            // this.logger = new Logger('max');
+            // this.root_parse_tree = root_parse_tree;
+            // this.leaves = leaves;
+            // this.clips = clips;
         }
+        Pwindow.prototype.render = function () {
+            var messages_notes = this.get_messages_render_clips();
+            var messages_tree = this.get_messages_render_tree();
+            var msg_clear = ["clear"];
+            msg_clear.unshift('render');
+            this.messenger.message(msg_clear);
+            for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
+                var message = messages_notes_1[_i];
+                message.unshift('render');
+                this.messenger.message(message);
+            }
+            for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
+                var message = messages_tree_1[_a];
+                message.unshift('render');
+                this.messenger.message(message);
+            }
+        };
+        Pwindow.prototype.save = function () {
+            // let serialized = JSON.stringify(this.root_parse_tree.model);
+            // let filpath = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/test.json';
+            // var f = new File(filpath,"write","JSON");
+            // // var s2 = "I am a file named " + f.filename + ", located in " + f.foldername;
+            //
+            // if (f.isopen) {
+            //     post("writing string to file");
+            //     f.writestring(serialized); //writes a string
+            //     f.close();
+            // } else {
+            //     post("could not create file");
+            // }
+            // save clips, leaves, and root of tree
+            // clip.stop()
+        };
+        Pwindow.prototype.load = function () {
+            // restore tree on pwindow
+            // find last clip (serialize leaves as well?)
+            // set loop endpoints of last clip
+            // fire clip, set session record, set overdub
+            // JSON.stringify(this.clips);
+            // JSON.stringify(this.leaves);
+        };
         Pwindow.prototype.get_notes_leaves = function () {
             return this.leaves;
         };
@@ -1248,7 +1330,7 @@ var window;
     window.Pwindow = Pwindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"lodash":13}],8:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"circular-json":12,"lodash":14}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -1281,48 +1363,67 @@ var messenger = new Messenger(env, 0);
 var logger = new Logger(env);
 var song_dao = new song_1.song.SongDao(new live_1.live.LiveApiJs("live_set", env), new messenger_1.message.Messenger(env, 0, "song"), true);
 var song = new song_1.song.Song(song_dao);
-var pwindow;
 var elaboration;
 var clip_user_input;
 var clip_segment;
-// let logger = new log.Logger(env);
 var segment_current;
 var segment_iterator;
 var tree_depth_iterator;
 var parse_tree_iterator;
 var layer_parse_tree_current;
 var depth_parse_tree;
-var parse_matrix;
 var notes_segments;
+exports.wipe_render = function (messenger) {
+    var msg_clear = ["clear"];
+    msg_clear.unshift('render');
+    messenger.message(msg_clear);
+};
+exports.render = function () {
+    exports.pwindow.render();
+};
+var start_session_train = function (parse_matrix) {
+    logger.log(JSON.stringify(parse_matrix));
+    exports.initialize_parse_tree(notes_segments, clip_user_input, song, exports.add_to_tree_export, messenger);
+    // grow_from_matrix(parse_matrix);
+    fire_session();
+};
+exports.grow_from_matrix = function (parse_matrix) {
+    for (var _i = 0, _a = parse_matrix.get_entries(); _i < _a.length; _i++) {
+        var notes = _a[_i];
+        exports.add_to_tree_export(notes, parse_matrix.get_note_first_segment().model.note.beat_start, parse_matrix.get_note_last_segment().model.note.get_beat_end(), clip_user_input, song, messenger);
+    }
+};
+var stop_session = function (clip_user_input, song) {
+    song.set_overdub(0);
+    song.set_session_record(0);
+    clip_user_input.stop();
+};
+var fire_session = function () {
+    var interval = segment_current.get_endpoints_loop();
+    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+    song.set_overdub(1);
+    song.set_session_record(1);
+    clip_user_input.fire();
+};
+var load = function (filename) {
+    start_session_train(ParseMatrix.load(filename));
+};
+var save = function (filename) {
+    exports.parse_matrix.save(filename);
+    stop_session(clip_user_input, song);
+};
 var add_to_tree = function (notes, beat_start, beat_end) {
     exports.add_to_tree_export(notes, beat_start, beat_end, clip_user_input, song, messenger);
 };
 exports.add_to_tree_export = function (notes, beat_start, beat_end, clip_user_input, song, messenger) {
-    pwindow.elaborate(notes, beat_start, beat_end, tree_depth_iterator.get_index_current());
-    parse_matrix.set_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current(), notes);
-    var messages_notes = pwindow.get_messages_render_clips();
-    var messages_tree = pwindow.get_messages_render_tree();
-    var msg_clear = ["clear"];
-    msg_clear.unshift('render');
-    messenger.message(msg_clear);
-    for (var _i = 0, messages_notes_1 = messages_notes; _i < messages_notes_1.length; _i++) {
-        var message_1 = messages_notes_1[_i];
-        message_1.unshift('render');
-        messenger.message(message_1);
-    }
-    for (var _a = 0, messages_tree_1 = messages_tree; _a < messages_tree_1.length; _a++) {
-        var message_2 = messages_tree_1[_a];
-        message_2.unshift('render');
-        messenger.message(message_2);
-    }
+    exports.pwindow.elaborate(notes, beat_start, beat_end, tree_depth_iterator.get_index_current());
+    exports.parse_matrix.set_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current(), notes);
+    exports.pwindow.render();
     var segment_next = parse_tree_iterator.next();
     var val_segment_next = segment_next.value;
     layer_parse_tree_current = tree_depth_iterator.get_index_current();
     if (segment_next.done) {
-        // TODO: handle for testing
-        song.set_overdub(0);
-        song.set_session_record(0);
-        clip_user_input.stop();
+        stop_session(clip_user_input, song);
         return;
     }
     segment_current = val_segment_next;
@@ -1334,23 +1435,19 @@ var confirm = function () {
     add_to_tree(elaboration, segment_current.beat_start, segment_current.beat_end);
 };
 var reset = function () {
-    clip_user_input.set_notes(parse_matrix.get_notes(tree_depth_iterator.get_index_current() - 1, segment_iterator.get_index_current()));
+    clip_user_input.set_notes(exports.parse_matrix.get_notes(tree_depth_iterator.get_index_current() - 1, segment_iterator.get_index_current()));
 };
 var erase = function () {
-    // let epsilon = 1/(48 * 2);
     clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end - segment_current.beat_start, 128);
 };
 function set_clip_segment() {
     var vector_path_live = Array.prototype.slice.call(arguments);
-    // logger.log(utils.PathLive.to_string(vector_path_live));
     var live_api_clip_segment = new live_1.live.LiveApiJs(utils_1.utils.PathLive.to_string(vector_path_live));
-    // logger.log(live_api_clip_segment.call('get_notes', "-1", 0, "100", "128"));
     clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_clip_segment, new messenger_1.message.Messenger(env, 0), false));
     // TODO: in information retreival phase, save the start and end points of the song and retreive them here
     clip_segment.set_clip_endpoint_lower(1);
     clip_segment.set_clip_endpoint_upper(16 * 4);
     notes_segments = clip_segment.get_notes_within_markers();
-    // logger.log(JSON.stringify(notes_segments));
 }
 var set_depth_tree = function (depth) {
     exports.set_depth_tree_export(depth);
@@ -1359,9 +1456,10 @@ exports.set_depth_tree_export = function (depth) {
     depth_parse_tree = depth;
 };
 var begin_train = function () {
-    exports.begin_train_export(notes_segments, clip_user_input, song, add_to_tree, messenger);
+    exports.initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree, messenger);
+    fire_session();
 };
-exports.begin_train_export = function (notes_segments, clip_user_input, song, callback_add_to_tree, messenger) {
+exports.initialize_parse_tree = function (notes_segments, clip_user_input, song, add_to_tree_export, messenger) {
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
@@ -1369,7 +1467,7 @@ exports.begin_train_export = function (notes_segments, clip_user_input, song, ca
         var clip_segment_virtual = new clip_1.clip.Clip(clip_dao_virtual);
         segments.push(new Segment(note.model.note.beat_start, note.model.note.get_beat_end(), clip_segment_virtual));
     }
-    parse_matrix = new ParseMatrix(depth_parse_tree, segments.length);
+    exports.parse_matrix = new ParseMatrix(depth_parse_tree, segments.length);
     segment_iterator = new SegmentIterator(segments, true);
     tree_depth_iterator = new TreeDepthIterator(depth_parse_tree, true);
     parse_tree_iterator = new ParseTreeIterator(segment_iterator, tree_depth_iterator);
@@ -1380,42 +1478,24 @@ exports.begin_train_export = function (notes_segments, clip_user_input, song, ca
         children: []
     });
     var dim = 16 * 6 * 4;
-    pwindow = new window_1.window.Pwindow(dim, dim, messenger);
+    exports.pwindow = new window_1.window.Pwindow(dim, dim, messenger);
     // initialize
     parse_tree_iterator.next();
-    pwindow.set_root(note_root);
+    exports.pwindow.set_root(note_root);
     parse_tree_iterator.next('root');
-    pwindow.elaborate(notes_segments, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end(), 1);
+    exports.pwindow.elaborate(notes_segments, notes_segments[0].model.note.beat_start, notes_segments[notes_segments.length - 1].model.note.get_beat_end(), 1);
     for (var i in notes_segments) {
-        parse_matrix.set_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current(), [notes_segments[Number(i)]]);
+        exports.parse_matrix.set_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current(), [notes_segments[Number(i)]]);
         parse_tree_iterator.next();
     }
     segment_current = segment_iterator.current();
-    var interval = segment_current.get_endpoints_loop();
-    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
-    // parse_tree_iterator.next();
-    // let messages_notes = pwindow.get_messages_render_clips();
-    //
-    // let messages_tree = pwindow.get_messages_render_tree();
-    //
-    // let msg_clear = ["clear"];
-    // msg_clear.unshift('render');
-    // messenger.message(msg_clear);
-    //
-    // for (let message of messages_notes) {
-    //     message.unshift('render');
-    //     messenger.message(message);
-    // }
-    //
-    // for (let message of messages_tree) {
-    //     message.unshift('render');
-    //     messenger.message(message);
-    // }
-    song.set_overdub(1);
-    song.set_session_record(1);
-    // TODO: uncomment
-    clip_user_input.fire();
 };
+// export let begin_train_export = (notes_segments, clip_user_input, song, callback_add_to_tree, messenger) => {
+//
+//     initialize_parse_tree(notes_segments, clip_user_input, song, callback_add_to_tree, messenger);
+//
+//     fire_session()
+// };
 var pause_train = function () {
     clip_user_input.stop();
 };
@@ -1425,7 +1505,6 @@ var resume_train = function () {
 var set_clip_user_input = function () {
     var live_api_user_input = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
     // TODO: get notes from segment clip
-    // let notes_segments: TreeModel.Node<n.Note>[] = clip_segment.get_notes_within_markers();
     var key_route = 'clip_user_input';
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api_user_input, new messenger_1.message.Messenger(env, 0), true, key_route));
     clip_user_input.set_path_deferlow('set_path_clip_user_input');
@@ -1433,19 +1512,14 @@ var set_clip_user_input = function () {
     // logger.log(JSON.stringify(notes_segments));
     clip_user_input.remove_notes(notes_segments[0].model.note.beat_start, 0, beats_duration_song, 128);
     clip_user_input.set_notes(notes_segments);
-    // clip_user_input.set_loop_bracket_upper(
-    //     notes_segments[0].model.note.beat_start
-    // );
-    //
-    // clip_user_input.set_loop_bracket_upper(
-    //     notes_segments[0].model.note.get_beat_end()
-    // );
 };
 if (typeof Global !== "undefined") {
     Global.parse_tree = {};
     Global.parse_tree.confirm = confirm;
     Global.parse_tree.reset = reset;
     Global.parse_tree.erase = erase;
+    Global.parse_tree.save = save;
+    Global.parse_tree.load = load;
     Global.parse_tree.set_clip_user_input = set_clip_user_input;
     Global.parse_tree.set_clip_segment = set_clip_segment;
     Global.parse_tree.begin_train = begin_train;
@@ -1454,7 +1528,7 @@ if (typeof Global !== "undefined") {
     Global.parse_tree.set_depth_tree = set_depth_tree;
 }
 
-},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../note/note":5,"../parse/parse":6,"../render/window":7,"../segment/segment":9,"../song/song":10,"../utils/utils":11,"tree-model":15}],9:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../note/note":5,"../parse/parse":6,"../render/window":7,"../segment/segment":9,"../song/song":10,"../utils/utils":11,"tree-model":16}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // TODO: use namespaces better
@@ -1595,6 +1669,215 @@ var utils;
 })(utils = exports.utils || (exports.utils = {}));
 
 },{}],12:[function(require,module,exports){
+/*!
+Copyright (C) 2013-2017 by Andrea Giammarchi - @WebReflection
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+*/
+var
+  // should be a not so common char
+  // possibly one JSON does not encode
+  // possibly one encodeURIComponent does not encode
+  // right now this char is '~' but this might change in the future
+  specialChar = '~',
+  safeSpecialChar = '\\x' + (
+    '0' + specialChar.charCodeAt(0).toString(16)
+  ).slice(-2),
+  escapedSafeSpecialChar = '\\' + safeSpecialChar,
+  specialCharRG = new RegExp(safeSpecialChar, 'g'),
+  safeSpecialCharRG = new RegExp(escapedSafeSpecialChar, 'g'),
+
+  safeStartWithSpecialCharRG = new RegExp('(?:^|([^\\\\]))' + escapedSafeSpecialChar),
+
+  indexOf = [].indexOf || function(v){
+    for(var i=this.length;i--&&this[i]!==v;);
+    return i;
+  },
+  $String = String  // there's no way to drop warnings in JSHint
+                    // about new String ... well, I need that here!
+                    // faked, and happy linter!
+;
+
+function generateReplacer(value, replacer, resolve) {
+  var
+    doNotIgnore = false,
+    inspect = !!replacer,
+    path = [],
+    all  = [value],
+    seen = [value],
+    mapp = [resolve ? specialChar : '[Circular]'],
+    last = value,
+    lvl  = 1,
+    i, fn
+  ;
+  if (inspect) {
+    fn = typeof replacer === 'object' ?
+      function (key, value) {
+        return key !== '' && replacer.indexOf(key) < 0 ? void 0 : value;
+      } :
+      replacer;
+  }
+  return function(key, value) {
+    // the replacer has rights to decide
+    // if a new object should be returned
+    // or if there's some key to drop
+    // let's call it here rather than "too late"
+    if (inspect) value = fn.call(this, key, value);
+
+    // first pass should be ignored, since it's just the initial object
+    if (doNotIgnore) {
+      if (last !== this) {
+        i = lvl - indexOf.call(all, this) - 1;
+        lvl -= i;
+        all.splice(lvl, all.length);
+        path.splice(lvl - 1, path.length);
+        last = this;
+      }
+      // console.log(lvl, key, path);
+      if (typeof value === 'object' && value) {
+    	// if object isn't referring to parent object, add to the
+        // object path stack. Otherwise it is already there.
+        if (indexOf.call(all, value) < 0) {
+          all.push(last = value);
+        }
+        lvl = all.length;
+        i = indexOf.call(seen, value);
+        if (i < 0) {
+          i = seen.push(value) - 1;
+          if (resolve) {
+            // key cannot contain specialChar but could be not a string
+            path.push(('' + key).replace(specialCharRG, safeSpecialChar));
+            mapp[i] = specialChar + path.join(specialChar);
+          } else {
+            mapp[i] = mapp[0];
+          }
+        } else {
+          value = mapp[i];
+        }
+      } else {
+        if (typeof value === 'string' && resolve) {
+          // ensure no special char involved on deserialization
+          // in this case only first char is important
+          // no need to replace all value (better performance)
+          value = value .replace(safeSpecialChar, escapedSafeSpecialChar)
+                        .replace(specialChar, safeSpecialChar);
+        }
+      }
+    } else {
+      doNotIgnore = true;
+    }
+    return value;
+  };
+}
+
+function retrieveFromPath(current, keys) {
+  for(var i = 0, length = keys.length; i < length; current = current[
+    // keys should be normalized back here
+    keys[i++].replace(safeSpecialCharRG, specialChar)
+  ]);
+  return current;
+}
+
+function generateReviver(reviver) {
+  return function(key, value) {
+    var isString = typeof value === 'string';
+    if (isString && value.charAt(0) === specialChar) {
+      return new $String(value.slice(1));
+    }
+    if (key === '') value = regenerate(value, value, {});
+    // again, only one needed, do not use the RegExp for this replacement
+    // only keys need the RegExp
+    if (isString) value = value .replace(safeStartWithSpecialCharRG, '$1' + specialChar)
+                                .replace(escapedSafeSpecialChar, safeSpecialChar);
+    return reviver ? reviver.call(this, key, value) : value;
+  };
+}
+
+function regenerateArray(root, current, retrieve) {
+  for (var i = 0, length = current.length; i < length; i++) {
+    current[i] = regenerate(root, current[i], retrieve);
+  }
+  return current;
+}
+
+function regenerateObject(root, current, retrieve) {
+  for (var key in current) {
+    if (current.hasOwnProperty(key)) {
+      current[key] = regenerate(root, current[key], retrieve);
+    }
+  }
+  return current;
+}
+
+function regenerate(root, current, retrieve) {
+  return current instanceof Array ?
+    // fast Array reconstruction
+    regenerateArray(root, current, retrieve) :
+    (
+      current instanceof $String ?
+        (
+          // root is an empty string
+          current.length ?
+            (
+              retrieve.hasOwnProperty(current) ?
+                retrieve[current] :
+                retrieve[current] = retrieveFromPath(
+                  root, current.split(specialChar)
+                )
+            ) :
+            root
+        ) :
+        (
+          current instanceof Object ?
+            // dedicated Object parser
+            regenerateObject(root, current, retrieve) :
+            // value as it is
+            current
+        )
+    )
+  ;
+}
+
+var CircularJSON = {
+  stringify: function stringify(value, replacer, space, doNotResolve) {
+    return CircularJSON.parser.stringify(
+      value,
+      generateReplacer(value, replacer, !doNotResolve),
+      space
+    );
+  },
+  parse: function parse(text, reviver) {
+    return CircularJSON.parser.parse(
+      text,
+      generateReviver(reviver)
+    );
+  },
+  // A parser should be an API 1:1 compatible with JSON
+  // it should expose stringify and parse methods.
+  // The default parser is the native JSON.
+  parser: JSON
+};
+
+module.exports = CircularJSON;
+
+},{}],13:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1618,7 +1901,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -18729,7 +19012,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -18781,7 +19064,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -19074,7 +19357,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":12,"mergesort":14}],16:[function(require,module,exports){
+},{"find-insert-index":13,"mergesort":15}],17:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -20775,6 +21058,8 @@ module.exports = (function () {
 var confirm = Global.parse_tree.confirm;
 var reset = Global.parse_tree.reset;
 var erase = Global.parse_tree.erase;
+var save = Global.parse_tree.save;
+var load = Global.parse_tree.load;
 var set_clip_user_input = Global.parse_tree.set_clip_user_input;
 var set_clip_segment = Global.parse_tree.set_clip_segment;
 var begin_train = Global.parse_tree.begin_train;

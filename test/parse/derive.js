@@ -76,13 +76,32 @@ notes_segments = [note_2_1, note_2_2, note_2_3];
 parse_tree_1.set_depth_tree_export(4);
 var env;
 env = 'node';
-// env = 'node_for_max';
+env = 'node_for_max';
 // const Max = require('max-api');
 var messenger = new Messenger(env, 0);
-parse_tree_1.begin_train_export(notes_segments, clip_user_input, song, parse_tree_1.add_to_tree_export, messenger);
+parse_tree_1.wipe_render(messenger);
+parse_tree_1.initialize_parse_tree(notes_segments, clip_user_input, song, parse_tree_1.add_to_tree_export, messenger);
 parse_tree_1.add_to_tree_export([note_3_1, note_3_2], note_2_1.model.note.beat_start, note_2_1.model.note.get_beat_end(), clip_user_input, song, messenger);
 parse_tree_1.add_to_tree_export([note_3_3, note_3_4], note_2_2.model.note.beat_start, note_2_2.model.note.get_beat_end(), clip_user_input, song, messenger);
 parse_tree_1.add_to_tree_export([note_3_5, note_3_6], note_2_3.model.note.beat_start, note_2_3.model.note.get_beat_end(), clip_user_input, song, messenger);
 parse_tree_1.add_to_tree_export([note_4_1], note_2_1.model.note.beat_start, note_2_1.model.note.get_beat_end(), clip_user_input, song, messenger);
 parse_tree_1.add_to_tree_export([note_4_2], note_2_2.model.note.beat_start, note_2_2.model.note.get_beat_end(), clip_user_input, song, messenger);
+parse_tree_1.wipe_render(messenger);
+// pwindow.render();
+parse_tree_1.parse_matrix.save('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/parse_matrix.json');
+// let ds = parse_matrix.load('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/parse_matrix.json');
+//
+//
+// initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree_export, messenger);
+//
+// grow_from_matrix(parse_matrix);
+//
+// render();
+//
+// // let msg_clear = ["clear"];
+// // msg_clear.unshift('render');
+// // messenger.message(msg_clear);
+//
+// // TODO: serialize parse matrix, deserialize, replay building
+// // TODO: can we delay render?
 //# sourceMappingURL=derive.js.map

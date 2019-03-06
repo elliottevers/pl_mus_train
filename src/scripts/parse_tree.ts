@@ -50,15 +50,13 @@ let song_dao = new s.SongDao(
 
 let song: s.Song = new s.Song(song_dao);
 
-let pwindow: w.Pwindow;
+export let pwindow: w.Pwindow;
 
 let elaboration: TreeModel.Node<n.Note>[];
 
 let clip_user_input: c.Clip;
 
 let clip_segment: c.Clip;
-
-// let logger = new log.Logger(env);
 
 let segment_current: Segment;
 
@@ -72,15 +70,79 @@ let layer_parse_tree_current: number;
 
 let depth_parse_tree: number;
 
-let parse_matrix: ParseMatrix;
+export let parse_matrix: ParseMatrix;
 
 let notes_segments: TreeModel.Node<n.Note>[];
 
+export let wipe_render = (messenger) => {
+    let msg_clear = ["clear"];
+    msg_clear.unshift('render');
+    messenger.message(msg_clear);
+};
+
+export let render = () => {
+    pwindow.render();
+};
+
+let start_session_train = (parse_matrix) => {
+    logger.log(JSON.stringify(parse_matrix));
+    initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree_export, messenger);
+    // grow_from_matrix(parse_matrix);
+    fire_session()
+};
+
+export let grow_from_matrix = (parse_matrix) => {
+    for (let notes of parse_matrix.get_entries()) {
+        add_to_tree_export(
+            notes,
+            parse_matrix.get_note_first_segment().model.note.beat_start,
+            parse_matrix.get_note_last_segment().model.note.get_beat_end(),
+            clip_user_input,
+            song,
+            messenger
+        );
+    }
+};
+
+let stop_session = (clip_user_input, song) => {
+    song.set_overdub(0);
+
+    song.set_session_record(0);
+
+    clip_user_input.stop();
+};
+
+let fire_session = () => {
+    let interval = segment_current.get_endpoints_loop();
+
+    clip_user_input.set_endpoints_loop(
+        interval[0],
+        interval[1]
+    );
+
+    song.set_overdub(1);
+
+    song.set_session_record(1);
+
+    clip_user_input.fire();
+};
+
+let load = (filename) => {
+    start_session_train(
+        ParseMatrix.load(
+            filename
+        )
+    )
+};
+
+let save = (filename) => {
+    parse_matrix.save(filename);
+    stop_session(clip_user_input, song)
+};
 
 let add_to_tree = (notes, beat_start, beat_end) => {
     add_to_tree_export(notes, beat_start, beat_end, clip_user_input, song, messenger)
 };
-
 
 export let add_to_tree_export = (notes, beat_start, beat_end, clip_user_input, song, messenger) => {
 
@@ -97,23 +159,7 @@ export let add_to_tree_export = (notes, beat_start, beat_end, clip_user_input, s
         notes
     );
 
-    let messages_notes = pwindow.get_messages_render_clips();
-
-    let messages_tree = pwindow.get_messages_render_tree();
-
-    let msg_clear = ["clear"];
-    msg_clear.unshift('render');
-    messenger.message(msg_clear);
-
-    for (let message of messages_notes) {
-        message.unshift('render');
-        messenger.message(message);
-    }
-
-    for (let message of messages_tree) {
-        message.unshift('render');
-        messenger.message(message);
-    }
+    pwindow.render();
 
     let segment_next = parse_tree_iterator.next();
 
@@ -123,12 +169,7 @@ export let add_to_tree_export = (notes, beat_start, beat_end, clip_user_input, s
 
     if (segment_next.done) {
 
-        // TODO: handle for testing
-        song.set_overdub(0);
-
-        song.set_session_record(0);
-
-        clip_user_input.stop();
+        stop_session(clip_user_input, song);
 
         return
     }
@@ -169,8 +210,6 @@ let reset = () => {
 };
 
 let erase = () => {
-    // let epsilon = 1/(48 * 2);
-
     clip_user_input.remove_notes(
         segment_current.beat_start,
         0,
@@ -183,13 +222,9 @@ function set_clip_segment() {
 
     let vector_path_live = Array.prototype.slice.call(arguments);
 
-    // logger.log(utils.PathLive.to_string(vector_path_live));
-
     let live_api_clip_segment = new li.LiveApiJs(
         utils.PathLive.to_string(vector_path_live)
     );
-
-    // logger.log(live_api_clip_segment.call('get_notes', "-1", 0, "100", "128"));
 
     clip_segment = new c.Clip(
         new c.ClipDao(
@@ -209,8 +244,6 @@ function set_clip_segment() {
     );
 
     notes_segments = clip_segment.get_notes_within_markers();
-
-    // logger.log(JSON.stringify(notes_segments));
 }
 
 let set_depth_tree = (depth) => {
@@ -222,11 +255,11 @@ export let set_depth_tree_export = (depth) => {
 };
 
 let begin_train = () => {
-    begin_train_export(notes_segments, clip_user_input, song, add_to_tree, messenger)
+    initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree, messenger);
+    fire_session()
 };
 
-export let begin_train_export = (notes_segments, clip_user_input, song, callback_add_to_tree, messenger) => {
-
+export let initialize_parse_tree = (notes_segments, clip_user_input, song, add_to_tree_export, messenger) => {
     let segments: Segment[] = [];
 
     for (let note of notes_segments) {
@@ -313,40 +346,6 @@ export let begin_train_export = (notes_segments, clip_user_input, song, callback
     }
 
     segment_current = segment_iterator.current();
-
-    let interval = segment_current.get_endpoints_loop();
-
-    clip_user_input.set_endpoints_loop(
-        interval[0],
-        interval[1]
-    );
-
-    // parse_tree_iterator.next();
-
-    // let messages_notes = pwindow.get_messages_render_clips();
-    //
-    // let messages_tree = pwindow.get_messages_render_tree();
-    //
-    // let msg_clear = ["clear"];
-    // msg_clear.unshift('render');
-    // messenger.message(msg_clear);
-    //
-    // for (let message of messages_notes) {
-    //     message.unshift('render');
-    //     messenger.message(message);
-    // }
-    //
-    // for (let message of messages_tree) {
-    //     message.unshift('render');
-    //     messenger.message(message);
-    // }
-
-    song.set_overdub(1);
-
-    song.set_session_record(1);
-
-    // TODO: uncomment
-    clip_user_input.fire();
 };
 
 let pause_train = () => {
@@ -363,8 +362,6 @@ let set_clip_user_input = () => {
     );
 
     // TODO: get notes from segment clip
-
-    // let notes_segments: TreeModel.Node<n.Note>[] = clip_segment.get_notes_within_markers();
 
     let key_route = 'clip_user_input';
 
@@ -393,14 +390,6 @@ let set_clip_user_input = () => {
     clip_user_input.set_notes(
         notes_segments
     );
-
-    // clip_user_input.set_loop_bracket_upper(
-    //     notes_segments[0].model.note.beat_start
-    // );
-    //
-    // clip_user_input.set_loop_bracket_upper(
-    //     notes_segments[0].model.note.get_beat_end()
-    // );
 };
 
 if (typeof Global !== "undefined") {
@@ -408,6 +397,8 @@ if (typeof Global !== "undefined") {
     Global.parse_tree.confirm = confirm;
     Global.parse_tree.reset = reset;
     Global.parse_tree.erase = erase;
+    Global.parse_tree.save = save;
+    Global.parse_tree.load = load;
     Global.parse_tree.set_clip_user_input = set_clip_user_input;
     Global.parse_tree.set_clip_segment = set_clip_segment;
     Global.parse_tree.begin_train = begin_train;
