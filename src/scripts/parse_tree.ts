@@ -281,11 +281,14 @@ export let begin_train_export = (notes_segments, clip_user_input, song, callback
         messenger
     );
 
+    // initialize
+    parse_tree_iterator.next();
+
     pwindow.set_root(
         note_root
     );
 
-    parse_tree_iterator.next();
+    parse_tree_iterator.next('root');
 
     pwindow.elaborate(
         notes_segments,
@@ -294,45 +297,28 @@ export let begin_train_export = (notes_segments, clip_user_input, song, callback
         1
     );
 
-    // pwindow.add_first_layer(
-    //     notes_segments,
-    //     1
-    // );
-
-    // pwindow.update_leaves(
-    //     notes_segments
-    // );
-
-    let messages_notes = pwindow.get_messages_render_clips();
-
-    let messages_tree = pwindow.get_messages_render_tree();
-
-    let msg_clear = ["clear"];
-    msg_clear.unshift('render');
-    messenger.message(msg_clear);
-
-    for (let message of messages_notes) {
-        message.unshift('render');
-        messenger.message(message);
+    for (let i of notes_segments) {
+        parse_tree_iterator.next();
     }
 
-    for (let message of messages_tree) {
-        message.unshift('render');
-        messenger.message(message);
-    }
+    // parse_tree_iterator.next();
 
-    // for (let i in notes_segments) {
-    //     callback_add_to_tree.call(
-    //         this,
-    //         [
-    //             notes_segments[Number(i)]
-    //         ],
-    //         notes_segments[Number(i)].model.note.beat_start,
-    //         notes_segments[Number(i)].model.note.get_beat_end(),
-    //         clip_user_input,
-    //         song,
-    //         messenger
-    //     );
+    // let messages_notes = pwindow.get_messages_render_clips();
+    //
+    // let messages_tree = pwindow.get_messages_render_tree();
+    //
+    // let msg_clear = ["clear"];
+    // msg_clear.unshift('render');
+    // messenger.message(msg_clear);
+    //
+    // for (let message of messages_notes) {
+    //     message.unshift('render');
+    //     messenger.message(message);
+    // }
+    //
+    // for (let message of messages_tree) {
+    //     message.unshift('render');
+    //     messenger.message(message);
     // }
 
     song.set_overdub(1);

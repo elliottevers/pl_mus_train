@@ -92,7 +92,9 @@ export namespace window {
         get_leaves_within_interval(beat_start: number, beat_end: number): TreeModel.Node<n.Note>[] {
             let val =  this.leaves.filter((node) =>{
                 // return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
-                return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) || (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start)
+                return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) ||
+                    (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start) ||
+                    (node.model.note.get_beat_end() >= beat_end && node.model.note.beat_start <= beat_start)
 
             });
             // this.logger.log(CircularJSON.stringify(this.leaves));

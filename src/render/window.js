@@ -71,7 +71,9 @@ var window;
         Pwindow.prototype.get_leaves_within_interval = function (beat_start, beat_end) {
             var val = this.leaves.filter(function (node) {
                 // return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
-                return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) || (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start);
+                return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) ||
+                    (node.model.note.get_beat_end() <= beat_end && node.model.note.get_beat_end() >= beat_start) ||
+                    (node.model.note.get_beat_end() >= beat_end && node.model.note.beat_start <= beat_start);
             });
             // this.logger.log(CircularJSON.stringify(this.leaves));
             return val;

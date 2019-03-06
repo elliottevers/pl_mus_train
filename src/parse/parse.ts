@@ -43,7 +43,7 @@ export namespace parse {
         constructor(depth: number, direction_forward: boolean) {
             this.layers = _.range(depth);
             this.direction_forward = direction_forward;
-            this.i = -1;
+            this.i = 0;
         }
 
         // TODO: type declarations
@@ -78,7 +78,7 @@ export namespace parse {
         }
 
         public get_index_current() {
-            return this.i + 1 // TODO: the root is the first index
+            return this.i // TODO: the root is the first index
         }
     }
 
@@ -94,10 +94,16 @@ export namespace parse {
         }
 
         // TODO: type declarations
-        public next() {
+        public next(type_node?:string) {
+
+            if (type_node === 'root') {
+                // initialize
+                this.iterator_tree.next();
+                return
+            }
 
             // initialize
-            if (this.iterator_tree.get_index_current() == 0) {
+            if (this.iterator_tree.get_index_current() == -1) {
                 this.iterator_tree.next()
             }
 

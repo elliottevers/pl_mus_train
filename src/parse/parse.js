@@ -23,7 +23,7 @@ var parse;
         function TreeDepthIterator(depth, direction_forward) {
             this.layers = _.range(depth);
             this.direction_forward = direction_forward;
-            this.i = -1;
+            this.i = 0;
         }
         // TODO: type declarations
         TreeDepthIterator.prototype.next = function () {
@@ -54,7 +54,7 @@ var parse;
             }
         };
         TreeDepthIterator.prototype.get_index_current = function () {
-            return this.i + 1; // TODO: the root is the first index
+            return this.i; // TODO: the root is the first index
         };
         return TreeDepthIterator;
     }());
@@ -65,9 +65,14 @@ var parse;
             this.iterator_tree = iterator_tree;
         }
         // TODO: type declarations
-        ParseTreeIterator.prototype.next = function () {
+        ParseTreeIterator.prototype.next = function (type_node) {
+            if (type_node === 'root') {
+                // initialize
+                this.iterator_tree.next();
+                return;
+            }
             // initialize
-            if (this.iterator_tree.get_index_current() == 0) {
+            if (this.iterator_tree.get_index_current() == -1) {
                 this.iterator_tree.next();
             }
             // let layer_current = this.iterator_tree.current();
