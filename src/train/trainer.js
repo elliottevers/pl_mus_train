@@ -1,16 +1,49 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_tree_1 = require("../scripts/parse_tree");
-var train;
-(function (train) {
+var algorithm_1 = require("./algorithm");
+var history_1 = require("../history/history");
+var trainer;
+(function (trainer) {
+    var Targetable = algorithm_1.train.algorithm.Targetable;
+    var HistoryUserInput = history_1.history.HistoryUserInput;
     var Trainer = /** @class */ (function () {
-        function Trainer(window, mode) {
+        // window is either tree or list
+        // mode is either harmonic or melodic
+        // algorithm is either detect, predict, parse, or derive
+        // history
+        function Trainer(window, mode, algorithm, clip_user_input) {
             this.window = window;
             if (mode === modes.HARMONY) {
             }
+            this.algorithm = algorithm;
+            this.history_user_input = new HistoryUserInput(mode);
+            this.clip_user_input = clip_user_input;
         }
+        Trainer.prototype.set_loop = function () {
+            var interval = this.segment_current.get_endpoints_loop();
+            this.clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+        };
+        Trainer.prototype.resume = function () {
+            // set segment current
+            // set target current
+            // set subtarget current
+            this.algorithm.post_init();
+        };
+        Trainer.prototype.pause = function () {
+            this.algorithm.pre_terminate();
+        };
+        Trainer.prototype.init = function () {
+            this.advance_segment();
+            this.algorithm.post_init();
+        };
         Trainer.prototype.advance_segment = function () {
             this.segment_current = this.segment_iterator.next();
+            this.target_current = this.target_iterator.next();
+            this.subtarget_current = this.subtarget_current.next();
+            if (done) {
+                this.algorithm.pre_terminate();
+            }
         };
         Trainer.prototype.advance_target = function () {
             this.target_current = this.target_iterator.next();
@@ -25,6 +58,10 @@ var train;
             }
         };
         Trainer.prototype.accept_input = function (input_user) {
+            this.counter_user_input++;
+            if (this.counter_user_input >= this.limit_user_input) {
+                this.limit_input_reached = true;
+            }
             if (this.limit_input_reached) {
                 // completely ignore
             }
@@ -66,8 +103,8 @@ var train;
         };
         return Trainer;
     }());
-    train.Trainer = Trainer;
-})(train = exports.train || (exports.train = {}));
+    trainer.Trainer = Trainer;
+})(trainer = exports.trainer || (exports.trainer = {}));
 notes_segments = [note1, note2];
 trainer.set_segments(notes_segments);
 trainer.init(); // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
@@ -80,4 +117,4 @@ freezer.freeze(trainer, '/path/to/file');
 var thawer = new TrainThawer('node');
 var train_thawed = thawer.thaw('/path/to/file');
 train_thawed.render();
-//# sourceMappingURL=train.js.map
+//# sourceMappingURL=trainer.js.map

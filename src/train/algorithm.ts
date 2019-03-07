@@ -4,7 +4,7 @@ import {live} from "../live/live";
 import TreeModel = require("tree-model");
 import {target} from "../target/target";
 
-export namespace train.algorithm {
+export namespace algorithm {
     import LiveClipVirtual = live.LiveClipVirtual;
     import Target = target.Target;
     import TargetType = target.TargetType;
@@ -78,8 +78,22 @@ export namespace train.algorithm {
 
     export class Parse implements Temporal {
 
-        accept() {
+        // happens after loop of first target is set
+        post_init(song, clip_user_input) {
+            song.set_overdub(1);
 
+            song.set_session_record(1);
+
+            clip_user_input.fire();
+        }
+
+        // happens after last target is guessed
+        pre_terminate(song, clip_user_input) {
+            song.set_overdub(0);
+
+            song.set_session_record(0);
+
+            clip_user_input.stop();
         }
 
     }
@@ -87,17 +101,21 @@ export namespace train.algorithm {
     export class Derive implements Temporal {
 
         // happens after loop of first target is set
-        post_init() {
-            // session record on
-            // overdub on
-            // clip fire
+        post_init(song, clip_user_input) {
+            song.set_overdub(1);
+
+            song.set_session_record(1);
+
+            clip_user_input.fire();
         }
 
         // happens after last target is guessed
-        pre_terminate() {
-            // session record off
-            // overdub off
-            // clip stop
+        pre_terminate(song, clip_user_input) {
+            song.set_overdub(0);
+
+            song.set_session_record(0);
+
+            clip_user_input.stop();
         }
 
         determine_region_current(notes_target_next): number[] {

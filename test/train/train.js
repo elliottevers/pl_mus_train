@@ -14,7 +14,10 @@ var note2 = tree.parse({
     note: new note_4.note.Note(51, 25, 3, 90, 0),
     children: []
 });
-var trainer = new Trainer('detection', 'harmonic', clip_user_input, messenger);
+var mode_texture = 'melodic';
+var mode_control = 'instrumental';
+var user_input_handler = new UserInputHandler(mode_texture, mode_control);
+var trainer = new Trainer(window, algorithm, user_input_handler, clip_user_input, messenger);
 // test case - 2 segments, 2 notes a piece
 notes_segments = [note1, note2];
 trainer.set_segments(notes_segments);

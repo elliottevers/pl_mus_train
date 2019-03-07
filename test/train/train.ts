@@ -39,9 +39,19 @@ let note2 = tree.parse(
     }
 );
 
+
+let mode_texture = 'melodic';
+let mode_control = 'instrumental';
+
+let user_input_handler = new UserInputHandler(
+    mode_texture,
+    mode_control
+);
+
 let trainer = new Trainer(
-    'detection',
-    'harmonic',
+    window,
+    algorithm,
+    user_input_handler,
     clip_user_input,
     messenger
 );

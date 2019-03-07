@@ -1,23 +1,66 @@
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {parse_matrix, pwindow} from "../scripts/parse_tree";
-import {train} from "./algorithm";
+import {algorithm, train} from "./algorithm";
+import {history} from "../history/history";
 
-export namespace train {
+export namespace trainer {
 
     import Targetable = train.algorithm.Targetable;
+    import HistoryUserInput = history.HistoryUserInput;
 
     export class Trainer {
 
-        constructor(window, mode) {
+        private history_user_input;
+        private algorithm; // TODO: annotation
+
+        // window is either tree or list
+        // mode is either harmonic or melodic
+        // algorithm is either detect, predict, parse, or derive
+        // history
+        constructor(window, mode, algorithm, clip_user_input) {
             this.window = window;
             if (mode === modes.HARMONY) {
 
             }
+            this.algorithm = algorithm;
+            this.history_user_input = new HistoryUserInput(mode);
+            this.clip_user_input = clip_user_input
+        }
+
+        private set_loop() {
+            let interval = this.segment_current.get_endpoints_loop();
+
+            this.clip_user_input.set_endpoints_loop(
+                interval[0],
+                interval[1]
+            )
+        }
+
+        public resume() {
+            // set segment current
+            // set target current
+            // set subtarget current
+            this.algorithm.post_init()
+        }
+
+        public pause() {
+            this.algorithm.pre_terminate()
+        }
+
+        public init() {
+            this.advance_segment()
+            this.algorithm.post_init()
         }
 
         advance_segment() {
-            this.segment_current = this.segment_iterator.next()
+            this.segment_current = this.segment_iterator.next();
+            this.target_current = this.target_iterator.next();
+            this.subtarget_current = this.subtarget_current.next();
+
+            if (done) {
+                this.algorithm.pre_terminate()
+            }
         }
 
         advance_target() {
@@ -25,7 +68,7 @@ export namespace train {
         }
 
         advance_subtarget() {
-            let val = this.subtarget_iterator.next()
+            let val = this.subtarget_iterator.next();
             if (val.done) {
                 this.advance_target()
             } else {
@@ -33,7 +76,13 @@ export namespace train {
             }
         }
 
-        accept_input (input_user) {
+        accept_input(input_user) {
+
+            this.counter_user_input++;
+
+            if (this.counter_user_input >= this.limit_user_input) {
+                this.limit_input_reached = true
+            }
 
             if (this.limit_input_reached) {
                 // completely ignore

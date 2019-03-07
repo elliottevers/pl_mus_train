@@ -17,7 +17,7 @@ export namespace window {
     const red = [255, 0, 0];
     const black = [0, 0, 0];
 
-    export interface window {
+   export abstract class window {
         // height: number;
         // width: number;
         // messenger: m.Messenger;
@@ -26,20 +26,12 @@ export namespace window {
         // root_parse_tree: TreeModel.Node<n.Note>;
         // leaves: TreeModel.Node<n.Note>[];
         // logger: Logger;
-        history_user_input: HistoryUserInput;
+        // history_user_input: HistoryUserInput;
 
-        constructor(
-            // height: number,
-            // width: number,
-            // messenger: m.Messenger
-            history_user_input
-        ) {
-            // this.height = height;
-            // this.width = width;
-            // this.messenger = messenger;
-            // this.clips = [];
-            // this.beats_per_measure = 4;
-            this.history_user_input = history_user_input
+        public wipe_render(messenger) {
+            let msg_clear = ["clear"];
+            msg_clear.unshift('render');
+            this.messenger.message(msg_clear);
         }
 
         // public insert(notes: TreeModel.Node<n.Note>[]) {

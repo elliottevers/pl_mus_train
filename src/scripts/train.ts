@@ -1,140 +1,153 @@
-import {message as m, message} from "../message/messenger";
-import Messenger = message.Messenger;
-import {live, live as li} from "../live/live";
-import {clip as c} from "../clip/clip";
-import {window as w} from "../render/window";
-import {note as n} from "../note/note";
-import TreeModel = require("tree-model");
-import {log} from "../log/logger";
-import {song as s} from "../song/song";
-import {segment} from "../segment/segment";
-import Segment = segment.Segment;
-import SegmentIterator = segment.SegmentIterator;
-import {utils} from "../utils/utils";
-import Logger = log.Logger;
-import LiveClipVirtual = live.LiveClipVirtual;
-import {parse} from "../parse/parse";
-import TreeDepthIterator = parse.TreeDepthIterator;
-import ParseTreeIterator = parse.ParseTreeIterator;
-import ParseMatrix = parse.ParseMatrix;
+// import {message as m, message} from "../message/messenger";
+// import Messenger = message.Messenger;
+// import {live, live as li} from "../live/live";
+// import {clip as c} from "../clip/clip";
+// import {window as w} from "../render/window";
+// import {note as n} from "../note/note";
+// import TreeModel = require("tree-model");
+// import {log} from "../log/logger";
+// import {song as s} from "../song/song";
+// import {segment} from "../segment/segment";
+// import Segment = segment.Segment;
+// import SegmentIterator = segment.SegmentIterator;
+// import {utils} from "../utils/utils";
+// import Logger = log.Logger;
+// import LiveClipVirtual = live.LiveClipVirtual;
+// import {parse} from "../parse/parse";
+// import TreeDepthIterator = parse.TreeDepthIterator;
+// import ParseTreeIterator = parse.ParseTreeIterator;
+// import ParseMatrix = parse.ParseMatrix;
+//
+// declare let autowatch: any;
+// declare let inlets: any;
+// declare let outlets: any;
+// declare function outlet(n: number, o: any): void;
+// declare function post(message?: any): void;
+//
+// export {}
+//
+// declare let Global: any;
+//
+// let env: string = 'max';
+//
+// if (env === 'max') {
+//     post('recompile successful');
+//     autowatch = 1;
+// }
+//
+// let messenger: Messenger = new Messenger(env, 0);
+//
+// let logger = new Logger(env);
+//
+// let song_dao = new s.SongDao(
+//     new li.LiveApiJs("live_set", env),
+//     new m.Messenger(env, 0, "song"),
+//     true
+// );
+//
+// let song: s.Song = new s.Song(song_dao);
+//
+// export let pwindow: w.Pwindow;
+//
+// let elaboration: TreeModel.Node<n.Note>[];
+//
+// let clip_user_input: c.Clip;
+//
+// let clip_segment: c.Clip;
+//
+// let segment_current: Segment;
+//
+// let segment_iterator: SegmentIterator;
+//
+// let tree_depth_iterator: TreeDepthIterator;
+//
+// let parse_tree_iterator: ParseTreeIterator;
+//
+// let layer_parse_tree_current: number;
+//
+// let depth_parse_tree: number;
+//
+// export let parse_matrix: ParseMatrix;
+//
+// let notes_segments: TreeModel.Node<n.Note>[];
 
-declare let autowatch: any;
-declare let inlets: any;
-declare let outlets: any;
-declare function outlet(n: number, o: any): void;
-declare function post(message?: any): void;
+// export let wipe_render = (messenger) => {
+//     let msg_clear = ["clear"];
+//     msg_clear.unshift('render');
+//     messenger.message(msg_clear);
+// };
 
-export {}
+// export let render = () => {
+//     pwindow.render();
+// };
 
-declare let Global: any;
+// let start_session_train = (parse_matrix) => {
+//     logger.log(JSON.stringify(parse_matrix));
+//     initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree_export, messenger);
+//     // grow_from_matrix(parse_matrix);
+//     fire_session()
+// };
 
-let env: string = 'max';
+// export let grow_from_matrix = (parse_matrix) => {
+//     for (let notes of parse_matrix.get_entries()) {
+//         add_to_tree_export(
+//             notes,
+//             parse_matrix.get_note_first_segment().model.note.beat_start,
+//             parse_matrix.get_note_last_segment().model.note.get_beat_end(),
+//             clip_user_input,
+//             song,
+//             messenger
+//         );
+//     }
+// };
 
-if (env === 'max') {
-    post('recompile successful');
-    autowatch = 1;
-}
+// let stop_session = (clip_user_input, song) => {
+//     song.set_overdub(0);
+//
+//     song.set_session_record(0);
+//
+//     clip_user_input.stop();
+// };
 
-let messenger: Messenger = new Messenger(env, 0);
+// let fire_session = () => {
+//     let interval = segment_current.get_endpoints_loop();
+//
+//     clip_user_input.set_endpoints_loop(
+//         interval[0],
+//         interval[1]
+//     );
+//
+//     song.set_overdub(1);
+//
+//     song.set_session_record(1);
+//
+//     clip_user_input.fire();
+// };
 
-let logger = new Logger(env);
+// let load = (filename) => {
+//     start_session_train(
+//         ParseMatrix.load(
+//             filename
+//         )
+//     )
+// };
+//
+// let save = (filename) => {
+//     parse_matrix.save(filename);
+//     stop_session(clip_user_input, song)
+// };
 
-let song_dao = new s.SongDao(
-    new li.LiveApiJs("live_set", env),
-    new m.Messenger(env, 0, "song"),
-    true
-);
 
-let song: s.Song = new s.Song(song_dao);
-
-export let pwindow: w.Pwindow;
-
-let elaboration: TreeModel.Node<n.Note>[];
-
-let clip_user_input: c.Clip;
-
-let clip_segment: c.Clip;
-
-let segment_current: Segment;
-
-let segment_iterator: SegmentIterator;
-
-let tree_depth_iterator: TreeDepthIterator;
-
-let parse_tree_iterator: ParseTreeIterator;
-
-let layer_parse_tree_current: number;
-
-let depth_parse_tree: number;
-
-export let parse_matrix: ParseMatrix;
-
-let notes_segments: TreeModel.Node<n.Note>[];
-
-export let wipe_render = (messenger) => {
-    let msg_clear = ["clear"];
-    msg_clear.unshift('render');
-    messenger.message(msg_clear);
+let start = () => {
+    trainer.init();
 };
 
-export let render = () => {
-    pwindow.render();
+let resume = () => {
+    trainer.resume();
 };
 
-let start_session_train = (parse_matrix) => {
-    logger.log(JSON.stringify(parse_matrix));
-    initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree_export, messenger);
-    // grow_from_matrix(parse_matrix);
-    fire_session()
-};
-
-export let grow_from_matrix = (parse_matrix) => {
-    for (let notes of parse_matrix.get_entries()) {
-        add_to_tree_export(
-            notes,
-            parse_matrix.get_note_first_segment().model.note.beat_start,
-            parse_matrix.get_note_last_segment().model.note.get_beat_end(),
-            clip_user_input,
-            song,
-            messenger
-        );
-    }
-};
-
-let stop_session = (clip_user_input, song) => {
-    song.set_overdub(0);
-
-    song.set_session_record(0);
-
-    clip_user_input.stop();
-};
-
-let fire_session = () => {
-    let interval = segment_current.get_endpoints_loop();
-
-    clip_user_input.set_endpoints_loop(
-        interval[0],
-        interval[1]
-    );
-
-    song.set_overdub(1);
-
-    song.set_session_record(1);
-
-    clip_user_input.fire();
-};
-
-let load = (filename) => {
-    start_session_train(
-        ParseMatrix.load(
-            filename
-        )
-    )
-};
-
-let save = (filename) => {
-    parse_matrix.save(filename);
-    stop_session(clip_user_input, song)
+let pause = () => {
+    trainer.pause();
 };
 
 let add_to_tree = (notes, beat_start, beat_end) => {
@@ -181,21 +194,21 @@ export let add_to_tree_export = (notes, beat_start, beat_end, clip_user_input, s
     // );
 };
 
-let confirm = () => {
-
-    elaboration = clip_user_input.get_notes(
-        segment_current.beat_start,
-        0,
-        segment_current.beat_end - segment_current.beat_start,
-        128
-    );
-
-    add_to_tree(
-        elaboration,
-        segment_current.beat_start,
-        segment_current.beat_end
-    );
-};
+// let confirm = () => {
+//
+//     elaboration = clip_user_input.get_notes(
+//         segment_current.beat_start,
+//         0,
+//         segment_current.beat_end - segment_current.beat_start,
+//         128
+//     );
+//
+//     add_to_tree(
+//         elaboration,
+//         segment_current.beat_start,
+//         segment_current.beat_end
+//     );
+// };
 
 let reset = () => {
     clip_user_input.set_notes(
