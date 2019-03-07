@@ -1,6 +1,16 @@
 import {note as n} from "../../src/note/note";
 import {set_depth_tree_export} from "../../src/scripts/parse_tree";
 import TreeModel = require("tree-model");
+import {user_input} from "../../src/control/user_input";
+import UserInputHandler = user_input.UserInputHandler;
+import {window} from "../../src/render/window";
+import ListWindow = window.ListWindow;
+import {trainer} from "../../src/train/trainer";
+import Trainer = trainer.Trainer;
+import {algorithm} from "../../src/train/algorithm";
+import {struct} from "../../src/train/struct";
+import StructTree = struct.StructTree;
+import Detect = algorithm.Detect;
 
 
 let tree: TreeModel = new TreeModel();
@@ -40,12 +50,20 @@ let note2 = tree.parse(
 );
 
 
-let mode_texture = 'melodic';
+let mode_texture = 'harmonic';
 let mode_control = 'instrumental';
 
 let user_input_handler = new UserInputHandler(
     mode_texture,
     mode_control
+);
+
+let window = new ListWindow(
+
+);
+
+let algorithm = new Detect(
+    user_input_handler
 );
 
 let trainer = new Trainer(

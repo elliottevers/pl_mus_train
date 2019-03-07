@@ -2,6 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_4 = require("../../src/note/note");
 var TreeModel = require("tree-model");
+var user_input_1 = require("../../src/control/user_input");
+var UserInputHandler = user_input_1.user_input.UserInputHandler;
+var ListWindow = window.ListWindow;
+var Trainer = trainer.Trainer;
+var Detect = algorithm.Detect;
 var tree = new TreeModel();
 var notes_segments;
 var note1 = tree.parse({
@@ -14,9 +19,11 @@ var note2 = tree.parse({
     note: new note_4.note.Note(51, 25, 3, 90, 0),
     children: []
 });
-var mode_texture = 'melodic';
+var mode_texture = 'harmonic';
 var mode_control = 'instrumental';
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
+var window = new ListWindow();
+var algorithm = new Detect(user_input_handler);
 var trainer = new Trainer(window, algorithm, user_input_handler, clip_user_input, messenger);
 // test case - 2 segments, 2 notes a piece
 notes_segments = [note1, note2];

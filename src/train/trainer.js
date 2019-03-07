@@ -12,7 +12,7 @@ var trainer;
         // mode is either harmonic or melodic
         // algorithm is either detect, predict, parse, or derive
         // history
-        function Trainer(window, mode, algorithm, clip_user_input) {
+        function Trainer(window, mode, algorithm, clip_user_input, clip_target, segments) {
             this.window = window;
             if (mode === modes.HARMONY) {
             }
@@ -20,7 +20,19 @@ var trainer;
             this.history_user_input = new HistoryUserInput(mode);
             this.clip_user_input = clip_user_input;
             this.struct = new StructFactory.get_struct(mode);
+            this.segments = segments;
+            this.create_targets();
         }
+        Trainer.prototype.create_targets = function () {
+            this.segments;
+            this.algorithm;
+            this.clip_target;
+            var notes = this.clip_target.get_notes(this.clip_target.get_start_marker(), this.clip_target.get_end_marker());
+            var targets_segment;
+            for (var segment in this.segments) {
+                targets_segment = this.algorithm.determine_targets(this.clip_target.get_notes(segment.get_beat_start(), segment.get_beat_end()));
+            }
+        };
         Trainer.prototype.reset_user_input = function () {
             if ([algorithms.DETECT, algorithms.PREDICT].includes(this.algorithm.name)) {
                 clip_user_input.set_notes(this.struct.get_notes(

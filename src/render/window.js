@@ -13,23 +13,14 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var struct_1 = require("../train/struct");
 var CircularJSON = require('circular-json');
 var window;
 (function (window) {
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var Window = /** @class */ (function () {
-        // height: number;
-        // width: number;
-        // messenger: m.Messenger;
-        // clips: c.Clip[];
-        // beats_per_measure: number;
-        // root_parse_tree: TreeModel.Node<n.Note>;
-        // leaves: TreeModel.Node<n.Note>[];
-        // logger: Logger;
-        // history_user_input: HistoryUserInput;
-        function Window(struct) {
-            this.struct = struct;
+        function Window() {
         }
         Window.prototype.clear = function (messenger) {
             var msg_clear = ["clear"];
@@ -42,9 +33,9 @@ var window;
     }());
     var ListWindow = /** @class */ (function (_super) {
         __extends(ListWindow, _super);
-        function ListWindow(struct) {
-            var _this = this;
-            _super.prototype.this.struct = struct;
+        function ListWindow() {
+            var _this = _super.call(this) || this;
+            _this.struct = new struct_1.struct.StructList();
             return _this;
         }
         return ListWindow;

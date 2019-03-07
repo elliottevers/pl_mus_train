@@ -3,15 +3,48 @@ import {clip as c} from "../clip/clip";
 import {live} from "../live/live";
 import TreeModel = require("tree-model");
 import {target} from "../target/target";
+import {harmony} from "../music/harmony";
+import {modes_texture} from "../constants/constants";
 
 export namespace algorithm {
     import LiveClipVirtual = live.LiveClipVirtual;
     import Target = target.Target;
     import TargetType = target.TargetType;
+    import Harmony = harmony.Harmony;
 
     export class Detect implements Temporal, Targetable {
-        set_targets(notes_segment_next: TreeModel.Node<n.Note>[]) {
-            return notes_segment_next
+        user_input_handler;
+
+        constructor(user_input_handler) {
+            this.user_input_handler = user_input_handler
+        }
+
+        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TargetType {
+            if (this.user_input_handler.mode_texture === modes_texture.POLYPHONY) {
+
+                let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
+                    notes_segment_next
+                );
+
+                let chords_monophonified: TreeModel.Node<n.Note>[][] = Harmony.monophonify(
+                    notes_segment_next
+                );
+
+                return chords_monophonified
+
+            } else if (this.user_input_handler.mode_texture === modes_texture.MONOPONY) {
+
+                let notes_grouped_trivial = [];
+
+                for (let note of notes_segment_next) {
+                    notes_grouped_trivial.push(note)
+                }
+
+                return notes_grouped_trivial
+
+            } else {
+                throw ['mode', this.mode, 'not supported'].join(' ')
+            }
         }
 
         pre_advance(clip_user_input) {

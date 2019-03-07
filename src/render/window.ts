@@ -6,6 +6,7 @@ import {live} from "../live/live";
 import * as _ from "lodash";
 import {log} from "../log/logger";
 import {history} from "../history/history";
+import {struct} from "../train/struct";
 let CircularJSON = require('circular-json');
 
 export namespace window {
@@ -32,10 +33,9 @@ export namespace window {
         // logger: Logger;
         // history_user_input: HistoryUserInput;
 
+        struct;
 
-
-        protected constructor(struct) {
-            this.struct = struct;
+        protected constructor() {
         }
 
 
@@ -61,11 +61,12 @@ export namespace window {
     }
 
     export class ListWindow extends Window implements Renderable {
-
-        constructor(struct) {
-            super
-            this.struct = struct
+        constructor() {
+            super();
+            this.struct = new struct.StructList();
         }
+
+
 
     }
 

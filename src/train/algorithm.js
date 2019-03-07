@@ -1,12 +1,31 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var harmony_1 = require("../music/harmony");
+var constants_1 = require("../constants/constants");
 var algorithm;
 (function (algorithm) {
+    var Harmony = harmony_1.harmony.Harmony;
     var Detect = /** @class */ (function () {
-        function Detect() {
+        function Detect(user_input_handler) {
+            this.user_input_handler = user_input_handler;
         }
-        Detect.prototype.set_targets = function (notes_segment_next) {
-            return notes_segment_next;
+        Detect.prototype.determine_targets = function (notes_segment_next) {
+            if (this.user_input_handler.mode_texture === constants_1.modes_texture.POLYPHONY) {
+                var chords_grouped = Harmony.group(notes_segment_next);
+                var chords_monophonified = Harmony.monophonify(notes_segment_next);
+                return chords_monophonified;
+            }
+            else if (this.user_input_handler.mode_texture === constants_1.modes_texture.MONOPONY) {
+                var notes_grouped_trivial = [];
+                for (var _i = 0, notes_segment_next_1 = notes_segment_next; _i < notes_segment_next_1.length; _i++) {
+                    var note_1 = notes_segment_next_1[_i];
+                    notes_grouped_trivial.push(note_1);
+                }
+                return notes_grouped_trivial;
+            }
+            else {
+                throw ['mode', this.mode, 'not supported'].join(' ');
+            }
         };
         Detect.prototype.pre_advance = function (clip_user_input) {
         };
@@ -21,15 +40,15 @@ var algorithm;
         // TODO: replace the notes in clip_target with these
         Predict.prototype.determine_targets = function (notes_segment_next) {
             if (this.mode === modes.HARMONY) {
-                var chords_grouped = harmony.group(notes_segment_next);
-                var chords_monophonified = harmony.monophonify(notes_segment_next);
+                var chords_grouped = harmony_1.harmony.group(notes_segment_next);
+                var chords_monophonified = harmony_1.harmony.monophonify(notes_segment_next);
                 return chords_monophonified;
             }
             else if (this.mode === modes.MELODY) {
                 var notes_grouped_trivial = [];
-                for (var _i = 0, notes_segment_next_1 = notes_segment_next; _i < notes_segment_next_1.length; _i++) {
-                    var note_1 = notes_segment_next_1[_i];
-                    notes_grouped_trivial.push(note_1);
+                for (var _i = 0, notes_segment_next_2 = notes_segment_next; _i < notes_segment_next_2.length; _i++) {
+                    var note_2 = notes_segment_next_2[_i];
+                    notes_grouped_trivial.push(note_2);
                 }
                 return notes_grouped_trivial;
             }

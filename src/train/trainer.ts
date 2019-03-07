@@ -3,11 +3,13 @@ import TreeModel = require("tree-model");
 import {parse_matrix, pwindow} from "../scripts/parse_tree";
 import {algorithm, train} from "./algorithm";
 import {history} from "../history/history";
+import {target} from "../target/target";
 
 export namespace trainer {
 
     import Targetable = train.algorithm.Targetable;
     import HistoryUserInput = history.HistoryUserInput;
+    import TargetType = target.TargetType;
 
     export class Trainer {
 
@@ -18,7 +20,7 @@ export namespace trainer {
         // mode is either harmonic or melodic
         // algorithm is either detect, predict, parse, or derive
         // history
-        constructor(window, mode, algorithm, clip_user_input) {
+        constructor(window, mode, algorithm, clip_user_input, clip_target, segments) {
             this.window = window;
             if (mode === modes.HARMONY) {
 
@@ -27,6 +29,31 @@ export namespace trainer {
             this.history_user_input = new HistoryUserInput(mode);
             this.clip_user_input = clip_user_input
             this.struct = new StructFactory.get_struct(mode)
+            this.segments = segments;
+            this.create_targets()
+        }
+
+        private create_targets() {
+            this.segments
+            this.algorithm
+            this.clip_target
+
+            let notes = this.clip_target.get_notes(
+                this.clip_target.get_start_marker(),
+                this.clip_target.get_end_marker()
+            );
+
+            let targets_segment: TargetType[];
+
+            for (let segment in this.segments) {
+                targets_segment = this.algorithm.determine_targets(
+                    this.clip_target.get_notes(
+                        segment.get_beat_start(),
+                        segment.get_beat_end()
+                    )
+                )
+
+            }
         }
 
         public reset_user_input() {
