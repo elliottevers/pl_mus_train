@@ -17,7 +17,6 @@ export namespace algorithm {
         pre_advance(clip_user_input) {
 
         }
-
     }
 
     export class Predict implements Temporal, Targetable {

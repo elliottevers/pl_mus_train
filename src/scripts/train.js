@@ -140,9 +140,9 @@ var resume = function () {
 var pause = function () {
     trainer.pause();
 };
-var add_to_tree = function (notes, beat_start, beat_end) {
-    exports.add_to_tree_export(notes, beat_start, beat_end, clip_user_input, song, messenger);
-};
+// let add_to_tree = (notes, beat_start, beat_end) => {
+//     add_to_tree_export(notes, beat_start, beat_end, clip_user_input, song, messenger)
+// };
 exports.add_to_tree_export = function (notes, beat_start, beat_end, clip_user_input, song, messenger) {
     // pwindow.elaborate(
     //     notes,
@@ -192,10 +192,20 @@ exports.add_to_tree_export = function (notes, beat_start, beat_end, clip_user_in
 //     );
 // };
 var reset = function () {
-    clip_user_input.set_notes(parse_matrix.get_notes(tree_depth_iterator.get_index_current() - 1, segment_iterator.get_index_current()));
+    trainer.reset_user_input();
+    // clip_user_input.set_notes(
+    //     trainer.get_notes_struct(
+    //         // TODO: some information
+    //     )
+    // );
 };
 var erase = function () {
-    clip_user_input.remove_notes(segment_current.beat_start, 0, segment_current.beat_end - segment_current.beat_start, 128);
+    // clip_user_input.remove_notes(
+    //     segment_current.beat_start,
+    //     0,
+    //     segment_current.beat_end - segment_current.beat_start,
+    //     128
+    // );
 };
 function set_clip_segment() {
     var vector_path_live = Array.prototype.slice.call(arguments);

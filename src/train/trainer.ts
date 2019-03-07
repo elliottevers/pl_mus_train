@@ -26,6 +26,19 @@ export namespace trainer {
             this.algorithm = algorithm;
             this.history_user_input = new HistoryUserInput(mode);
             this.clip_user_input = clip_user_input
+            this.struct = new StructFactory.get_struct(mode)
+        }
+
+        public reset_user_input() {
+            if ([algorithms.DETECT, algorithms.PREDICT].includes(this.algorithm.name)) {
+                clip_user_input.set_notes(
+                    this.struct.get_notes(
+                        // TODO: pass requisite information
+                    )
+                );
+            } else {
+
+            }
         }
 
         private set_loop() {
@@ -49,7 +62,7 @@ export namespace trainer {
         }
 
         public init() {
-            this.advance_segment()
+            this.advance_segment();
             this.algorithm.post_init()
         }
 
@@ -96,7 +109,11 @@ export namespace trainer {
             }
 
             if (input_user === this.subtarget_current) {
+                this.history_user_input.add(input_user);
                 this.advance_subtarget();
+                // TODO: make sure for detection/prediction we're making "input_user" exactly the same as the "target note", if we're restoring sessions from user input
+                this.window.add(input_user);
+                this.window.render()
             }
         }
 
@@ -131,73 +148,5 @@ export namespace trainer {
                 interval[1]
             );
         }
-
-        public render() {
-            // this.window
-            // get messages regions
-            // get messages
-        }
-
-        public clear_render() {
-            // this.window.clear()
-        }
-
-        public init() {
-            // this.iterator.next()
-            // this.clip_user_input.fire()
-        }
-
-        private stop() {
-
-        }
     }
 }
-
-
-
-
-
-notes_segments = [note1, note2];
-
-trainer.set_segments(notes_segments);
-
-trainer.init(
-
-); // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
-
-trainer.accept(
-    note_1
-);
-
-trainer.accept(
-    note_2
-);
-
-trainer.accept(
-    note_3
-);
-
-trainer.clear_render(
-
-);
-
-let freezer = new TrainFreezer(
-    'node'
-);
-
-freezer.freeze(
-    trainer,
-    '/path/to/file'
-);
-
-let thawer = new TrainThawer(
-    'node'
-);
-
-let train_thawed = thawer.thaw(
-    '/path/to/file'
-);
-
-train_thawed.render(
-
-);

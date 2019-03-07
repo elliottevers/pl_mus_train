@@ -19,7 +19,17 @@ var trainer;
             this.algorithm = algorithm;
             this.history_user_input = new HistoryUserInput(mode);
             this.clip_user_input = clip_user_input;
+            this.struct = new StructFactory.get_struct(mode);
         }
+        Trainer.prototype.reset_user_input = function () {
+            if ([algorithms.DETECT, algorithms.PREDICT].includes(this.algorithm.name)) {
+                clip_user_input.set_notes(this.struct.get_notes(
+                // TODO: pass requisite information
+                ));
+            }
+            else {
+            }
+        };
         Trainer.prototype.set_loop = function () {
             var interval = this.segment_current.get_endpoints_loop();
             this.clip_user_input.set_endpoints_loop(interval[0], interval[1]);
@@ -71,7 +81,11 @@ var trainer;
                 // return this.segment_iterator.next()
             }
             if (input_user === this.subtarget_current) {
+                this.history_user_input.add(input_user);
                 this.advance_subtarget();
+                // TODO: make sure for detection/prediction we're making "input_user" exactly the same as the "target note", if we're restoring sessions from user input
+                this.window.add(input_user);
+                this.window.render();
             }
         };
         Trainer.prototype.accept = function (notes) {
@@ -87,34 +101,8 @@ var trainer;
             var interval = this.segment_current.get_endpoints_loop();
             this.clip_user_input.set_endpoints_loop(interval[0], interval[1]);
         };
-        Trainer.prototype.render = function () {
-            // this.window
-            // get messages regions
-            // get messages
-        };
-        Trainer.prototype.clear_render = function () {
-            // this.window.clear()
-        };
-        Trainer.prototype.init = function () {
-            // this.iterator.next()
-            // this.clip_user_input.fire()
-        };
-        Trainer.prototype.stop = function () {
-        };
         return Trainer;
     }());
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
-notes_segments = [note1, note2];
-trainer.set_segments(notes_segments);
-trainer.init(); // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
-trainer.accept(note_1);
-trainer.accept(note_2);
-trainer.accept(note_3);
-trainer.clear_render();
-var freezer = new TrainFreezer('node');
-freezer.freeze(trainer, '/path/to/file');
-var thawer = new TrainThawer('node');
-var train_thawed = thawer.thaw('/path/to/file');
-train_thawed.render();
 //# sourceMappingURL=trainer.js.map

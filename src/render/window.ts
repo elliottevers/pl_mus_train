@@ -12,12 +12,16 @@ export namespace window {
 
     import LiveClipVirtual = live.LiveClipVirtual;
     import Logger = log.Logger;
-    import HistoryUserInput = history.HistoryUserInput;
+    import HistoryUserInput = history.HisstoryUserInput;
 
     const red = [255, 0, 0];
     const black = [0, 0, 0];
 
-   export abstract class window {
+    interface Renderable {
+        add(notes: TreeModel.Node<n.Note>[])
+    }
+
+    abstract class Window {
         // height: number;
         // width: number;
         // messenger: m.Messenger;
@@ -28,10 +32,21 @@ export namespace window {
         // logger: Logger;
         // history_user_input: HistoryUserInput;
 
-        public wipe_render(messenger) {
+
+
+        protected constructor(struct) {
+            this.struct = struct;
+        }
+
+
+        public clear(messenger) {
             let msg_clear = ["clear"];
             msg_clear.unshift('render');
             this.messenger.message(msg_clear);
+        }
+
+        public add(notes: TreeModel.Node<n.Note>[]) {
+
         }
 
         // public insert(notes: TreeModel.Node<n.Note>[]) {
@@ -42,6 +57,19 @@ export namespace window {
         // public render() {
         //
         // }
+
+    }
+
+    export class ListWindow extends Window implements Renderable {
+
+        constructor(struct) {
+            super
+            this.struct = struct
+        }
+
+    }
+
+    export class TreeWindow extends Window implements Renderable {
 
     }
 }
