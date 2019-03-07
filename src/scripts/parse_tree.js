@@ -81,19 +81,37 @@ var add_to_tree = function (notes, beat_start, beat_end) {
     exports.add_to_tree_export(notes, beat_start, beat_end, clip_user_input, song, messenger);
 };
 exports.add_to_tree_export = function (notes, beat_start, beat_end, clip_user_input, song, messenger) {
-    exports.pwindow.elaborate(notes, beat_start, beat_end, tree_depth_iterator.get_index_current());
-    exports.parse_matrix.set_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current(), notes);
-    exports.pwindow.render();
+    // pwindow.elaborate(
+    //     notes,
+    //     beat_start,
+    //     beat_end,
+    //     tree_depth_iterator.get_index_current()
+    // );
+    //
+    // parse_matrix.set_notes(
+    //     tree_depth_iterator.get_index_current(),
+    //     segment_iterator.get_index_current(),
+    //     notes
+    // );
+    // pwindow.render();
     var segment_next = parse_tree_iterator.next();
     var val_segment_next = segment_next.value;
     layer_parse_tree_current = tree_depth_iterator.get_index_current();
-    if (segment_next.done) {
-        stop_session(clip_user_input, song);
-        return;
-    }
-    segment_current = val_segment_next;
-    var interval = segment_current.get_endpoints_loop();
-    clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+    // if (segment_next.done) {
+    //
+    //     stop_session(clip_user_input, song);
+    //
+    //     return
+    // }
+    //
+    // segment_current = val_segment_next;
+    //
+    // let interval = segment_current.get_endpoints_loop();
+    //
+    // clip_user_input.set_endpoints_loop(
+    //     interval[0],
+    //     interval[1]
+    // );
 };
 var confirm = function () {
     elaboration = clip_user_input.get_notes(segment_current.beat_start, 0, segment_current.beat_end - segment_current.beat_start, 128);

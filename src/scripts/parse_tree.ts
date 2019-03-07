@@ -143,20 +143,20 @@ let add_to_tree = (notes, beat_start, beat_end) => {
 
 export let add_to_tree_export = (notes, beat_start, beat_end, clip_user_input, song, messenger) => {
 
-    pwindow.elaborate(
-        notes,
-        beat_start,
-        beat_end,
-        tree_depth_iterator.get_index_current()
-    );
+    // pwindow.elaborate(
+    //     notes,
+    //     beat_start,
+    //     beat_end,
+    //     tree_depth_iterator.get_index_current()
+    // );
+    //
+    // parse_matrix.set_notes(
+    //     tree_depth_iterator.get_index_current(),
+    //     segment_iterator.get_index_current(),
+    //     notes
+    // );
 
-    parse_matrix.set_notes(
-        tree_depth_iterator.get_index_current(),
-        segment_iterator.get_index_current(),
-        notes
-    );
-
-    pwindow.render();
+    // pwindow.render();
 
     let segment_next = parse_tree_iterator.next();
 
@@ -164,21 +164,21 @@ export let add_to_tree_export = (notes, beat_start, beat_end, clip_user_input, s
 
     layer_parse_tree_current = tree_depth_iterator.get_index_current();
 
-    if (segment_next.done) {
-
-        stop_session(clip_user_input, song);
-
-        return
-    }
-
-    segment_current = val_segment_next;
-
-    let interval = segment_current.get_endpoints_loop();
-
-    clip_user_input.set_endpoints_loop(
-        interval[0],
-        interval[1]
-    );
+    // if (segment_next.done) {
+    //
+    //     stop_session(clip_user_input, song);
+    //
+    //     return
+    // }
+    //
+    // segment_current = val_segment_next;
+    //
+    // let interval = segment_current.get_endpoints_loop();
+    //
+    // clip_user_input.set_endpoints_loop(
+    //     interval[0],
+    //     interval[1]
+    // );
 };
 
 let confirm = () => {
