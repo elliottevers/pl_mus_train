@@ -1,11 +1,14 @@
 import {clip} from "../clip/clip";
-import {note as n} from "../note/note";
+import {note, note as n} from "../note/note";
 import TreeModel = require("tree-model");
+import {live} from "../live/live";
 
 // TODO: use namespaces better
 export namespace segment {
 
     import Clip = clip.Clip;
+    import Note = note.Note;
+    import LiveClipVirtual = live.LiveClipVirtual;
 
     export class Segment {
 
@@ -13,10 +16,11 @@ export namespace segment {
         beat_end: number;
         clip: Clip;
 
-        constructor(beat_start: number, beat_end: number, clip: Clip) {
-            this.beat_start = beat_start;
-            this.beat_end = beat_end;
-            this.clip = clip;
+        constructor(note: TreeModel.Node<n.Note>) {
+            this.beat_start = note.model.note.beat_start;
+            this.beat_end = note.model.note.get_beat_end();
+            let clip_dao_virtual = new LiveClipVirtual([note]);
+            this.clip = new Clip(clip_dao_virtual);
         }
 
         public get_notes(): TreeModel.Node<n.Note>[] {

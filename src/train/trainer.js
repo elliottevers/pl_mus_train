@@ -1,45 +1,56 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var parse_tree_1 = require("../scripts/parse_tree");
-var algorithm_1 = require("./algorithm");
 var history_1 = require("../history/history");
 var trainer;
 (function (trainer) {
-    var Targetable = algorithm_1.train.algorithm.Targetable;
     var HistoryUserInput = history_1.history.HistoryUserInput;
     var Trainer = /** @class */ (function () {
         // window is either tree or list
         // mode is either harmonic or melodic
         // algorithm is either detect, predict, parse, or derive
         // history
-        function Trainer(window, mode, algorithm, clip_user_input, clip_target, segments) {
+        function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_target, song, segments, messenger) {
             this.window = window;
-            if (mode === modes.HARMONY) {
-            }
             this.algorithm = algorithm;
-            this.history_user_input = new HistoryUserInput(mode);
             this.clip_user_input = clip_user_input;
-            this.struct = new StructFactory.get_struct(mode);
+            this.clip_target = clip_target;
+            this.song = song;
             this.segments = segments;
-            this.create_targets();
-        }
-        Trainer.prototype.create_targets = function () {
-            this.segments;
-            this.algorithm;
-            this.clip_target;
-            var notes = this.clip_target.get_notes(this.clip_target.get_start_marker(), this.clip_target.get_end_marker());
-            var targets_segment;
-            for (var segment in this.segments) {
-                targets_segment = this.algorithm.determine_targets(this.clip_target.get_notes(segment.get_beat_start(), segment.get_beat_end()));
+            this.messenger = messenger;
+            this.struct = new StructFactory.get_struct(user_input_handler.mode);
+            this.history_user_input = new HistoryUserInput(user_input_handler.mode);
+            if (this.algorithm.b_targetable()) {
+                this.create_targets();
             }
+        }
+        // now we can assume we have a list instead of a matrix
+        Trainer.prototype.create_targets = function () {
+            this.clip_target.load_notes_within_markers();
+            // let segment_targetable: SegmentTargetable;
+            var list_segments_targetable = [];
+            for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
+                var segment = _a[_i];
+                // need SegmentTargetable -> TargetIterator
+                list_segments_targetable.push(this.algorithm.determine_targets(this.clip_target.get_notes(segment.beat_start, 0, segment.beat_end, 128)));
+            }
+            this.target_iterator;
+            // this.segment_iterator
+            this.subtarget_iterator;
+        };
+        Trainer.prototype.clear_window = function () {
+            this.window.clear();
+        };
+        Trainer.prototype.render_window = function () {
+            this.window.render();
         };
         Trainer.prototype.reset_user_input = function () {
             if ([algorithms.DETECT, algorithms.PREDICT].includes(this.algorithm.name)) {
-                clip_user_input.set_notes(this.struct.get_notes(
+                this.clip_user_input.set_notes(this.struct.get_notes(
                 // TODO: pass requisite information
                 ));
             }
             else {
+                return;
             }
         };
         Trainer.prototype.set_loop = function () {
@@ -55,6 +66,7 @@ var trainer;
         Trainer.prototype.pause = function () {
             this.algorithm.pre_terminate();
         };
+        // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         Trainer.prototype.init = function () {
             this.advance_segment();
             this.algorithm.post_init();
@@ -86,32 +98,21 @@ var trainer;
             }
             if (this.limit_input_reached) {
                 // completely ignore
-            }
-            var targetable = this.algorithm instanceof Targetable;
-            if (!targetable) {
-                this.advance_segment();
-                // return this.segment_iterator.next()
-            }
-            if (input_user === this.subtarget_current) {
-                this.history_user_input.add(input_user);
-                this.advance_subtarget();
-                // TODO: make sure for detection/prediction we're making "input_user" exactly the same as the "target note", if we're restoring sessions from user input
-                this.window.add(input_user);
-                this.window.render();
-            }
-        };
-        Trainer.prototype.accept = function (notes) {
-            // elaborate, summarize, detect, predict
-            this.window.insert(notes);
-            parse_tree_1.parse_matrix.set_notes(tree_depth_iterator.get_index_current(), segment_iterator.get_index_current(), notes);
-            this.window.render();
-            if (segment_next.done) {
-                this.stop();
                 return;
             }
-            this.segment_current = val_segment_next;
-            var interval = this.segment_current.get_endpoints_loop();
-            this.clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+            var targetable = true; // this.algorithm instanceof Targetable;
+            if (!targetable) {
+                this.advance_segment();
+            }
+            if (input_user === this.subtarget_current) {
+                this.history_user_input.add_subtarget(input_user);
+                this.advance_subtarget();
+                this.set_loop();
+                // TODO: make sure for detection/prediction we're making "input_user" exactly the same as the "target note", if we're restoring sessions from user input
+                // this.window.add(input_user);
+                this.struct.add(input_user);
+                this.window.render(this.struct);
+            }
         };
         return Trainer;
     }());

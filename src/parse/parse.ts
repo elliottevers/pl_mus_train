@@ -2,6 +2,7 @@ import {segment} from "../segment/segment";
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
 import {log} from "../log/logger";
+import {utils} from "../utils/utils";
 
 const _ = require("underscore");
 
@@ -9,6 +10,8 @@ const _ = require("underscore");
 export namespace parse {
     import SegmentIterator = segment.SegmentIterator;
     import Logger = log.Logger;
+    import remainder = utils.remainder;
+    import division_int = utils.division_int;
 
     export interface Parsable {
         choose(): boolean;
@@ -148,6 +151,55 @@ export namespace parse {
             return this.i // TODO: the root is the first index
         }
     }
+
+    // export class MatrixIterator {
+    //     private num_rows: number;
+    //     private num_columns: number;
+    //
+    //     private row_current: number;
+    //     private column_current: number;
+    //
+    //     private i;
+    //
+    //     constructor(num_rows: number, num_columns: number) {
+    //         this.num_rows = num_rows;
+    //         this.num_columns = num_columns;
+    //
+    //         this.i = -1;
+    //     }
+    //
+    //     private next_row() {
+    //         this.i = this.i + this.num_columns;
+    //     }
+    //
+    //     private next_column() {
+    //         this.i = this.i + 1;
+    //     }
+    //
+    //     public next() {
+    //
+    //         let value: number[] = null;
+    //
+    //         this.next_column();
+    //
+    //         if (this.i === this.num_columns * this.num_rows + 1) {
+    //             return {
+    //                 value: value,
+    //                 done: true
+    //             }
+    //         }
+    //
+    //         let pos_row = division_int(this.i + 1, this.num_columns);
+    //         let pos_column = remainder(this.i + 1, this.num_columns);
+    //
+    //         value = [pos_row, pos_column];
+    //
+    //         return {
+    //             value: value,
+    //             done: false
+    //         };
+    //     }
+    // }
 
     export class ParseTreeIterator {
         private iterator_segment;

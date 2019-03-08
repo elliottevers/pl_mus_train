@@ -9,8 +9,9 @@ var window;
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
-    var PwindowList = /** @class */ (function () {
-        function PwindowList(height, width, messenger) {
+    var WindowList = /** @class */ (function () {
+        function WindowList(height, width, messenger) {
+            // window
             this.beat_to_pixel = function (beat) {
                 var num_pixels_in_clip = this.width;
                 var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
@@ -22,7 +23,11 @@ var window;
             this.clips = [];
             this.beats_per_measure = 4;
         }
-        PwindowList.prototype.render = function () {
+        WindowList.prototype.add = function () {
+        };
+        WindowList.prototype.clear = function () {
+        };
+        WindowList.prototype.render = function () {
             var messages_regions = this.get_messages_render_regions();
             var messages_notes = this.get_messages_render_clips();
             // let messages_tree = this.get_messages_render_tree();
@@ -44,14 +49,14 @@ var window;
             //     this.messenger.message(message);
             // }
         };
-        PwindowList.prototype.save = function () {
+        WindowList.prototype.save = function () {
         };
-        PwindowList.prototype.load = function () {
+        WindowList.prototype.load = function () {
         };
-        PwindowList.prototype.get_notes_leaves = function () {
+        WindowList.prototype.get_notes_leaves = function () {
             return this.leaves;
         };
-        PwindowList.prototype.set_root = function (note_root) {
+        WindowList.prototype.set_root = function (note_root) {
             var clip_dao_virtual = new LiveClipVirtual([note_root]);
             var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
             clip_virtual.clip_dao.beat_start = note_root.model.note.beat_start;
@@ -61,7 +66,8 @@ var window;
             this.root_parse_tree = note_root;
             this.leaves = [note_root];
         };
-        PwindowList.prototype.elaborate = function (elaboration, beat_start, beat_end, index_layer) {
+        // struct
+        WindowList.prototype.elaborate = function (elaboration, beat_start, beat_end, index_layer) {
             if (index_layer + 1 > this.clips.length) {
                 var clip_dao_virtual = new LiveClipVirtual(elaboration);
                 clip_dao_virtual.beat_start = elaboration[0].model.note.beat_start;
@@ -83,20 +89,23 @@ var window;
             }
             this.update_leaves(leaves_within_interval);
         };
-        PwindowList.prototype.splice_notes = function (notes_subset, clip, interval_beats) {
+        // struct
+        WindowList.prototype.splice_notes = function (notes_subset, clip, interval_beats) {
             var notes_clip = _.cloneDeep(clip.get_notes_within_loop_brackets());
             var num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
             var index_start = this.get_note_index_at_beat(interval_beats[0], notes_clip);
             notes_clip.splice.apply(notes_clip, [index_start, num_notes_to_replace].concat(notes_subset));
             return notes_clip;
         };
-        PwindowList.prototype.get_note_index_at_beat = function (beat, notes) {
+        // struct
+        WindowList.prototype.get_note_index_at_beat = function (beat, notes) {
             var val = _.findIndex(notes, function (node) {
                 return node.model.note.beat_start === beat;
             });
             return val;
         };
-        PwindowList.prototype.get_leaves_within_interval = function (beat_start, beat_end) {
+        // struct
+        WindowList.prototype.get_leaves_within_interval = function (beat_start, beat_end) {
             var val = this.leaves.filter(function (node) {
                 // return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
                 return (node.model.note.beat_start >= beat_start && node.model.note.beat_start <= beat_end) ||
@@ -106,12 +115,14 @@ var window;
             // this.logger.log(CircularJSON.stringify(this.leaves));
             return val;
         };
+        // virtual clip
         // NB: this makes the assumption that the end marker is at the end of the clip
-        PwindowList.prototype.get_num_measures_clip = function () {
+        WindowList.prototype.get_num_measures_clip = function () {
             return this.clips[0].get_num_measures();
         };
+        // window
         // TODO: make node have indices to both clip and note
-        PwindowList.prototype.get_centroid = function (node) {
+        WindowList.prototype.get_centroid = function (node) {
             var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
             var index_clip = node.model.id;
             // TODO: determine how to get the index of the clip from just depth of the node
@@ -125,29 +136,34 @@ var window;
             ];
         };
         ;
+        // struct
         // TODO: elaboration won't always
-        PwindowList.prototype.get_order_of_note_at_beat_start = function (notes, beat_start) {
+        WindowList.prototype.get_order_of_note_at_beat_start = function (notes, beat_start) {
             return _.findIndex(notes, function (node) {
                 return node.model.note.beat_start === beat_start;
             });
         };
-        PwindowList.prototype.get_order_of_note_at_beat_end = function (notes, beat_end) {
+        // struct
+        WindowList.prototype.get_order_of_note_at_beat_end = function (notes, beat_end) {
             return _.findIndex(notes, function (node) {
                 return node.model.note.get_beat_end() === beat_end;
             });
         };
-        PwindowList.prototype.get_interval_beats = function (notes) {
+        // notes - static method
+        WindowList.prototype.get_interval_beats = function (notes) {
             return [
                 notes[0].model.note.beat_start,
                 notes[notes.length - 1].model.note.get_beat_end()
             ];
         };
+        // struct
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
-        PwindowList.prototype.add_clip = function (clip) {
+        WindowList.prototype.add_clip = function (clip) {
             this.clips.push(clip);
         };
         ;
-        PwindowList.prototype.get_diff_index_start = function (notes_new, notes_old) {
+        // struct
+        WindowList.prototype.get_diff_index_start = function (notes_new, notes_old) {
             var same_start, same_duration, index_start_diff;
             for (var i = 0; i < notes_old.length; i++) {
                 same_start = (notes_old[i].model.note.beat_start === notes_new[i].model.note.beat_start);
@@ -159,7 +175,8 @@ var window;
             }
             return index_start_diff;
         };
-        PwindowList.prototype.get_diff_index_end = function (notes_new, notes_old) {
+        // struct
+        WindowList.prototype.get_diff_index_end = function (notes_new, notes_old) {
             var same_start, same_duration, index_end_diff;
             for (var i = -1; i > -1 * (notes_new.length + 1); i--) {
                 same_start = (notes_new.slice(i)[0].model.note.beat_start === notes_old.slice(i)[0].model.note.beat_start);
@@ -172,23 +189,26 @@ var window;
             // NB: add one in order to use with array slice, unless of course the index is -1, then you'll access the front of the array
             return index_end_diff;
         };
+        // struct
         // TODO: complete return method signature
-        PwindowList.prototype.get_diff_index_notes = function (notes_parent, notes_child) {
+        WindowList.prototype.get_diff_index_notes = function (notes_parent, notes_child) {
             return [
                 this.get_diff_index_start(notes_child, notes_parent),
                 this.get_diff_index_end(notes_child, notes_parent)
             ];
         };
         ;
-        PwindowList.prototype.render_tree = function () {
+        // window
+        WindowList.prototype.render_tree = function () {
             var messages = this.get_messages_render_tree();
             for (var i = 0; i < messages.length; i++) {
                 this.messenger.message(messages[i]);
             }
         };
         ;
+        // window
         // TODO: how do we render when there is no singular root (i.e. parsing, not sampling, sentence)?
-        PwindowList.prototype.get_messages_render_tree = function () {
+        WindowList.prototype.get_messages_render_tree = function () {
             var _this = this;
             var color, messages = [], message;
             this.root_parse_tree.walk(function (node) {
@@ -211,7 +231,7 @@ var window;
             return messages;
         };
         ;
-        PwindowList.prototype.add_first_layer = function (notes, index_new_layer) {
+        WindowList.prototype.add_first_layer = function (notes, index_new_layer) {
             // var note_parent_best, b_successful;
             for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
                 var node = notes_1[_i];
@@ -221,7 +241,7 @@ var window;
         };
         // NB: only works top down currently
         // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
-        PwindowList.prototype.add_layer = function (notes_parent, notes_child, index_new_layer) {
+        WindowList.prototype.add_layer = function (notes_parent, notes_child, index_new_layer) {
             var note_parent_best, b_successful;
             for (var _i = 0, notes_child_1 = notes_child; _i < notes_child_1.length; _i++) {
                 var node = notes_child_1[_i];
@@ -234,7 +254,7 @@ var window;
             }
         };
         ;
-        PwindowList.prototype.update_leaves = function (leaves) {
+        WindowList.prototype.update_leaves = function (leaves) {
             // find leaves in parse/derive beat interval
             // splice them with their children
             var leaves_spliced = this.leaves;
@@ -282,15 +302,17 @@ var window;
             }
             this.leaves = leaves_spliced;
         };
-        PwindowList.prototype.render_clips = function () {
+        // window
+        WindowList.prototype.render_clips = function () {
             var messages = this.get_messages_render_clips();
             for (var i = 0; i < messages.length; i++) {
                 this.messenger.message(messages[i]);
             }
         };
         ;
+        // window
         // TODO: return signature
-        PwindowList.prototype.get_messages_render_clips = function () {
+        WindowList.prototype.get_messages_render_clips = function () {
             var messages = [];
             for (var index_clip in this.clips) {
                 messages = messages.concat(this.get_messages_render_notes(Number(index_clip)));
@@ -298,7 +320,8 @@ var window;
             return messages;
         };
         ;
-        PwindowList.prototype.get_messages_render_notes = function (index_clip) {
+        // window
+        WindowList.prototype.get_messages_render_notes = function (index_clip) {
             var clip = this.clips[index_clip];
             var quadruplets = [];
             for (var _i = 0, _a = clip.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
@@ -312,7 +335,8 @@ var window;
             });
         };
         ;
-        PwindowList.prototype.get_position_quadruplet = function (node, index_clip) {
+        // window
+        WindowList.prototype.get_position_quadruplet = function (node, index_clip) {
             var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
@@ -321,7 +345,8 @@ var window;
             return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom];
         };
         ;
-        PwindowList.prototype.get_dist_from_top = function (pitch, index_clip) {
+        // window
+        WindowList.prototype.get_dist_from_top = function (pitch, index_clip) {
             var clip = this.clips[index_clip];
             var offset = index_clip;
             // TODO: make this configurable
@@ -332,26 +357,30 @@ var window;
             return dist + (this.get_height_clip() * offset);
         };
         ;
-        PwindowList.prototype.get_dist_from_left = function (beat) {
+        // window
+        WindowList.prototype.get_dist_from_left = function (beat) {
             return this.beat_to_pixel(beat);
         };
         ;
-        PwindowList.prototype.get_height_clip = function () {
+        // window
+        WindowList.prototype.get_height_clip = function () {
             return this.height / this.clips.length;
         };
         ;
-        PwindowList.prototype.get_height_note = function (index_clip) {
+        // window
+        WindowList.prototype.get_height_note = function (index_clip) {
             var ambitus = this.get_ambitus(index_clip);
             var dist_pitch = ambitus[1] - ambitus[0] + 1;
             return this.get_height_clip() / dist_pitch;
         };
         ;
-        PwindowList.prototype.get_ambitus = function (index_clip) {
+        // window
+        WindowList.prototype.get_ambitus = function (index_clip) {
             return this.clips[index_clip].get_ambitus();
         };
         ;
-        return PwindowList;
+        return WindowList;
     }());
-    window.PwindowList = PwindowList;
+    window.WindowList = WindowList;
 })(window = exports.window || (exports.window = {}));
 //# sourceMappingURL=list_window.js.map

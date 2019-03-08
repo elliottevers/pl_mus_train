@@ -1,42 +1,101 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var logger_1 = require("../log/logger");
 var TreeModel = require("tree-model");
+var utils_1 = require("../utils/utils");
 var history;
 (function (history) {
     var Logger = logger_1.log.Logger;
+    var division_int = utils_1.utils.division_int;
+    var remainder = utils_1.utils.remainder;
     var HistoryUserInput = /** @class */ (function () {
         function HistoryUserInput() {
         }
         return HistoryUserInput;
     }());
-    history.HistoryUserInput = HistoryUserInput;
-    var List = /** @class */ (function () {
-        function List() {
+    var MatrixIterator = /** @class */ (function () {
+        function MatrixIterator(num_rows, num_columns) {
+            this.num_rows = num_rows;
+            this.num_columns = num_columns;
+            this.i = -1;
         }
-        return List;
-    }());
-    history.List = List;
-    var Matrix = /** @class */ (function () {
-        function Matrix(height, width) {
-            this.data = [];
-            for (var i = 0; i < height; i++) {
-                this.data[i] = new Array(width);
+        MatrixIterator.prototype.next_row = function () {
+            this.i = this.i + this.num_columns;
+        };
+        MatrixIterator.prototype.next_column = function () {
+            this.i = this.i + 1;
+        };
+        MatrixIterator.prototype.next = function () {
+            var value = null;
+            this.next_column();
+            if (this.i === this.num_columns * this.num_rows + 1) {
+                return {
+                    value: value,
+                    done: true
+                };
             }
-            this.logger = new Logger('max');
+            var pos_row = division_int(this.i + 1, this.num_columns);
+            var pos_column = remainder(this.i + 1, this.num_columns);
+            value = [pos_row, pos_column];
+            return {
+                value: value,
+                done: false
+            };
+        };
+        return MatrixIterator;
+    }());
+    history.MatrixIterator = MatrixIterator;
+    var HistoryList = /** @class */ (function (_super) {
+        __extends(HistoryList, _super);
+        function HistoryList() {
+            return _super !== null && _super.apply(this, arguments) || this;
         }
-        Matrix.prototype.set_notes = function (i_height, i_width, notes) {
+        HistoryList.prototype.add_subtarget = function (subtarget) {
+        };
+        HistoryList.prototype.get_list = function () {
+            return;
+        };
+        HistoryList.prototype.set_list = function () {
+        };
+        return HistoryList;
+    }(HistoryUserInput));
+    history.HistoryList = HistoryList;
+    var HistoryMatrix = /** @class */ (function (_super) {
+        __extends(HistoryMatrix, _super);
+        function HistoryMatrix(height, width) {
+            var _this = this;
+            _this.data = [];
+            for (var i = 0; i < height; i++) {
+                _this.data[i] = new Array(width);
+            }
+            _this.logger = new Logger('max');
+            return _this;
+        }
+        HistoryMatrix.prototype.set_notes = function (i_height, i_width, notes) {
             this.data[i_height][i_width] = notes;
         };
-        Matrix.prototype.get_notes = function (i_height, i_width) {
+        HistoryMatrix.prototype.get_notes = function (i_height, i_width) {
             return this.data[i_height][i_width];
         };
-        Matrix.serialize = function (notes) {
+        HistoryMatrix.serialize = function (notes) {
             return notes.map(function (note) {
                 return JSON.stringify(note.model);
             });
         };
-        Matrix.deserialize = function (notes_serialized) {
+        HistoryMatrix.deserialize = function (notes_serialized) {
             if (notes_serialized === null) {
                 return null;
             }
@@ -45,7 +104,7 @@ var history;
                 return tree.parse(JSON.parse(note));
             });
         };
-        Matrix.prototype.save = function (filename) {
+        HistoryMatrix.prototype.save = function (filename) {
             var data_serializable = this.data;
             for (var i_row in this.data) {
                 for (var i_col in this.data[Number(i_row)]) {
@@ -62,7 +121,7 @@ var history;
                 post("could not save session");
             }
         };
-        Matrix.load = function (filename) {
+        HistoryMatrix.load = function (filename) {
             var f = new File(filename, "read", "JSON");
             var a, data_serialized;
             if (f.isopen) {
@@ -86,8 +145,8 @@ var history;
             }
             return data_deserialized;
         };
-        return Matrix;
-    }());
-    history.Matrix = Matrix;
+        return HistoryMatrix;
+    }(HistoryUserInput));
+    history.HistoryMatrix = HistoryMatrix;
 })(history = exports.history || (exports.history = {}));
 //# sourceMappingURL=history.js.map

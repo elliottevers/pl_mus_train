@@ -28,4 +28,13 @@ export namespace utils {
             return PathLive.to_message(vector_path_live.join(' ')).join(' ');
         }
     }
+
+    export let remainder = (top, bottom) => {
+        return ((top % bottom) + bottom) % bottom
+    };
+
+    export let division_int = (top, bottom) => {
+        return Math.floor(top/bottom)
+    };
+
 }

@@ -7,15 +7,58 @@ export namespace target {
 
     // let min_width_clip = 0.25;
 
-    export type TargetType = TreeModel.Node<n.Note>[][]
+    // export type TargetType = TreeModel.Node<n.Note>[]
+
+    export class Subtarget {
+        note: TreeModel.Node<n.Note>;
+
+        constructor(note: TreeModel.Node<n.Note>) {
+            this.note = note;
+        }
+
+
+    }
+
+    export class SubtargetIterator {
+
+        subtargets: Subtarget[];
+
+        constructor(subtargets: Subtarget[]) {
+            this.subtargets = subtargets;
+        }
+
+    }
 
     export class Target {
-
-        notes_grouped: TreeModel.Node<n.Note>[][];
-
-        constructor(notes_grouped: TreeModel.Node<n.Note>[][]) {
-            this.notes_grouped = notes_grouped
+        constructor(subtarget_iterator: SubtargetIterator) {
+            this.subtarget_iterator = subtarget_iterator;
         }
+    }
+
+    export class TargetIterator {
+        // need SegmentTargetable -> TargetIterator
+
+        targets: Target[];
+
+        constructor(targets: Target[]) {
+            this.targets = targets;
+        }
+
+        public static from_segment_targetable(segment_targetable: SegmentTargetable): TargetIterator {
+            return
+        }
+    }
+
+    // export class Target {
+
+        // notes_grouped: TreeModel.Node<n.Note>[][];
+        //
+        // constructor(notes_grouped: TreeModel.Node<n.Note>[][]) {
+        //     this.notes_grouped = notes_grouped
+        // }
+
+        // subtargets: Subtarget[]
+
 
 
     //     note: TreeModel.Node<n.Note>;
@@ -144,5 +187,5 @@ export namespace target {
     //             this.current.set_phrase_interval_beats(phrase_interval_beats, reverse);
     //         }
     //     }
-    }
+    // }
 }

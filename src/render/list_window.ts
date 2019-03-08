@@ -15,7 +15,7 @@ export namespace window {
     const red = [255, 0, 0];
     const black = [0, 0, 0];
 
-    export class PwindowList {
+    export class WindowList {
         height: number;
         width: number;
         messenger: m.Messenger;
@@ -35,6 +35,14 @@ export namespace window {
             this.messenger = messenger;
             this.clips = [];
             this.beats_per_measure = 4;
+        }
+
+        public add() {
+
+        }
+
+        public clear() {
+
         }
 
         render() {
@@ -94,6 +102,7 @@ export namespace window {
             this.leaves = [note_root];
         }
 
+        // struct
         elaborate(elaboration: TreeModel.Node<n.Note>[], beat_start: number, beat_end: number, index_layer: number): void {
 
             if (index_layer + 1 > this.clips.length) {
@@ -121,6 +130,7 @@ export namespace window {
             this.update_leaves(leaves_within_interval);
         }
 
+        // struct
         splice_notes(notes_subset: TreeModel.Node<n.Note>[], clip: c.Clip, interval_beats: number[]): TreeModel.Node<n.Note>[] {
             let notes_clip = _.cloneDeep(clip.get_notes_within_loop_brackets());
             let num_notes_to_replace = this.get_order_of_note_at_beat_end(notes_clip, interval_beats[1]) - this.get_order_of_note_at_beat_start(notes_clip, interval_beats[0]) + 1;
@@ -129,6 +139,7 @@ export namespace window {
             return notes_clip
         }
 
+        // struct
         get_note_index_at_beat(beat: number, notes: TreeModel.Node<n.Note>[]): number {
             let val =  _.findIndex(notes, (node)=>{
                 return node.model.note.beat_start === beat
@@ -136,6 +147,7 @@ export namespace window {
             return val;
         }
 
+        // struct
         get_leaves_within_interval(beat_start: number, beat_end: number): TreeModel.Node<n.Note>[] {
             let val =  this.leaves.filter((node) =>{
                 // return node.model.note.beat_start >= beat_start && node.model.note.get_beat_end() <= beat_end
@@ -148,11 +160,13 @@ export namespace window {
             return val;
         }
 
+        // virtual clip
         // NB: this makes the assumption that the end marker is at the end of the clip
         get_num_measures_clip(): number {
             return this.clips[0].get_num_measures();
         }
 
+        // window
         // TODO: make node have indices to both clip and note
         get_centroid(node: TreeModel.Node<n.Note>): number[] {
 
@@ -173,6 +187,7 @@ export namespace window {
             ]
         };
 
+        // struct
         // TODO: elaboration won't always
         get_order_of_note_at_beat_start(notes: TreeModel.Node<n.Note>[], beat_start: number): number {
             return _.findIndex(notes, (node) => {
@@ -180,12 +195,14 @@ export namespace window {
             });
         }
 
+        // struct
         get_order_of_note_at_beat_end(notes: TreeModel.Node<n.Note>[], beat_end: number): number {
             return _.findIndex(notes, (node) => {
                 return node.model.note.get_beat_end() === beat_end
             });
         }
 
+        // notes - static method
         get_interval_beats(notes: TreeModel.Node<n.Note>[]): number[] {
             return [
                 notes[0].model.note.beat_start,
@@ -193,11 +210,13 @@ export namespace window {
             ];
         }
 
+        // struct
         // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
         add_clip(clip: c.Clip): void {
             this.clips.push(clip);
         };
 
+        // struct
         get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
             let same_start, same_duration, index_start_diff;
             for (let i=0; i < notes_old.length; i++) {
@@ -212,6 +231,7 @@ export namespace window {
             return index_start_diff;
         }
 
+        // struct
         get_diff_index_end(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
             let same_start, same_duration, index_end_diff;
             for (let i=-1; i > -1 * (notes_new.length + 1); i--) {
@@ -227,6 +247,7 @@ export namespace window {
             return index_end_diff;
         }
 
+        // struct
         // TODO: complete return method signature
         get_diff_index_notes(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): number[] {
             return [
@@ -235,6 +256,7 @@ export namespace window {
             ];
         };
 
+        // window
         render_tree(): void {
             var messages = this.get_messages_render_tree();
             for (var i=0; i < messages.length; i++) {
@@ -244,6 +266,7 @@ export namespace window {
             }
         };
 
+        // window
         // TODO: how do we render when there is no singular root (i.e. parsing, not sampling, sentence)?
         get_messages_render_tree() {
             let color: number[], messages: any[] = [], message: any[];
@@ -352,6 +375,7 @@ export namespace window {
             this.leaves = leaves_spliced;
         }
 
+        // window
         render_clips(): void {
             var messages = this.get_messages_render_clips();
             for (var i=0; i < messages.length; i++) {
@@ -361,6 +385,7 @@ export namespace window {
             }
         };
 
+        // window
         // TODO: return signature
         get_messages_render_clips()  {
             var messages = [];
@@ -370,6 +395,7 @@ export namespace window {
             return messages;
         };
 
+        // window
         get_messages_render_notes(index_clip: number) {
             var clip = this.clips[index_clip];
             let quadruplets = [];
@@ -383,6 +409,7 @@ export namespace window {
             })
         };
 
+        // window
         get_position_quadruplet(node: TreeModel.Node<n.Note>, index_clip: number) {
             var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
 
@@ -394,6 +421,7 @@ export namespace window {
             return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom]
         };
 
+        // window
         get_dist_from_top(pitch: number, index_clip: number): number {
             var clip = this.clips[index_clip];
             let offset = index_clip;
@@ -406,26 +434,31 @@ export namespace window {
 
         };
 
+        // window
         beat_to_pixel = function (beat: number): number {
             var num_pixels_in_clip = this.width;
             var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
             return beat * (num_pixels_in_clip / num_beats_in_clip);
         };
 
+        // window
         get_dist_from_left(beat: number): number {
             return this.beat_to_pixel(beat);
         };
 
+        // window
         get_height_clip(): number {
             return this.height / this.clips.length;
         };
 
+        // window
         get_height_note(index_clip: number): number {
             var ambitus = this.get_ambitus(index_clip);
             var dist_pitch = ambitus[1] - ambitus[0] + 1;
             return this.get_height_clip() / dist_pitch;
         };
 
+        // window
         get_ambitus(index_clip: number): number[] {
             return this.clips[index_clip].get_ambitus();
         };

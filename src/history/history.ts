@@ -1,19 +1,94 @@
-import {note} from "../note/note";
+import {note as n} from "../note/note";
 import {log} from "../log/logger";
 import TreeModel = require("tree-model");
+import {utils} from "../utils/utils";
 
 export namespace history {
     import Logger = log.Logger;
+    import division_int = utils.division_int;
+    import remainder = utils.remainder;
 
-    export class HistoryUserInput {
-
-    }
-
-    export class List {
+    class HistoryUserInput {
 
     }
 
-    export class Matrix {
+    export class MatrixIterator {
+        private num_rows: number;
+        private num_columns: number;
+
+        private row_current: number;
+        private column_current: number;
+
+        private i;
+
+        constructor(num_rows: number, num_columns: number) {
+            this.num_rows = num_rows;
+            this.num_columns = num_columns;
+
+            this.i = -1;
+        }
+
+        private next_row() {
+            this.i = this.i + this.num_columns;
+        }
+
+        private next_column() {
+            this.i = this.i + 1;
+        }
+
+        public next() {
+
+            let value: number[] = null;
+
+            this.next_column();
+
+            if (this.i === this.num_columns * this.num_rows + 1) {
+                return {
+                    value: value,
+                    done: true
+                }
+            }
+
+            let pos_row = division_int(this.i + 1, this.num_columns);
+            let pos_column = remainder(this.i + 1, this.num_columns);
+
+            value = [pos_row, pos_column];
+
+            return {
+                value: value,
+                done: false
+            };
+        }
+    }
+
+    type TypeSubtarget = TreeModel.Node<n.Note>;
+
+    type TypeTarget = TypeSubtarget[]
+
+    type SegmentTargetable = TypeTarget[]
+
+    export type TypeHistoryList = SegmentTargetable[]
+
+    export type TypeHistoryMatrix = SegmentTargetable[][]
+
+    export class HistoryList extends HistoryUserInput {
+
+        private list_history: TypeHistoryList;
+
+        public add_subtarget(subtarget: TypeSubtarget): void {
+
+        }
+
+        get_list(): TypeHistoryList {
+            return
+        }
+
+        set_list(): void {
+
+        }
+    }
+
+    export class HistoryMatrix extends HistoryUserInput {
 
         data: TreeModel.Node<note.Note>[][][];
 

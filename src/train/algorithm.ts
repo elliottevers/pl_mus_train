@@ -12,14 +12,32 @@ export namespace algorithm {
     import TargetType = target.TargetType;
     import Harmony = harmony.Harmony;
 
-    export class Detect implements Temporal, Targetable {
+    export interface Temporal {
+        determine_region_current
+
+        determine_region_past
+
+        determine_region_upcoming
+    }
+
+    export interface Targetable {
+        determine_targets
+    }
+
+    abstract class Targeted {
+        public b_targetable(): boolean {
+            return true;
+        }
+    }
+
+    export class Detect extends Targeted implements Temporal, Targetable {
         user_input_handler;
 
         constructor(user_input_handler) {
             this.user_input_handler = user_input_handler
         }
 
-        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TargetType {
+        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): SegmentTargetable {
             if (this.user_input_handler.mode_texture === modes_texture.POLYPHONY) {
 
                 let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
@@ -52,7 +70,7 @@ export namespace algorithm {
         }
     }
 
-    export class Predict implements Temporal, Targetable {
+    export class Predict extends Targeted implements Temporal, Targetable {
 
         // TODO: put all calls to Clip in whatever class is a client to algorithms
         // NB: there can be multiple targets per segment
@@ -110,6 +128,12 @@ export namespace algorithm {
 
     export class Parse implements Temporal {
 
+        depth: number;
+
+        set_depth(depth: number) {
+            this.depth = depth;
+        }
+
         // happens after loop of first target is set
         post_init(song, clip_user_input) {
             song.set_overdub(1);
@@ -131,6 +155,12 @@ export namespace algorithm {
     }
 
     export class Derive implements Temporal {
+
+        depth: number;
+
+        set_depth(depth: number) {
+            this.depth = depth;
+        }
 
         // happens after loop of first target is set
         post_init(song, clip_user_input) {
@@ -198,18 +228,6 @@ export namespace algorithm {
             // this.update_leaves(leaves_within_interval);
         }
 
-    }
-    
-    export interface Temporal {
-        determine_region_current
-
-        determine_region_past
-
-        determine_region_upcoming
-    }
-
-    export interface Targetable {
-        determine_targets
     }
 
     export class Harmonic {

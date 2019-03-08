@@ -1,13 +1,37 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var harmony_1 = require("../music/harmony");
 var constants_1 = require("../constants/constants");
 var algorithm;
 (function (algorithm) {
     var Harmony = harmony_1.harmony.Harmony;
-    var Detect = /** @class */ (function () {
+    var Targeted = /** @class */ (function () {
+        function Targeted() {
+        }
+        Targeted.prototype.b_targetable = function () {
+            return true;
+        };
+        return Targeted;
+    }());
+    var Detect = /** @class */ (function (_super) {
+        __extends(Detect, _super);
         function Detect(user_input_handler) {
-            this.user_input_handler = user_input_handler;
+            var _this = this;
+            _this.user_input_handler = user_input_handler;
+            return _this;
         }
         Detect.prototype.determine_targets = function (notes_segment_next) {
             if (this.user_input_handler.mode_texture === constants_1.modes_texture.POLYPHONY) {
@@ -30,10 +54,12 @@ var algorithm;
         Detect.prototype.pre_advance = function (clip_user_input) {
         };
         return Detect;
-    }());
+    }(Targeted));
     algorithm.Detect = Detect;
-    var Predict = /** @class */ (function () {
+    var Predict = /** @class */ (function (_super) {
+        __extends(Predict, _super);
         function Predict() {
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         // TODO: put all calls to Clip in whatever class is a client to algorithms
         // NB: there can be multiple targets per segment
@@ -74,11 +100,14 @@ var algorithm;
             //
         };
         return Predict;
-    }());
+    }(Targeted));
     algorithm.Predict = Predict;
     var Parse = /** @class */ (function () {
         function Parse() {
         }
+        Parse.prototype.set_depth = function (depth) {
+            this.depth = depth;
+        };
         // happens after loop of first target is set
         Parse.prototype.post_init = function (song, clip_user_input) {
             song.set_overdub(1);
@@ -97,6 +126,9 @@ var algorithm;
     var Derive = /** @class */ (function () {
         function Derive() {
         }
+        Derive.prototype.set_depth = function (depth) {
+            this.depth = depth;
+        };
         // happens after loop of first target is set
         Derive.prototype.post_init = function (song, clip_user_input) {
             song.set_overdub(1);
