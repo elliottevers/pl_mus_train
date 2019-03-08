@@ -11,6 +11,7 @@ export namespace algorithm {
     import Target = target.Target;
     import TargetType = target.TargetType;
     import Harmony = harmony.Harmony;
+    import TargetIterator = target.TargetIterator;
 
     export interface Temporal {
         determine_region_current
@@ -25,7 +26,7 @@ export namespace algorithm {
     }
 
     abstract class Targeted {
-        public b_targetable(): boolean {
+        public b_targeted(): boolean {
             return true;
         }
     }
@@ -37,7 +38,7 @@ export namespace algorithm {
             this.user_input_handler = user_input_handler
         }
 
-        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): SegmentTargetable {
+        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TargetIterator {
             if (this.user_input_handler.mode_texture === modes_texture.POLYPHONY) {
 
                 let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
@@ -48,6 +49,8 @@ export namespace algorithm {
                     notes_segment_next
                 );
 
+                // Subtarget -> Subtarget Iterator -> Target -> Target Iterator
+
                 return chords_monophonified
 
             } else if (this.user_input_handler.mode_texture === modes_texture.MONOPONY) {
@@ -57,6 +60,8 @@ export namespace algorithm {
                 for (let note of notes_segment_next) {
                     notes_grouped_trivial.push(note)
                 }
+
+                // Subtarget -> Subtarget Iterator -> Target -> Target Iterator
 
                 return notes_grouped_trivial
 

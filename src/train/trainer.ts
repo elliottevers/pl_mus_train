@@ -22,6 +22,7 @@ export namespace trainer {
         private segments;
         private messenger;
 
+        // maybe,
         private struct;
         private history_user_input;
 
@@ -65,11 +66,11 @@ export namespace trainer {
 
             // let segment_targetable: SegmentTargetable;
 
-            let list_segments_targetable: TargetIterator[] = [];
+            let target_iterators: TargetIterator[] = [];
 
             for (let segment of this.segments) {
                 // need SegmentTargetable -> TargetIterator
-                list_segments_targetable.push(
+                target_iterators.push(
                     this.algorithm.determine_targets(
                         this.clip_target.get_notes(
                             segment.beat_start,
@@ -81,9 +82,7 @@ export namespace trainer {
                 )
             }
 
-            this.target_iterator
-            // this.segment_iterator
-            this.subtarget_iterator
+            this.target_iterators = target_iterators;
         }
 
         public clear_window() {
@@ -128,32 +127,44 @@ export namespace trainer {
 
         // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         public init() {
-            this.advance_segment();
+            this.advance();
             this.algorithm.post_init()
         }
 
-        advance_segment() {
-            this.segment_current = this.segment_iterator.next();
-            this.target_current = this.target_iterator.next();
-            this.subtarget_current = this.subtarget_current.next();
+        private advance_segment() {
+
+        }
+
+        private advance() {
+            // this.segment_current = this.segment_iterator.next();
+            // this.target_current = this.target_iterator.next();
+            // this.subtarget_current = this.subtarget_current.next();
+            [i_height, i_width] = this.iterator.next();
+
+            if (this.algorithm.b_targeted()) {
+                // set the targets and shit
+            }
+
+            // set the context in ableton
+            this.set_loop();
 
             if (done) {
                 this.algorithm.pre_terminate()
             }
         }
 
-        advance_target() {
-            this.target_current = this.target_iterator.next()
-        }
-
-        advance_subtarget() {
-            let val = this.subtarget_iterator.next();
-            if (val.done) {
-                this.advance_target()
-            } else {
-                this.subtarget_current = val.value
-            }
-        }
+        // advance_target() {
+        //     this.target_current = this.target_iterator.next()
+        // }
+        //
+        // advance_subtarget() {
+        //     let val = this.subtarget_iterator.next();
+        //     if (val.done) {
+        //         this.advance_target()
+        //     } else {
+        //         this.subtarget_current = val.value
+        //     }
+        // }
 
         accept_input(input_user) {
 
@@ -168,16 +179,21 @@ export namespace trainer {
                 return
             }
 
-            let targetable = true; // this.algorithm instanceof Targetable;
-
-            if (!targetable) {
+            if (!this.algorithm.b_targeted()) {
                 this.advance_segment();
             }
 
-            if (input_user === this.subtarget_current) {
-                this.history_user_input.add_subtarget(input_user);
-                this.advance_subtarget();
-                this.set_loop();
+            if (input_user.note.pitch === this.subtarget_current.note.pitch) {
+
+                // NB: we actually add the note that the user was trying to guess, not the note played
+                this.history_user_input.add_subtarget(
+                    this.target_iterator.current().subtarget_iterator.current()
+                );
+
+                this.advance();
+
+                // this.set_loop();
+
                 // TODO: make sure for detection/prediction we're making "input_user" exactly the same as the "target note", if we're restoring sessions from user input
                 // this.window.add(input_user);
                 this.struct.add(input_user);

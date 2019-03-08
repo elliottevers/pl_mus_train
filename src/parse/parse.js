@@ -3,6 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("underscore");
 var parse;
 (function (parse) {
+    var ParseTree = /** @class */ (function () {
+        function ParseTree() {
+        }
+        return ParseTree;
+    }());
+    parse.ParseTree = ParseTree;
     // export class ParseMatrix {
     //
     //     data: TreeModel.Node<note.Note>[][][];

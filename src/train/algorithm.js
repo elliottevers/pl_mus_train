@@ -21,7 +21,7 @@ var algorithm;
     var Targeted = /** @class */ (function () {
         function Targeted() {
         }
-        Targeted.prototype.b_targetable = function () {
+        Targeted.prototype.b_targeted = function () {
             return true;
         };
         return Targeted;
@@ -37,6 +37,7 @@ var algorithm;
             if (this.user_input_handler.mode_texture === constants_1.modes_texture.POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
                 var chords_monophonified = Harmony.monophonify(notes_segment_next);
+                // Subtarget -> Subtarget Iterator -> Target -> Target Iterator
                 return chords_monophonified;
             }
             else if (this.user_input_handler.mode_texture === constants_1.modes_texture.MONOPONY) {
@@ -45,6 +46,7 @@ var algorithm;
                     var note_1 = notes_segment_next_1[_i];
                     notes_grouped_trivial.push(note_1);
                 }
+                // Subtarget -> Subtarget Iterator -> Target -> Target Iterator
                 return notes_grouped_trivial;
             }
             else {

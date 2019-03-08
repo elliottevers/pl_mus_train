@@ -20,6 +20,10 @@ export namespace parse {
         get_best_candidate(list_candidate_note);
     }
 
+    export class ParseTree implements Parsable {
+
+    }
+
     // export class ParseMatrix {
     //
     //     data: TreeModel.Node<note.Note>[][][];

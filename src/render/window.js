@@ -19,6 +19,9 @@ var window;
 (function (window) {
     var red = [255, 0, 0];
     var black = [0, 0, 0];
+    // interface Renderable {
+    //     add(notes: TreeModel.Node<n.Note>[])
+    // }
     var Window = /** @class */ (function () {
         function Window() {
         }
@@ -38,14 +41,26 @@ var window;
             _this.struct = new struct_1.struct.StructList();
             return _this;
         }
+        ListWindow.prototype.render_regions = function (history_list) {
+        };
+        ListWindow.prototype.render_notes = function (history_list) {
+        };
         return ListWindow;
     }(Window));
     window.ListWindow = ListWindow;
     var TreeWindow = /** @class */ (function (_super) {
         __extends(TreeWindow, _super);
         function TreeWindow() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            var _this = _super.call(this) || this;
+            _this.struct = new struct_1.struct.StructList();
+            return _this;
         }
+        TreeWindow.prototype.render_regions = function (history_matrix) {
+        };
+        TreeWindow.prototype.render_notes = function (history_matrix) {
+        };
+        TreeWindow.prototype.render_trees = function (list_parse_trees) {
+        };
         return TreeWindow;
     }(Window));
     window.TreeWindow = TreeWindow;
