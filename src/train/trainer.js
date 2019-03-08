@@ -3,41 +3,68 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var algorithm_1 = require("./algorithm");
 var history_1 = require("../history/history");
 var parse_1 = require("../parse/parse");
+var utils_1 = require("../utils/utils");
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
     var MatrixIterator = history_1.history.MatrixIterator;
     var ParseTree = parse_1.parse.ParseTree;
+    var division_int = utils_1.utils.division_int;
+    var remainder = utils_1.utils.remainder;
+    var MatrixIterator = /** @class */ (function () {
+        function MatrixIterator(num_rows, num_columns) {
+            this.num_rows = num_rows;
+            this.num_columns = num_columns;
+            this.i = -1;
+        }
+        MatrixIterator.prototype.next_row = function () {
+            this.i = this.i + this.num_columns;
+        };
+        MatrixIterator.prototype.next_column = function () {
+            this.i = this.i + 1;
+        };
+        MatrixIterator.prototype.next = function () {
+            var value = null;
+            this.next_column();
+            if (this.i === this.num_columns * this.num_rows + 1) {
+                return {
+                    value: value,
+                    done: true
+                };
+            }
+            var pos_row = division_int(this.i + 1, this.num_columns);
+            var pos_column = remainder(this.i + 1, this.num_columns);
+            value = [pos_row, pos_column];
+            return {
+                value: value,
+                done: false
+            };
+        };
+        return MatrixIterator;
+    }());
+    trainer.MatrixIterator = MatrixIterator;
     var IteratorTrainFactory = /** @class */ (function () {
         function IteratorTrainFactory() {
         }
         IteratorTrainFactory.get_iterator_train = function (algorithm, segments) {
             var iterator;
             switch (algorithm.get_name()) {
-                case :
-                    algorithms.DETECT;
-                    {
-                        iterator = MatrixIterator(1, segments.length);
-                        break;
-                    }
-                case :
-                    algorithms.PREDICT;
-                    {
-                        iterator = MatrixIterator(1, segments.length);
-                        break;
-                    }
-                case :
-                    algorithms.PARSE;
-                    {
-                        iterator = MatrixIterator(algorithm.get_depth(), segments.length);
-                        break;
-                    }
-                case :
-                    algorithms.DERIVE;
-                    {
-                        iterator = MatrixIterator(algorithm.get_depth(), segments.length);
-                        break;
-                    }
+                case algorithm_1.algorithm.DETECT: {
+                    iterator = new MatrixIterator(1, segments.length);
+                    break;
+                }
+                case algorithm_1.algorithm.PREDICT: {
+                    iterator = new MatrixIterator(1, segments.length);
+                    break;
+                }
+                case algorithm_1.algorithm.PARSE: {
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
+                    break;
+                }
+                case algorithm_1.algorithm.DERIVE: {
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
+                    break;
+                }
                 default: {
                     throw ['algorithm of name', algorithm.get_name(), 'not supported'].join(' ');
                 }
@@ -60,7 +87,7 @@ var trainer;
             this.segments = segments;
             this.messenger = messenger;
             // this.struct = new StructFactory.get_struct(user_input_handler.mode);
-            this.history_user_input = new HistoryUserInput(user_input_handler.mode);
+            this.history_user_input = new HistoryUserInput(this.algorithm, this.segments);
             if (this.algorithm.b_targetable()) {
                 this.create_targets();
             }
@@ -70,17 +97,16 @@ var trainer;
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
         }
         Trainer.prototype.create_parse_trees = function () {
-            var list_parse_tree;
+            var list_parse_tree = [];
             switch (this.algorithm.get_name()) {
                 case :
                     algorithms.PARSE;
                     {
-                        // this.list_parse_tree = MatrixIterator(algorithm.get_depth(), segments.length);
                         for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
                             var segment_1 = _a[_i];
                             for (var _b = 0, _c = segment_1.get_notes(); _b < _c.length; _b++) {
                                 var note = _c[_b];
-                                list_parse_tree.push(new ParseTree(note));
+                                list_parse_tree.push(new ParseTree(note, this.algorithm.get_depth()));
                             }
                         }
                         break;
@@ -88,11 +114,12 @@ var trainer;
                 case :
                     algorithms.DERIVE;
                     {
-                        this.list_parse_tree = MatrixIterator(algorithm_1.algorithm.get_depth(), segments.length);
+                        var note = this.segments[0].get_note();
+                        list_parse_tree.push(new ParseTree(note, this.algorithm.get_depth()));
                         break;
                     }
                 default: {
-                    throw ['algorithm of name', algorithm_1.algorithm.get_name(), 'not supported'].join(' ');
+                    throw ['algorithm of name', this.algorithm.get_name(), 'not supported'].join(' ');
                 }
             }
             return list_parse_tree;

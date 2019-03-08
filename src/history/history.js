@@ -15,49 +15,27 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var logger_1 = require("../log/logger");
 var TreeModel = require("tree-model");
-var utils_1 = require("../utils/utils");
 var history;
 (function (history) {
     var Logger = logger_1.log.Logger;
-    var division_int = utils_1.utils.division_int;
-    var remainder = utils_1.utils.remainder;
     var HistoryUserInput = /** @class */ (function () {
-        function HistoryUserInput() {
+        function HistoryUserInput(algorithm, segments) {
+            var matrix_data = [];
+            for (var i = 0; i < algorithm.get_depth(); i++) {
+                if (i == 0 && algorithm.get_depth() > 1) {
+                    matrix_data[i] = new Array(1); // root of tree
+                }
+                else {
+                    matrix_data[i] = new Array(segments.length);
+                }
+            }
+            this.matrix_data = matrix_data;
         }
+        HistoryUserInput.prototype.set_sequence_target = function (sequence_target, coord_matrix) {
+            this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
+        };
         return HistoryUserInput;
     }());
-    var MatrixIterator = /** @class */ (function () {
-        function MatrixIterator(num_rows, num_columns) {
-            this.num_rows = num_rows;
-            this.num_columns = num_columns;
-            this.i = -1;
-        }
-        MatrixIterator.prototype.next_row = function () {
-            this.i = this.i + this.num_columns;
-        };
-        MatrixIterator.prototype.next_column = function () {
-            this.i = this.i + 1;
-        };
-        MatrixIterator.prototype.next = function () {
-            var value = null;
-            this.next_column();
-            if (this.i === this.num_columns * this.num_rows + 1) {
-                return {
-                    value: value,
-                    done: true
-                };
-            }
-            var pos_row = division_int(this.i + 1, this.num_columns);
-            var pos_column = remainder(this.i + 1, this.num_columns);
-            value = [pos_row, pos_column];
-            return {
-                value: value,
-                done: false
-            };
-        };
-        return MatrixIterator;
-    }());
-    history.MatrixIterator = MatrixIterator;
     var HistoryList = /** @class */ (function (_super) {
         __extends(HistoryList, _super);
         function HistoryList() {

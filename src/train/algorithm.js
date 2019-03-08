@@ -17,6 +17,10 @@ var harmony_1 = require("../music/harmony");
 var constants_1 = require("../constants/constants");
 var algorithm;
 (function (algorithm) {
+    algorithm.DETECT = 'detect';
+    algorithm.PREDICT = 'predict';
+    algorithm.PARSE = 'parse';
+    algorithm.DERIVE = 'derive';
     var Harmony = harmony_1.harmony.Harmony;
     var Targeted = /** @class */ (function () {
         function Targeted() {
@@ -33,8 +37,11 @@ var algorithm;
             _this.user_input_handler = user_input_handler;
             return _this;
         }
+        Detect.prototype.get_depth = function () {
+            return 1;
+        };
         Detect.prototype.get_name = function () {
-            return algorithms.DETECT;
+            return algorithm.DETECT;
         };
         Detect.prototype.determine_targets = function (notes_segment_next) {
             if (this.user_input_handler.mode_texture === constants_1.modes_texture.POLYPHONY) {
@@ -67,7 +74,10 @@ var algorithm;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         Predict.prototype.get_name = function () {
-            return algorithms.PREDICT;
+            return algorithm.PREDICT;
+        };
+        Predict.prototype.get_depth = function () {
+            return 1;
         };
         // TODO: put all calls to Clip in whatever class is a client to algorithms
         // NB: there can be multiple targets per segment
@@ -114,7 +124,10 @@ var algorithm;
         function Parse() {
         }
         Parse.prototype.get_name = function () {
-            return algorithms.PARSE;
+            return algorithm.PARSE;
+        };
+        Parse.prototype.get_depth = function () {
+            return this.depth;
         };
         Parse.prototype.set_depth = function (depth) {
             this.depth = depth;
@@ -138,7 +151,10 @@ var algorithm;
         function Derive() {
         }
         Derive.prototype.get_name = function () {
-            return algorithms.DERIVE;
+            return algorithm.DERIVE;
+        };
+        Derive.prototype.get_depth = function () {
+            return this.depth;
         };
         Derive.prototype.set_depth = function (depth) {
             this.depth = depth;

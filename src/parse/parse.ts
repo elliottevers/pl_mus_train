@@ -30,8 +30,33 @@ export namespace parse {
         //     this.matrix_clip
         // }
 
-        constructor(note: TreeModel.Node<n.Note>) {
+        root: TreeModel.Node<n.NoteRenderable>;
 
+        constructor(note: TreeModel.Node<n.Note>, coordinates_matrix) {
+            let tree: TreeModel = new TreeModel();
+
+            let splitted = messages[i_mess].split(' ');
+
+            this.root = tree.parse(
+                {
+                    id: -1, // TODO: hashing scheme for clip id and beat start
+                    note: new n.NoteRenderable(
+                        Number(splitted[0]),
+                        Number(splitted[1]),
+                        Number(splitted[2]),
+                        Number(splitted[3]),
+                        Number(splitted[4]),
+                        coordinates_matrix
+                    ),
+                    children: [
+
+                    ]
+                }
+            )
+        }
+
+        public get_root():  {
+            return this.root;
         }
 
         private static get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {

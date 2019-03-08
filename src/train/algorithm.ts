@@ -7,6 +7,11 @@ import {harmony} from "../music/harmony";
 import {modes_texture} from "../constants/constants";
 
 export namespace algorithm {
+    export let DETECT = 'detect';
+    export let PREDICT = 'predict';
+    export let PARSE = 'parse';
+    export let DERIVE = 'derive';
+
     import LiveClipVirtual = live.LiveClipVirtual;
     import Target = target.Target;
     import TargetType = target.TargetType;
@@ -25,21 +30,30 @@ export namespace algorithm {
         determine_targets
     }
 
+    export interface Algorithm {
+        get_name(): string
+        get_depth(): number
+    }
+
     abstract class Targeted {
         public b_targeted(): boolean {
             return true;
         }
     }
 
-    export class Detect extends Targeted implements Temporal, Targetable {
+    export class Detect extends Targeted implements Algorithm, Temporal, Targetable {
         user_input_handler;
 
         constructor(user_input_handler) {
             this.user_input_handler = user_input_handler
         }
 
+        public get_depth(): number {
+            return 1
+        }
+
         public get_name(): string {
-            return algorithms.DETECT
+            return DETECT
         }
 
         determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TargetIterator {
@@ -79,10 +93,14 @@ export namespace algorithm {
         }
     }
 
-    export class Predict extends Targeted implements Temporal, Targetable {
+    export class Predict extends Targeted implements Algorithm, Temporal, Targetable {
 
         public get_name(): string {
-            return algorithms.PREDICT
+            return PREDICT
+        }
+
+        public get_depth(): number {
+            return 1
         }
 
         // TODO: put all calls to Clip in whatever class is a client to algorithms
@@ -139,12 +157,16 @@ export namespace algorithm {
         }
     }
 
-    export class Parse implements Temporal {
+    export class Parse implements Algorithm, Temporal {
 
         depth: number;
 
         public get_name(): string {
-            return algorithms.PARSE
+            return PARSE
+        }
+
+        public get_depth(): number {
+            return this.depth
         }
 
         set_depth(depth: number) {
@@ -176,7 +198,11 @@ export namespace algorithm {
         depth: number;
 
         public get_name(): string {
-            return algorithms.DERIVE
+            return DERIVE
+        }
+
+        public get_depth(): number {
+            return this.depth
         }
 
         set_depth(depth: number) {

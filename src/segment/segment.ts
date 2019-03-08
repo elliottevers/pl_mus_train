@@ -3,7 +3,6 @@ import {note, note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {live} from "../live/live";
 
-// TODO: use namespaces better
 export namespace segment {
 
     import Clip = clip.Clip;
@@ -23,14 +22,23 @@ export namespace segment {
             this.clip = new Clip(clip_dao_virtual);
         }
 
-        public get_notes(): TreeModel.Node<n.Note>[] {
+        public get_note(): TreeModel.Node<n.Note> {
             return this.clip.get_notes(
                 this.beat_start,
                 0,
                 this.beat_end,
                 128
-            )
+            )[0]
         }
+
+        // public get_notes(): TreeModel.Node<n.Note>[] {
+        //     return this.clip.get_notes(
+        //         this.beat_start,
+        //         0,
+        //         this.beat_end,
+        //         128
+        //     )
+        // }
 
         public get_endpoints_loop() {
             return [this.beat_start, this.beat_end]

@@ -10,54 +10,22 @@ export namespace history {
 
     class HistoryUserInput {
 
-    }
+        matrix_data: SequenceTarget[][];
 
-    export class MatrixIterator {
-        private num_rows: number;
-        private num_columns: number;
-
-        private row_current: number;
-        private column_current: number;
-
-        private i;
-
-        constructor(num_rows: number, num_columns: number) {
-            this.num_rows = num_rows;
-            this.num_columns = num_columns;
-
-            this.i = -1;
-        }
-
-        private next_row() {
-            this.i = this.i + this.num_columns;
-        }
-
-        private next_column() {
-            this.i = this.i + 1;
-        }
-
-        public next() {
-
-            let value: number[] = null;
-
-            this.next_column();
-
-            if (this.i === this.num_columns * this.num_rows + 1) {
-                return {
-                    value: value,
-                    done: true
+        constructor(algorithm, segments) {
+            let matrix_data = [];
+            for (let i=0; i < algorithm.get_depth(); i++) {
+                if (i == 0 && algorithm.get_depth() > 1) {
+                    matrix_data[i] = new Array(1); // root of tree
+                } else {
+                    matrix_data[i] = new Array(segments.length);
                 }
             }
+            this.matrix_data = matrix_data;
+        }
 
-            let pos_row = division_int(this.i + 1, this.num_columns);
-            let pos_column = remainder(this.i + 1, this.num_columns);
-
-            value = [pos_row, pos_column];
-
-            return {
-                value: value,
-                done: false
-            };
+        set_sequence_target(sequence_target: SequenceTarget, coord_matrix: number[]) {
+            this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
         }
     }
 
@@ -65,7 +33,7 @@ export namespace history {
 
     type TypeTarget = TypeSubtarget[]
 
-    type SegmentTargetable = TypeTarget[]
+    type SequenceTarget = TypeTarget[]
 
     export type TypeHistoryList = SegmentTargetable[]
 

@@ -1,11 +1,12 @@
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {parse_matrix, pwindow} from "../scripts/parse_tree";
-import {algorithm, train} from "./algorithm";
+import {algorithm as algo, train} from "./algorithm";
 import {history} from "../history/history";
 import {target} from "../target/target";
 import {segment} from "../segment/segment";
 import {parse} from "../parse/parse";
+import {utils} from "../utils/utils";
 
 export namespace trainer {
 
@@ -16,26 +17,79 @@ export namespace trainer {
     import MatrixIterator = history.MatrixIterator;
     import Segment = segment.Segment;
     import ParseTree = parse.ParseTree;
+    import Algorithm = algorithm.Algorithm;
+    import division_int = utils.division_int;
+    import remainder = utils.remainder;
+
+    export class MatrixIterator {
+        private num_rows: number;
+        private num_columns: number;
+
+        private row_current: number;
+        private column_current: number;
+
+        private i;
+
+        constructor(num_rows: number, num_columns: number) {
+            this.num_rows = num_rows;
+            this.num_columns = num_columns;
+
+            this.i = -1;
+        }
+
+        private next_row() {
+            this.i = this.i + this.num_columns;
+        }
+
+        private next_column() {
+            this.i = this.i + 1;
+        }
+
+        public next() {
+
+            let value: number[] = null;
+
+            this.next_column();
+
+            if (this.i === this.num_columns * this.num_rows + 1) {
+                return {
+                    value: value,
+                    done: true
+                }
+            }
+
+            let pos_row = division_int(this.i + 1, this.num_columns);
+            let pos_column = remainder(this.i + 1, this.num_columns);
+
+            value = [pos_row, pos_column];
+
+            return {
+                value: value,
+                done: false
+            };
+        }
+    }
 
     class IteratorTrainFactory {
         public static get_iterator_train(algorithm: Algorithm, segments: Segment[]) {
+
             let iterator: MatrixIterator;
 
             switch (algorithm.get_name()) {
-                case: algorithms.DETECT {
-                    iterator = MatrixIterator(1, segments.length);
+                case algo.DETECT: {
+                    iterator = new MatrixIterator(1, segments.length);
                     break;
                 }
-                case: algorithms.PREDICT {
-                    iterator = MatrixIterator(1, segments.length);
+                case algo.PREDICT: {
+                    iterator = new MatrixIterator(1, segments.length);
                     break;
                 }
-                case: algorithms.PARSE {
-                    iterator = MatrixIterator(algorithm.get_depth(), segments.length);
+                case algo.PARSE: {
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
                     break;
                 }
-                case: algorithms.DERIVE {
-                    iterator = MatrixIterator(algorithm.get_depth(), segments.length);
+                case algo.DERIVE: {
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
                     break;
                 }
                 default: {
@@ -88,7 +142,10 @@ export namespace trainer {
             this.messenger = messenger;
 
             // this.struct = new StructFactory.get_struct(user_input_handler.mode);
-            this.history_user_input = new HistoryUserInput(user_input_handler.mode);
+            this.history_user_input = new HistoryUserInput(
+                this.algorithm,
+                this.segments
+            );
 
             if (this.algorithm.b_targetable()) {
                 this.create_targets()
@@ -105,15 +162,16 @@ export namespace trainer {
         }
 
         private create_parse_trees() {
-            let list_parse_tree: ParseTree[];
+            let list_parse_tree: ParseTree[] = [];
+
             switch (this.algorithm.get_name()) {
                 case: algorithms.PARSE {
-                    // this.list_parse_tree = MatrixIterator(algorithm.get_depth(), segments.length);
                     for (let segment of this.segments) {
                         for (let note of segment.get_notes()) {
                             list_parse_tree.push(
                                 new ParseTree(
-                                    note
+                                    note,
+                                    this.algorithm.get_depth()
                                 )
                             )
                         }
@@ -121,11 +179,17 @@ export namespace trainer {
                     break;
                 }
                 case: algorithms.DERIVE {
-                    this.list_parse_tree = MatrixIterator(algorithm.get_depth(), segments.length);
+                    let note = this.segments[0].get_note();
+                    list_parse_tree.push(
+                        new ParseTree(
+                            note,
+                            this.algorithm.get_depth()
+                        )
+                    );
                     break;
                 }
                 default: {
-                    throw ['algorithm of name', algorithm.get_name(), 'not supported'].join(' ')
+                    throw ['algorithm of name', this.algorithm.get_name(), 'not supported'].join(' ')
                 }
             }
             return list_parse_tree;
