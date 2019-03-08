@@ -30,5 +30,11 @@ var utils;
         return PathLive;
     }());
     utils.PathLive = PathLive;
+    utils.remainder = function (top, bottom) {
+        return ((top % bottom) + bottom) % bottom;
+    };
+    utils.division_int = function (top, bottom) {
+        return Math.floor(top / bottom);
+    };
 })(utils = exports.utils || (exports.utils = {}));
 //# sourceMappingURL=utils.js.map

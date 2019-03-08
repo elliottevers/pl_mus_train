@@ -1,4 +1,17 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var note;
 (function (note) {
@@ -91,6 +104,19 @@ var note;
         return Note;
     }());
     note.Note = Note;
+    var NoteRenderable = /** @class */ (function (_super) {
+        __extends(NoteRenderable, _super);
+        function NoteRenderable(pitch, beat_start, beats_duration, velocity, muted, coordinates_matrix) {
+            var _this = _super.call(this, pitch, beat_start, beats_duration, velocity, muted) || this;
+            _this.coordinates_matrix = coordinates_matrix;
+            return _this;
+        }
+        NoteRenderable.prototype.get_coordinates_matrix = function () {
+            return this.coordinates_matrix;
+        };
+        return NoteRenderable;
+    }(Note));
+    note.NoteRenderable = NoteRenderable;
     var NoteIterator = /** @class */ (function () {
         function NoteIterator(notes, direction_forward) {
             this.notes = notes;

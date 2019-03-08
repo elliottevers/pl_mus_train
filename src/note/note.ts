@@ -126,6 +126,34 @@ export namespace note {
         }
     }
 
+    export class NoteRenderable extends Note {
+
+        coordinates_matrix: number[];
+
+        constructor(
+            pitch: number,
+            beat_start: number,
+            beats_duration: number,
+            velocity: number,
+            muted: number,
+            coordinates_matrix: number[]
+        ) {
+            super(
+                pitch,
+                beat_start,
+                beats_duration,
+                velocity,
+                muted
+            );
+
+            this.coordinates_matrix = coordinates_matrix;
+        }
+
+        public get_coordinates_matrix(): number[] {
+            return this.coordinates_matrix;
+        }
+    }
+
     export class NoteIterator {
 
         private notes: TreeModel.Node<Note>[];

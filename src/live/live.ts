@@ -90,6 +90,34 @@ export namespace live {
         //     )
         // }
 
+        load_notes_within_loop_brackets(): void {
+            this.notes = this.get_notes(
+                this.get_loop_bracket_lower(),
+                0,
+                this.get_loop_bracket_upper(),
+                128
+            )
+        }
+
+        get_notes_within_loop_brackets(): TreeModel.Node<n.Note>[] {
+            // if (!this.notes) {
+            this.load_notes_within_loop_brackets();
+            // }
+            return this.notes;
+        }
+
+        get_pitch_max(): number {
+            let pitch_max = 0;
+
+            for (let node of this.get_notes_within_loop_brackets()) {
+                if (node.model.note.pitch > pitch_max) {
+                    pitch_max = node.model.note.pitch;
+                }
+            }
+
+            return pitch_max;
+        }
+
         get_end_marker(): number {
             return this.beat_end
             // return this.notes[this.notes.length - 1].model.note.get_beat_end()

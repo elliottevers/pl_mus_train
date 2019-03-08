@@ -192,13 +192,11 @@ export namespace trainer {
 
                 this.advance();
 
-                // this.set_loop();
-
                 // TODO: make sure for detection/prediction we're making "input_user" exactly the same as the "target note", if we're restoring sessions from user input
                 // this.window.add(input_user);
                 this.struct.add(input_user);
                 this.window.render(
-                    this.struct
+                    // this.struct
                 )
             }
         }
