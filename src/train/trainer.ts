@@ -4,6 +4,8 @@ import {parse_matrix, pwindow} from "../scripts/parse_tree";
 import {algorithm, train} from "./algorithm";
 import {history} from "../history/history";
 import {target} from "../target/target";
+import {segment} from "../segment/segment";
+import {parse} from "../parse/parse";
 
 export namespace trainer {
 
@@ -11,6 +13,38 @@ export namespace trainer {
     import HistoryUserInput = history.HistoryUserInput;
     import TargetType = target.TargetType;
     import TargetIterator = target.TargetIterator;
+    import MatrixIterator = history.MatrixIterator;
+    import Segment = segment.Segment;
+    import ParseTree = parse.ParseTree;
+
+    class IteratorTrainFactory {
+        public static get_iterator_train(algorithm: Algorithm, segments: Segment[]) {
+            let iterator: MatrixIterator;
+
+            switch (algorithm.get_name()) {
+                case: algorithms.DETECT {
+                    iterator = MatrixIterator(1, segments.length);
+                    break;
+                }
+                case: algorithms.PREDICT {
+                    iterator = MatrixIterator(1, segments.length);
+                    break;
+                }
+                case: algorithms.PARSE {
+                    iterator = MatrixIterator(algorithm.get_depth(), segments.length);
+                    break;
+                }
+                case: algorithms.DERIVE {
+                    iterator = MatrixIterator(algorithm.get_depth(), segments.length);
+                    break;
+                }
+                default: {
+                    throw ['algorithm of name', algorithm.get_name(), 'not supported'].join(' ')
+                }
+            }
+            return iterator
+        }
+    }
 
     export class Trainer {
 
@@ -38,6 +72,8 @@ export namespace trainer {
         private target_iterator;
         private subtarget_iterator;
 
+        private iterator_matrix_train: MatrixIterator;
+
         // window is either tree or list
         // mode is either harmonic or melodic
         // algorithm is either detect, predict, parse, or derive
@@ -51,12 +87,48 @@ export namespace trainer {
             this.segments = segments;
             this.messenger = messenger;
 
-            this.struct = new StructFactory.get_struct(user_input_handler.mode);
+            // this.struct = new StructFactory.get_struct(user_input_handler.mode);
             this.history_user_input = new HistoryUserInput(user_input_handler.mode);
 
             if (this.algorithm.b_targetable()) {
                 this.create_targets()
             }
+
+            if (this.algorithm.b_growable()) {
+                this.create_parse_trees()
+            }
+
+            this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
+                this.algorithm,
+                this.segments
+            );
+        }
+
+        private create_parse_trees() {
+            let list_parse_tree: ParseTree[];
+            switch (this.algorithm.get_name()) {
+                case: algorithms.PARSE {
+                    // this.list_parse_tree = MatrixIterator(algorithm.get_depth(), segments.length);
+                    for (let segment of this.segments) {
+                        for (let note of segment.get_notes()) {
+                            list_parse_tree.push(
+                                new ParseTree(
+                                    note
+                                )
+                            )
+                        }
+                    }
+                    break;
+                }
+                case: algorithms.DERIVE {
+                    this.list_parse_tree = MatrixIterator(algorithm.get_depth(), segments.length);
+                    break;
+                }
+                default: {
+                    throw ['algorithm of name', algorithm.get_name(), 'not supported'].join(' ')
+                }
+            }
+            return list_parse_tree;
         }
 
         // now we can assume we have a list instead of a matrix
@@ -139,7 +211,7 @@ export namespace trainer {
             // this.segment_current = this.segment_iterator.next();
             // this.target_current = this.target_iterator.next();
             // this.subtarget_current = this.subtarget_current.next();
-            [i_height, i_width] = this.iterator.next();
+            [i_height, i_width] = this.iterator_matrix_train.next();
 
             if (this.algorithm.b_targeted()) {
                 // set the targets and shit

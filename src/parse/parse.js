@@ -7,13 +7,13 @@ var parse;
 (function (parse) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var ParseTree = /** @class */ (function () {
-        function ParseTree() {
-        }
         // matrix_clip: LiveClipVirtual[][];
         //
         // constructor() {
         //     this.matrix_clip
         // }
+        function ParseTree(note) {
+        }
         ParseTree.get_diff_index_start = function (notes_new, notes_old) {
             var same_start, same_duration, index_start_diff;
             for (var i = 0; i < notes_old.length; i++) {

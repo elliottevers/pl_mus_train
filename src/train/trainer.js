@@ -1,9 +1,51 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var algorithm_1 = require("./algorithm");
 var history_1 = require("../history/history");
+var parse_1 = require("../parse/parse");
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
+    var MatrixIterator = history_1.history.MatrixIterator;
+    var ParseTree = parse_1.parse.ParseTree;
+    var IteratorTrainFactory = /** @class */ (function () {
+        function IteratorTrainFactory() {
+        }
+        IteratorTrainFactory.get_iterator_train = function (algorithm, segments) {
+            var iterator;
+            switch (algorithm.get_name()) {
+                case :
+                    algorithms.DETECT;
+                    {
+                        iterator = MatrixIterator(1, segments.length);
+                        break;
+                    }
+                case :
+                    algorithms.PREDICT;
+                    {
+                        iterator = MatrixIterator(1, segments.length);
+                        break;
+                    }
+                case :
+                    algorithms.PARSE;
+                    {
+                        iterator = MatrixIterator(algorithm.get_depth(), segments.length);
+                        break;
+                    }
+                case :
+                    algorithms.DERIVE;
+                    {
+                        iterator = MatrixIterator(algorithm.get_depth(), segments.length);
+                        break;
+                    }
+                default: {
+                    throw ['algorithm of name', algorithm.get_name(), 'not supported'].join(' ');
+                }
+            }
+            return iterator;
+        };
+        return IteratorTrainFactory;
+    }());
     var Trainer = /** @class */ (function () {
         // window is either tree or list
         // mode is either harmonic or melodic
@@ -17,21 +59,53 @@ var trainer;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
-            this.struct = new StructFactory.get_struct(user_input_handler.mode);
+            // this.struct = new StructFactory.get_struct(user_input_handler.mode);
             this.history_user_input = new HistoryUserInput(user_input_handler.mode);
             if (this.algorithm.b_targetable()) {
                 this.create_targets();
             }
+            if (this.algorithm.b_growable()) {
+                this.create_parse_trees();
+            }
+            this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
         }
+        Trainer.prototype.create_parse_trees = function () {
+            var list_parse_tree;
+            switch (this.algorithm.get_name()) {
+                case :
+                    algorithms.PARSE;
+                    {
+                        // this.list_parse_tree = MatrixIterator(algorithm.get_depth(), segments.length);
+                        for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
+                            var segment_1 = _a[_i];
+                            for (var _b = 0, _c = segment_1.get_notes(); _b < _c.length; _b++) {
+                                var note = _c[_b];
+                                list_parse_tree.push(new ParseTree(note));
+                            }
+                        }
+                        break;
+                    }
+                case :
+                    algorithms.DERIVE;
+                    {
+                        this.list_parse_tree = MatrixIterator(algorithm_1.algorithm.get_depth(), segments.length);
+                        break;
+                    }
+                default: {
+                    throw ['algorithm of name', algorithm_1.algorithm.get_name(), 'not supported'].join(' ');
+                }
+            }
+            return list_parse_tree;
+        };
         // now we can assume we have a list instead of a matrix
         Trainer.prototype.create_targets = function () {
             this.clip_target.load_notes_within_markers();
             // let segment_targetable: SegmentTargetable;
             var target_iterators = [];
             for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
-                var segment = _a[_i];
+                var segment_2 = _a[_i];
                 // need SegmentTargetable -> TargetIterator
-                target_iterators.push(this.algorithm.determine_targets(this.clip_target.get_notes(segment.beat_start, 0, segment.beat_end, 128)));
+                target_iterators.push(this.algorithm.determine_targets(this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end, 128)));
             }
             this.target_iterators = target_iterators;
         };
@@ -76,7 +150,7 @@ var trainer;
             // this.segment_current = this.segment_iterator.next();
             // this.target_current = this.target_iterator.next();
             // this.subtarget_current = this.subtarget_current.next();
-            _a = this.iterator.next(), i_height = _a[0], i_width = _a[1];
+            _a = this.iterator_matrix_train.next(), i_height = _a[0], i_width = _a[1];
             if (this.algorithm.b_targeted()) {
                 // set the targets and shit
             }

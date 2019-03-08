@@ -38,6 +38,10 @@ export namespace algorithm {
             this.user_input_handler = user_input_handler
         }
 
+        public get_name(): string {
+            return algorithms.DETECT
+        }
+
         determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TargetIterator {
             if (this.user_input_handler.mode_texture === modes_texture.POLYPHONY) {
 
@@ -76,6 +80,10 @@ export namespace algorithm {
     }
 
     export class Predict extends Targeted implements Temporal, Targetable {
+
+        public get_name(): string {
+            return algorithms.PREDICT
+        }
 
         // TODO: put all calls to Clip in whatever class is a client to algorithms
         // NB: there can be multiple targets per segment
@@ -135,6 +143,10 @@ export namespace algorithm {
 
         depth: number;
 
+        public get_name(): string {
+            return algorithms.PARSE
+        }
+
         set_depth(depth: number) {
             this.depth = depth;
         }
@@ -162,6 +174,10 @@ export namespace algorithm {
     export class Derive implements Temporal {
 
         depth: number;
+
+        public get_name(): string {
+            return algorithms.DERIVE
+        }
 
         set_depth(depth: number) {
             this.depth = depth;

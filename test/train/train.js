@@ -73,7 +73,8 @@ var note_target_4_subtarget_2 = tree.parse({
 var mode_texture = 'harmonic';
 var mode_control = 'instrumental';
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
-var window = new ListWindow();
+var messenger = new Messenger('node', 0);
+var window = new ListWindow(384, 384, messenger);
 var algorithm = new Detect(user_input_handler);
 // stubs
 var song = {
@@ -89,7 +90,7 @@ var notes_segments = [
     segment_note_1,
     segment_note_2
 ];
-var notes_targets = [
+var notes_target_clip = [
     note_target_1_subtarget_1,
     note_target_1_subtarget_2,
     note_target_2_subtarget_1,
@@ -104,9 +105,8 @@ for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length
     var note = notes_segments_1[_i];
     segments.push(new Segment(note));
 }
-var clip_dao_virtual = new LiveClipVirtual(notes_targets);
+var clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
 var clip_target_virtual = new Clip(clip_dao_virtual);
-var messenger = new Messenger('node', 0);
 var trainer = new Trainer(window, user_input_handler, algorithm, clip_user_input, clip_target_virtual, song, segments, messenger);
 // test case - 2 segments, 2 notes a piece
 trainer.init();

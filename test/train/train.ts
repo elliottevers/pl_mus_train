@@ -204,8 +204,12 @@ let user_input_handler = new UserInputHandler(
     mode_control
 );
 
-let window = new ListWindow(
+let messenger = new Messenger('node', 0);
 
+let window = new ListWindow(
+    384,
+    384,
+    messenger
 );
 
 let algorithm = new Detect(
@@ -229,7 +233,7 @@ let notes_segments = [
     segment_note_2
 ];
 
-let notes_targets = [
+let notes_target_clip = [
     note_target_1_subtarget_1,
     note_target_1_subtarget_2,
     note_target_2_subtarget_1,
@@ -250,11 +254,9 @@ for (let note of notes_segments) {
     )
 }
 
-let clip_dao_virtual = new LiveClipVirtual(notes_targets);
+let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
 
 let clip_target_virtual = new Clip(clip_dao_virtual);
-
-let messenger = new Messenger('node', 0);
 
 let trainer = new Trainer(
     window,

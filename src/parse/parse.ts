@@ -30,6 +30,9 @@ export namespace parse {
         //     this.matrix_clip
         // }
 
+        constructor(note: TreeModel.Node<n.Note>) {
+
+        }
 
         private static get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
             let same_start, same_duration, index_start_diff;

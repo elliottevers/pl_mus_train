@@ -33,6 +33,9 @@ var algorithm;
             _this.user_input_handler = user_input_handler;
             return _this;
         }
+        Detect.prototype.get_name = function () {
+            return algorithms.DETECT;
+        };
         Detect.prototype.determine_targets = function (notes_segment_next) {
             if (this.user_input_handler.mode_texture === constants_1.modes_texture.POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
@@ -63,6 +66,9 @@ var algorithm;
         function Predict() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        Predict.prototype.get_name = function () {
+            return algorithms.PREDICT;
+        };
         // TODO: put all calls to Clip in whatever class is a client to algorithms
         // NB: there can be multiple targets per segment
         // TODO: replace the notes in clip_target with these
@@ -107,6 +113,9 @@ var algorithm;
     var Parse = /** @class */ (function () {
         function Parse() {
         }
+        Parse.prototype.get_name = function () {
+            return algorithms.PARSE;
+        };
         Parse.prototype.set_depth = function (depth) {
             this.depth = depth;
         };
@@ -128,6 +137,9 @@ var algorithm;
     var Derive = /** @class */ (function () {
         function Derive() {
         }
+        Derive.prototype.get_name = function () {
+            return algorithms.DERIVE;
+        };
         Derive.prototype.set_depth = function (depth) {
             this.depth = depth;
         };
