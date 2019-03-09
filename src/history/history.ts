@@ -73,12 +73,16 @@ export namespace history {
             this.matrix_data = matrix_data;
         }
 
-        set_sequence_target(sequence_target: TypeSequenceTarget, coord_matrix: number[]) {
-            this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
-        }
+        // set_sequence_target(sequence_target: TypeSequenceTarget, coord_matrix: number[]) {
+        //     this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
+        // }
+        //
+        // get_sequence_target(i_height, i_width): TypeSequenceTarget {
+        //     return this.matrix_data[i_height][i_width]
+        // }
 
-        get_sequence_target(i_height, i_width): TypeSequenceTarget {
-            return this.matrix_data[i_height][i_width]
+        add_subtarget() {
+
         }
 
         save(filename) {

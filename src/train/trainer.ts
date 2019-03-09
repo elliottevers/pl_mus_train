@@ -1,6 +1,6 @@
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
-import {parse_matrix, pwindow} from "../scripts/parse_tree";
+// import {parse_matrix, pwindow} from "../scripts/parse_tree";
 import {algorithm, algorithm as algo} from "./algorithm";
 import {history} from "../history/history";
 import {target} from "../target/target";
@@ -11,6 +11,7 @@ import {window} from "../render/window";
 import {message} from "../message/messenger";
 import {song} from "../song/song";
 import {clip} from "../clip/clip";
+const _ = require('underscore');
 
 export namespace trainer {
 
@@ -37,6 +38,7 @@ export namespace trainer {
     import Song = song.Song;
     import Clip = clip.Clip;
     import FactoryHistoryUserInput = history.FactoryHistoryUserInput;
+    import SubtargetIterator = target.SubtargetIterator;
 
     export class MatrixIterator {
         private num_rows: number;
@@ -129,7 +131,7 @@ export namespace trainer {
         private messenger: Messenger;
 
         private list_parse_tree: ParseTree[];
-        private history_user_input: HistoryUserInput;
+        private history_user_input;
 
         private counter_user_input: number;
         private limit_user_input: number;
@@ -143,6 +145,8 @@ export namespace trainer {
         private iterator_target_current: TargetIterator;
 
         private iterator_matrix_train: MatrixIterator;
+
+        private iterator_subtarget_current: SubtargetIterator;
 
         // window is either tree or list
         // mode is either harmonic or melodic
@@ -168,12 +172,10 @@ export namespace trainer {
                 this.segments
             );
 
-            if (this.algorithm.b_targetable()) {
+            if (this.algorithm.b_targeted()) {
                 this.create_targets()
-            }
-
-            if (this.algorithm.b_growable()) {
-                this.create_parse_trees()
+            } else {
+                this.create_parse_trees();
             }
 
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
@@ -255,7 +257,7 @@ export namespace trainer {
         }
 
         public reset_user_input() {
-            if ([DETECT, PREDICT].includes(this.algorithm.get_name())) {
+            if (_.contains([DETECT, PREDICT], this.algorithm.get_name())) {
                 let coords = this.iterator_matrix_train.get_coord_current();
                 let notes_last = this.matrix_target_iterator[coords[0] - 1][coords[1]].get_notes();
                 this.clip_user_input.set_notes(
@@ -288,7 +290,7 @@ export namespace trainer {
 
         // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         public init() {
-            this.advance();
+            this.advance_segment();
             this.algorithm.post_init()
         }
 
@@ -303,7 +305,7 @@ export namespace trainer {
             // [i_height, i_width] = this.iterator_matrix_train.next();
 
 
-            let obj_next_subtarget = this.itertor_subtarget_current.next();
+            let obj_next_subtarget = this.iterator_subtarget_current.next();
 
             let obj_next_target;
 
@@ -399,11 +401,13 @@ export namespace trainer {
             // detect/predict logic
             if (input_user.note.pitch === this.subtarget_current.note.pitch) {
 
-                let target_iterator_current = this.matrix_target_iterator[this.iterator_matrix_train.get_row_current()][this.iterator_matrix_train.get_column_current()];
+                let coords = this.iterator_matrix_train.get_coord_current();
+
+                let target_iterator_current = this.matrix_target_iterator[coords[0]][coords[1]];
 
                 // NB: we actually add the note that the user was trying to guess, not the note played
                 this.history_user_input.add_subtarget(
-                    this.iterator_target_current.current().subtarget_iterator.current()
+                    this.iterator_target_current.current().iterator_subtarget.current()
                 );
 
                 this.advance_subtarget();

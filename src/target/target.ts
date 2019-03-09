@@ -3,6 +3,7 @@ import {note as n} from "../note/note"
 import {phrase as p} from "../phrase/phrase"
 import {trainer} from "../train/trainer";
 import {history} from "../history/history";
+// import {Segment} from "../segment/segment";
 // import {serialize_subtarget} from "../serialize/serialize";
 
 
@@ -24,8 +25,49 @@ export namespace target {
 
         public subtargets: Subtarget[];
 
+        i: number;
+
         constructor(subtargets: Subtarget[]) {
             this.subtargets = subtargets;
+            this.i = -1;
+        }
+
+        public next() {
+            let value_increment = 1;
+
+            this.i += value_increment;
+
+            if (this.i < 0) {
+                throw 'subtarget iterator < 0'
+            }
+
+            if (this.i < this.subtargets.length) {
+                return {
+                    value: this.subtargets[this.i],
+                    done: false
+                }
+            } else {
+                return {
+                    value: null,
+                    done: true
+                }
+            }
+        }
+
+        public current() {
+            if (this.i > -1) {
+                return this.subtargets[this.i];
+            } else {
+                return null;
+            }
+        }
+
+        public reset() {
+            this.i = -1;
+        }
+
+        public get_index_current() {
+            return this.i;
         }
     }
 
@@ -41,9 +83,12 @@ export namespace target {
         // need SegmentTargetable -> TargetIterator
 
         targets: Target[];
+        i: number;
 
         constructor(targets: Target[]) {
             this.targets = targets;
+
+            this.i = -1;
         }
 
         get_notes(): TreeModel.Node<n.Note>[] {
@@ -57,10 +102,46 @@ export namespace target {
             return notes;
         }
 
-        // public static from_segment_targetable(segment_targetable: SegmentTargetable): TargetIterator {
-        //     return
-        // }
+        public next() {
+            let value_increment = 1;
+
+            this.i += value_increment;
+
+            if (this.i < 0) {
+                throw 'target iterator < 0'
+            }
+
+            if (this.i < this.targets.length) {
+                return {
+                    value: this.targets[this.i],
+                    done: false
+                }
+            } else {
+                return {
+                    value: null,
+                    done: true
+                }
+            }
+        }
+
+        public current() {
+            if (this.i > -1) {
+                return this.targets[this.i];
+            } else {
+                return null;
+            }
+        }
+
+        public reset() {
+            this.i = -1;
+        }
+
+        public get_index_current() {
+            return this.i;
+        }
     }
+
+
 
     // export class Target {
 
@@ -191,7 +272,7 @@ export namespace target {
     //         // TODO: use direction in logic
     //         var direction_forward = this.phrase_iterator.direction_forward;
     //         var reverse;
-    //         var phrase_interval_beats = this.current.get_phrase_interval_beats();
+    //         var phrase_interval_beats = this.current.get_prhrase_interval_beats();
     //
     //         if (this.i === 0) {
     //             this.current.set_phrase_interval_beats(phrase_interval_beats);

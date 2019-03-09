@@ -99,6 +99,11 @@ export namespace parse {
         public get_root(): TreeModel.Node<n.NoteRenderable> {
             return
         }
+
+        public static add(input_user, list_parse_tree,iterator_matrix_train): ParseTree[] {
+            return
+        }
+
         //
         // private add_first_layer(notes: TreeModel.Node<n.Note>[], index_new_layer: number): void {
         //     // var note_parent_best, b_successful;

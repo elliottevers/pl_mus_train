@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// import {Segment} from "../segment/segment";
 // import {serialize_subtarget} from "../serialize/serialize";
 var target;
 (function (target_1) {
@@ -13,7 +14,41 @@ var target;
     var SubtargetIterator = /** @class */ (function () {
         function SubtargetIterator(subtargets) {
             this.subtargets = subtargets;
+            this.i = -1;
         }
+        SubtargetIterator.prototype.next = function () {
+            var value_increment = 1;
+            this.i += value_increment;
+            if (this.i < 0) {
+                throw 'subtarget iterator < 0';
+            }
+            if (this.i < this.subtargets.length) {
+                return {
+                    value: this.subtargets[this.i],
+                    done: false
+                };
+            }
+            else {
+                return {
+                    value: null,
+                    done: true
+                };
+            }
+        };
+        SubtargetIterator.prototype.current = function () {
+            if (this.i > -1) {
+                return this.subtargets[this.i];
+            }
+            else {
+                return null;
+            }
+        };
+        SubtargetIterator.prototype.reset = function () {
+            this.i = -1;
+        };
+        SubtargetIterator.prototype.get_index_current = function () {
+            return this.i;
+        };
         return SubtargetIterator;
     }());
     target_1.SubtargetIterator = SubtargetIterator;
@@ -27,6 +62,7 @@ var target;
     var TargetIterator = /** @class */ (function () {
         function TargetIterator(targets) {
             this.targets = targets;
+            this.i = -1;
         }
         TargetIterator.prototype.get_notes = function () {
             var notes = [];
@@ -39,6 +75,39 @@ var target;
                 }
             }
             return notes;
+        };
+        TargetIterator.prototype.next = function () {
+            var value_increment = 1;
+            this.i += value_increment;
+            if (this.i < 0) {
+                throw 'target iterator < 0';
+            }
+            if (this.i < this.targets.length) {
+                return {
+                    value: this.targets[this.i],
+                    done: false
+                };
+            }
+            else {
+                return {
+                    value: null,
+                    done: true
+                };
+            }
+        };
+        TargetIterator.prototype.current = function () {
+            if (this.i > -1) {
+                return this.targets[this.i];
+            }
+            else {
+                return null;
+            }
+        };
+        TargetIterator.prototype.reset = function () {
+            this.i = -1;
+        };
+        TargetIterator.prototype.get_index_current = function () {
+            return this.i;
         };
         return TargetIterator;
     }());
@@ -167,7 +236,7 @@ var target;
     //         // TODO: use direction in logic
     //         var direction_forward = this.phrase_iterator.direction_forward;
     //         var reverse;
-    //         var phrase_interval_beats = this.current.get_phrase_interval_beats();
+    //         var phrase_interval_beats = this.current.get_prhrase_interval_beats();
     //
     //         if (this.i === 0) {
     //             this.current.set_phrase_interval_beats(phrase_interval_beats);

@@ -53,11 +53,14 @@ var history;
             }
             this.matrix_data = matrix_data;
         }
-        TargetHistory.prototype.set_sequence_target = function (sequence_target, coord_matrix) {
-            this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
-        };
-        TargetHistory.prototype.get_sequence_target = function (i_height, i_width) {
-            return this.matrix_data[i_height][i_width];
+        // set_sequence_target(sequence_target: TypeSequenceTarget, coord_matrix: number[]) {
+        //     this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
+        // }
+        //
+        // get_sequence_target(i_height, i_width): TypeSequenceTarget {
+        //     return this.matrix_data[i_height][i_width]
+        // }
+        TargetHistory.prototype.add_subtarget = function () {
         };
         TargetHistory.prototype.save = function (filename) {
             var data_serializable = this.matrix_data;

@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// import {parse_matrix, pwindow} from "../scripts/parse_tree";
 var algorithm_1 = require("./algorithm");
 var history_1 = require("../history/history");
 var parse_1 = require("../parse/parse");
 var utils_1 = require("../utils/utils");
+var _ = require('underscore');
 var trainer;
 (function (trainer) {
     var ParseTree = parse_1.parse.ParseTree;
@@ -97,10 +99,10 @@ var trainer;
             //     this.segments
             // );
             this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
-            if (this.algorithm.b_targetable()) {
+            if (this.algorithm.b_targeted()) {
                 this.create_targets();
             }
-            if (this.algorithm.b_growable()) {
+            else {
                 this.create_parse_trees();
             }
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
@@ -148,7 +150,7 @@ var trainer;
             this.window.render();
         };
         Trainer.prototype.reset_user_input = function () {
-            if ([DETECT, PREDICT].includes(this.algorithm.get_name())) {
+            if (_.contains([DETECT, PREDICT], this.algorithm.get_name())) {
                 var coords = this.iterator_matrix_train.get_coord_current();
                 var notes_last = this.matrix_target_iterator[coords[0] - 1][coords[1]].get_notes();
                 this.clip_user_input.set_notes(notes_last);
@@ -172,7 +174,7 @@ var trainer;
         };
         // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         Trainer.prototype.init = function () {
-            this.advance();
+            this.advance_segment();
             this.algorithm.post_init();
         };
         Trainer.prototype.advance_segment = function () {
@@ -182,7 +184,7 @@ var trainer;
             // this.target_current = this.target_iterator.next();
             // this.subtarget_current = this.subtarget_current.next();
             // [i_height, i_width] = this.iterator_matrix_train.next();
-            var obj_next_subtarget = this.itertor_subtarget_current.next();
+            var obj_next_subtarget = this.iterator_subtarget_current.next();
             var obj_next_target;
             if (obj_next_subtarget.done) {
                 obj_next_target = this.iterator_target_current.next();
@@ -243,9 +245,10 @@ var trainer;
             }
             // detect/predict logic
             if (input_user.note.pitch === this.subtarget_current.note.pitch) {
-                var target_iterator_current = this.matrix_target_iterator[this.iterator_matrix_train.get_row_current()][this.iterator_matrix_train.get_column_current()];
+                var coords = this.iterator_matrix_train.get_coord_current();
+                var target_iterator_current = this.matrix_target_iterator[coords[0]][coords[1]];
                 // NB: we actually add the note that the user was trying to guess, not the note played
-                this.history_user_input.add_subtarget(this.iterator_target_current.current().subtarget_iterator.current());
+                this.history_user_input.add_subtarget(this.iterator_target_current.current().iterator_subtarget.current());
                 this.advance_subtarget();
                 this.window.render_regions(this.iterator_matrix_train, this.matrix_target_iterator);
             }

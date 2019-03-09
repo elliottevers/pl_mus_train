@@ -68,6 +68,9 @@ var parse;
         ParseTree.prototype.get_root = function () {
             return;
         };
+        ParseTree.add = function (input_user, list_parse_tree, iterator_matrix_train) {
+            return;
+        };
         return ParseTree;
     }());
     parse.ParseTree = ParseTree;
