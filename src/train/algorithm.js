@@ -31,6 +31,14 @@ var algorithm;
         };
         return Targeted;
     }());
+    var Parsed = /** @class */ (function () {
+        function Parsed() {
+        }
+        Parsed.prototype.b_targeted = function () {
+            return false;
+        };
+        return Parsed;
+    }());
     var Detect = /** @class */ (function (_super) {
         __extends(Detect, _super);
         function Detect(user_input_handler) {
@@ -121,8 +129,10 @@ var algorithm;
         return Predict;
     }(Targeted));
     algorithm.Predict = Predict;
-    var Parse = /** @class */ (function () {
+    var Parse = /** @class */ (function (_super) {
+        __extends(Parse, _super);
         function Parse() {
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         Parse.prototype.get_name = function () {
             return algorithm.PARSE;
@@ -146,10 +156,12 @@ var algorithm;
             clip_user_input.stop();
         };
         return Parse;
-    }());
+    }(Parsed));
     algorithm.Parse = Parse;
-    var Derive = /** @class */ (function () {
+    var Derive = /** @class */ (function (_super) {
+        __extends(Derive, _super);
         function Derive() {
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         Derive.prototype.get_name = function () {
             return algorithm.DERIVE;
@@ -214,7 +226,7 @@ var algorithm;
             // this.update_leaves(leaves_within_interval);
         };
         return Derive;
-    }());
+    }(Parsed));
     algorithm.Derive = Derive;
 })(algorithm = exports.algorithm || (exports.algorithm = {}));
 //# sourceMappingURL=algorithm.js.map

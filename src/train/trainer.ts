@@ -120,7 +120,7 @@ export namespace trainer {
     export class Trainer {
 
         private window: TreeRenderable;
-        private algorithm: Algorithm;
+        private algorithm; // TODO: type
         private clip_user_input: Clip;
         private clip_target: Clip;
         private song: Song;
@@ -393,7 +393,7 @@ export namespace trainer {
 
                 // NB: we actually add the note that the user was trying to guess, not the note played
                 this.history_user_input.add_subtarget(
-                    target_iterator_current.current().subtarget_iterator.current()
+                    this.iterator_target_current.current().subtarget_iterator.current()
                 );
 
                 this.advance_subtarget();

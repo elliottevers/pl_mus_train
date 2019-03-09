@@ -241,7 +241,7 @@ var trainer;
             if (input_user.note.pitch === this.subtarget_current.note.pitch) {
                 var target_iterator_current = this.matrix_target_iterator[this.iterator_matrix_train.get_row_current()][this.iterator_matrix_train.get_column_current()];
                 // NB: we actually add the note that the user was trying to guess, not the note played
-                this.history_user_input.add_subtarget(target_iterator_current.current().subtarget_iterator.current());
+                this.history_user_input.add_subtarget(this.iterator_target_current.current().subtarget_iterator.current());
                 this.advance_subtarget();
                 this.window.render_regions(this.iterator_matrix_train, this.matrix_target_iterator);
             }

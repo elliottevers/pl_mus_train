@@ -33,11 +33,18 @@ export namespace algorithm {
     export interface Algorithm {
         get_name(): string
         get_depth(): number
+        b_targeted(): boolean
     }
 
     abstract class Targeted {
         public b_targeted(): boolean {
             return true;
+        }
+    }
+
+    abstract class Parsed {
+        public b_targeted(): boolean {
+            return false;
         }
     }
 
@@ -157,7 +164,7 @@ export namespace algorithm {
         }
     }
 
-    export class Parse implements Algorithm, Temporal {
+    export class Parse extends Parsed implements Algorithm, Temporal {
 
         depth: number;
 
@@ -193,7 +200,7 @@ export namespace algorithm {
 
     }
 
-    export class Derive implements Temporal {
+    export class Derive extends Parsed implements Temporal {
 
         depth: number;
 
