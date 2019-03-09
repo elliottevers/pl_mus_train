@@ -1,45 +1,29 @@
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {target} from "../target/target";
+import {history} from "../history/history";
 const _ = require('underscore');
 
 export namespace harmony {
     import Target = target.Target;
+    import TypeTarget = history.TypeTarget;
 
     export class Harmony {
         public static group(notes: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[][] {
-        //     groups_notes = []
-        //     unique_onsets_beats = []
-        //
-        //     def get_beat_start(note):
-        //     return note.beat_start
-        //
-        //     for beat_start, group_note in groupby(notes_live, get_beat_start):
-        //     groups_notes.append(list(group_note))
-        //     unique_onsets_beats.append(beat_start)
-        //
-        //     chords = []
-        //
-        //     for group in groups_notes:
-        //
-        //     chord = music21.chord.Chord([
-        //         music21.note.Note(
-        //             pitch=music21.pitch.Pitch(
-        //                 midi=note_live.pitch
-        //             )
-        //         ).name for
-        //         note_live
-        //         in group
-        // ])
-        //
-        // # TODO: this makes the assumption that all notes in the group have the same offsets and duration
-        //
-        //     chord.offset = group[-1].beat_start
-        //     chord.duration = music21.duration.Duration(group[-1].beats_duration)
-        //     chords.append(chord)
-        //
-        //     return chords
-            return
+            // TODO: should probably factor in beat end as well, but this works for now
+            let grouped = _.groupBy(notes, (note) => {
+                return note.model.note.beat_start
+            });
+
+            let notes_grouped: TreeModel.Node<n.Note>[][] = [];
+
+            for (let beat_start in grouped) {
+                notes_grouped.push(
+                    grouped[beat_start]
+                )
+            }
+
+            return notes_grouped
         }
 
         public static monophonify(notes: TreeModel.Node<n.Note>[]): TypeTarget {

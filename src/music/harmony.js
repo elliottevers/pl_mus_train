@@ -9,38 +9,15 @@ var harmony;
         function Harmony() {
         }
         Harmony.group = function (notes) {
-            //     groups_notes = []
-            //     unique_onsets_beats = []
-            //
-            //     def get_beat_start(note):
-            //     return note.beat_start
-            //
-            //     for beat_start, group_note in groupby(notes_live, get_beat_start):
-            //     groups_notes.append(list(group_note))
-            //     unique_onsets_beats.append(beat_start)
-            //
-            //     chords = []
-            //
-            //     for group in groups_notes:
-            //
-            //     chord = music21.chord.Chord([
-            //         music21.note.Note(
-            //             pitch=music21.pitch.Pitch(
-            //                 midi=note_live.pitch
-            //             )
-            //         ).name for
-            //         note_live
-            //         in group
-            // ])
-            //
-            // # TODO: this makes the assumption that all notes in the group have the same offsets and duration
-            //
-            //     chord.offset = group[-1].beat_start
-            //     chord.duration = music21.duration.Duration(group[-1].beats_duration)
-            //     chords.append(chord)
-            //
-            //     return chords
-            return;
+            // TODO: should probably factor in beat end as well, but this works for now
+            var grouped = _.groupBy(notes, function (note) {
+                return note.model.note.beat_start;
+            });
+            var notes_grouped = [];
+            for (var beat_start in grouped) {
+                notes_grouped.push(grouped[beat_start]);
+            }
+            return notes_grouped;
         };
         Harmony.monophonify = function (notes) {
             function compare(note_former, note_latter) {
