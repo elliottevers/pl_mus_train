@@ -27,22 +27,15 @@
     "sinon": "^7.2.3",
     "sinon-chai": "^3.3.0",
     "sinon-test": "^2.4.0",
-    "tree-model": "^1.0.7",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.4"
   },
   "dependencies": {
-    "@tonejs/midi": "^1.2.0",
-    "abstract-observable": "^0.2.5",
-    "canvas": "^2.3.1",
-    "circular-json": "^0.5.9",
-    "fabric": "^2.7.0",
     "filereader": "^0.10.3",
-    "json-midi-encoder": "^3.0.20",
     "lodash": "^4.17.11",
     "mathjs": "^5.6.0",
-    "midi-json-parser": "^6.0.19",
-    "tone": "^13.7.6",
+    "python-shell": "^1.0.7",
+    "tree-model": "^1.0.7",
     "underscore": "^1.9.1"
   }
 }

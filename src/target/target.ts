@@ -1,6 +1,7 @@
 import TreeModel = require("tree-model");
 import {note as n} from "../note/note"
 import {phrase as p} from "../phrase/phrase"
+import {trainer} from "../train/trainer";
 
 
 export namespace target {
@@ -8,6 +9,8 @@ export namespace target {
     // let min_width_clip = 0.25;
 
     // export type TargetType = TreeModel.Node<n.Note>[]
+
+    import MatrixIterator = trainer.MatrixIterator;
 
     export class Subtarget {
         note: TreeModel.Node<n.Note>;

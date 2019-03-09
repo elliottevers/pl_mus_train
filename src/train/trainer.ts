@@ -1,7 +1,7 @@
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {parse_matrix, pwindow} from "../scripts/parse_tree";
-import {algorithm as algo, train} from "./algorithm";
+import {algorithm, algorithm as algo, train} from "./algorithm";
 import {history} from "../history/history";
 import {target} from "../target/target";
 import {segment} from "../segment/segment";
@@ -20,6 +20,11 @@ export namespace trainer {
     import Algorithm = algorithm.Algorithm;
     import division_int = utils.division_int;
     import remainder = utils.remainder;
+    import PARSE = algorithm.PARSE;
+    import DERIVE = algorithm.DERIVE;
+    import DETECT = algorithm.DETECT;
+    import PREDICT = algorithm.PREDICT;
+    import Parse = algorithm.Parse;
 
     export class MatrixIterator {
         private num_rows: number;
@@ -58,15 +63,16 @@ export namespace trainer {
                 }
             }
 
-            let pos_row = division_int(this.i + 1, this.num_columns);
-            let pos_column = remainder(this.i + 1, this.num_columns);
-
-            value = [pos_row, pos_column];
-
             return {
-                value: value,
+                value: this.get_coord_current(),
                 done: false
             };
+        }
+
+        public get_coord_current(): number[] {
+            let pos_row = division_int(this.i + 1, this.num_columns);
+            let pos_column = remainder(this.i + 1, this.num_columns);
+            return [pos_row, pos_column]
         }
     }
 
@@ -110,8 +116,7 @@ export namespace trainer {
         private segments;
         private messenger;
 
-        // maybe,
-        private struct;
+        private list_parse_tree: ParseTree[];
         private history_user_input;
 
         private counter_user_input;
@@ -123,7 +128,7 @@ export namespace trainer {
         private subtarget_current;
 
         // private segment_iterator;
-        private target_iterator;
+        private matrix_target_iterator;
         private subtarget_iterator;
 
         private iterator_matrix_train: MatrixIterator;
@@ -165,7 +170,7 @@ export namespace trainer {
             let list_parse_tree: ParseTree[] = [];
 
             switch (this.algorithm.get_name()) {
-                case: algorithms.PARSE {
+                case PARSE: {
                     for (let segment of this.segments) {
                         for (let note of segment.get_notes()) {
                             list_parse_tree.push(
@@ -178,7 +183,7 @@ export namespace trainer {
                     }
                     break;
                 }
-                case: algorithms.DERIVE {
+                case DERIVE: {
                     let note = this.segments[0].get_note();
                     list_parse_tree.push(
                         new ParseTree(
@@ -202,11 +207,11 @@ export namespace trainer {
 
             // let segment_targetable: SegmentTargetable;
 
-            let target_iterators: TargetIterator[] = [];
+            let iterators_target: TargetIterator[] = [];
 
             for (let segment of this.segments) {
                 // need SegmentTargetable -> TargetIterator
-                target_iterators.push(
+                iterators_target.push(
                     this.algorithm.determine_targets(
                         this.clip_target.get_notes(
                             segment.beat_start,
@@ -218,7 +223,7 @@ export namespace trainer {
                 )
             }
 
-            this.target_iterators = target_iterators;
+            this.iterators_target = iterators_target;
         }
 
         public clear_window() {
@@ -230,7 +235,7 @@ export namespace trainer {
         }
 
         public reset_user_input() {
-            if ([algorithms.DETECT, algorithms.PREDICT].includes(this.algorithm.name)) {
+            if ([DETECT, PREDICT].includes(this.algorithm.get_name())) {
                 this.clip_user_input.set_notes(
                     this.struct.get_notes(
                         // TODO: pass requisite information
@@ -275,7 +280,18 @@ export namespace trainer {
             // this.segment_current = this.segment_iterator.next();
             // this.target_current = this.target_iterator.next();
             // this.subtarget_current = this.subtarget_current.next();
-            [i_height, i_width] = this.iterator_matrix_train.next();
+            // [i_height, i_width] = this.iterator_matrix_train.next();
+
+
+            this.subtarget_iterator.next();
+
+            let obj_matrix_next = this.iterator_matrix_train.next(); // iterator_matrix_train points to a segment
+
+            if (obj_matrix_next.done) {
+                this.algorithm.pre_terminate()
+            }
+
+            // set segment current
 
             if (this.algorithm.b_targeted()) {
                 // set the targets and shit
@@ -283,10 +299,6 @@ export namespace trainer {
 
             // set the context in ableton
             this.set_loop();
-
-            if (done) {
-                this.algorithm.pre_terminate()
-            }
         }
 
         // advance_target() {
@@ -315,24 +327,41 @@ export namespace trainer {
                 return
             }
 
+            // parse/derive logic
             if (!this.algorithm.b_targeted()) {
+                // this.struct.add(
+                //     input_user
+                // );
+
+                ParseTree.add(
+                    this.list_parse_tree,
+                    this.iterator_matrix_train
+                );
+
                 this.advance_segment();
+
+                return
             }
 
+            // detect/predict logic
             if (input_user.note.pitch === this.subtarget_current.note.pitch) {
+
+                let target_iterator_current = this.matrix_target_iterator[this.iterator_matrix_train.get_row_current()][this.iterator_matrix_train.get_column_current()];
 
                 // NB: we actually add the note that the user was trying to guess, not the note played
                 this.history_user_input.add_subtarget(
-                    this.target_iterator.current().subtarget_iterator.current()
+                    target_iterator_current.current().subtarget_iterator.current()
                 );
 
                 this.advance();
 
-                // TODO: make sure for detection/prediction we're making "input_user" exactly the same as the "target note", if we're restoring sessions from user input
-                // this.window.add(input_user);
-                this.struct.add(input_user);
+                // this.struct.add(
+                //     input_user
+                // );
+
                 this.window.render(
-                    // this.struct
+                    list_parse_tree,
+                    this.history_user_input
                 )
             }
         }

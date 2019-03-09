@@ -14,7 +14,7 @@ export namespace algorithm {
 
     import LiveClipVirtual = live.LiveClipVirtual;
     import Target = target.Target;
-    import TargetType = target.TargetType;
+    // import TargetType = target.TargetType;
     import Harmony = harmony.Harmony;
     import TargetIterator = target.TargetIterator;
 
@@ -107,7 +107,7 @@ export namespace algorithm {
         // NB: there can be multiple targets per segment
         // TODO: replace the notes in clip_target with these
         determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TargetType {
-            if (this.mode === modes.HARMONY) {
+            if (this.mode === HARMONY) {
 
                 let chords_grouped: TreeModel.Node<n.Note>[][] = harmony.group(
                     notes_segment_next
@@ -119,7 +119,7 @@ export namespace algorithm {
 
                 return chords_monophonified
 
-            } else if (this.mode === modes.MELODY) {
+            } else if (this.mode === mode.MELODY) {
 
                 let notes_grouped_trivial = [];
 
@@ -275,33 +275,5 @@ export namespace algorithm {
             // this.update_leaves(leaves_within_interval);
         }
 
-    }
-
-    export class Harmonic {
-        transform(notes_target) {
-            function compare(note_former,note_latter) {
-                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
-                    return -1;
-                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
-                    return 1;
-                return 0;
-            }
-
-            notes_target.sort(compare);
-
-            let length_beats = notes_target[notes_target.length - 1].model.note.get_beat_end() - notes_target[0].model.note.beat_start
-
-            let duration_monophonic = length_beats/notes_target.length;
-
-            clip_user_input.set_notes(
-
-            )
-        }
-        // once a target is issued, take all notes and spread them out equidistantly with no overlap
-
-    }
-
-    export class Melodic {
-        // do nothing special
     }
 }

@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var target;
 (function (target) {
     // let min_width_clip = 0.25;
-    // export type TargetType = TreeModel.Node<n.Note>[]
     var Subtarget = /** @class */ (function () {
         function Subtarget(note) {
             this.note = note;
