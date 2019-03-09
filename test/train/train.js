@@ -21,6 +21,9 @@ var window_1 = require("../../src/render/window");
 var ListWindow = window_1.window.ListWindow;
 var trainer_1 = require("../../src/train/trainer");
 var Trainer = trainer_1.trainer.Trainer;
+var constants_1 = require("../../src/constants/constants");
+var POLYPHONY = constants_1.modes_texture.POLYPHONY;
+var INSTRUMENTAL = constants_1.modes_control.INSTRUMENTAL;
 var tree = new TreeModel();
 var segment_note_1 = tree.parse({
     id: -1,
@@ -72,8 +75,8 @@ var note_target_4_subtarget_2 = tree.parse({
     note: new note_1.note.Note(56, 7, 2, 90, 0),
     children: []
 });
-var mode_texture = 'harmonic';
-var mode_control = 'instrumental';
+var mode_texture = POLYPHONY;
+var mode_control = INSTRUMENTAL;
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
 var messenger = new Messenger('node', 0);
 var window_local = new ListWindow(384, 384, messenger);

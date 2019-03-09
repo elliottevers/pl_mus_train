@@ -76,7 +76,7 @@ export namespace algorithm {
         }
 
         determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
-            if (this.user_input_handler.mode_texture === modes_texture.POLYPHONY) {
+            if (this.user_input_handler.mode_texture === POLYPHONY) {
 
                 let chords_grouped: TypeTarget[] = Harmony.group(
                     notes_segment_next
@@ -94,7 +94,7 @@ export namespace algorithm {
 
                 return chords_monophonified
 
-            } else if (this.user_input_handler.mode_texture === modes_texture.MONOPONY) {
+            } else if (this.user_input_handler.mode_texture === MONOPONY) {
 
                 let notes_grouped_trivial = [];
 
@@ -130,6 +130,10 @@ export namespace algorithm {
 
         pre_advance(clip_user_input) {
 
+        }
+
+        post_init(song, clip_user_input) {
+            clip_user_input.fire();
         }
     }
 

@@ -12,6 +12,7 @@ import {message} from "../message/messenger";
 import {song} from "../song/song";
 import {clip} from "../clip/clip";
 const _ = require('underscore');
+const l = require('lodash');
 
 export namespace trainer {
 
@@ -84,8 +85,10 @@ export namespace trainer {
         }
 
         public get_coord_current(): number[] {
-            let pos_row = division_int(this.i + 1, this.num_columns);
-            let pos_column = remainder(this.i + 1, this.num_columns);
+                // let pos_row = division_int(this.i + 1, this.num_columns);
+                // let pos_column = remainder(this.i + 1, this.num_columns);
+            let pos_row = division_int(this.i, this.num_columns);
+            let pos_column = remainder(this.i, this.num_columns);
             return [pos_row, pos_column]
         }
     }
@@ -172,16 +175,18 @@ export namespace trainer {
                 this.segments
             );
 
+            this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
+                this.algorithm,
+                this.segments
+            );
+
+            this.matrix_target_iterator = l.cloneDeep(this.history_user_input.matrix_data);
+
             if (this.algorithm.b_targeted()) {
                 this.create_targets()
             } else {
                 this.create_parse_trees();
             }
-
-            this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
-                this.algorithm,
-                this.segments
-            );
         }
 
         private create_parse_trees() {
@@ -245,7 +250,6 @@ export namespace trainer {
                     )
                 )
             }
-
         }
 
         public clear_window() {
@@ -288,14 +292,45 @@ export namespace trainer {
             this.algorithm.pre_terminate()
         }
 
+        public terminate() {
+            this.algorithm.pre_terminate()
+        }
+
         // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         public init() {
             this.advance_segment();
-            this.algorithm.post_init()
+            this.algorithm.post_init(this.song, this.clip_user_input)
         }
 
         private advance_segment() {
+            // TODO:
+            let obj_next_coord = this.iterator_matrix_train.next();
 
+            if (obj_next_coord.done) {
+                this.algorithm.terminate()
+            }
+
+            let coord = obj_next_coord.value;
+            this.segment_current = this.segments[coord[1]];
+            this.iterator_target_current = this.matrix_target_iterator[coord[0]][coord[1]];
+
+            let obj_target = this.iterator_target_current.next();
+
+            if (obj_target.done) {
+                return
+            }
+
+            this.target_current = obj_target.value;
+
+            this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+
+            let obj_subtarget = this.iterator_subtarget_current.next();
+
+            if (obj_subtarget.done) {
+                return
+            }
+
+            this.subtarget_current = obj_subtarget.value;
         }
 
         private advance_subtarget() {

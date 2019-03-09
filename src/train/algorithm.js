@@ -54,7 +54,7 @@ var algorithm;
             return algorithm.DETECT;
         };
         Detect.prototype.determine_targets = function (notes_segment_next) {
-            if (this.user_input_handler.mode_texture === constants_1.modes_texture.POLYPHONY) {
+            if (this.user_input_handler.mode_texture === POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
                 var chords_monophonified = [];
                 for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
@@ -64,7 +64,7 @@ var algorithm;
                 }
                 return chords_monophonified;
             }
-            else if (this.user_input_handler.mode_texture === constants_1.modes_texture.MONOPONY) {
+            else if (this.user_input_handler.mode_texture === MONOPONY) {
                 var notes_grouped_trivial = [];
                 for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
                     var note_1 = notes_segment_next_1[_a];
@@ -92,6 +92,9 @@ var algorithm;
             return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end();
         };
         Detect.prototype.pre_advance = function (clip_user_input) {
+        };
+        Detect.prototype.post_init = function (song, clip_user_input) {
+            clip_user_input.fire();
         };
         return Detect;
     }(Targeted));

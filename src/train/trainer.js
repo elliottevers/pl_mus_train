@@ -6,6 +6,7 @@ var history_1 = require("../history/history");
 var parse_1 = require("../parse/parse");
 var utils_1 = require("../utils/utils");
 var _ = require('underscore');
+var l = require('lodash');
 var trainer;
 (function (trainer) {
     var ParseTree = parse_1.parse.ParseTree;
@@ -43,8 +44,10 @@ var trainer;
             };
         };
         MatrixIterator.prototype.get_coord_current = function () {
-            var pos_row = division_int(this.i + 1, this.num_columns);
-            var pos_column = remainder(this.i + 1, this.num_columns);
+            // let pos_row = division_int(this.i + 1, this.num_columns);
+            // let pos_column = remainder(this.i + 1, this.num_columns);
+            var pos_row = division_int(this.i, this.num_columns);
+            var pos_column = remainder(this.i, this.num_columns);
             return [pos_row, pos_column];
         };
         return MatrixIterator;
@@ -99,13 +102,14 @@ var trainer;
             //     this.segments
             // );
             this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
+            this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
+            this.matrix_target_iterator = l.cloneDeep(this.history_user_input.matrix_data);
             if (this.algorithm.b_targeted()) {
                 this.create_targets();
             }
             else {
                 this.create_parse_trees();
             }
-            this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
         }
         Trainer.prototype.create_parse_trees = function () {
             var list_parse_tree = [];
@@ -172,12 +176,34 @@ var trainer;
         Trainer.prototype.pause = function () {
             this.algorithm.pre_terminate();
         };
+        Trainer.prototype.terminate = function () {
+            this.algorithm.pre_terminate();
+        };
         // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         Trainer.prototype.init = function () {
             this.advance_segment();
-            this.algorithm.post_init();
+            this.algorithm.post_init(this.song, this.clip_user_input);
         };
         Trainer.prototype.advance_segment = function () {
+            // TODO:
+            var obj_next_coord = this.iterator_matrix_train.next();
+            if (obj_next_coord.done) {
+                this.algorithm.terminate();
+            }
+            var coord = obj_next_coord.value;
+            this.segment_current = this.segments[coord[1]];
+            this.iterator_target_current = this.matrix_target_iterator[coord[0]][coord[1]];
+            var obj_target = this.iterator_target_current.next();
+            if (obj_target.done) {
+                return;
+            }
+            this.target_current = obj_target.value;
+            this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+            var obj_subtarget = this.iterator_subtarget_current.next();
+            if (obj_subtarget.done) {
+                return;
+            }
+            this.subtarget_current = obj_subtarget.value;
         };
         Trainer.prototype.advance_subtarget = function () {
             // this.segment_current = this.segment_iterator.next();

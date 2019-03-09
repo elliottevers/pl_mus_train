@@ -19,6 +19,9 @@ import {window} from "../../src/render/window";
 import ListWindow = window.ListWindow;
 import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
+import {modes_control, modes_texture} from "../../src/constants/constants";
+import POLYPHONY = modes_texture.POLYPHONY;
+import INSTRUMENTAL = modes_control.INSTRUMENTAL;
 
 
 let tree: TreeModel = new TreeModel();
@@ -192,8 +195,8 @@ let note_target_4_subtarget_2 = tree.parse(
 );
 
 
-let mode_texture = 'harmonic';
-let mode_control = 'instrumental';
+let mode_texture = POLYPHONY;
+let mode_control = INSTRUMENTAL;
 
 let user_input_handler = new UserInputHandler(
     mode_texture,
