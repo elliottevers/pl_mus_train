@@ -36,6 +36,7 @@ export namespace trainer {
     import Messenger = message.Messenger;
     import Song = song.Song;
     import Clip = clip.Clip;
+    import FactoryHistoryUserInput = history.FactoryHistoryUserInput;
 
     export class MatrixIterator {
         private num_rows: number;
@@ -119,7 +120,7 @@ export namespace trainer {
 
     export class Trainer {
 
-        private window: TreeRenderable;
+        private window;
         private algorithm; // TODO: type
         private clip_user_input: Clip;
         private clip_target: Clip;
@@ -187,7 +188,13 @@ export namespace trainer {
             switch (this.algorithm.get_name()) {
                 case PARSE: {
                     for (let segment of this.segments) {
-                        for (let note of segment.get_notes()) {
+                        let notes = this.clip_user_input.get_notes(
+                            segment.beat_start,
+                            0,
+                            segment.beat_end - segment.beat_start,
+                            128
+                        );
+                        for (let note of notes) {
                             list_parse_tree.push(
                                 new ParseTree(
                                     note,
@@ -222,23 +229,21 @@ export namespace trainer {
 
             // let segment_targetable: SegmentTargetable;
 
-            let iterators_target: TargetIterator[] = [];
+            // let iterators_target: TargetIterator[] = [];
 
-            for (let segment of this.segments) {
+            for (let i_segment in this.segments) {
                 // need SegmentTargetable -> TargetIterator
-                iterators_target.push(
-                    this.algorithm.determine_targets(
-                        this.clip_target.get_notes(
-                            segment.beat_start,
-                            0,
-                            segment.beat_end,
-                            128
-                        )
+                let segment = this.segments[Number(i_segment)];
+                this.matrix_target_iterator[0][Number(i_segment)] = this.algorithm.determine_targets(
+                    this.clip_target.get_notes(
+                        segment.beat_start,
+                        0,
+                        segment.beat_end,
+                        128
                     )
                 )
             }
 
-            this.iterators_target = iterators_target;
         }
 
         public clear_window() {
@@ -251,10 +256,10 @@ export namespace trainer {
 
         public reset_user_input() {
             if ([DETECT, PREDICT].includes(this.algorithm.get_name())) {
+                let coords = this.iterator_matrix_train.get_coord_current();
+                let notes_last = this.matrix_target_iterator[coords[0] - 1][coords[1]].get_notes();
                 this.clip_user_input.set_notes(
-                    this.struct.get_notes(
-                        // TODO: pass requisite information
-                    )
+                    notes_last
                 );
             } else {
                 return

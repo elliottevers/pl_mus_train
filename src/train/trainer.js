@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var algorithm_1 = require("./algorithm");
+var history_1 = require("../history/history");
 var parse_1 = require("../parse/parse");
 var utils_1 = require("../utils/utils");
 var trainer;
@@ -12,6 +13,7 @@ var trainer;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var DETECT = algorithm_1.algorithm.DETECT;
     var PREDICT = algorithm_1.algorithm.PREDICT;
+    var FactoryHistoryUserInput = history_1.history.FactoryHistoryUserInput;
     var MatrixIterator = /** @class */ (function () {
         function MatrixIterator(num_rows, num_columns) {
             this.num_rows = num_rows;
@@ -109,8 +111,9 @@ var trainer;
                 case PARSE: {
                     for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
                         var segment_1 = _a[_i];
-                        for (var _b = 0, _c = segment_1.get_notes(); _b < _c.length; _b++) {
-                            var note = _c[_b];
+                        var notes = this.clip_user_input.get_notes(segment_1.beat_start, 0, segment_1.beat_end - segment_1.beat_start, 128);
+                        for (var _b = 0, notes_1 = notes; _b < notes_1.length; _b++) {
+                            var note = notes_1[_b];
                             list_parse_tree.push(new ParseTree(note, this.algorithm.get_depth()));
                         }
                     }
@@ -131,13 +134,12 @@ var trainer;
         Trainer.prototype.create_targets = function () {
             this.clip_target.load_notes_within_markers();
             // let segment_targetable: SegmentTargetable;
-            var iterators_target = [];
-            for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
-                var segment_2 = _a[_i];
+            // let iterators_target: TargetIterator[] = [];
+            for (var i_segment in this.segments) {
                 // need SegmentTargetable -> TargetIterator
-                iterators_target.push(this.algorithm.determine_targets(this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end, 128)));
+                var segment_2 = this.segments[Number(i_segment)];
+                this.matrix_target_iterator[0][Number(i_segment)] = this.algorithm.determine_targets(this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end, 128));
             }
-            this.iterators_target = iterators_target;
         };
         Trainer.prototype.clear_window = function () {
             this.window.clear();
@@ -147,9 +149,9 @@ var trainer;
         };
         Trainer.prototype.reset_user_input = function () {
             if ([DETECT, PREDICT].includes(this.algorithm.get_name())) {
-                this.clip_user_input.set_notes(this.struct.get_notes(
-                // TODO: pass requisite information
-                ));
+                var coords = this.iterator_matrix_train.get_coord_current();
+                var notes_last = this.matrix_target_iterator[coords[0] - 1][coords[1]].get_notes();
+                this.clip_user_input.set_notes(notes_last);
             }
             else {
                 return;

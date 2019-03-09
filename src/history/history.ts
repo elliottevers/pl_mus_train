@@ -12,13 +12,14 @@ export namespace history {
     import DETECT = algorithm.DETECT;
     import PREDICT = algorithm.PREDICT;
     import PARSE = algorithm.PARSE;
-    type TypeSubtarget = TreeModel.Node<n.Note>;
 
-    type TypeTarget = TypeSubtarget[]
+    export type TypeSubtarget = TreeModel.Node<n.Note>;
 
-    type TypeSequenceNote = TreeModel.Node<n.Note>[];
+    export type TypeTarget = TypeSubtarget[]
 
-    type TypeSequenceTarget = TypeTarget[]
+    export type TypeSequenceNote = TreeModel.Node<n.Note>[];
+
+    export type TypeSequenceTarget = TypeTarget[]
 
     // export class SequenceTarget {
     //     data: TypeSequenceTarget;

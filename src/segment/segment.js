@@ -16,14 +16,9 @@ var segment;
         Segment.prototype.get_note = function () {
             return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128)[0];
         };
-        // public get_notes(): TreeModel.Node<n.Note>[] {
-        //     return this.clip.get_notes(
-        //         this.beat_start,
-        //         0,
-        //         this.beat_end,
-        //         128
-        //     )
-        // }
+        Segment.prototype.get_notes = function () {
+            return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128);
+        };
         Segment.prototype.get_endpoints_loop = function () {
             return [this.beat_start, this.beat_end];
         };

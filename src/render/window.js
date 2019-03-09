@@ -14,7 +14,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("lodash");
-var CircularJSON = require('circular-json');
 var window;
 (function (window) {
     var red = [255, 0, 0];

@@ -31,14 +31,14 @@ export namespace segment {
             )[0]
         }
 
-        // public get_notes(): TreeModel.Node<n.Note>[] {
-        //     return this.clip.get_notes(
-        //         this.beat_start,
-        //         0,
-        //         this.beat_end,
-        //         128
-        //     )
-        // }
+        public get_notes(): TreeModel.Node<n.Note>[] {
+            return this.clip.get_notes(
+                this.beat_start,
+                0,
+                this.beat_end,
+                128
+            )
+        }
 
         public get_endpoints_loop() {
             return [this.beat_start, this.beat_end]

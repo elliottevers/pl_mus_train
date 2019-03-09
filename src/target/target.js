@@ -1,36 +1,48 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// import {serialize_subtarget} from "../serialize/serialize";
 var target;
-(function (target) {
-    // let min_width_clip = 0.25;
+(function (target_1) {
     var Subtarget = /** @class */ (function () {
         function Subtarget(note) {
             this.note = note;
         }
         return Subtarget;
     }());
-    target.Subtarget = Subtarget;
+    target_1.Subtarget = Subtarget;
     var SubtargetIterator = /** @class */ (function () {
         function SubtargetIterator(subtargets) {
             this.subtargets = subtargets;
         }
         return SubtargetIterator;
     }());
-    target.SubtargetIterator = SubtargetIterator;
+    target_1.SubtargetIterator = SubtargetIterator;
     var Target = /** @class */ (function () {
         function Target(iterator_subtarget) {
             this.iterator_subtarget = iterator_subtarget;
         }
         return Target;
     }());
-    target.Target = Target;
+    target_1.Target = Target;
     var TargetIterator = /** @class */ (function () {
         function TargetIterator(targets) {
             this.targets = targets;
         }
+        TargetIterator.prototype.get_notes = function () {
+            var notes = [];
+            for (var _i = 0, _a = this.targets; _i < _a.length; _i++) {
+                var target_2 = _a[_i];
+                var iterator_subtarget = target_2.iterator_subtarget;
+                for (var _b = 0, _c = iterator_subtarget.subtargets; _b < _c.length; _b++) {
+                    var subtarget = _c[_b];
+                    notes.push(subtarget.note);
+                }
+            }
+            return notes;
+        };
         return TargetIterator;
     }());
-    target.TargetIterator = TargetIterator;
+    target_1.TargetIterator = TargetIterator;
     // export class Target {
     // notes_grouped: TreeModel.Node<n.Note>[][];
     //

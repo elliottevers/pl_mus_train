@@ -5,8 +5,11 @@ import TreeModel = require("tree-model");
 import {target} from "../target/target";
 import {harmony} from "../music/harmony";
 import {modes_texture} from "../constants/constants";
+import {user_input} from "../control/user_input";
+import {history} from "../history/history";
 
 export namespace algorithm {
+    import UserInputHandler = user_input.UserInputHandler;
     export let DETECT = 'detect';
     export let PREDICT = 'predict';
     export let PARSE = 'parse';
@@ -17,6 +20,10 @@ export namespace algorithm {
     // import TargetType = target.TargetType;
     import Harmony = harmony.Harmony;
     import TargetIterator = target.TargetIterator;
+    import POLYPHONY = modes_texture.POLYPHONY;
+    import MONOPONY = modes_texture.MONOPONY;
+    import TypeSequenceTarget = history.TypeSequenceTarget;
+    import TypeTarget = history.TypeTarget;
 
     export interface Temporal {
         determine_region_current
@@ -37,6 +44,12 @@ export namespace algorithm {
     }
 
     abstract class Targeted {
+        user_input_handler: UserInputHandler;
+
+        constructor(user_input_handler) {
+            this.user_input_handler = user_input_handler;
+        }
+
         public b_targeted(): boolean {
             return true;
         }
@@ -49,10 +62,9 @@ export namespace algorithm {
     }
 
     export class Detect extends Targeted implements Algorithm, Temporal, Targetable {
-        user_input_handler;
 
         constructor(user_input_handler) {
-            this.user_input_handler = user_input_handler
+            super(user_input_handler);
         }
 
         public get_depth(): number {
@@ -63,18 +75,22 @@ export namespace algorithm {
             return DETECT
         }
 
-        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TargetIterator {
+        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
             if (this.user_input_handler.mode_texture === modes_texture.POLYPHONY) {
 
-                let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
+                let chords_grouped: TypeTarget[] = Harmony.group(
                     notes_segment_next
                 );
 
-                let chords_monophonified: TreeModel.Node<n.Note>[][] = Harmony.monophonify(
-                    notes_segment_next
-                );
+                let chords_monophonified: TypeTarget[] = [];
 
-                // Subtarget -> Subtarget Iterator -> Target -> Target Iterator
+                for (let chord of chords_grouped) {
+                    let notes_monophonified: TypeTarget = Harmony.monophonify(
+                        chord
+                    );
+
+                    chords_monophonified.push(notes_monophonified)
+                }
 
                 return chords_monophonified
 
@@ -91,8 +107,25 @@ export namespace algorithm {
                 return notes_grouped_trivial
 
             } else {
-                throw ['mode', this.mode, 'not supported'].join(' ')
+                throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ')
             }
+        }
+
+        determine_region_current(notes_target_next): number[] {
+            return [
+                notes_target_next[0].model.note.beat_start,
+                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+            ]
+        }
+
+        // set right interval
+        determine_region_past(notes_target_next): number {
+            return notes_target_next[0].model.note.beat_start
+        }
+
+        // set left interval
+        determine_region_upcoming(notes_target_next): number {
+            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
         }
 
         pre_advance(clip_user_input) {
@@ -113,20 +146,20 @@ export namespace algorithm {
         // TODO: put all calls to Clip in whatever class is a client to algorithms
         // NB: there can be multiple targets per segment
         // TODO: replace the notes in clip_target with these
-        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TargetType {
-            if (this.mode === HARMONY) {
+        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
+            if (this.user_input_handler.mode_texture === POLYPHONY) {
 
-                let chords_grouped: TreeModel.Node<n.Note>[][] = harmony.group(
+                let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
                     notes_segment_next
                 );
 
-                let chords_monophonified: TreeModel.Node<n.Note>[][] = harmony.monophonify(
+                let chords_monophonified: TreeModel.Node<n.Note>[][] = Harmony.monophonify(
                     notes_segment_next
                 );
 
                 return chords_monophonified
 
-            } else if (this.mode === mode.MELODY) {
+            } else if (this.user_input_handler.mode_texture === MONOPONY) {
 
                 let notes_grouped_trivial = [];
 
@@ -137,7 +170,7 @@ export namespace algorithm {
                 return notes_grouped_trivial
 
             } else {
-                throw ['mode', this.mode, 'not supported'].join(' ')
+                throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ')
             }
         }
 
@@ -198,6 +231,22 @@ export namespace algorithm {
             clip_user_input.stop();
         }
 
+        determine_region_current(notes_target_next): number[] {
+            return [
+                notes_target_next[0].model.note.beat_start,
+                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+            ]
+        }
+
+        // set right interval
+        determine_region_past(notes_target_next): number {
+            return notes_target_next[0].model.note.beat_start
+        }
+
+        // set left interval
+        determine_region_upcoming(notes_target_next): number {
+            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        }
     }
 
     export class Derive extends Parsed implements Temporal {
@@ -253,9 +302,6 @@ export namespace algorithm {
 
         accept(elaboration: TreeModel.Node<n.Note>[], i_depth: number, i_breadth: number): void {
 
-            this.struct_train.append(elaboration);
-
-            nextthis.iterator_train.next()
 
             // if (index_layer + 1 > this.clips.length) {
             //     let clip_dao_virtual = new LiveClipVirtual(elaboration);

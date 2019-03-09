@@ -10,7 +10,6 @@ import {history} from "../history/history";
 // import {parse} from "../parse/parse";
 import {trainer} from "../train/trainer";
 import {parse} from "../parse/parse";
-let CircularJSON = require('circular-json');
 
 export namespace window {
 

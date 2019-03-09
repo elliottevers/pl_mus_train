@@ -2,15 +2,13 @@ import TreeModel = require("tree-model");
 import {note as n} from "../note/note"
 import {phrase as p} from "../phrase/phrase"
 import {trainer} from "../train/trainer";
+import {history} from "../history/history";
+// import {serialize_subtarget} from "../serialize/serialize";
 
 
 export namespace target {
 
-    // let min_width_clip = 0.25;
-
-    // export type TargetType = TreeModel.Node<n.Note>[]
-
-    import MatrixIterator = trainer.MatrixIterator;
+    import TypeTarget = history.TypeTarget;
 
     export class Subtarget {
         note: TreeModel.Node<n.Note>;
@@ -24,16 +22,15 @@ export namespace target {
 
     export class SubtargetIterator {
 
-        subtargets: Subtarget[];
+        public subtargets: Subtarget[];
 
         constructor(subtargets: Subtarget[]) {
             this.subtargets = subtargets;
         }
-
     }
 
     export class Target {
-        iterator_subtarget: SubtargetIterator;
+        public iterator_subtarget: SubtargetIterator;
 
         constructor(iterator_subtarget: SubtargetIterator) {
             this.iterator_subtarget = iterator_subtarget;
@@ -47,6 +44,17 @@ export namespace target {
 
         constructor(targets: Target[]) {
             this.targets = targets;
+        }
+
+        get_notes(): TreeModel.Node<n.Note>[] {
+            let notes: TreeModel.Node<n.Note>[] = [];
+            for (let target of this.targets) {
+                let iterator_subtarget = target.iterator_subtarget;
+                for (let subtarget of iterator_subtarget.subtargets) {
+                    notes.push(subtarget.note)
+                }
+            }
+            return notes;
         }
 
         // public static from_segment_targetable(segment_targetable: SegmentTargetable): TargetIterator {
