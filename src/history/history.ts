@@ -2,9 +2,16 @@ import {note as n} from "../note/note";
 import {log} from "../log/logger";
 import TreeModel = require("tree-model");
 import {utils} from "../utils/utils";
+import {serialize} from "../serialize/serialize";
+import {algorithm} from "../train/algorithm";
 
 export namespace history {
 
+    import serialize_target_sequence = serialize.serialize_target_sequence;
+    import deserialize_target_sequence = serialize.deserialize_target_sequence;
+    import DETECT = algorithm.DETECT;
+    import PREDICT = algorithm.PREDICT;
+    import PARSE = algorithm.PARSE;
     type TypeSubtarget = TreeModel.Node<n.Note>;
 
     type TypeTarget = TypeSubtarget[]
@@ -25,15 +32,37 @@ export namespace history {
     //     }
     // }
 
-    interface HistoryUserInput {
+    export class FactoryHistoryUserInput {
+        public static create_history_user_input(algorithm, segments) {
+            switch (algorithm.get_name()) {
+                case DETECT: {
+                    return new TargetHistory(algorithm, segments);
+                }
+                case PREDICT: {
+                    return new TargetHistory(algorithm, segments);
+                }
+                case PARSE: {
+                    throw 'parse not yet implemented'
+                }
+                case DETECT: {
+                    throw 'detect not yet implemented'
+                }
+                default: {
+                    throw 'from factory user input'
+                }
+            }
+        }
+    }
+
+    export interface HistoryUserInput {
         save(filename: string): void
 
         load(filename: string): HistoryUserInput
     }
 
-    class TargetHistory implements HistoryUserInput {
+    export class TargetHistory implements HistoryUserInput {
 
-        matrix_data: SequenceTarget[][];
+        matrix_data: TypeSequenceTarget[][];
 
         constructor(algorithm, segments) {
             let matrix_data = [];
@@ -43,11 +72,11 @@ export namespace history {
             this.matrix_data = matrix_data;
         }
 
-        set_sequence_target(sequence_target: SequenceTarget, coord_matrix: number[]) {
+        set_sequence_target(sequence_target: TypeSequenceTarget, coord_matrix: number[]) {
             this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
         }
 
-        get_sequence_target(i_height, i_width): SequenceTarget {
+        get_sequence_target(i_height, i_width): TypeSequenceTarget {
             return this.matrix_data[i_height][i_width]
         }
 
@@ -55,7 +84,9 @@ export namespace history {
             let data_serializable = this.matrix_data as any;
             for (let i_row in this.matrix_data) {
                 for (let i_col in this.matrix_data[Number(i_row)]) {
-                    data_serializable[Number(i_row)][Number(i_col)] = SequenceTarget.serialize(this.matrix_data[Number(i_row)][Number(i_col)])
+                    data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
+                        this.matrix_data[Number(i_row)][Number(i_col)]
+                    )
                 }
             }
 
@@ -63,7 +94,7 @@ export namespace history {
 
             if (f.isopen) {
                 post("saving session");
-                f.writestring(JSON.stringify(data_serializable)); //writes a string
+                f.writestring(JSON.stringify(data_serializable));
                 f.close();
             } else {
                 post("could not save session");
@@ -72,26 +103,34 @@ export namespace history {
 
         public load(filename): HistoryUserInput {
             let f = new File(filename, "read","JSON");
-            let a, data_serialized;
+            let a, data_deserialized;
 
             if (f.isopen) {
                 post("reading file");
                 // @ts-ignore
                 while ((a = f.readline()) != null) {
-                    data_serialized = JSON.parse(a)
+                    let data_deserialized = JSON.parse(a) as any;
                 }
                 f.close();
             } else {
                 post("could not open file");
             }
 
-            let data_deserialized = data_serialized as any;
+            // let data_deserialized = data_serialized as any;
+            //
+            // for (let i_row in data_serialized) {
+            //     for (let i_col in data_serialized[Number(i_row)]) {
+            //         data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
+            //     }
+            // }
+            //
+            // return data_deserialized
 
-            for (let i_row in data_serialized) {
-                for (let i_col in data_serialized[Number(i_row)]) {
-                    // post(i_row);
-                    // post(i_col);
-                    data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
+            for (let i_row in this.matrix_data) {
+                for (let i_col in this.matrix_data[Number(i_row)]) {
+                    data_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(
+                        data_deserialized[Number(i_row)][Number(i_col)]
+                    )
                 }
             }
 

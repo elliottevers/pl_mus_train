@@ -2,6 +2,7 @@ import {history} from "../history/history";
 import {target} from "../target/target";
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
+import {trainer} from "../train/trainer";
 
 export namespace serialize {
 
@@ -58,4 +59,33 @@ export namespace serialize {
         }
         return sequence_target_deserialized;
     };
+}
+
+
+export namespace freeze {
+    import Trainer = trainer.Trainer;
+
+    export class TrainFreezer {
+        constructor(env: string) {
+
+        }
+
+        public freeze(trainer: Trainer, filepath: string) {
+
+        }
+    }
+}
+
+export namespace thaw {
+    import Trainer = trainer.Trainer;
+
+    export class TrainThawer {
+        constructor(env: string) {
+
+        }
+
+        public thaw(filepath: string): Trainer {
+            return
+        }
+    }
 }

@@ -1,12 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var algorithm_1 = require("./algorithm");
-var history_1 = require("../history/history");
 var parse_1 = require("../parse/parse");
 var utils_1 = require("../utils/utils");
 var trainer;
 (function (trainer) {
-    var HistoryUserInput = history_1.history.HistoryUserInput;
     var ParseTree = parse_1.parse.ParseTree;
     var division_int = utils_1.utils.division_int;
     var remainder = utils_1.utils.remainder;
@@ -92,7 +90,11 @@ var trainer;
             this.segments = segments;
             this.messenger = messenger;
             // this.struct = new StructFactory.get_struct(user_input_handler.mode);
-            this.history_user_input = new HistoryUserInput(this.algorithm, this.segments);
+            // this.history_user_input = new HistoryUserInput(
+            //     this.algorithm,
+            //     this.segments
+            // );
+            this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
             if (this.algorithm.b_targetable()) {
                 this.create_targets();
             }

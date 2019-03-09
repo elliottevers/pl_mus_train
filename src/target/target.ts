@@ -33,8 +33,10 @@ export namespace target {
     }
 
     export class Target {
-        constructor(subtarget_iterator: SubtargetIterator) {
-            this.subtarget_iterator = subtarget_iterator;
+        iterator_subtarget: SubtargetIterator;
+
+        constructor(iterator_subtarget: SubtargetIterator) {
+            this.iterator_subtarget = iterator_subtarget;
         }
     }
 
@@ -47,9 +49,9 @@ export namespace target {
             this.targets = targets;
         }
 
-        public static from_segment_targetable(segment_targetable: SegmentTargetable): TargetIterator {
-            return
-        }
+        // public static from_segment_targetable(segment_targetable: SegmentTargetable): TargetIterator {
+        //     return
+        // }
     }
 
     // export class Target {

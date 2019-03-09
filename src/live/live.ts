@@ -90,6 +90,10 @@ export namespace live {
         //     )
         // }
 
+        get_ambitus(): number[] {
+            return []
+        }
+
         load_notes_within_loop_brackets(): void {
             this.notes = this.get_notes(
                 this.get_loop_bracket_lower(),

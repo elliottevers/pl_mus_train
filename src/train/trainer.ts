@@ -1,7 +1,7 @@
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {parse_matrix, pwindow} from "../scripts/parse_tree";
-import {algorithm, algorithm as algo, train} from "./algorithm";
+import {algorithm, algorithm as algo} from "./algorithm";
 import {history} from "../history/history";
 import {target} from "../target/target";
 import {segment} from "../segment/segment";
@@ -14,9 +14,9 @@ import {clip} from "../clip/clip";
 
 export namespace trainer {
 
-    import Targetable = train.algorithm.Targetable;
+    // import Targetable = train.algorithm.Targetable;
     import HistoryUserInput = history.HistoryUserInput;
-    import TargetType = target.TargetType;
+    // import TargetType = target.TargetType;
     import TargetIterator = target.TargetIterator;
     // import MatrixIterator = history.MatrixIterator;
     import Segment = segment.Segment;
@@ -157,7 +157,12 @@ export namespace trainer {
             this.messenger = messenger;
 
             // this.struct = new StructFactory.get_struct(user_input_handler.mode);
-            this.history_user_input = new HistoryUserInput(
+            // this.history_user_input = new HistoryUserInput(
+            //     this.algorithm,
+            //     this.segments
+            // );
+
+            this.history_user_input = FactoryHistoryUserInput.create_history_user_input(
                 this.algorithm,
                 this.segments
             );

@@ -1,16 +1,7 @@
 import {note as n} from "../../src/note/note";
-import {set_depth_tree_export} from "../../src/scripts/parse_tree";
 import TreeModel = require("tree-model");
 import {user_input} from "../../src/control/user_input";
 import UserInputHandler = user_input.UserInputHandler;
-import {window} from "../../src/render/window";
-import ListWindow = window.ListWindow;
-import {trainer} from "../../src/train/trainer";
-import Trainer = trainer.Trainer;
-import {algorithm} from "../../src/train/algorithm";
-import {struct} from "../../src/train/struct";
-import StructTree = struct.StructTree;
-import Detect = algorithm.Detect;
 import {message} from "../../src/message/messenger";
 import Messenger = message.Messenger;
 import {live} from "../../src/live/live";
@@ -19,10 +10,15 @@ import {segment} from "../../src/segment/segment";
 import Segment = segment.Segment;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
-import {serialize} from "../../src/serialize/serialize";
-import TrainThawer = deserialize.TrainThawer;
-import TrainFreezer = serialize.TrainFreezer;
-import {deserialize} from "../../src/serialize/deserialize";
+import {algorithm} from "../../src/train/algorithm";
+import Detect = algorithm.Detect;
+import {freeze, thaw} from "../../src/serialize/serialize";
+import TrainFreezer = freeze.TrainFreezer;
+import TrainThawer = thaw.TrainThawer;
+import {window} from "../../src/render/window";
+import ListWindow = window.ListWindow;
+import {trainer} from "../../src/train/trainer";
+import Trainer = trainer.Trainer;
 
 
 let tree: TreeModel = new TreeModel();
@@ -206,13 +202,13 @@ let user_input_handler = new UserInputHandler(
 
 let messenger = new Messenger('node', 0);
 
-let window = new ListWindow(
+let window_local = new ListWindow(
     384,
     384,
     messenger
 );
 
-let algorithm = new Detect(
+let algorithm_train = new Detect(
     user_input_handler
 );
 
@@ -258,10 +254,10 @@ let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
 
 let clip_target_virtual = new Clip(clip_dao_virtual);
 
-let trainer = new Trainer(
-    window,
+let trainer_local = new Trainer(
+    window_local,
     user_input_handler,
-    algorithm,
+    algorithm_train,
     clip_user_input,
     clip_target_virtual,
     song,
@@ -271,31 +267,31 @@ let trainer = new Trainer(
 
 // test case - 2 segments, 2 notes a piece
 
-trainer.init(
+trainer_local.init(
 
 );
 
-trainer.accept_input(
+trainer_local.accept_input(
     note_target_1_subtarget_1
 );
 
-trainer.accept_input(
+trainer_local.accept_input(
     note_target_1_subtarget_2
 );
 
-trainer.accept_input(
+trainer_local.accept_input(
     note_target_2_subtarget_1
 );
 
-trainer.accept_input(
+trainer_local.accept_input(
     note_target_2_subtarget_2
 );
 
-trainer.accept_input(
+trainer_local.accept_input(
     note_target_3_subtarget_1
 );
 
-trainer.clear_window(
+trainer_local.clear_window(
 
 );
 
@@ -304,7 +300,7 @@ let freezer = new TrainFreezer(
 );
 
 freezer.freeze(
-    trainer,
+    trainer_local,
     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
 );
 
@@ -320,4 +316,5 @@ train_thawed.render_window(
 
 );
 
-// verify that it look
+
+// verify that it looks correct in window

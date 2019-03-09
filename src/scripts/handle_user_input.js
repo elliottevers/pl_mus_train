@@ -15,19 +15,26 @@ var messenger = new Messenger(env, 0);
 var logger = new Logger(env);
 var song_dao = new song_1.song.SongDao(new live_1.live.LiveApiJs("live_set", env), new messenger_1.message.Messenger(env, 0, "song"), true);
 var song = new song_1.song.Song(song_dao);
+// export let pwindow: w.Pwindow;
 var elaboration;
 var clip_user_input;
 var clip_segment;
 var segment_current;
 var segment_iterator;
-var tree_depth_iterator;
-var parse_tree_iterator;
+// let tree_depth_iterator: TreeDepthIterator;
+//
+// let parse_tree_iterator: ParseTreeIterator;
 var layer_parse_tree_current;
 var depth_parse_tree;
+// export let parse_matrix: ParseMatrix;
 var notes_segments;
 var confirm = function () {
     elaboration = clip_user_input.get_notes(segment_current.beat_start, 0, segment_current.beat_end - segment_current.beat_start, 128);
-    add_to_tree(elaboration, segment_current.beat_start, segment_current.beat_end);
+    // add_to_tree(
+    //     elaboration,
+    //     segment_current.beat_start,
+    //     segment_current.beat_end
+    // );
 };
 // let start = () => {
 //     message
@@ -47,17 +54,9 @@ var load = function (filename) {
     //         filename
     //     )
     // )
-    var thawer = new TrainThawer(env);
-    var train_thawed = thawer.thaw(filename);
-    // train_thawed.resume()
 };
 var save = function (filename) {
-    exports.parse_matrix.save(filename);
-    stop_session(clip_user_input, song);
+    // parse_matrix.save(filename);
+    // stop_session(clip_user_input, song)
 };
-var freezer = new TrainFreezer('node');
-freezer.freeze(trainer, '/path/to/file');
-var thawer = new TrainThawer('node');
-var train_thawed = thawer.thaw('/path/to/file');
-train_thawed.render();
 //# sourceMappingURL=handle_user_input.js.map

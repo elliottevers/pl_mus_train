@@ -6,7 +6,9 @@ import {live} from "../live/live";
 import * as _ from "lodash";
 import {log} from "../log/logger";
 import {history} from "../history/history";
-import {struct} from "../train/struct";
+// import {struct} from "../train/struct";
+// import {parse} from "../parse/parse";
+import {trainer} from "../train/trainer";
 import {parse} from "../parse/parse";
 let CircularJSON = require('circular-json');
 
@@ -15,10 +17,11 @@ export namespace window {
     import LiveClipVirtual = live.LiveClipVirtual;
     import Logger = log.Logger;
     import HistoryUserInput = history.HistoryUserInput;
-    import HistoryList = history.HistoryList;
-    import HistoryMatrix = history.HistoryMatrix;
-    import ParseTree = parse.ParseTree;
+    // import ParseTree = parse.ParseTree;
     import Messenger = message.Messenger;
+    import TargetHistory = history.TargetHistory;
+    import MatrixIterator = trainer.MatrixIterator;
+    import ParseTree = parse.ParseTree;
 
     const red = [255, 0, 0];
     const black = [0, 0, 0];
@@ -80,20 +83,22 @@ export namespace window {
     }
 
     export interface TreeRenderable extends Renderable {
-        render_tree(list_parse_tree)
+
+        render_regions(iterator_matrix_train)
+
+        render_trees(list_parse_tree: ParseTree[])
     }
 
     export class ListWindow extends Window {
         constructor(height, width, messenger) {
             super(height, width, messenger);
-            // this.struct = new struct.StructList();
         }
 
-        public render_regions(history_list: HistoryList) {
+        public render_regions(iterator_matrix_train: MatrixIterator, matrix_target_iterator) {
 
         }
 
-        public render_notes(history_list: HistoryList) {
+        public render_notes(history_user_input: HistoryUserInput) {
 
         }
     }
@@ -158,11 +163,11 @@ export namespace window {
             // }
         }
 
-        public render_regions(history_matrix: HistoryMatrix) {
+        public render_regions(iterator_matrix_train: MatrixIterator) {
             // determine the coordinates of the last null region (assuming we're working forward)
         }
 
-        public render_notes(history_matrix: HistoryMatrix) {
+        public render_notes(history_user_input: HistoryUserInput) {
             // for all non null clips, render
         }
 
@@ -261,29 +266,50 @@ export namespace window {
             }
         };
 
-        render_clips(): void {
-            var messages = this.get_messages_render_clips();
-            for (var i=0; i < messages.length; i++) {
-                this.messenger.message(
-                    messages[i]
-                )
-            }
-        };
+        // render_clips(): void {
+        //     var messages = this.get_messages_render_clips();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
+
+        get_messages_render_tree() {
+            return []
+        }
 
         // TODO: return signature
-        get_messages_render_clips()  {
-            var messages = [];
-            for (let index_clip in this.clips) {
-                messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
-            }
-            return messages;
-        };
+        // get_messages_render_clips(history_user_input: HistoryUserInput)  {
+        //     var messages = [];
+        //     // for (let index_clip in this.clips) {
+        //     //     messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
+        //     // }
+        //     for (let index_clip in this.clips) {
+        //         messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
+        //     }
+        //     return messages;
+        // };
 
-        get_messages_render_notes(index_clip: number) {
-            var clip = this.clips[index_clip];
+        // get_messages_render_notes(index_clip: number) {
+        //     var clip = this.clips[index_clip];
+        //     let quadruplets = [];
+        //     for (let node of clip.get_notes_within_loop_brackets()) {
+        //         quadruplets.push(this.get_position_quadruplet(node, index_clip));
+        //     }
+        //     return quadruplets.map(function (tuplet) {
+        //         let message = <any>["paintrect"].concat(tuplet);
+        //         message = message.concat(black);
+        //         return message;
+        //     })
+        // };
+
+        get_messages_render_notes(coord_clip: number[]) {
+            // var clip = this.clips[index_clip];
+            let clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]]
             let quadruplets = [];
-            for (let node of clip.get_notes_within_loop_brackets()) {
-                quadruplets.push(this.get_position_quadruplet(node, index_clip));
+            for (let node of clip_virtual.get_notes_within_loop_brackets()) {
+                quadruplets.push(this.get_position_quadruplet(node, coord_clip));
             }
             return quadruplets.map(function (tuplet) {
                 let message = <any>["paintrect"].concat(tuplet);
@@ -311,7 +337,9 @@ export namespace window {
             // TODO: make this configurable
             if (false) {
                 // offset = this.clips.length - 1 - index_clip;
-                offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
+                // offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
+                offset = this.matrix_clips.length - 1 - coord_clip[0];
+
             }
             var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(coord_clip);
             return dist + (this.get_height_clip() * offset);
@@ -329,7 +357,8 @@ export namespace window {
 
         get_height_clip(): number {
             // return this.height / this.clips.length;
-            return this.height / this.matrix_clips.get_num_rows();
+            // return this.height / this.matrix_clips.get_num_rows();
+            return this.height / this.matrix_clips.length;
         };
 
         // get_height_note(index_clip: number): number {
@@ -348,10 +377,11 @@ export namespace window {
         //     return this.clips[index_clip].get_ambitus();
         // };
         get_ambitus(coord_clips: number[]): number[] {
-            return this.matrix_clips[
-                coord_clips[0],
-                coord_clips[1]
-            ].get_ambitus();
+            // return this.matrix_clips[
+            //     coord_clips[0],
+            //     coord_clips[1]
+            // ].get_ambitus();
+            return this.matrix_clips[coord_clips[0]][coord_clips[1]].get_ambitus();
         };
     }
 }

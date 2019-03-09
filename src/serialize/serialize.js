@@ -48,4 +48,27 @@ var serialize;
         return sequence_target_deserialized;
     };
 })(serialize = exports.serialize || (exports.serialize = {}));
+var freeze;
+(function (freeze) {
+    var TrainFreezer = /** @class */ (function () {
+        function TrainFreezer(env) {
+        }
+        TrainFreezer.prototype.freeze = function (trainer, filepath) {
+        };
+        return TrainFreezer;
+    }());
+    freeze.TrainFreezer = TrainFreezer;
+})(freeze = exports.freeze || (exports.freeze = {}));
+var thaw;
+(function (thaw) {
+    var TrainThawer = /** @class */ (function () {
+        function TrainThawer(env) {
+        }
+        TrainThawer.prototype.thaw = function (filepath) {
+            return;
+        };
+        return TrainThawer;
+    }());
+    thaw.TrainThawer = TrainThawer;
+})(thaw = exports.thaw || (exports.thaw = {}));
 //# sourceMappingURL=serialize.js.map

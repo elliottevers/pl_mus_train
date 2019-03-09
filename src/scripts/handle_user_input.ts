@@ -14,9 +14,9 @@ import {utils} from "../utils/utils";
 import Logger = log.Logger;
 import LiveClipVirtual = live.LiveClipVirtual;
 import {parse} from "../parse/parse";
-import TreeDepthIterator = parse.TreeDepthIterator;
-import ParseTreeIterator = parse.ParseTreeIterator;
-import ParseMatrix = parse.ParseMatrix;
+// import TreeDepthIterator = parse.TreeDepthIterator;
+// import ParseTreeIterator = parse.ParseTreeIterator;
+// import ParseMatrix = parse.ParseMatrix;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -47,7 +47,7 @@ let song_dao = new s.SongDao(
 
 let song: s.Song = new s.Song(song_dao);
 
-export let pwindow: w.Pwindow;
+// export let pwindow: w.Pwindow;
 
 let elaboration: TreeModel.Node<n.Note>[];
 
@@ -59,15 +59,15 @@ let segment_current: Segment;
 
 let segment_iterator: SegmentIterator;
 
-let tree_depth_iterator: TreeDepthIterator;
-
-let parse_tree_iterator: ParseTreeIterator;
+// let tree_depth_iterator: TreeDepthIterator;
+//
+// let parse_tree_iterator: ParseTreeIterator;
 
 let layer_parse_tree_current: number;
 
 let depth_parse_tree: number;
 
-export let parse_matrix: ParseMatrix;
+// export let parse_matrix: ParseMatrix;
 
 let notes_segments: TreeModel.Node<n.Note>[];
 
@@ -84,11 +84,11 @@ let confirm = () => {
         128
     );
 
-    add_to_tree(
-        elaboration,
-        segment_current.beat_start,
-        segment_current.beat_end
-    );
+    // add_to_tree(
+    //     elaboration,
+    //     segment_current.beat_start,
+    //     segment_current.beat_end
+    // );
 };
 
 // let start = () => {
@@ -110,37 +110,10 @@ let load = (filename) => {
     //         filename
     //     )
     // )
-    let thawer = new TrainThawer(
-        env
-    );
-    let train_thawed = thawer.thaw(
-        filename
-    );
-    // train_thawed.resume()
+
 };
 
 let save = (filename) => {
-    parse_matrix.save(filename);
-    stop_session(clip_user_input, song)
+    // parse_matrix.save(filename);
+    // stop_session(clip_user_input, song)
 };
-
-let freezer = new TrainFreezer(
-    'node'
-);
-
-freezer.freeze(
-    trainer,
-    '/path/to/file'
-);
-
-let thawer = new TrainThawer(
-    'node'
-);
-
-let train_thawed = thawer.thaw(
-    '/path/to/file'
-);
-
-train_thawed.render(
-
-);

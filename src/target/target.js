@@ -18,8 +18,8 @@ var target;
     }());
     target.SubtargetIterator = SubtargetIterator;
     var Target = /** @class */ (function () {
-        function Target(subtarget_iterator) {
-            this.subtarget_iterator = subtarget_iterator;
+        function Target(iterator_subtarget) {
+            this.iterator_subtarget = iterator_subtarget;
         }
         return Target;
     }());
@@ -28,9 +28,6 @@ var target;
         function TargetIterator(targets) {
             this.targets = targets;
         }
-        TargetIterator.from_segment_targetable = function (segment_targetable) {
-            return;
-        };
         return TargetIterator;
     }());
     target.TargetIterator = TargetIterator;

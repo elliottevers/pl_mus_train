@@ -4,9 +4,6 @@ var note_1 = require("../../src/note/note");
 var TreeModel = require("tree-model");
 var user_input_1 = require("../../src/control/user_input");
 var UserInputHandler = user_input_1.user_input.UserInputHandler;
-var ListWindow = window.ListWindow;
-var Trainer = trainer.Trainer;
-var Detect = algorithm.Detect;
 var messenger_1 = require("../../src/message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../../src/live/live");
@@ -15,10 +12,15 @@ var segment_1 = require("../../src/segment/segment");
 var Segment = segment_1.segment.Segment;
 var clip_1 = require("../../src/clip/clip");
 var Clip = clip_1.clip.Clip;
+var algorithm_1 = require("../../src/train/algorithm");
+var Detect = algorithm_1.algorithm.Detect;
 var serialize_1 = require("../../src/serialize/serialize");
-var TrainThawer = deserialize_1.deserialize.TrainThawer;
-var TrainFreezer = serialize_1.serialize.TrainFreezer;
-var deserialize_1 = require("../../src/serialize/deserialize");
+var TrainFreezer = serialize_1.freeze.TrainFreezer;
+var TrainThawer = serialize_1.thaw.TrainThawer;
+var window_1 = require("../../src/render/window");
+var ListWindow = window_1.window.ListWindow;
+var trainer_1 = require("../../src/train/trainer");
+var Trainer = trainer_1.trainer.Trainer;
 var tree = new TreeModel();
 var segment_note_1 = tree.parse({
     id: -1,
@@ -74,8 +76,8 @@ var mode_texture = 'harmonic';
 var mode_control = 'instrumental';
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
 var messenger = new Messenger('node', 0);
-var window = new ListWindow(384, 384, messenger);
-var algorithm = new Detect(user_input_handler);
+var window_local = new ListWindow(384, 384, messenger);
+var algorithm_train = new Detect(user_input_handler);
 // stubs
 var song = {
     set_overdub: function (int) { },
@@ -107,19 +109,19 @@ for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length
 }
 var clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
 var clip_target_virtual = new Clip(clip_dao_virtual);
-var trainer = new Trainer(window, user_input_handler, algorithm, clip_user_input, clip_target_virtual, song, segments, messenger);
+var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, clip_user_input, clip_target_virtual, song, segments, messenger);
 // test case - 2 segments, 2 notes a piece
-trainer.init();
-trainer.accept_input(note_target_1_subtarget_1);
-trainer.accept_input(note_target_1_subtarget_2);
-trainer.accept_input(note_target_2_subtarget_1);
-trainer.accept_input(note_target_2_subtarget_2);
-trainer.accept_input(note_target_3_subtarget_1);
-trainer.clear_window();
+trainer_local.init();
+trainer_local.accept_input(note_target_1_subtarget_1);
+trainer_local.accept_input(note_target_1_subtarget_2);
+trainer_local.accept_input(note_target_2_subtarget_1);
+trainer_local.accept_input(note_target_2_subtarget_2);
+trainer_local.accept_input(note_target_3_subtarget_1);
+trainer_local.clear_window();
 var freezer = new TrainFreezer('node');
-freezer.freeze(trainer, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
+freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
 var thawer = new TrainThawer('node');
 var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
 train_thawed.render_window();
-// verify that it look
+// verify that it looks correct in window
 //# sourceMappingURL=train.js.map

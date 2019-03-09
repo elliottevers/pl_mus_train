@@ -48,6 +48,9 @@ var live;
         //         128
         //     )
         // }
+        LiveClipVirtual.prototype.get_ambitus = function () {
+            return [];
+        };
         LiveClipVirtual.prototype.load_notes_within_loop_brackets = function () {
             this.notes = this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128);
         };
