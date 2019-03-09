@@ -56,8 +56,9 @@ export namespace parse {
         }
 
         // TODO: we actually have to implement
-        public static add(list_parse_tree, iterator_matrix_train): void {
+        public static add(input_user, list_parse_tree, iterator_matrix_train): ParseTree[] {
             let coord = iterator_matrix_train.get_coord_current()
+            return
         }
 
         private static get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {

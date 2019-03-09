@@ -19,8 +19,9 @@ var parse;
             });
         }
         // TODO: we actually have to implement
-        ParseTree.add = function (list_parse_tree, iterator_matrix_train) {
+        ParseTree.add = function (input_user, list_parse_tree, iterator_matrix_train) {
             var coord = iterator_matrix_train.get_coord_current();
+            return;
         };
         ParseTree.get_diff_index_start = function (notes_new, notes_old) {
             var same_start, same_duration, index_start_diff;

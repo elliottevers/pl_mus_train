@@ -27,7 +27,7 @@ export namespace window {
     //     add(notes: TreeModel.Node<n.Note>[])
     // }
 
-    abstract class Window {
+    export abstract class Window {
         // height: number;
         // width: number;
         // messenger: m.Messenger;
@@ -48,7 +48,6 @@ export namespace window {
             this.width = width;
             this.messenger = messenger;
         }
-
 
         public clear() {
             let msg_clear = ["clear"];
@@ -71,8 +70,17 @@ export namespace window {
 
     }
 
-    interface Renderable {
+    export interface Renderable {
+        render_regions(
+            iterator_matrix_train,
+            matrix_target_iterator
+        ) // have to have data down to the target
 
+        render_notes(history_user_input)
+    }
+
+    export interface TreeRenderable extends Renderable {
+        render_tree(list_parse_tree)
     }
 
     export class ListWindow extends Window {

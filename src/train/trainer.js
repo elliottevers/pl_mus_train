@@ -7,7 +7,6 @@ var utils_1 = require("../utils/utils");
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
-    var MatrixIterator = history_1.history.MatrixIterator;
     var ParseTree = parse_1.parse.ParseTree;
     var division_int = utils_1.utils.division_int;
     var remainder = utils_1.utils.remainder;
@@ -174,16 +173,30 @@ var trainer;
         };
         Trainer.prototype.advance_segment = function () {
         };
-        Trainer.prototype.advance = function () {
+        Trainer.prototype.advance_subtarget = function () {
             // this.segment_current = this.segment_iterator.next();
             // this.target_current = this.target_iterator.next();
             // this.subtarget_current = this.subtarget_current.next();
             // [i_height, i_width] = this.iterator_matrix_train.next();
-            this.subtarget_iterator.next();
-            var obj_matrix_next = this.iterator_matrix_train.next(); // iterator_matrix_train points to a segment
-            if (obj_matrix_next.done) {
-                this.algorithm.pre_terminate();
+            var obj_next_subtarget = this.itertor_subtarget_current.next();
+            var obj_next_target;
+            if (obj_next_subtarget.done) {
+                obj_next_target = this.iterator_target_current.next();
             }
+            if (obj_next_target.done) {
+                var obj_next_coord = this.iterator_matrix_train.next();
+                if (obj_next_coord.done) {
+                    this.algorithm.pre_terminate();
+                    return;
+                }
+                var coord_next = obj_next_coord.value;
+                this.iterator_target_current = this.matrix_target_iterator[coord_next[0]][coord_next[1]];
+            }
+            // let obj_matrix_next = this.iterator_matrix_train.next();
+            //
+            // if (obj_matrix_next.done) {
+            //     this.algorithm.pre_terminate()
+            // }
             // set segment current
             if (this.algorithm.b_targeted()) {
                 // set the targets and shit
@@ -217,8 +230,11 @@ var trainer;
                 // this.struct.add(
                 //     input_user
                 // );
-                ParseTree.add(this.list_parse_tree, this.iterator_matrix_train);
+                this.list_parse_tree = ParseTree.add(input_user, this.list_parse_tree, this.iterator_matrix_train);
                 this.advance_segment();
+                this.window.render_regions(this.iterator_matrix_train, this.matrix_target_iterator);
+                this.window.render_notes(this.history_user_input);
+                this.window.render_tree(this.list_parse_tree);
                 return;
             }
             // detect/predict logic
@@ -226,11 +242,8 @@ var trainer;
                 var target_iterator_current = this.matrix_target_iterator[this.iterator_matrix_train.get_row_current()][this.iterator_matrix_train.get_column_current()];
                 // NB: we actually add the note that the user was trying to guess, not the note played
                 this.history_user_input.add_subtarget(target_iterator_current.current().subtarget_iterator.current());
-                this.advance();
-                // this.struct.add(
-                //     input_user
-                // );
-                this.window.render(list_parse_tree, this.history_user_input);
+                this.advance_subtarget();
+                this.window.render_regions(this.iterator_matrix_train, this.matrix_target_iterator);
             }
         };
         return Trainer;

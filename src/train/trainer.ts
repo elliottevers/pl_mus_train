@@ -7,6 +7,10 @@ import {target} from "../target/target";
 import {segment} from "../segment/segment";
 import {parse} from "../parse/parse";
 import {utils} from "../utils/utils";
+import {window} from "../render/window";
+import {message} from "../message/messenger";
+import {song} from "../song/song";
+import {clip} from "../clip/clip";
 
 export namespace trainer {
 
@@ -14,7 +18,7 @@ export namespace trainer {
     import HistoryUserInput = history.HistoryUserInput;
     import TargetType = target.TargetType;
     import TargetIterator = target.TargetIterator;
-    import MatrixIterator = history.MatrixIterator;
+    // import MatrixIterator = history.MatrixIterator;
     import Segment = segment.Segment;
     import ParseTree = parse.ParseTree;
     import Algorithm = algorithm.Algorithm;
@@ -25,6 +29,13 @@ export namespace trainer {
     import DETECT = algorithm.DETECT;
     import PREDICT = algorithm.PREDICT;
     import Parse = algorithm.Parse;
+    import Renderable = window.Renderable;
+    import TreeRenderable = window.TreeRenderable;
+    import Subtarget = target.Subtarget;
+    import Target = target.Target;
+    import Messenger = message.Messenger;
+    import Song = song.Song;
+    import Clip = clip.Clip;
 
     export class MatrixIterator {
         private num_rows: number;
@@ -108,28 +119,27 @@ export namespace trainer {
 
     export class Trainer {
 
-        private window;
-        private algorithm;
-        private clip_user_input;
-        private clip_target;
-        private song;
-        private segments;
-        private messenger;
+        private window: TreeRenderable;
+        private algorithm: Algorithm;
+        private clip_user_input: Clip;
+        private clip_target: Clip;
+        private song: Song;
+        private segments: Segment[];
+        private messenger: Messenger;
 
         private list_parse_tree: ParseTree[];
-        private history_user_input;
+        private history_user_input: HistoryUserInput;
 
-        private counter_user_input;
-        private limit_user_input;
-        private limit_input_reached;
+        private counter_user_input: number;
+        private limit_user_input: number;
+        private limit_input_reached: boolean;
 
-        private segment_current;
-        private target_current;
-        private subtarget_current;
+        private segment_current: Segment;
+        private target_current: Target;
+        private subtarget_current: Subtarget;
 
-        // private segment_iterator;
-        private matrix_target_iterator;
-        private subtarget_iterator;
+        private matrix_target_iterator: TargetIterator[][];
+        private iterator_target_current: TargetIterator;
 
         private iterator_matrix_train: MatrixIterator;
 
@@ -276,20 +286,39 @@ export namespace trainer {
 
         }
 
-        private advance() {
+        private advance_subtarget() {
             // this.segment_current = this.segment_iterator.next();
             // this.target_current = this.target_iterator.next();
             // this.subtarget_current = this.subtarget_current.next();
             // [i_height, i_width] = this.iterator_matrix_train.next();
 
 
-            this.subtarget_iterator.next();
+            let obj_next_subtarget = this.itertor_subtarget_current.next();
 
-            let obj_matrix_next = this.iterator_matrix_train.next(); // iterator_matrix_train points to a segment
+            let obj_next_target;
 
-            if (obj_matrix_next.done) {
-                this.algorithm.pre_terminate()
+            if (obj_next_subtarget.done) {
+                obj_next_target = this.iterator_target_current.next();
             }
+
+            if (obj_next_target.done) {
+                let obj_next_coord = this.iterator_matrix_train.next();
+
+                if (obj_next_coord.done) {
+                    this.algorithm.pre_terminate();
+                    return
+                }
+
+                let coord_next = obj_next_coord.value;
+
+                this.iterator_target_current = this.matrix_target_iterator[coord_next[0]][coord_next[1]];
+            }
+
+            // let obj_matrix_next = this.iterator_matrix_train.next();
+            //
+            // if (obj_matrix_next.done) {
+            //     this.algorithm.pre_terminate()
+            // }
 
             // set segment current
 
@@ -333,12 +362,26 @@ export namespace trainer {
                 //     input_user
                 // );
 
-                ParseTree.add(
+                this.list_parse_tree = ParseTree.add(
+                    input_user,
                     this.list_parse_tree,
                     this.iterator_matrix_train
                 );
 
                 this.advance_segment();
+
+                this.window.render_regions(
+                    this.iterator_matrix_train,
+                    this.matrix_target_iterator
+                );
+
+                this.window.render_notes(
+                    this.history_user_input
+                );
+
+                this.window.render_tree(
+                    this.list_parse_tree
+                );
 
                 return
             }
@@ -353,16 +396,12 @@ export namespace trainer {
                     target_iterator_current.current().subtarget_iterator.current()
                 );
 
-                this.advance();
+                this.advance_subtarget();
 
-                // this.struct.add(
-                //     input_user
-                // );
-
-                this.window.render(
-                    list_parse_tree,
-                    this.history_user_input
-                )
+                this.window.render_regions(
+                    this.iterator_matrix_train,
+                    this.matrix_target_iterator
+                );
             }
         }
     }

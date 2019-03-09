@@ -37,6 +37,7 @@ var window;
         };
         return Window;
     }());
+    window.Window = Window;
     var ListWindow = /** @class */ (function (_super) {
         __extends(ListWindow, _super);
         function ListWindow(height, width, messenger) {
