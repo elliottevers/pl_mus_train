@@ -23,7 +23,6 @@ var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var MatrixIterator = trainer_1.trainer.MatrixIterator;
-    var Clip = clip_1.clip.Clip;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var region_yellow = [254, 254, 10];
@@ -45,27 +44,47 @@ var window;
             var msg_clear = ["render", "clear"];
             this.messenger.message(msg_clear);
         };
-        Window.prototype.set_matrix = function (matrix) {
-            this.matrix_clips = matrix;
+        // public set_matrix(matrix) {
+        //     this.matrix_clips = matrix;
+        // }
+        Window.prototype.coord_to_index_clip = function (coord) {
+            return coord[0];
         };
         // TODO: this won't work for a parse tree
-        Window.prototype.initialize_clips_matrix = function (segments) {
-            for (var i_row in this.matrix_clips) {
-                for (var i_col in this.matrix_clips[Number(i_row)]) {
-                    var segment_1 = segments[Number(i_col)];
-                    var clip_dao_virtual = new LiveClipVirtual([]);
-                    clip_dao_virtual.beat_start = segment_1.beat_start;
-                    clip_dao_virtual.beat_end = segment_1.beat_end;
-                    this.matrix_clips[Number(i_row)][Number(i_col)] = new clip_1.clip.Clip(clip_dao_virtual);
-                }
+        // public initialize_clips_matrix(segments: Segment[]) {
+        //     for (let i_row in this.matrix_clips) {
+        //         for (let i_col in this.matrix_clips[Number(i_row)]) {
+        //             let segment = segments[Number(i_col)];
+        //             let clip_dao_virtual = new LiveClipVirtual([]);
+        //             clip_dao_virtual.beat_start = segment.beat_start;
+        //             clip_dao_virtual.beat_end = segment.beat_end;
+        //             this.matrix_clips[Number(i_row)][Number(i_col)] = new c.Clip(clip_dao_virtual);
+        //         }
+        //     }
+        // }
+        Window.prototype.initialize_clips = function (algorithm, segments) {
+            var list_clips = [];
+            var depth = algorithm.get_depth();
+            var beat_start_song = segments[0].beat_start;
+            var beat_end_song = segments[segments.length - 1].beat_end;
+            for (var i in _.range(1, depth + 1)) {
+                var clip_dao_virtual = new LiveClipVirtual([]);
+                clip_dao_virtual.beat_start = beat_start_song;
+                clip_dao_virtual.beat_end = beat_end_song;
+                var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
+                list_clips.push(clip_virtual);
             }
+            this.list_clips = list_clips;
         };
         Window.prototype.set_length_beats = function (beats) {
             this.length_beats = beats;
         };
+        // public add_note_to_clip(note_to_add_to_clip, coord_current) {
+        //     this.matrix_clips[coord_current[0]][coord_current[1]].append(note_to_add_to_clip);
+        // }
         Window.prototype.add_note_to_clip = function (note_to_add_to_clip, coord_current) {
-            this.matrix_clips[coord_current[0]][coord_current[1]].append(note_to_add_to_clip);
-            return;
+            var index_clip = this.coord_to_index_clip(coord_current);
+            this.list_clips[index_clip].append(note_to_add_to_clip);
         };
         // public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
         //     let clip_dao_virtual = new LiveClipVirtual(notes);
@@ -79,7 +98,8 @@ var window;
         //     this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
         // }
         Window.prototype.get_messages_render_clip = function (coord_clip) {
-            var clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
+            var index_clip = this.coord_to_index_clip(coord_clip);
+            var clip_virtual = this.list_clips[index_clip];
             var quadruplets = [];
             for (var _i = 0, _a = clip_virtual.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
                 var node = _a[_i];
@@ -103,7 +123,8 @@ var window;
         ;
         Window.prototype.get_dist_from_top = function (pitch, coord_clip) {
             // var clip = this.clips[index_clip];
-            var clip = this.matrix_clips[coord_clip[0]][coord_clip[1]];
+            var index_clip = this.coord_to_index_clip(coord_clip);
+            var clip = this.list_clips[index_clip];
             // let offset = index_clip;
             var offset = coord_clip[0];
             // let offset = coord_clip[1];
@@ -111,7 +132,7 @@ var window;
             if (false) {
                 // offset = this.clips.length - 1 - index_clip;
                 // offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
-                offset = this.matrix_clips.length - 1 - coord_clip[0];
+                offset = this.list_clips.length - 1 - coord_clip[0];
             }
             var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(coord_clip);
             return dist + (this.get_height_clip() * offset);
@@ -134,27 +155,54 @@ var window;
             return this.height;
         };
         Window.prototype.get_height_clip = function () {
-            return this.height / this.matrix_clips.length;
+            // return this.height / this.matrix_clips.length;
+            return this.height / this.list_clips.length;
         };
         ;
         // TODO: make a virtual "append" clip method so we can get the ambitus across columns
+        // get_height_note(coord_clip: number[]): number {
+        //     let notes_row = [];
+        //     let interval_ambitus: number[] = [-Infinity, Infinity];
+        //     for (let i_row in this.matrix_clips) {
+        //         for (let i_col in this.matrix_clips[Number(i_row)]) {
+        //             if (Number(i_col) == 0) {
+        //                 interval_ambitus[0] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_start()
+        //             }
+        //             notes_row = notes_row.concat(this.matrix_clips[coord_clip[0]][Number(i_col)].get_notes_within_loop_brackets())
+        //             interval_ambitus[1] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_end()
+        //         }
+        //     }
+        //     let clip_dao_row_virtual = new LiveClipVirtual([]);
+        //     let clip_row_virtual = new Clip(clip_dao_row_virtual);
+        //     clip_row_virtual.set_notes(
+        //         notes_row
+        //     );
+        //     // let ambitus = this.get_ambitus(coord_clip);
+        //     let ambitus = clip_row_virtual.get_ambitus(interval_ambitus);
+        //     let dist_pitch = ambitus[1] - ambitus[0] + 1;
+        //     return this.get_height_clip() / dist_pitch;
+        // };
         Window.prototype.get_height_note = function (coord_clip) {
-            var notes_row = [];
-            var interval_ambitus = [-Infinity, Infinity];
-            for (var i_row in this.matrix_clips) {
-                for (var i_col in this.matrix_clips[Number(i_row)]) {
-                    if (Number(i_col) == 0) {
-                        interval_ambitus[0] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_start();
-                    }
-                    notes_row = notes_row.concat(this.matrix_clips[coord_clip[0]][Number(i_col)].get_notes_within_loop_brackets());
-                    interval_ambitus[1] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_end();
-                }
-            }
-            var clip_dao_row_virtual = new LiveClipVirtual([]);
-            var clip_row_virtual = new Clip(clip_dao_row_virtual);
-            clip_row_virtual.set_notes(notes_row);
+            // let notes_row = [];
+            // let interval_ambitus: number[] = [-Infinity, Infinity];
+            // for (let i_row in this.matrix_clips) {
+            //     for (let i_col in this.matrix_clips[Number(i_row)]) {
+            //         if (Number(i_col) == 0) {
+            //             interval_ambitus[0] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_start()
+            //         }
+            //         notes_row = notes_row.concat(this.matrix_clips[coord_clip[0]][Number(i_col)].get_notes_within_loop_brackets())
+            //         interval_ambitus[1] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_end()
+            //     }
+            // }
+            // let clip_dao_row_virtual = new LiveClipVirtual([]);
+            // let clip_row_virtual = new Clip(clip_dao_row_virtual);
+            // clip_row_virtual.set_notes(
+            //     notes_row
+            // );
+            var index_clip = this.coord_to_index_clip(coord_clip);
+            var clip = this.list_clips[index_clip];
             // let ambitus = this.get_ambitus(coord_clip);
-            var ambitus = clip_row_virtual.get_ambitus(interval_ambitus);
+            var ambitus = clip.get_ambitus();
             var dist_pitch = ambitus[1] - ambitus[0] + 1;
             return this.get_height_clip() / dist_pitch;
         };
@@ -186,7 +234,8 @@ var window;
             var messages = [];
             for (var _i = 0, _a = _.range(0, iterator_matrix_train.get_state_current() + 1); _i < _a.length; _i++) {
                 var i = _a[_i];
-                var coord_clip = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
+                // let coord_clip: number[] = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
+                var coord_clip = MatrixIterator.get_coord(i, iterator_matrix_train.num_columns);
                 messages.push(this.get_messages_render_clip(coord_clip));
             }
             return messages;

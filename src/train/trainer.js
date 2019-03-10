@@ -134,8 +134,10 @@ var trainer;
             this.matrix_target_iterator = FactoryMatrixTargetIterator.get_iterator_target(this.algorithm, this.segments);
             this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
             this.history_user_input.set_matrix(l.cloneDeep(this.matrix_target_iterator));
-            this.window.set_matrix(l.cloneDeep(this.matrix_target_iterator));
-            this.window.initialize_clips_matrix(this.segments);
+            // this.window.set_matrix(
+            //     l.cloneDeep(this.matrix_target_iterator)
+            // );
+            this.window.initialize_clips(this.algorithm, this.segments);
             this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
             if (this.algorithm.b_targeted()) {
                 this.create_targets();

@@ -213,11 +213,12 @@ export namespace trainer {
                 l.cloneDeep(this.matrix_target_iterator)
             );
 
-            this.window.set_matrix(
-                l.cloneDeep(this.matrix_target_iterator)
-            );
+            // this.window.set_matrix(
+            //     l.cloneDeep(this.matrix_target_iterator)
+            // );
 
-            this.window.initialize_clips_matrix(
+            this.window.initialize_clips(
+                this.algorithm,
                 this.segments
             );
 
