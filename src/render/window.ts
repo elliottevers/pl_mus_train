@@ -132,6 +132,7 @@ export namespace window {
             var clip = this.matrix_clips[coord_clip[0]][coord_clip[1]];
             // let offset = index_clip;
             let offset = coord_clip[0];
+            // let offset = coord_clip[1];
             // TODO: make this configurable
             if (false) {
                 // offset = this.clips.length - 1 - index_clip;
@@ -174,15 +175,33 @@ export namespace window {
             return this.height / this.matrix_clips.length;
         };
 
+        // TODO: make a virtual "append" clip method so we can get the ambitus across columns
         get_height_note(coord_clip: number[]): number {
-            var ambitus = this.get_ambitus(coord_clip);
-            var dist_pitch = ambitus[1] - ambitus[0] + 1;
+            let notes_row = [];
+            let interval_ambitus: number[] = [-Infinity, Infinity];
+            for (let i_row in this.matrix_clips) {
+                for (let i_col in this.matrix_clips[Number(i_row)]) {
+                    if (Number(i_col) == 0) {
+                        interval_ambitus[0] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_start()
+                    }
+                    notes_row = notes_row.concat(this.matrix_clips[coord_clip[0]][Number(i_col)].get_notes_within_loop_brackets())
+                    interval_ambitus[1] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_end()
+                }
+            }
+            let clip_dao_row_virtual = new LiveClipVirtual([]);
+            let clip_row_virtual = new Clip(clip_dao_row_virtual);
+            clip_row_virtual.set_notes(
+                notes_row
+            );
+            // let ambitus = this.get_ambitus(coord_clip);
+            let ambitus = clip_row_virtual.get_ambitus(interval_ambitus);
+            let dist_pitch = ambitus[1] - ambitus[0] + 1;
             return this.get_height_clip() / dist_pitch;
         };
 
-        get_ambitus(coord_clips: number[]): number[] {
-            return this.matrix_clips[coord_clips[0]][coord_clips[1]].get_ambitus();
-        };
+        // get_ambitus(coord_clips: number[]): number[] {
+        //     return this.matrix_clips[coord_clips[0]][coord_clips[1]].get_ambitus();
+        // };
     }
 
     export interface Renderable {

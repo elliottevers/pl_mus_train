@@ -23,6 +23,7 @@ var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var MatrixIterator = trainer_1.trainer.MatrixIterator;
+    var Clip = clip_1.clip.Clip;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var region_yellow = [254, 254, 10];
@@ -105,6 +106,7 @@ var window;
             var clip = this.matrix_clips[coord_clip[0]][coord_clip[1]];
             // let offset = index_clip;
             var offset = coord_clip[0];
+            // let offset = coord_clip[1];
             // TODO: make this configurable
             if (false) {
                 // offset = this.clips.length - 1 - index_clip;
@@ -135,14 +137,26 @@ var window;
             return this.height / this.matrix_clips.length;
         };
         ;
+        // TODO: make a virtual "append" clip method so we can get the ambitus across columns
         Window.prototype.get_height_note = function (coord_clip) {
-            var ambitus = this.get_ambitus(coord_clip);
+            var notes_row = [];
+            var interval_ambitus = [-Infinity, Infinity];
+            for (var i_row in this.matrix_clips) {
+                for (var i_col in this.matrix_clips[Number(i_row)]) {
+                    if (Number(i_col) == 0) {
+                        interval_ambitus[0] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_start();
+                    }
+                    notes_row = notes_row.concat(this.matrix_clips[coord_clip[0]][Number(i_col)].get_notes_within_loop_brackets());
+                    interval_ambitus[1] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_end();
+                }
+            }
+            var clip_dao_row_virtual = new LiveClipVirtual([]);
+            var clip_row_virtual = new Clip(clip_dao_row_virtual);
+            clip_row_virtual.set_notes(notes_row);
+            // let ambitus = this.get_ambitus(coord_clip);
+            var ambitus = clip_row_virtual.get_ambitus(interval_ambitus);
             var dist_pitch = ambitus[1] - ambitus[0] + 1;
             return this.get_height_clip() / dist_pitch;
-        };
-        ;
-        Window.prototype.get_ambitus = function (coord_clips) {
-            return this.matrix_clips[coord_clips[0]][coord_clips[1]].get_ambitus();
         };
         ;
         return Window;

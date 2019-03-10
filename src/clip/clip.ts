@@ -34,6 +34,14 @@ export namespace clip {
             }
         }
 
+        get_beat_start(): number {
+            return this.clip_dao.beat_start
+        }
+
+        get_beat_end(): number {
+            return this.clip_dao.beat_end
+        }
+
         get_path(): string {
             return this.clip_dao.get_path();
         }
@@ -70,18 +78,20 @@ export namespace clip {
         // TODO: annotations
         load_notes_within_markers(): void {
             this.notes = this.get_notes(
-                0, // this.get_start_marker(),
+                this.get_start_marker(),
                 0,
-                16 * 4, // this.get_end_marker(),
+                this.get_end_marker(),
                 128
             )
         }
 
         // TODO: annotations
-        get_pitch_max(): number {
+        get_pitch_max(interval?): number {
             let pitch_max = 0;
 
-            for (let node of this.get_notes_within_loop_brackets()) {
+            let interval_search = interval ? interval : [this.get_loop_bracket_lower(), this.get_loop_bracket_upper()];
+
+            for (let node of this.get_notes(interval_search[0], 0, interval_search[1], 128)) {
                 if (node.model.note.pitch > pitch_max) {
                     pitch_max = node.model.note.pitch;
                 }
@@ -91,10 +101,18 @@ export namespace clip {
         }
 
         // TODO: annotations
-        get_pitch_min(): number {
+        get_pitch_min(interval?): number {
             let pitch_min = 128;
 
-            for (let node of this.get_notes_within_loop_brackets()) {
+            // for (let node of this.get_notes_within_loop_brackets()) {
+            //     if (node.model.note.pitch < pitch_min) {
+            //         pitch_min = node.model.note.pitch;
+            //     }
+            // }
+
+            let interval_search = interval ? interval : [this.get_loop_bracket_lower(), this.get_loop_bracket_upper()];
+
+            for (let node of this.get_notes(interval_search[0], 0, interval_search[1], 128)) {
                 if (node.model.note.pitch < pitch_min) {
                     pitch_min = node.model.note.pitch;
                 }
@@ -103,8 +121,8 @@ export namespace clip {
             return pitch_min;
         }
 
-        get_ambitus(): number[] {
-            return [this.get_pitch_min(), this.get_pitch_max()];
+        get_ambitus(interval?): number[] {
+            return [this.get_pitch_min(interval), this.get_pitch_max(interval)];
         }
 
         set_loop_bracket_lower(beat: number): void {
