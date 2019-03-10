@@ -6,6 +6,7 @@ var history;
     var DETECT = algorithm_1.algorithm.DETECT;
     var PREDICT = algorithm_1.algorithm.PREDICT;
     var PARSE = algorithm_1.algorithm.PARSE;
+    var DERIVE = algorithm_1.algorithm.DERIVE;
     // export class SequenceTarget {
     //     data: TypeSequenceTarget;
     //
@@ -23,15 +24,17 @@ var history;
         FactoryHistoryUserInput.create_history_user_input = function (algorithm, segments) {
             switch (algorithm.get_name()) {
                 case DETECT: {
-                    return new TargetHistory(algorithm, segments);
+                    // return new TargetHistory(algorithm, segments);
+                    return new TargetHistory();
                 }
                 case PREDICT: {
-                    return new TargetHistory(algorithm, segments);
+                    // return new TargetHistory(algorithm, segments);
+                    return new TargetHistory();
                 }
                 case PARSE: {
                     throw 'parse not yet implemented';
                 }
-                case DETECT: {
+                case DERIVE: {
                     throw 'detect not yet implemented';
                 }
                 default: {
@@ -43,13 +46,18 @@ var history;
     }());
     history.FactoryHistoryUserInput = FactoryHistoryUserInput;
     var TargetHistory = /** @class */ (function () {
-        function TargetHistory(algorithm, segments) {
-            var matrix_data = [];
-            for (var i = 0; i < 1; i++) {
-                matrix_data[i] = new Array(segments.length);
-            }
-            this.matrix_data = matrix_data;
+        // constructor(algorithm, segments) {
+        //     let matrix_data = [];
+        //     for (let i=0; i < 1; i++) {
+        //         matrix_data[i] = new Array(segments.length);
+        //     }
+        //     this.matrix_data = matrix_data;
+        // }
+        function TargetHistory() {
         }
+        TargetHistory.prototype.set_matrix = function (matrix) {
+            this.matrix_data = matrix;
+        };
         // set_sequence_target(sequence_target: TypeSequenceTarget, coord_matrix: number[]) {
         //     this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
         // }

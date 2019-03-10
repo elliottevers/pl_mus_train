@@ -1,6 +1,6 @@
 import TreeModel = require("tree-model");
 import {message, message as m} from "../message/messenger"
-import {clip as c} from "../clip/clip";
+import {clip, clip as c} from "../clip/clip";
 import {note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
@@ -10,6 +10,7 @@ import {history} from "../history/history";
 // import {parse} from "../parse/parse";
 import {trainer} from "../train/trainer";
 import {parse} from "../parse/parse";
+import {segment} from "../segment/segment";
 
 export namespace window {
 
@@ -21,6 +22,8 @@ export namespace window {
     import TargetHistory = history.TargetHistory;
     import MatrixIterator = trainer.MatrixIterator;
     import ParseTree = parse.ParseTree;
+    import Segment = segment.Segment;
+    import Clip = clip.Clip;
 
     const red = [255, 0, 0];
     const black = [0, 0, 0];
@@ -45,7 +48,7 @@ export namespace window {
         // logger: Logger;
         // history_user_input: HistoryUserInput;
 
-        matrix_clips: LiveClipVirtual[][];
+        matrix_clips: Clip[][];
         height: number;
         width: number;
         messenger: Messenger;
@@ -63,18 +66,27 @@ export namespace window {
             this.messenger.message(msg_clear);
         }
 
-        // public set_num_measures(num_measures) {
-        //     this.num_measures = num_measures;
-        // }
+        public set_matrix(matrix) {
+            this.matrix_clips = matrix;
+        }
+
         public set_length_beats(beats) {
             this.length_beats = beats;
         }
 
-        public add(notes: TreeModel.Node<n.Note>[]) {
+        public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
+            let clip_dao_virtual = new LiveClipVirtual(notes);
 
+            clip_dao_virtual.beat_start = segment.beat_start;
+
+            clip_dao_virtual.beat_end = segment.beat_end;
+
+            let clip_virtual = new c.Clip(clip_dao_virtual);
+
+            this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
         }
 
-        get_messages_render_notes(coord_clip: number[]) {
+        get_messages_render_clip(coord_clip: number[]) {
             // var clip = this.clips[index_clip];
             let clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
             let quadruplets = [];
@@ -183,7 +195,21 @@ export namespace window {
         public render(iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm) {
             this.clear();
             this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
-            this.render_notes(history_user_input);
+            this.render_notes(iterator_matrix_train, matrix_target_iterator);
+        }
+
+        public render_notes(iterator_matrix_train, matrix_target_iterator) {
+            let messages_clips = [];
+
+            for (let i of _.range(0, iterator_matrix_train.get_state_current())) {
+                let coord_clip: number[] = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
+                // for (let clip of this.matrix_clips[coord_clip[0]][coord_clip[1]]) {
+                //
+                // }
+            }
+
+            // messages_clips = this.get_messages_render_clip()
+            return
         }
 
         public get_message_render_region_past(interval_current) {
@@ -220,17 +246,6 @@ export namespace window {
         }
 
         public render_regions(iterator_matrix_train, matrix_target_iterator, algorithm) {
-            // this.get_dist_from_left(0);
-            // let clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
-            // let quadruplets = [];
-            // for (let node of clip_virtual.get_notes_within_loop_brackets()) {
-            //     quadruplets.push(this.get_position_quadruplet(node, coord_clip));
-            // }
-            // return quadruplets.map(function (tuplet) {
-            //     let message = <any>["paintrect"].concat(tuplet);
-            //     message = message.concat(black);
-            //     return message;
-            // })
             let coord = iterator_matrix_train.get_coord_current();
             let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
             let subtargets = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
@@ -239,7 +254,6 @@ export namespace window {
             let interval_current = algorithm.determine_region_present(
                 subtargets
             );
-
 
             let quadruplet_region_past = this.get_message_render_region_past(interval_current);
             let quadruplet_region_present = this.get_message_render_region_present(interval_current);
@@ -255,16 +269,23 @@ export namespace window {
             quadruplet_region_future = quadruplet_region_future.concat(region_yellow);
 
             for (let quadruplet of [quadruplet_region_past, quadruplet_region_present, quadruplet_region_future]) {
-                // quadruplet.unshift('paintrect');
                 this.messenger.message(quadruplet);
             }
-
-            return
         }
 
-        public render_notes(history_user_input: HistoryUserInput) {
-            return
-        }
+        // public get_messages_render_notes(iterator_matrix_train: MatrixIterator, matrix_target_iterator) {
+        //     let coord_clip = iterator_matrix_train.get_coord_current();
+        //     let clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
+        //     let quadruplets = [];
+        //     for (let node of clip_virtual.get_notes_within_loop_brackets()) {
+        //         quadruplets.push(this.get_position_quadruplet(node, coord_clip));
+        //     }
+        //     return quadruplets.map(function (tuplet) {
+        //         let message = <any>["paintrect"].concat(tuplet);
+        //         message = message.concat(black);
+        //         return message;
+        //     })
+        // }
     }
 
     class MatrixClip {

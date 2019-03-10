@@ -13,9 +13,16 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var clip_1 = require("../clip/clip");
+var live_1 = require("../live/live");
 var _ = require("lodash");
+// import {struct} from "../train/struct";
+// import {parse} from "../parse/parse";
+var trainer_1 = require("../train/trainer");
 var window;
 (function (window) {
+    var LiveClipVirtual = live_1.live.LiveClipVirtual;
+    var MatrixIterator = trainer_1.trainer.MatrixIterator;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var region_yellow = [254, 254, 10];
@@ -38,15 +45,20 @@ var window;
             // msg_clear.unshift('render');
             this.messenger.message(msg_clear);
         };
-        // public set_num_measures(num_measures) {
-        //     this.num_measures = num_measures;
-        // }
+        Window.prototype.set_matrix = function (matrix) {
+            this.matrix_clips = matrix;
+        };
         Window.prototype.set_length_beats = function (beats) {
             this.length_beats = beats;
         };
-        Window.prototype.add = function (notes) {
+        Window.prototype.add = function (notes, coord_matrix_clip, segment) {
+            var clip_dao_virtual = new LiveClipVirtual(notes);
+            clip_dao_virtual.beat_start = segment.beat_start;
+            clip_dao_virtual.beat_end = segment.beat_end;
+            var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
+            this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
         };
-        Window.prototype.get_messages_render_notes = function (coord_clip) {
+        Window.prototype.get_messages_render_clip = function (coord_clip) {
             // var clip = this.clips[index_clip];
             var clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
             var quadruplets = [];
@@ -126,7 +138,19 @@ var window;
         ListWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm) {
             this.clear();
             this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
-            this.render_notes(history_user_input);
+            this.render_notes(iterator_matrix_train, matrix_target_iterator);
+        };
+        ListWindow.prototype.render_notes = function (iterator_matrix_train, matrix_target_iterator) {
+            var messages_clips = [];
+            for (var _i = 0, _a = _.range(0, iterator_matrix_train.get_state_current()); _i < _a.length; _i++) {
+                var i = _a[_i];
+                var coord_clip = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
+                // for (let clip of this.matrix_clips[coord_clip[0]][coord_clip[1]]) {
+                //
+                // }
+            }
+            // messages_clips = this.get_messages_render_clip()
+            return;
         };
         ListWindow.prototype.get_message_render_region_past = function (interval_current) {
             var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
@@ -153,17 +177,6 @@ var window;
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
         ListWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator, algorithm) {
-            // this.get_dist_from_left(0);
-            // let clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
-            // let quadruplets = [];
-            // for (let node of clip_virtual.get_notes_within_loop_brackets()) {
-            //     quadruplets.push(this.get_position_quadruplet(node, coord_clip));
-            // }
-            // return quadruplets.map(function (tuplet) {
-            //     let message = <any>["paintrect"].concat(tuplet);
-            //     message = message.concat(black);
-            //     return message;
-            // })
             var coord = iterator_matrix_train.get_coord_current();
             var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
             var subtargets = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
@@ -181,13 +194,8 @@ var window;
             quadruplet_region_future = quadruplet_region_future.concat(region_yellow);
             for (var _i = 0, _a = [quadruplet_region_past, quadruplet_region_present, quadruplet_region_future]; _i < _a.length; _i++) {
                 var quadruplet = _a[_i];
-                // quadruplet.unshift('paintrect');
                 this.messenger.message(quadruplet);
             }
-            return;
-        };
-        ListWindow.prototype.render_notes = function (history_user_input) {
-            return;
         };
         return ListWindow;
     }(Window));

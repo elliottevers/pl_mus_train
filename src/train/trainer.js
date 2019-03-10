@@ -47,15 +47,50 @@ var trainer;
             };
         };
         MatrixIterator.prototype.get_coord_current = function () {
-            // let pos_row = division_int(this.i + 1, this.num_columns);
-            // let pos_column = remainder(this.i + 1, this.num_columns);
-            var pos_row = division_int(this.i, this.num_columns);
-            var pos_column = remainder(this.i, this.num_columns);
+            return MatrixIterator.get_coord(this.get_state_current(), this.num_columns);
+        };
+        MatrixIterator.prototype.get_state_current = function () {
+            return this.i;
+        };
+        MatrixIterator.get_coord = function (i, num_columns) {
+            var pos_row = division_int(i, num_columns);
+            var pos_column = remainder(i, num_columns);
             return [pos_row, pos_column];
         };
         return MatrixIterator;
     }());
     trainer.MatrixIterator = MatrixIterator;
+    var FactoryMatrixTargetIterator = /** @class */ (function () {
+        function FactoryMatrixTargetIterator() {
+        }
+        FactoryMatrixTargetIterator.get_iterator_target = function (algorithm, segments) {
+            var matrix_data = [];
+            switch (algorithm.get_name()) {
+                case algorithm_1.algorithm.DETECT || algorithm_1.algorithm.PREDICT: {
+                    for (var i = 0; i < 1; i++) {
+                        matrix_data[i] = new Array(segments.length);
+                    }
+                    break;
+                }
+                case algorithm_1.algorithm.PARSE || algorithm_1.algorithm.DERIVE: {
+                    for (var i = 0; i < algorithm.get_depth(); i++) {
+                        if (i == 0) {
+                            matrix_data[i] = new Array(1); // root of tree
+                        }
+                        else {
+                            matrix_data[i] = new Array(segments.length);
+                        }
+                    }
+                    break;
+                }
+                default: {
+                    throw 'case not considered';
+                }
+            }
+            return matrix_data;
+        };
+        return FactoryMatrixTargetIterator;
+    }());
     var IteratorTrainFactory = /** @class */ (function () {
         function IteratorTrainFactory() {
         }
@@ -99,20 +134,19 @@ var trainer;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
-            this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
-            this.matrix_target_iterator = l.cloneDeep(this.history_user_input.matrix_data);
+            var clone_matrix_iterator = l.cloneDeep(this.iterator_matrix_train);
+            this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
+            this.history_user_input.set_matrix(clone_matrix_iterator);
+            this.window.set_matrix(clone_matrix_iterator);
+            this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
             if (this.algorithm.b_targeted()) {
                 this.create_targets();
             }
             else {
                 this.create_parse_trees();
             }
-            this.initialize_window();
         }
-        Trainer.prototype.initialize_window = function () {
-            this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
-        };
         Trainer.prototype.create_parse_trees = function () {
             var list_parse_tree = [];
             switch (this.algorithm.get_name()) {
@@ -276,6 +310,8 @@ var trainer;
                 }
                 // set the context in ableton
                 this.set_loop();
+                var coord_current = this.iterator_matrix_train.get_coord_current();
+                this.window.add(this.matrix_target_iterator[coord_current[0]][coord_current[1]], coord_current, this.segment_current);
                 this.render_window();
             }
         };

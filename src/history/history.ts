@@ -14,6 +14,7 @@ export namespace history {
     import DETECT = algorithm.DETECT;
     import PREDICT = algorithm.PREDICT;
     import PARSE = algorithm.PARSE;
+    import DERIVE = algorithm.DERIVE;
     import Subtarget = target.Subtarget;
     import MatrixIterator = trainer.MatrixIterator;
     import Target = target.Target;
@@ -42,15 +43,17 @@ export namespace history {
         public static create_history_user_input(algorithm, segments) {
             switch (algorithm.get_name()) {
                 case DETECT: {
-                    return new TargetHistory(algorithm, segments);
+                    // return new TargetHistory(algorithm, segments);
+                    return new TargetHistory();
                 }
                 case PREDICT: {
-                    return new TargetHistory(algorithm, segments);
+                    // return new TargetHistory(algorithm, segments);
+                    return new TargetHistory();
                 }
                 case PARSE: {
                     throw 'parse not yet implemented'
                 }
-                case DETECT: {
+                case DERIVE: {
                     throw 'detect not yet implemented'
                 }
                 default: {
@@ -70,13 +73,22 @@ export namespace history {
 
         matrix_data: Target[][][];
 
-        constructor(algorithm, segments) {
-            let matrix_data = [];
-            for (let i=0; i < 1; i++) {
-                matrix_data[i] = new Array(segments.length);
-            }
-            this.matrix_data = matrix_data;
+        // constructor(algorithm, segments) {
+        //     let matrix_data = [];
+        //     for (let i=0; i < 1; i++) {
+        //         matrix_data[i] = new Array(segments.length);
+        //     }
+        //     this.matrix_data = matrix_data;
+        // }
+
+        constructor() {
+
         }
+
+        set_matrix(matrix) {
+            this.matrix_data = matrix
+        }
+
 
         // set_sequence_target(sequence_target: TypeSequenceTarget, coord_matrix: number[]) {
         //     this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
