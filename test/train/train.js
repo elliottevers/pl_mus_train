@@ -14,9 +14,6 @@ var clip_1 = require("../../src/clip/clip");
 var Clip = clip_1.clip.Clip;
 var algorithm_1 = require("../../src/train/algorithm");
 var Detect = algorithm_1.algorithm.Detect;
-var serialize_1 = require("../../src/serialize/serialize");
-var TrainFreezer = serialize_1.freeze.TrainFreezer;
-var TrainThawer = serialize_1.thaw.TrainThawer;
 var window_1 = require("../../src/render/window");
 var ListWindow = window_1.window.ListWindow;
 var trainer_1 = require("../../src/train/trainer");
@@ -78,8 +75,9 @@ var note_target_4_subtarget_2 = tree.parse({
 var mode_texture = POLYPHONY;
 var mode_control = INSTRUMENTAL;
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
-var env = 'node';
-var messenger = new Messenger(env, 0);
+var env = 'node_for_max';
+// env = 'node';
+var messenger = new Messenger(env, 0, 'render');
 var window_local = new ListWindow(384, 384, messenger);
 var algorithm_train = new Detect(user_input_handler);
 // stubs
@@ -121,22 +119,43 @@ trainer_local.accept_input([note_target_1_subtarget_2]);
 trainer_local.accept_input([note_target_2_subtarget_1]);
 trainer_local.accept_input([note_target_2_subtarget_2]);
 trainer_local.accept_input([note_target_3_subtarget_1]);
-trainer_local.clear_window();
-var freezer = new TrainFreezer(env);
-freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json', env);
-var thawer = new TrainThawer(env);
-var config = {
-    'window': window_local,
-    'user_input_handler': user_input_handler,
-    'algorithm': algorithm_train,
-    'clip_user_input': clip_user_input,
-    'clip_target_virtual': clip_target_virtual,
-    'song': song,
-    'segments': segments,
-    'messenger': messenger,
-    'env': env
-};
-var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json', config);
-train_thawed.render_window();
-// verify that it looks correct in window
+// trainer_local.clear_window(
+//
+// );
+//
+// let freezer = new TrainFreezer(
+//     env
+// );
+//
+// freezer.freeze(
+//     trainer_local,
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
+//     env
+// );
+//
+// let thawer = new TrainThawer(
+//     env
+// );
+//
+// let config = {
+//     'window': window_local,
+//     'user_input_handler': user_input_handler,
+//     'algorithm': algorithm_train,
+//     'clip_user_input': clip_user_input,
+//     'clip_target_virtual': clip_target_virtual,
+//     'song': song,
+//     'segments': segments,
+//     'messenger': messenger,
+//     'env': env
+// };
+//
+// let train_thawed = thawer.thaw(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
+//     config
+// );
+//
+// train_thawed.render_window(
+//
+// );
+// TODO: to finish test case, verify that it looks correct in window
 //# sourceMappingURL=train.js.map

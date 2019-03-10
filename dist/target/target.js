@@ -56,6 +56,14 @@ var target;
         function Target(iterator_subtarget) {
             this.iterator_subtarget = iterator_subtarget;
         }
+        Target.prototype.get_notes = function () {
+            var notes = [];
+            for (var _i = 0, _a = this.iterator_subtarget.subtargets; _i < _a.length; _i++) {
+                var subtarget = _a[_i];
+                notes.push(subtarget.note);
+            }
+            return notes;
+        };
         return Target;
     }());
     target_1.Target = Target;

@@ -20607,22 +20607,100 @@ var window;
 (function (window) {
     var red = [255, 0, 0];
     var black = [0, 0, 0];
-    // interface Renderable {
-    //     add(notes: TreeModel.Node<n.Note>[])
-    // }
     var Window = /** @class */ (function () {
         function Window(height, width, messenger) {
+            this.beat_to_pixel = function (beat) {
+                var num_pixels_width = this.width;
+                // var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
+                // let num_beats_window = this.num_measures * this.beats_per_measure;
+                return beat * (num_pixels_width / this.length_beats);
+            };
             this.height = height;
             this.width = width;
             this.messenger = messenger;
         }
         Window.prototype.clear = function () {
             var msg_clear = ["clear"];
-            msg_clear.unshift('render');
+            // msg_clear.unshift('render');
             this.messenger.message(msg_clear);
+        };
+        // public set_num_measures(num_measures) {
+        //     this.num_measures = num_measures;
+        // }
+        Window.prototype.set_length_beats = function (beats) {
+            this.length_beats = beats;
         };
         Window.prototype.add = function (notes) {
         };
+        Window.prototype.get_messages_render_notes = function (coord_clip) {
+            // var clip = this.clips[index_clip];
+            var clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
+            var quadruplets = [];
+            for (var _i = 0, _a = clip_virtual.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
+                var node = _a[_i];
+                quadruplets.push(this.get_position_quadruplet(node, coord_clip));
+            }
+            return quadruplets.map(function (tuplet) {
+                var message = ["paintrect"].concat(tuplet);
+                message = message.concat(black);
+                return message;
+            });
+        };
+        ;
+        Window.prototype.get_position_quadruplet = function (node, coord_clip) {
+            var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
+            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
+            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
+            return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom];
+        };
+        ;
+        Window.prototype.get_dist_from_top = function (pitch, coord_clip) {
+            // var clip = this.clips[index_clip];
+            var clip = this.matrix_clips[coord_clip[0]][coord_clip[1]];
+            // let offset = index_clip;
+            var offset = coord_clip[0];
+            // TODO: make this configurable
+            if (false) {
+                // offset = this.clips.length - 1 - index_clip;
+                // offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
+                offset = this.matrix_clips.length - 1 - coord_clip[0];
+            }
+            var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(coord_clip);
+            return dist + (this.get_height_clip() * offset);
+        };
+        ;
+        Window.prototype.get_dist_from_left = function (beat) {
+            return this.beat_to_pixel(beat);
+        };
+        ;
+        Window.prototype.get_offset_pixel_leftmost = function () {
+            return 0;
+        };
+        Window.prototype.get_offset_pixel_topmost = function () {
+            return 0;
+        };
+        Window.prototype.get_offset_pixel_rightmost = function () {
+            return this.width;
+        };
+        Window.prototype.get_offset_pixel_bottommost = function () {
+            return this.height;
+        };
+        Window.prototype.get_height_clip = function () {
+            return this.height / this.matrix_clips.length;
+        };
+        ;
+        Window.prototype.get_height_note = function (coord_clip) {
+            var ambitus = this.get_ambitus(coord_clip);
+            var dist_pitch = ambitus[1] - ambitus[0] + 1;
+            return this.get_height_clip() / dist_pitch;
+        };
+        ;
+        Window.prototype.get_ambitus = function (coord_clips) {
+            return this.matrix_clips[coord_clips[0]][coord_clips[1]].get_ambitus();
+        };
+        ;
         return Window;
     }());
     window.Window = Window;
@@ -20631,9 +20709,62 @@ var window;
         function ListWindow(height, width, messenger) {
             return _super.call(this, height, width, messenger) || this;
         }
-        ListWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator) {
+        ListWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm) {
+            this.clear();
+            this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
+            this.render_notes(history_user_input);
+        };
+        ListWindow.prototype.get_message_render_region_past = function (interval_current) {
+            var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
+            offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());
+            offset_left_end = this.get_dist_from_left(interval_current[0]);
+            offset_top_start = this.get_offset_pixel_topmost();
+            offset_top_end = this.get_offset_pixel_bottommost();
+            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
+        };
+        ListWindow.prototype.get_message_render_region_present = function (interval_current) {
+            var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
+            offset_left_start = this.get_dist_from_left(interval_current[0]);
+            offset_left_end = this.get_dist_from_left(interval_current[1]);
+            offset_top_start = this.get_offset_pixel_topmost();
+            offset_top_end = this.get_offset_pixel_bottommost();
+            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
+        };
+        ListWindow.prototype.get_message_render_region_future = function (interval_current) {
+            var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
+            offset_left_start = this.get_dist_from_left(interval_current[1]);
+            offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
+            offset_top_start = this.get_offset_pixel_topmost();
+            offset_top_end = this.get_offset_pixel_bottommost();
+            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
+        };
+        ListWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator, algorithm) {
+            // this.get_dist_from_left(0);
+            // let clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
+            // let quadruplets = [];
+            // for (let node of clip_virtual.get_notes_within_loop_brackets()) {
+            //     quadruplets.push(this.get_position_quadruplet(node, coord_clip));
+            // }
+            // return quadruplets.map(function (tuplet) {
+            //     let message = <any>["paintrect"].concat(tuplet);
+            //     message = message.concat(black);
+            //     return message;
+            // })
+            var coord = iterator_matrix_train.get_coord_current();
+            var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+            var interval_current = algorithm.determine_region_present(target_iterator.get_notes());
+            var quadruplet_region_past = this.get_message_render_region_past(interval_current);
+            var quadruplet_region_present = this.get_message_render_region_present(interval_current);
+            var quadruplet_region_future = this.get_message_render_region_future(interval_current);
+            for (var _i = 0, _a = [quadruplet_region_past, quadruplet_region_present, quadruplet_region_future]; _i < _a.length; _i++) {
+                var quadruplet = _a[_i];
+                quadruplet.unshift('paintrect');
+                this.messenger.message(quadruplet);
+            }
+            return;
         };
         ListWindow.prototype.render_notes = function (history_user_input) {
+            return;
         };
         return ListWindow;
     }(Window));
@@ -20645,14 +20776,9 @@ var window;
     }());
     var TreeWindow = /** @class */ (function (_super) {
         __extends(TreeWindow, _super);
+        // matrix_clips: LiveClipVirtual[][];
         function TreeWindow(height, width, messenger) {
-            var _this = _super.call(this, height, width, messenger) || this;
-            _this.beat_to_pixel = function (beat) {
-                var num_pixels_in_clip = this.width;
-                var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
-                return beat * (num_pixels_in_clip / num_beats_in_clip);
-            };
-            return _this;
+            return _super.call(this, height, width, messenger) || this;
             // this.struct = new struct.StructList();
         }
         TreeWindow.set_parent_child_relationships = function () {
@@ -20773,100 +20899,6 @@ var window;
         TreeWindow.prototype.get_messages_render_tree = function () {
             return [];
         };
-        // TODO: return signature
-        // get_messages_render_clips(history_user_input: HistoryUserInput)  {
-        //     var messages = [];
-        //     // for (let index_clip in this.clips) {
-        //     //     messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
-        //     // }
-        //     for (let index_clip in this.clips) {
-        //         messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
-        //     }
-        //     return messages;
-        // };
-        // get_messages_render_notes(index_clip: number) {
-        //     var clip = this.clips[index_clip];
-        //     let quadruplets = [];
-        //     for (let node of clip.get_notes_within_loop_brackets()) {
-        //         quadruplets.push(this.get_position_quadruplet(node, index_clip));
-        //     }
-        //     return quadruplets.map(function (tuplet) {
-        //         let message = <any>["paintrect"].concat(tuplet);
-        //         message = message.concat(black);
-        //         return message;
-        //     })
-        // };
-        TreeWindow.prototype.get_messages_render_notes = function (coord_clip) {
-            // var clip = this.clips[index_clip];
-            var clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
-            var quadruplets = [];
-            for (var _i = 0, _a = clip_virtual.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
-                var node = _a[_i];
-                quadruplets.push(this.get_position_quadruplet(node, coord_clip));
-            }
-            return quadruplets.map(function (tuplet) {
-                var message = ["paintrect"].concat(tuplet);
-                message = message.concat(black);
-                return message;
-            });
-        };
-        ;
-        TreeWindow.prototype.get_position_quadruplet = function (node, coord_clip) {
-            var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
-            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
-            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
-            return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom];
-        };
-        ;
-        TreeWindow.prototype.get_dist_from_top = function (pitch, coord_clip) {
-            // var clip = this.clips[index_clip];
-            var clip = this.matrix_clips[coord_clip[0]][coord_clip[1]];
-            // let offset = index_clip;
-            var offset = coord_clip[0];
-            // TODO: make this configurable
-            if (false) {
-                // offset = this.clips.length - 1 - index_clip;
-                // offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
-                offset = this.matrix_clips.length - 1 - coord_clip[0];
-            }
-            var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(coord_clip);
-            return dist + (this.get_height_clip() * offset);
-        };
-        ;
-        TreeWindow.prototype.get_dist_from_left = function (beat) {
-            return this.beat_to_pixel(beat);
-        };
-        ;
-        TreeWindow.prototype.get_height_clip = function () {
-            // return this.height / this.clips.length;
-            // return this.height / this.matrix_clips.get_num_rows();
-            return this.height / this.matrix_clips.length;
-        };
-        ;
-        // get_height_note(index_clip: number): number {
-        //     var ambitus = this.get_ambitus(index_clip);
-        //     var dist_pitch = ambitus[1] - ambitus[0] + 1;
-        //     return this.get_height_clip() / dist_pitch;
-        // };
-        TreeWindow.prototype.get_height_note = function (coord_clip) {
-            var ambitus = this.get_ambitus(coord_clip);
-            var dist_pitch = ambitus[1] - ambitus[0] + 1;
-            return this.get_height_clip() / dist_pitch;
-        };
-        ;
-        // get_ambitus(index_clip: number): number[] {
-        //     return this.clips[index_clip].get_ambitus();
-        // };
-        TreeWindow.prototype.get_ambitus = function (coord_clips) {
-            // return this.matrix_clips[
-            //     coord_clips[0],
-            //     coord_clips[1]
-            // ].get_ambitus();
-            return this.matrix_clips[coord_clips[0]][coord_clips[1]].get_ambitus();
-        };
-        ;
         return TreeWindow;
     }(Window));
     window.TreeWindow = TreeWindow;
@@ -21106,6 +21138,14 @@ var target;
         function Target(iterator_subtarget) {
             this.iterator_subtarget = iterator_subtarget;
         }
+        Target.prototype.get_notes = function () {
+            var notes = [];
+            for (var _i = 0, _a = this.iterator_subtarget.subtargets; _i < _a.length; _i++) {
+                var subtarget = _a[_i];
+                notes.push(subtarget.note);
+            }
+            return notes;
+        };
         return Target;
     }());
     target_1.Target = Target;
@@ -21393,20 +21433,21 @@ var algorithm;
                 throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
             }
         };
-        Detect.prototype.determine_region_current = function (notes_target_next) {
+        Detect.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
         };
-        // set right interval
-        Detect.prototype.determine_region_past = function (notes_target_next) {
-            return notes_target_next[0].model.note.beat_start;
-        };
-        // set left interval
-        Detect.prototype.determine_region_upcoming = function (notes_target_next) {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end();
-        };
+        // // set right interval
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
         Detect.prototype.pre_advance = function (clip_user_input) {
         };
         Detect.prototype.post_init = function (song, clip_user_input) {
@@ -21451,20 +21492,21 @@ var algorithm;
                 throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
             }
         };
-        Predict.prototype.determine_region_current = function (notes_target_next) {
+        Predict.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
         };
         // set right interval
-        Predict.prototype.determine_region_past = function (notes_target_next) {
-            return notes_target_next[0].model.note.beat_start;
-        };
-        // set left interval
-        Predict.prototype.determine_region_upcoming = function (notes_target_next) {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end();
-        };
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
         Predict.prototype.pre_advance = function () {
             //
         };
@@ -21497,19 +21539,11 @@ var algorithm;
             song.set_session_record(0);
             clip_user_input.stop();
         };
-        Parse.prototype.determine_region_current = function (notes_target_next) {
+        Parse.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
-        };
-        // set right interval
-        Parse.prototype.determine_region_past = function (notes_target_next) {
-            return notes_target_next[0].model.note.beat_start;
-        };
-        // set left interval
-        Parse.prototype.determine_region_upcoming = function (notes_target_next) {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end();
         };
         return Parse;
     }(Parsed));
@@ -21540,20 +21574,21 @@ var algorithm;
             song.set_session_record(0);
             clip_user_input.stop();
         };
-        Derive.prototype.determine_region_current = function (notes_target_next) {
+        Derive.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
         };
-        // set right interval
-        Derive.prototype.determine_region_past = function (notes_target_next) {
-            return notes_target_next[0].model.note.beat_start;
-        };
-        // set left interval
-        Derive.prototype.determine_region_upcoming = function (notes_target_next) {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end();
-        };
+        // // set right interval
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
         Derive.prototype.accept = function (elaboration, i_depth, i_breadth) {
             // if (index_layer + 1 > this.clips.length) {
             //     let clip_dao_virtual = new LiveClipVirtual(elaboration);
@@ -21686,11 +21721,6 @@ var trainer;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
-            // this.struct = new StructFactory.get_struct(user_input_handler.mode);
-            // this.history_user_input = new HistoryUserInput(
-            //     this.algorithm,
-            //     this.segments
-            // );
             this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
             this.matrix_target_iterator = l.cloneDeep(this.history_user_input.matrix_data);
@@ -21700,7 +21730,11 @@ var trainer;
             else {
                 this.create_parse_trees();
             }
+            this.initialize_window();
         }
+        Trainer.prototype.initialize_window = function () {
+            this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
+        };
         Trainer.prototype.create_parse_trees = function () {
             var list_parse_tree = [];
             switch (this.algorithm.get_name()) {
@@ -21740,7 +21774,7 @@ var trainer;
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            this.window.render();
+            this.window.render(this.iterator_matrix_train, this.matrix_target_iterator, this.history_user_input, this.algorithm);
         };
         Trainer.prototype.reset_user_input = function () {
             if (_.contains([DETECT, PREDICT], this.algorithm.get_name())) {
@@ -21864,7 +21898,7 @@ var trainer;
                 }
                 // set the context in ableton
                 this.set_loop();
-                this.window.render_regions(this.iterator_matrix_train, this.matrix_target_iterator);
+                this.render_window();
             }
         };
         return Trainer;

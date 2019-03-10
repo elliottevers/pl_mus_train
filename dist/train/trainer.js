@@ -99,11 +99,6 @@ var trainer;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
-            // this.struct = new StructFactory.get_struct(user_input_handler.mode);
-            // this.history_user_input = new HistoryUserInput(
-            //     this.algorithm,
-            //     this.segments
-            // );
             this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
             this.matrix_target_iterator = l.cloneDeep(this.history_user_input.matrix_data);
@@ -113,7 +108,11 @@ var trainer;
             else {
                 this.create_parse_trees();
             }
+            this.initialize_window();
         }
+        Trainer.prototype.initialize_window = function () {
+            this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
+        };
         Trainer.prototype.create_parse_trees = function () {
             var list_parse_tree = [];
             switch (this.algorithm.get_name()) {
@@ -153,7 +152,7 @@ var trainer;
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            this.window.render();
+            this.window.render(this.iterator_matrix_train, this.matrix_target_iterator, this.history_user_input, this.algorithm);
         };
         Trainer.prototype.reset_user_input = function () {
             if (_.contains([DETECT, PREDICT], this.algorithm.get_name())) {
@@ -277,7 +276,7 @@ var trainer;
                 }
                 // set the context in ableton
                 this.set_loop();
-                this.window.render_regions(this.iterator_matrix_train, this.matrix_target_iterator);
+                this.render_window();
             }
         };
         return Trainer;

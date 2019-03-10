@@ -77,20 +77,21 @@ var algorithm;
                 throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
             }
         };
-        Detect.prototype.determine_region_current = function (notes_target_next) {
+        Detect.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
         };
-        // set right interval
-        Detect.prototype.determine_region_past = function (notes_target_next) {
-            return notes_target_next[0].model.note.beat_start;
-        };
-        // set left interval
-        Detect.prototype.determine_region_upcoming = function (notes_target_next) {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end();
-        };
+        // // set right interval
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
         Detect.prototype.pre_advance = function (clip_user_input) {
         };
         Detect.prototype.post_init = function (song, clip_user_input) {
@@ -135,20 +136,21 @@ var algorithm;
                 throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
             }
         };
-        Predict.prototype.determine_region_current = function (notes_target_next) {
+        Predict.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
         };
         // set right interval
-        Predict.prototype.determine_region_past = function (notes_target_next) {
-            return notes_target_next[0].model.note.beat_start;
-        };
-        // set left interval
-        Predict.prototype.determine_region_upcoming = function (notes_target_next) {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end();
-        };
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
         Predict.prototype.pre_advance = function () {
             //
         };
@@ -181,19 +183,11 @@ var algorithm;
             song.set_session_record(0);
             clip_user_input.stop();
         };
-        Parse.prototype.determine_region_current = function (notes_target_next) {
+        Parse.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
-        };
-        // set right interval
-        Parse.prototype.determine_region_past = function (notes_target_next) {
-            return notes_target_next[0].model.note.beat_start;
-        };
-        // set left interval
-        Parse.prototype.determine_region_upcoming = function (notes_target_next) {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end();
         };
         return Parse;
     }(Parsed));
@@ -224,20 +218,21 @@ var algorithm;
             song.set_session_record(0);
             clip_user_input.stop();
         };
-        Derive.prototype.determine_region_current = function (notes_target_next) {
+        Derive.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
         };
-        // set right interval
-        Derive.prototype.determine_region_past = function (notes_target_next) {
-            return notes_target_next[0].model.note.beat_start;
-        };
-        // set left interval
-        Derive.prototype.determine_region_upcoming = function (notes_target_next) {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end();
-        };
+        // // set right interval
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
         Derive.prototype.accept = function (elaboration, i_depth, i_breadth) {
             // if (index_layer + 1 > this.clips.length) {
             //     let clip_dao_virtual = new LiveClipVirtual(elaboration);

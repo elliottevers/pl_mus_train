@@ -18,6 +18,9 @@ var window;
 (function (window) {
     var red = [255, 0, 0];
     var black = [0, 0, 0];
+    var region_yellow = [254, 254, 10];
+    var region_green = [33, 354, 6];
+    var region_red = [251, 1, 6];
     var Window = /** @class */ (function () {
         function Window(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
@@ -32,7 +35,7 @@ var window;
         }
         Window.prototype.clear = function () {
             var msg_clear = ["clear"];
-            msg_clear.unshift('render');
+            // msg_clear.unshift('render');
             this.messenger.message(msg_clear);
         };
         // public set_num_measures(num_measures) {
@@ -125,16 +128,6 @@ var window;
             this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
             this.render_notes(history_user_input);
         };
-        // get_position_quadruplet(node: TreeModel.Node<n.Note>, coord_clip: number[]) {
-        //     var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
-        //
-        //     dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
-        //     dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-        //     dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
-        //     dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
-        //
-        //     return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom]
-        // };
         ListWindow.prototype.get_message_render_region_past = function (interval_current) {
             var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
             offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());
@@ -173,20 +166,24 @@ var window;
             // })
             var coord = iterator_matrix_train.get_coord_current();
             var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-            var interval_current = algorithm.determine_region_present(target_iterator.get_notes());
-            var message_region_past = this.get_message_render_region_past(interval_current);
-            var message_region_present = this.get_message_render_region_present(interval_current);
-            var message_region_future = this.get_message_render_region_future(interval_current);
-            // // set right interval
-            // determine_region_past(notes_target_next): number {
-            //     return notes_target_next[0].model.note.beat_start
-            // }
-            //
-            // // set left interval
-            // determine_region_upcoming(notes_target_next): number {
-            //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-            // }
-            // region
+            var subtargets = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
+                return subtarget.note;
+            });
+            var interval_current = algorithm.determine_region_present(subtargets);
+            var quadruplet_region_past = this.get_message_render_region_past(interval_current);
+            var quadruplet_region_present = this.get_message_render_region_present(interval_current);
+            var quadruplet_region_future = this.get_message_render_region_future(interval_current);
+            quadruplet_region_past.unshift('paintrect');
+            quadruplet_region_past = quadruplet_region_past.concat(region_green);
+            quadruplet_region_present.unshift('paintrect');
+            quadruplet_region_present = quadruplet_region_present.concat(region_red);
+            quadruplet_region_future.unshift('paintrect');
+            quadruplet_region_future = quadruplet_region_future.concat(region_yellow);
+            for (var _i = 0, _a = [quadruplet_region_past, quadruplet_region_present, quadruplet_region_future]; _i < _a.length; _i++) {
+                var quadruplet = _a[_i];
+                // quadruplet.unshift('paintrect');
+                this.messenger.message(quadruplet);
+            }
             return;
         };
         ListWindow.prototype.render_notes = function (history_user_input) {
