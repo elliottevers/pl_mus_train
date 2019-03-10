@@ -88,7 +88,7 @@ export namespace target {
 
             let targets: Target[] = [];
             for (let notes of sequence_target) {
-                let subtargets: TypeSubtarget[] = [];
+                let subtargets: Subtarget[] = [];
                 for (let note of notes) {
                     subtargets.push(
                         new Subtarget(note)

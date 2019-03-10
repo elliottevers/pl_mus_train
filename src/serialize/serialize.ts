@@ -2,6 +2,7 @@ import {target} from "../target/target";
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
 import {trainer} from "../train/trainer";
+import {file} from "../io/file";
 
 export namespace serialize {
 
@@ -20,9 +21,10 @@ export namespace serialize {
     import Subtarget = target.Subtarget;
 
     export let serialize_subtarget = (subtarget: Subtarget) => {
-        // let subtarget_serialized: any;
+        let subtarget_serialized: any;
         // TODO: fix
-        let subtarget_serialized = subtarget;
+        // let subtarget_serialized = subtarget;
+        subtarget_serialized = subtarget;
         subtarget_serialized.note = serialize_note(subtarget.note);
         return subtarget_serialized;
     };
@@ -65,13 +67,14 @@ export namespace serialize {
 export namespace freeze {
     import Trainer = trainer.Trainer;
     import serialize_target_sequence = serialize.serialize_target_sequence;
+    import to_json = file.to_json;
 
     export class TrainFreezer {
         constructor(env: string) {
 
         }
 
-        public freeze(trainer: Trainer, filepath: string) {
+        public freeze(trainer: Trainer, filepath: string, env: string) {
             let data_serializable = trainer.history_user_input.matrix_data as any;
             for (let i_row in trainer.history_user_input.matrix_data) {
                 for (let i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
@@ -81,15 +84,7 @@ export namespace freeze {
                 }
             }
 
-            let f = new File(filepath,"write","JSON");
-
-            if (f.isopen) {
-                post("saving session");
-                f.writestring(JSON.stringify(data_serializable));
-                f.close();
-            } else {
-                post("could not save session");
-            }
+            to_json(data_serializable, filepath, env)
         }
     }
 }
@@ -97,6 +92,7 @@ export namespace freeze {
 export namespace thaw {
     import Trainer = trainer.Trainer;
     import deserialize_target_sequence = serialize.deserialize_target_sequence;
+    import from_json = file.from_json;
 
     export class TrainThawer {
         constructor(env: string) {
@@ -104,19 +100,21 @@ export namespace thaw {
         }
 
         public thaw(filepath: string, config): Trainer {
-            let f = new File(filepath, "read","JSON");
-            let a, matrix_deserialized;
+            // let f = new File(filepath, "read","JSON");
+            // let a, matrix_deserialized;
+            //
+            // if (f.isopen) {
+            //     post("reading file");
+            //     // @ts-ignore
+            //     while ((a = f.readline()) != null) {
+            //         matrix_deserialized = JSON.parse(a) as any;
+            //     }
+            //     f.close();
+            // } else {
+            //     post("could not open file");
+            // }
 
-            if (f.isopen) {
-                post("reading file");
-                // @ts-ignore
-                while ((a = f.readline()) != null) {
-                    matrix_deserialized = JSON.parse(a) as any;
-                }
-                f.close();
-            } else {
-                post("could not open file");
-            }
+            let matrix_deserialized = from_json(filepath, config['env']);
 
             for (let i_row in matrix_deserialized) {
                 for (let i_col in matrix_deserialized[Number(i_row)]) {

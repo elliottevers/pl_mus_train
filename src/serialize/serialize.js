@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var TreeModel = require("tree-model");
 var trainer_1 = require("../train/trainer");
+var file_1 = require("../io/file");
 var serialize;
 (function (serialize) {
     serialize.serialize_note = function (note) {
@@ -15,9 +16,10 @@ var serialize;
         return tree.parse(JSON.parse(note_serialized));
     };
     serialize.serialize_subtarget = function (subtarget) {
-        // let subtarget_serialized: any;
+        var subtarget_serialized;
         // TODO: fix
-        var subtarget_serialized = subtarget;
+        // let subtarget_serialized = subtarget;
+        subtarget_serialized = subtarget;
         subtarget_serialized.note = serialize.serialize_note(subtarget.note);
         return subtarget_serialized;
     };
@@ -54,25 +56,18 @@ var serialize;
 var freeze;
 (function (freeze) {
     var serialize_target_sequence = serialize.serialize_target_sequence;
+    var to_json = file_1.file.to_json;
     var TrainFreezer = /** @class */ (function () {
         function TrainFreezer(env) {
         }
-        TrainFreezer.prototype.freeze = function (trainer, filepath) {
+        TrainFreezer.prototype.freeze = function (trainer, filepath, env) {
             var data_serializable = trainer.history_user_input.matrix_data;
             for (var i_row in trainer.history_user_input.matrix_data) {
                 for (var i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
                     data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]);
                 }
             }
-            var f = new File(filepath, "write", "JSON");
-            if (f.isopen) {
-                post("saving session");
-                f.writestring(JSON.stringify(data_serializable));
-                f.close();
-            }
-            else {
-                post("could not save session");
-            }
+            to_json(data_serializable, filepath, env);
         };
         return TrainFreezer;
     }());
@@ -82,23 +77,25 @@ var thaw;
 (function (thaw) {
     var Trainer = trainer_1.trainer.Trainer;
     var deserialize_target_sequence = serialize.deserialize_target_sequence;
+    var from_json = file_1.file.from_json;
     var TrainThawer = /** @class */ (function () {
         function TrainThawer(env) {
         }
         TrainThawer.prototype.thaw = function (filepath, config) {
-            var f = new File(filepath, "read", "JSON");
-            var a, matrix_deserialized;
-            if (f.isopen) {
-                post("reading file");
-                // @ts-ignore
-                while ((a = f.readline()) != null) {
-                    matrix_deserialized = JSON.parse(a);
-                }
-                f.close();
-            }
-            else {
-                post("could not open file");
-            }
+            // let f = new File(filepath, "read","JSON");
+            // let a, matrix_deserialized;
+            //
+            // if (f.isopen) {
+            //     post("reading file");
+            //     // @ts-ignore
+            //     while ((a = f.readline()) != null) {
+            //         matrix_deserialized = JSON.parse(a) as any;
+            //     }
+            //     f.close();
+            // } else {
+            //     post("could not open file");
+            // }
+            var matrix_deserialized = from_json(filepath, config['env']);
             for (var i_row in matrix_deserialized) {
                 for (var i_col in matrix_deserialized[Number(i_row)]) {
                     matrix_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(matrix_deserialized[Number(i_row)][Number(i_col)]);

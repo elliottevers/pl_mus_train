@@ -78,7 +78,8 @@ var note_target_4_subtarget_2 = tree.parse({
 var mode_texture = POLYPHONY;
 var mode_control = INSTRUMENTAL;
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
-var messenger = new Messenger('node', 0);
+var env = 'node';
+var messenger = new Messenger(env, 0);
 var window_local = new ListWindow(384, 384, messenger);
 var algorithm_train = new Detect(user_input_handler);
 // stubs
@@ -121,9 +122,9 @@ trainer_local.accept_input([note_target_2_subtarget_1]);
 trainer_local.accept_input([note_target_2_subtarget_2]);
 trainer_local.accept_input([note_target_3_subtarget_1]);
 trainer_local.clear_window();
-var freezer = new TrainFreezer('node');
-freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
-var thawer = new TrainThawer('node');
+var freezer = new TrainFreezer(env);
+freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json', env);
+var thawer = new TrainThawer(env);
 var config = {
     'window': window_local,
     'user_input_handler': user_input_handler,
@@ -132,7 +133,8 @@ var config = {
     'clip_target_virtual': clip_target_virtual,
     'song': song,
     'segments': segments,
-    'messenger': messenger
+    'messenger': messenger,
+    'env': env
 };
 var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json', config);
 train_thawed.render_window();

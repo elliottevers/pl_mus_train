@@ -203,7 +203,9 @@ let user_input_handler = new UserInputHandler(
     mode_control
 );
 
-let messenger = new Messenger('node', 0);
+let env: string = 'node';
+
+let messenger = new Messenger(env, 0);
 
 let window_local = new ListWindow(
     384,
@@ -299,16 +301,17 @@ trainer_local.clear_window(
 );
 
 let freezer = new TrainFreezer(
-    'node'
+    env
 );
 
 freezer.freeze(
     trainer_local,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
+    env
 );
 
 let thawer = new TrainThawer(
-    'node'
+    env
 );
 
 let config = {
@@ -319,7 +322,8 @@ let config = {
     'clip_target_virtual': clip_target_virtual,
     'song': song,
     'segments': segments,
-    'messenger': messenger
+    'messenger': messenger,
+    'env': env
 };
 
 let train_thawed = thawer.thaw(
