@@ -164,12 +164,6 @@ export namespace trainer {
             this.segments = segments;
             this.messenger = messenger;
 
-            // this.struct = new StructFactory.get_struct(user_input_handler.mode);
-            // this.history_user_input = new HistoryUserInput(
-            //     this.algorithm,
-            //     this.segments
-            // );
-
             this.history_user_input = FactoryHistoryUserInput.create_history_user_input(
                 this.algorithm,
                 this.segments
@@ -187,6 +181,12 @@ export namespace trainer {
             } else {
                 this.create_parse_trees();
             }
+
+            this.initialize_window();
+        }
+
+        private initialize_window() {
+            this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
         }
 
         private create_parse_trees() {

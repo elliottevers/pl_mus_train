@@ -21,9 +21,10 @@ var window;
     var Window = /** @class */ (function () {
         function Window(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
-                var num_pixels_in_clip = this.width;
-                var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
-                return beat * (num_pixels_in_clip / num_beats_in_clip);
+                var num_pixels_width = this.width;
+                // var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
+                // let num_beats_window = this.num_measures * this.beats_per_measure;
+                return beat * (num_pixels_width / this.length_beats);
             };
             this.height = height;
             this.width = width;
@@ -33,6 +34,12 @@ var window;
             var msg_clear = ["clear"];
             msg_clear.unshift('render');
             this.messenger.message(msg_clear);
+        };
+        // public set_num_measures(num_measures) {
+        //     this.num_measures = num_measures;
+        // }
+        Window.prototype.set_length_beats = function (beats) {
+            this.length_beats = beats;
         };
         Window.prototype.add = function (notes) {
         };
@@ -167,9 +174,9 @@ var window;
             var coord = iterator_matrix_train.get_coord_current();
             var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
             var interval_current = algorithm.determine_region_present(target_iterator.get_notes());
-            this.get_message_render_region_past(interval_current);
-            this.get_message_render_region_present(interval_current);
-            this.get_message_render_region_future(interval_current);
+            var message_region_past = this.get_message_render_region_past(interval_current);
+            var message_region_present = this.get_message_render_region_present(interval_current);
+            var message_region_future = this.get_message_render_region_future(interval_current);
             // // set right interval
             // determine_region_past(notes_target_next): number {
             //     return notes_target_next[0].model.note.beat_start

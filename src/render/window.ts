@@ -50,6 +50,7 @@ export namespace window {
         height: number;
         width: number;
         messenger: Messenger;
+        length_beats: number;
 
         protected constructor(height, width, messenger) {
             this.height = height;
@@ -61,6 +62,13 @@ export namespace window {
             let msg_clear = ["clear"];
             msg_clear.unshift('render');
             this.messenger.message(msg_clear);
+        }
+
+        // public set_num_measures(num_measures) {
+        //     this.num_measures = num_measures;
+        // }
+        public set_length_beats(beats) {
+            this.length_beats = beats;
         }
 
         public add(notes: TreeModel.Node<n.Note>[]) {
@@ -109,9 +117,10 @@ export namespace window {
         };
 
         beat_to_pixel = function (beat: number): number {
-            var num_pixels_in_clip = this.width;
-            var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
-            return beat * (num_pixels_in_clip / num_beats_in_clip);
+            let num_pixels_width = this.width;
+            // var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
+            // let num_beats_window = this.num_measures * this.beats_per_measure;
+            return beat * (num_pixels_width / this.length_beats);
         };
 
         get_dist_from_left(beat: number): number {
@@ -239,9 +248,9 @@ export namespace window {
             let interval_current = algorithm.determine_region_present(target_iterator.get_notes());
 
 
-            this.get_message_render_region_past(interval_current);
-            this.get_message_render_region_present(interval_current);
-            this.get_message_render_region_future(interval_current);
+            let message_region_past = this.get_message_render_region_past(interval_current);
+            let message_region_present = this.get_message_render_region_present(interval_current);
+            let message_region_future = this.get_message_render_region_future(interval_current);
 
             // // set right interval
             // determine_region_past(notes_target_next): number {
