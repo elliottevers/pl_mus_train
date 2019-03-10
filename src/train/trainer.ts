@@ -256,7 +256,12 @@ export namespace trainer {
         }
 
         public render_window() {
-            this.window.render()
+            this.window.render(
+                this.iterator_matrix_train,
+                this.matrix_target_iterator,
+                this.history_user_input,
+                this.algorithm
+            )
         }
 
         public reset_user_input() {
@@ -462,10 +467,7 @@ export namespace trainer {
                 // set the context in ableton
                 this.set_loop();
 
-                this.window.render_regions(
-                    this.iterator_matrix_train,
-                    this.matrix_target_iterator
-                );
+                this.render_window();
             }
         }
     }

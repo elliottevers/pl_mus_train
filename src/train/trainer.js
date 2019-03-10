@@ -153,7 +153,7 @@ var trainer;
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            this.window.render();
+            this.window.render(this.iterator_matrix_train, this.matrix_target_iterator, this.history_user_input, this.algorithm);
         };
         Trainer.prototype.reset_user_input = function () {
             if (_.contains([DETECT, PREDICT], this.algorithm.get_name())) {
@@ -277,7 +277,7 @@ var trainer;
                 }
                 // set the context in ableton
                 this.set_loop();
-                this.window.render_regions(this.iterator_matrix_train, this.matrix_target_iterator);
+                this.render_window();
             }
         };
         return Trainer;

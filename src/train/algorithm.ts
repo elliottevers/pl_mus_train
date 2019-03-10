@@ -26,11 +26,11 @@ export namespace algorithm {
     import TypeTarget = history.TypeTarget;
 
     export interface Temporal {
-        determine_region_current
+        determine_region_present
 
-        determine_region_past
-
-        determine_region_upcoming
+        // determine_region_past
+        //
+        // determine_region_upcoming
     }
 
     export interface Targetable {
@@ -111,22 +111,22 @@ export namespace algorithm {
             }
         }
 
-        determine_region_current(notes_target_next): number[] {
+        public determine_region_present(notes_target_next): number[] {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ]
         }
 
-        // set right interval
-        determine_region_past(notes_target_next): number {
-            return notes_target_next[0].model.note.beat_start
-        }
-
-        // set left interval
-        determine_region_upcoming(notes_target_next): number {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        }
+        // // set right interval
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
 
         pre_advance(clip_user_input) {
 
@@ -185,7 +185,7 @@ export namespace algorithm {
         }
 
 
-        determine_region_current(notes_target_next): number[] {
+        determine_region_present(notes_target_next): number[] {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
@@ -193,14 +193,14 @@ export namespace algorithm {
         }
 
         // set right interval
-        determine_region_past(notes_target_next): number {
-            return notes_target_next[0].model.note.beat_start
-        }
-
-        // set left interval
-        determine_region_upcoming(notes_target_next): number {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        }
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
 
         pre_advance() {
             //
@@ -241,22 +241,22 @@ export namespace algorithm {
             clip_user_input.stop();
         }
 
-        determine_region_current(notes_target_next): number[] {
+        determine_region_present(notes_target_next): number[] {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ]
         }
 
-        // set right interval
-        determine_region_past(notes_target_next): number {
-            return notes_target_next[0].model.note.beat_start
-        }
-
-        // set left interval
-        determine_region_upcoming(notes_target_next): number {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        }
+        // // set right interval
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
     }
 
     export class Derive extends Parsed implements Temporal {
@@ -293,22 +293,22 @@ export namespace algorithm {
             clip_user_input.stop();
         }
 
-        determine_region_current(notes_target_next): number[] {
+        determine_region_present(notes_target_next): number[] {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ]
         }
 
-        // set right interval
-        determine_region_past(notes_target_next): number {
-            return notes_target_next[0].model.note.beat_start
-        }
-
-        // set left interval
-        determine_region_upcoming(notes_target_next): number {
-            return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        }
+        // // set right interval
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
 
         accept(elaboration: TreeModel.Node<n.Note>[], i_depth: number, i_breadth: number): void {
 

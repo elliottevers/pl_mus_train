@@ -79,6 +79,14 @@ export namespace target {
         constructor(iterator_subtarget: SubtargetIterator) {
             this.iterator_subtarget = iterator_subtarget;
         }
+
+        get_notes(): TreeModel.Node<n.Note>[] {
+            let notes: TreeModel.Node<n.Note>[] = [];
+            for (let subtarget of this.iterator_subtarget.subtargets) {
+                notes.push(subtarget.note)
+            }
+            return notes;
+        }
     }
 
     export class TargetIterator {
