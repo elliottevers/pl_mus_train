@@ -116,13 +116,17 @@ var algorithm;
         Predict.prototype.determine_targets = function (notes_segment_next) {
             if (this.user_input_handler.mode_texture === POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
-                var chords_monophonified = Harmony.monophonify(notes_segment_next);
+                var chords_monophonified = [];
+                for (var _i = 0, chords_grouped_2 = chords_grouped; _i < chords_grouped_2.length; _i++) {
+                    var note_group = chords_grouped_2[_i];
+                    chords_monophonified.push(Harmony.monophonify(note_group));
+                }
                 return chords_monophonified;
             }
             else if (this.user_input_handler.mode_texture === MONOPONY) {
                 var notes_grouped_trivial = [];
-                for (var _i = 0, notes_segment_next_2 = notes_segment_next; _i < notes_segment_next_2.length; _i++) {
-                    var note_2 = notes_segment_next_2[_i];
+                for (var _a = 0, notes_segment_next_2 = notes_segment_next; _a < notes_segment_next_2.length; _a++) {
+                    var note_2 = notes_segment_next_2[_a];
                     notes_grouped_trivial.push(note_2);
                 }
                 return notes_grouped_trivial;

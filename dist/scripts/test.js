@@ -128,7 +128,7 @@ var test = function () {
     trainer_local.accept_input([note_target_3_subtarget_1]);
     trainer_local.clear_window();
     var freezer = new TrainFreezer('node');
-    freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
+    freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json', env);
     var thawer = new TrainThawer('node');
     var config = {
         'window': window_local,

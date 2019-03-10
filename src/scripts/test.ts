@@ -323,7 +323,8 @@ let test = () => {
 
     freezer.freeze(
         trainer_local,
-        '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
+        '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
+        env
     );
 
     let thawer = new TrainThawer(

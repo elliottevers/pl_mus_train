@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var clip_1 = require("../clip/clip");
 var live;
 (function (live) {
+    var Clip = clip_1.clip.Clip;
     var LiveApiJs = /** @class */ (function () {
         function LiveApiJs(path, env) {
             if (env == 'node') {
@@ -52,7 +54,7 @@ var live;
             return [];
         };
         LiveClipVirtual.prototype.load_notes_within_loop_brackets = function () {
-            this.notes = this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128);
+            this.notes = Clip._parse_notes(this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128));
         };
         LiveClipVirtual.prototype.get_notes_within_loop_brackets = function () {
             // if (!this.notes) {

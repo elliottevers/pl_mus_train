@@ -151,7 +151,7 @@ var clip;
             }
             return notes;
         };
-        // TODO: return list of tree nodes
+        // TODO: remove underscore prefix
         Clip._parse_notes = function (notes) {
             var data = [];
             var notes_parsed = [];

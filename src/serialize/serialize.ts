@@ -100,19 +100,6 @@ export namespace thaw {
         }
 
         public thaw(filepath: string, config): Trainer {
-            // let f = new File(filepath, "read","JSON");
-            // let a, matrix_deserialized;
-            //
-            // if (f.isopen) {
-            //     post("reading file");
-            //     // @ts-ignore
-            //     while ((a = f.readline()) != null) {
-            //         matrix_deserialized = JSON.parse(a) as any;
-            //     }
-            //     f.close();
-            // } else {
-            //     post("could not open file");
-            // }
 
             let matrix_deserialized = from_json(filepath, config['env']);
 

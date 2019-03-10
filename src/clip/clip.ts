@@ -237,8 +237,8 @@ export namespace clip {
             return notes
         }
 
-        // TODO: return list of tree nodes
-        private static _parse_notes(notes: string[]): TreeModel.Node<n.Note>[] {
+        // TODO: remove underscore prefix
+        public static _parse_notes(notes: string[]): TreeModel.Node<n.Note>[] {
             let data: any = [];
             let notes_parsed = [];
 

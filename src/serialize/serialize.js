@@ -82,19 +82,6 @@ var thaw;
         function TrainThawer(env) {
         }
         TrainThawer.prototype.thaw = function (filepath, config) {
-            // let f = new File(filepath, "read","JSON");
-            // let a, matrix_deserialized;
-            //
-            // if (f.isopen) {
-            //     post("reading file");
-            //     // @ts-ignore
-            //     while ((a = f.readline()) != null) {
-            //         matrix_deserialized = JSON.parse(a) as any;
-            //     }
-            //     f.close();
-            // } else {
-            //     post("could not open file");
-            // }
             var matrix_deserialized = from_json(filepath, config['env']);
             for (var i_row in matrix_deserialized) {
                 for (var i_col in matrix_deserialized[Number(i_row)]) {

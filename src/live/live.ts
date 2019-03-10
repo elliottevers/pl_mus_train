@@ -1,9 +1,12 @@
 import TreeModel = require("tree-model");
 import {note as n} from "../note/note"
+import {clip} from "../clip/clip";
 
 declare let LiveAPI: any;
 
 export namespace live {
+
+    import Clip = clip.Clip;
 
     export interface iLiveApiJs {
         get(property: string): any;
@@ -95,12 +98,13 @@ export namespace live {
         }
 
         load_notes_within_loop_brackets(): void {
-            // TODO: bring in _parse method from Clip
-            this.notes = this.get_notes(
-                this.get_loop_bracket_lower(),
-                0,
-                this.get_loop_bracket_upper(),
-                128
+            this.notes = Clip._parse_notes(
+                this.get_notes(
+                    this.get_loop_bracket_lower(),
+                    0,
+                    this.get_loop_bracket_upper(),
+                    128
+                )
             )
         }
 

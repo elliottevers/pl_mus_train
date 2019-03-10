@@ -157,9 +157,15 @@ export namespace algorithm {
                     notes_segment_next
                 );
 
-                let chords_monophonified: TreeModel.Node<n.Note>[][] = Harmony.monophonify(
-                    notes_segment_next
-                );
+                let chords_monophonified: TreeModel.Node<n.Note>[][] = [];
+
+                for (let note_group of chords_grouped) {
+                    chords_monophonified.push(
+                        Harmony.monophonify(
+                            note_group
+                        )
+                    );
+                }
 
                 return chords_monophonified
 
