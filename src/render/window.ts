@@ -70,8 +70,25 @@ export namespace window {
             this.matrix_clips = matrix;
         }
 
+        // TODO: this won't work for a parse tree
+        public initialize_clips_matrix(segments: Segment[]) {
+            for (let i_row in this.matrix_clips) {
+                for (let i_col in this.matrix_clips[Number(i_row)]) {
+                    let segment = segments[Number(i_col)];
+                    let clip_dao_virtual = new LiveClipVirtual([]);
+                    clip_dao_virtual.beat_start = segment.beat_start;
+                    clip_dao_virtual.beat_end = segment.beat_end;
+                    this.matrix_clips[Number(i_row)][Number(i_col)] = new c.Clip(clip_dao_virtual);
+                }
+            }
+        }
+
         public set_length_beats(beats) {
             this.length_beats = beats;
+        }
+
+        public add_note_to_clip(note_to_add_to_clip, coord_current) {
+            this.matrix_clips[coord_current[0]][coord_current[1]].append(note_to_add_to_clip)
         }
 
         public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
@@ -199,7 +216,7 @@ export namespace window {
         }
 
         public render_clips(iterator_matrix_train, matrix_target_iterator) {
-            let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, matrix_target_iterator)
+            let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, matrix_target_iterator);
             for (let messages_notes of messages_render_clips) {
                 for (let message_note of messages_notes) {
                     this.messenger.message(message_note);
@@ -219,7 +236,6 @@ export namespace window {
                 )
             }
 
-            // messages_clips = this.get_messages_render_clip()
             return messages
         }
 

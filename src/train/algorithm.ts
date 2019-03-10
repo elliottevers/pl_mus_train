@@ -118,16 +118,6 @@ export namespace algorithm {
             ]
         }
 
-        // // set right interval
-        // determine_region_past(notes_target_next): number {
-        //     return notes_target_next[0].model.note.beat_start
-        // }
-        //
-        // // set left interval
-        // determine_region_upcoming(notes_target_next): number {
-        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        // }
-
         pre_advance(clip_user_input) {
 
         }
@@ -192,18 +182,8 @@ export namespace algorithm {
             ]
         }
 
-        // set right interval
-        // determine_region_past(notes_target_next): number {
-        //     return notes_target_next[0].model.note.beat_start
-        // }
-        //
-        // // set left interval
-        // determine_region_upcoming(notes_target_next): number {
-        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        // }
-
         pre_advance() {
-            //
+
         }
     }
 
@@ -247,16 +227,6 @@ export namespace algorithm {
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ]
         }
-
-        // // set right interval
-        // determine_region_past(notes_target_next): number {
-        //     return notes_target_next[0].model.note.beat_start
-        // }
-        //
-        // // set left interval
-        // determine_region_upcoming(notes_target_next): number {
-        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        // }
     }
 
     export class Derive extends Parsed implements Temporal {

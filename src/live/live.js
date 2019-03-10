@@ -50,6 +50,9 @@ var live;
         //         128
         //     )
         // }
+        LiveClipVirtual.prototype.append = function (note) {
+            this.notes.push(note);
+        };
         LiveClipVirtual.prototype.get_ambitus = function () {
             return [];
         };

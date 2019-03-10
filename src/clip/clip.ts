@@ -163,6 +163,11 @@ export namespace clip {
             return this.notes;
         }
 
+        // TODO: only works virtual clips currently
+        public append(note: TreeModel.Node<n.Note>) {
+            this.clip_dao.append(note);
+        }
+
         public get_notes(beat_start: number, pitch_midi_min: number, beat_duration: number, pitch_midi_max: number): TreeModel.Node<n.Note>[] {
             return Clip._parse_notes(
                 this._get_notes(

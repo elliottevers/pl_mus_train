@@ -118,6 +118,10 @@ var clip;
             // }
             return this.notes;
         };
+        // TODO: only works virtual clips currently
+        Clip.prototype.append = function (note) {
+            this.clip_dao.append(note);
+        };
         Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
             return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max));
         };

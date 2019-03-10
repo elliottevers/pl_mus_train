@@ -93,6 +93,10 @@ export namespace live {
         //     )
         // }
 
+        append(note) {
+            this.notes.push(note);
+        }
+
         get_ambitus(): number[] {
             return []
         }

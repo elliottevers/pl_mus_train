@@ -185,10 +185,6 @@ export namespace trainer {
 
         private iterator_subtarget_current: SubtargetIterator;
 
-        // window is either tree or list
-        // mode is either harmonic or melodic
-        // algorithm is either detect, predict, parse, or derive
-        // history
         constructor(window, user_input_handler, algorithm, clip_user_input, clip_target, song, segments, messenger) {
             this.window = window;
             this.algorithm = algorithm;
@@ -208,20 +204,21 @@ export namespace trainer {
                 this.segments
             );
 
-            // NB: central source of truth
-            let clone_matrix_target_iterator = l.cloneDeep(this.matrix_target_iterator);
-
             this.history_user_input = FactoryHistoryUserInput.create_history_user_input(
                 this.algorithm,
                 this.segments
             );
 
             this.history_user_input.set_matrix(
-                clone_matrix_target_iterator
+                l.cloneDeep(this.matrix_target_iterator)
             );
 
             this.window.set_matrix(
-                clone_matrix_target_iterator
+                l.cloneDeep(this.matrix_target_iterator)
+            );
+
+            this.window.initialize_clips_matrix(
+                this.segments
             );
 
             this.window.set_length_beats(
@@ -408,6 +405,13 @@ export namespace trainer {
                             possibly_history,
                             this.iterator_matrix_train
                         );
+
+                        // this.window.add(
+                        //     this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
+                        //     coord_current,
+                        //     this.segment_current
+                        // );
+
                         this.algorithm.pre_terminate();
 
                         return
@@ -438,7 +442,7 @@ export namespace trainer {
 
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
 
-                this.iterator_subtarget_current = this.target_current.iterator_subtarget
+                this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
                 return
             }
@@ -462,14 +466,19 @@ export namespace trainer {
 
             // parse/derive logic
             if (!this.algorithm.b_targeted()) {
-                // this.struct.add(
-                //     input_user
-                // );
 
                 this.list_parse_tree = ParseTree.add(
                     input_user,
                     this.list_parse_tree,
                     this.iterator_matrix_train
+                );
+
+                let coord_current = this.iterator_matrix_train.get_coord_current();
+
+                this.window.add(
+                    this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
+                    coord_current,
+                    this.segment_current
                 );
 
                 this.advance_segment();
@@ -504,6 +513,10 @@ export namespace trainer {
                 //     this.iterator_matrix_train
                 // );
 
+                let note_subtarget_at_time = this.subtarget_current.note;
+
+                let coord_at_time = this.iterator_matrix_train.get_coord_current();
+
                 this.advance_subtarget();
 
                 if (this.algorithm.b_targeted()) {
@@ -513,13 +526,16 @@ export namespace trainer {
                 // set the context in ableton
                 this.set_loop();
 
-                let coord_current = this.iterator_matrix_train.get_coord_current();
-
-                this.window.add(
-                    this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
-                    coord_current,
-                    this.segment_current
+                this.window.add_note_to_clip(
+                    note_subtarget_at_time,
+                    coord_at_time
                 );
+
+                // this.window.add(
+                //     this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
+                //     coord_current,
+                //     this.segment_current
+                // );
 
                 this.render_window();
             }

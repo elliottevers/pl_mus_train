@@ -48,8 +48,23 @@ var window;
         Window.prototype.set_matrix = function (matrix) {
             this.matrix_clips = matrix;
         };
+        // TODO: this won't work for a parse tree
+        Window.prototype.initialize_clips_matrix = function (segments) {
+            for (var i_row in this.matrix_clips) {
+                for (var i_col in this.matrix_clips[Number(i_row)]) {
+                    var segment_1 = segments[Number(i_col)];
+                    var clip_dao_virtual = new LiveClipVirtual([]);
+                    clip_dao_virtual.beat_start = segment_1.beat_start;
+                    clip_dao_virtual.beat_end = segment_1.beat_end;
+                    this.matrix_clips[Number(i_row)][Number(i_col)] = new clip_1.clip.Clip(clip_dao_virtual);
+                }
+            }
+        };
         Window.prototype.set_length_beats = function (beats) {
             this.length_beats = beats;
+        };
+        Window.prototype.add_note_to_clip = function (note_to_add_to_clip, coord_current) {
+            this.matrix_clips[coord_current[0]][coord_current[1]].append(note_to_add_to_clip);
         };
         Window.prototype.add = function (notes, coord_matrix_clip, segment) {
             var clip_dao_virtual = new LiveClipVirtual(notes);
@@ -157,7 +172,6 @@ var window;
                 var coord_clip = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
                 messages.push(this.get_messages_render_clip(coord_clip));
             }
-            // messages_clips = this.get_messages_render_clip()
             return messages;
         };
         // render_clips(): void {
