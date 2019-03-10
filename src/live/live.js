@@ -52,6 +52,7 @@ var live;
             return [];
         };
         LiveClipVirtual.prototype.load_notes_within_loop_brackets = function () {
+            // TODO: bring in _parse method from Clip
             this.notes = this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128);
         };
         LiveClipVirtual.prototype.get_notes_within_loop_brackets = function () {

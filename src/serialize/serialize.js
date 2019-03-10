@@ -15,6 +15,8 @@ var serialize;
         return tree.parse(JSON.parse(note_serialized));
     };
     serialize.serialize_subtarget = function (subtarget) {
+        // let subtarget_serialized: any;
+        // TODO: fix
         var subtarget_serialized = subtarget;
         subtarget_serialized.note = serialize.serialize_note(subtarget.note);
         return subtarget_serialized;

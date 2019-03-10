@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
-// TODO: use namespaces better
 var segment;
 (function (segment) {
     var Clip = clip_1.clip.Clip;
@@ -14,6 +13,9 @@ var segment;
             var clip_dao_virtual = new LiveClipVirtual([note]);
             this.clip = new Clip(clip_dao_virtual);
         }
+        Segment.prototype.get_note = function () {
+            return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128)[0];
+        };
         Segment.prototype.get_notes = function () {
             return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128);
         };

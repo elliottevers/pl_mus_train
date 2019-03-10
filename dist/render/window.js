@@ -14,7 +14,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("lodash");
-var CircularJSON = require('circular-json');
 var window;
 (function (window) {
     var red = [255, 0, 0];
@@ -23,7 +22,9 @@ var window;
     //     add(notes: TreeModel.Node<n.Note>[])
     // }
     var Window = /** @class */ (function () {
-        function Window(messenger) {
+        function Window(height, width, messenger) {
+            this.height = height;
+            this.width = width;
             this.messenger = messenger;
         }
         Window.prototype.clear = function () {
@@ -35,15 +36,15 @@ var window;
         };
         return Window;
     }());
+    window.Window = Window;
     var ListWindow = /** @class */ (function (_super) {
         __extends(ListWindow, _super);
-        function ListWindow(messenger) {
-            return _super.call(this, messenger) || this;
-            // this.struct = new struct.StructList();
+        function ListWindow(height, width, messenger) {
+            return _super.call(this, height, width, messenger) || this;
         }
-        ListWindow.prototype.render_regions = function (history_list) {
+        ListWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator) {
         };
-        ListWindow.prototype.render_notes = function (history_list) {
+        ListWindow.prototype.render_notes = function (history_user_input) {
         };
         return ListWindow;
     }(Window));
@@ -55,8 +56,8 @@ var window;
     }());
     var TreeWindow = /** @class */ (function (_super) {
         __extends(TreeWindow, _super);
-        function TreeWindow(messenger) {
-            var _this = _super.call(this, messenger) || this;
+        function TreeWindow(height, width, messenger) {
+            var _this = _super.call(this, height, width, messenger) || this;
             _this.beat_to_pixel = function (beat) {
                 var num_pixels_in_clip = this.width;
                 var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
@@ -94,9 +95,11 @@ var window;
             //     this.messenger.message(message);
             // }
         };
-        TreeWindow.prototype.render_regions = function (history_matrix) {
+        TreeWindow.prototype.render_regions = function (iterator_matrix_train) {
+            // determine the coordinates of the last null region (assuming we're working forward)
         };
-        TreeWindow.prototype.render_notes = function (history_matrix) {
+        TreeWindow.prototype.render_notes = function (history_user_input) {
+            // for all non null clips, render
         };
         TreeWindow.prototype.render_trees = function (list_parse_trees) {
             var _this = this;
@@ -133,12 +136,13 @@ var window;
         // TODO: make node have indices to both clip and note
         TreeWindow.prototype.get_centroid = function (node) {
             var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
-            var index_clip = node.model.id;
+            // let index_clip = node.model.id;
+            var coord_clip = node.model.note.get_coordinates_matrix();
             // TODO: determine how to get the index of the clip from just depth of the node
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, index_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, index_clip);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
             return [
                 dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
                 dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
@@ -162,47 +166,6 @@ var window;
                 notes[notes.length - 1].model.note.get_beat_end()
             ];
         };
-        // TODO: add capability to automatically determine parent/children relationships between adjacent tracks
-        TreeWindow.prototype.add_clip = function (clip) {
-            this.clips.push(clip);
-        };
-        ;
-        //
-        // get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
-        //     let same_start, same_duration, index_start_diff;
-        //     for (let i=0; i < notes_old.length; i++) {
-        //         same_start = (notes_old[i].model.note.beat_start === notes_new[i].model.note.beat_start);
-        //         same_duration = (notes_old[i].model.note.beats_duration === notes_new[i].model.note.beats_duration);
-        //         if (!(same_start && same_duration)) {
-        //             index_start_diff = i;
-        //             break;
-        //         }
-        //     }
-        //
-        //     return index_start_diff;
-        // }
-        //
-        // get_diff_index_end(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
-        //     let same_start, same_duration, index_end_diff;
-        //     for (let i=-1; i > -1 * (notes_new.length + 1); i--) {
-        //         same_start = (notes_new.slice(i)[0].model.note.beat_start === notes_old.slice(i)[0].model.note.beat_start);
-        //         same_duration = (notes_new.slice(i)[0].model.note.beats_duration === notes_old.slice(i)[0].model.note.beats_duration);
-        //         if (!(same_start && same_duration)) {
-        //             index_end_diff = i;
-        //             break;
-        //         }
-        //     }
-        //
-        //     // NB: add one in order to use with array slice, unless of course the index is -1, then you'll access the front of the array
-        //     return index_end_diff;
-        // }
-        // // TODO: complete return method signature
-        // get_diff_index_notes(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): number[] {
-        //     return [
-        //         this.get_diff_index_start(notes_child, notes_parent),
-        //         this.get_diff_index_end(notes_child, notes_parent)
-        //     ];
-        // };
         TreeWindow.prototype.render_tree = function () {
             var messages = this.get_messages_render_tree();
             for (var i = 0; i < messages.length; i++) {
@@ -210,78 +173,47 @@ var window;
             }
         };
         ;
-        // TODO: how do we render when there is no singular root (i.e. parsing, not sampling, sentence)?
+        // render_clips(): void {
+        //     var messages = this.get_messages_render_clips();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
         TreeWindow.prototype.get_messages_render_tree = function () {
-            var _this = this;
-            var color, messages = [], message;
-            this.root_parse_tree.walk(function (node) {
-                if (node.hasChildren()) {
-                    for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
-                        var child = _a[_i];
-                        message = [
-                            "linesegment",
-                            _this.get_centroid(child)[0],
-                            _this.get_centroid(child)[1],
-                            _this.get_centroid(node)[0],
-                            _this.get_centroid(node)[1]
-                        ];
-                        color = red;
-                        messages.push(message.concat(color));
-                    }
-                }
-                return true;
-            });
-            return messages;
+            return [];
         };
-        ;
-        // render() {
-        //     let messages_regions = this.get_messages_regions();
-        //
-        //     let messages_notes = this.get_messages_render_clips();
-        //
-        //     let messages_tree = this.get_messages_render_tree();
-        //
-        //     let msg_clear = ["clear"];
-        //     msg_clear.unshift('render');
-        //     this.messenger.message(msg_clear);
-        //
-        //     for (let message of messages_regions) {
-        //         message.unshift('render');
-        //         this.messenger.message(message);
-        //     }
-        //
-        //     for (let message of messages_notes) {
-        //         message.unshift('render');
-        //         this.messenger.message(message);
-        //     }
-        //
-        //     for (let message of messages_tree) {
-        //         message.unshift('render');
-        //         this.messenger.message(message);
-        //     }
-        // }
-        TreeWindow.prototype.render_clips = function () {
-            var messages = this.get_messages_render_clips();
-            for (var i = 0; i < messages.length; i++) {
-                this.messenger.message(messages[i]);
-            }
-        };
-        ;
         // TODO: return signature
-        TreeWindow.prototype.get_messages_render_clips = function () {
-            var messages = [];
-            for (var index_clip in this.clips) {
-                messages = messages.concat(this.get_messages_render_notes(Number(index_clip)));
-            }
-            return messages;
-        };
-        ;
-        TreeWindow.prototype.get_messages_render_notes = function (index_clip) {
-            var clip = this.clips[index_clip];
+        // get_messages_render_clips(history_user_input: HistoryUserInput)  {
+        //     var messages = [];
+        //     // for (let index_clip in this.clips) {
+        //     //     messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
+        //     // }
+        //     for (let index_clip in this.clips) {
+        //         messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
+        //     }
+        //     return messages;
+        // };
+        // get_messages_render_notes(index_clip: number) {
+        //     var clip = this.clips[index_clip];
+        //     let quadruplets = [];
+        //     for (let node of clip.get_notes_within_loop_brackets()) {
+        //         quadruplets.push(this.get_position_quadruplet(node, index_clip));
+        //     }
+        //     return quadruplets.map(function (tuplet) {
+        //         let message = <any>["paintrect"].concat(tuplet);
+        //         message = message.concat(black);
+        //         return message;
+        //     })
+        // };
+        TreeWindow.prototype.get_messages_render_notes = function (coord_clip) {
+            // var clip = this.clips[index_clip];
+            var clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
             var quadruplets = [];
-            for (var _i = 0, _a = clip.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = clip_virtual.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
                 var node = _a[_i];
-                quadruplets.push(this.get_position_quadruplet(node, index_clip));
+                quadruplets.push(this.get_position_quadruplet(node, coord_clip));
             }
             return quadruplets.map(function (tuplet) {
                 var message = ["paintrect"].concat(tuplet);
@@ -290,12 +222,12 @@ var window;
             });
         };
         ;
-        TreeWindow.prototype.get_position_quadruplet = function (node, index_clip) {
+        TreeWindow.prototype.get_position_quadruplet = function (node, coord_clip) {
             var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, index_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, index_clip);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
             return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom];
         };
         ;
@@ -307,9 +239,10 @@ var window;
             // TODO: make this configurable
             if (false) {
                 // offset = this.clips.length - 1 - index_clip;
-                offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
+                // offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
+                offset = this.matrix_clips.length - 1 - coord_clip[0];
             }
-            var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(index_clip);
+            var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(coord_clip);
             return dist + (this.get_height_clip() * offset);
         };
         ;
@@ -318,17 +251,31 @@ var window;
         };
         ;
         TreeWindow.prototype.get_height_clip = function () {
-            return this.height / this.clips.length;
+            // return this.height / this.clips.length;
+            // return this.height / this.matrix_clips.get_num_rows();
+            return this.height / this.matrix_clips.length;
         };
         ;
-        TreeWindow.prototype.get_height_note = function (index_clip) {
-            var ambitus = this.get_ambitus(index_clip);
+        // get_height_note(index_clip: number): number {
+        //     var ambitus = this.get_ambitus(index_clip);
+        //     var dist_pitch = ambitus[1] - ambitus[0] + 1;
+        //     return this.get_height_clip() / dist_pitch;
+        // };
+        TreeWindow.prototype.get_height_note = function (coord_clip) {
+            var ambitus = this.get_ambitus(coord_clip);
             var dist_pitch = ambitus[1] - ambitus[0] + 1;
             return this.get_height_clip() / dist_pitch;
         };
         ;
-        TreeWindow.prototype.get_ambitus = function (index_clip) {
-            return this.clips[index_clip].get_ambitus();
+        // get_ambitus(index_clip: number): number[] {
+        //     return this.clips[index_clip].get_ambitus();
+        // };
+        TreeWindow.prototype.get_ambitus = function (coord_clips) {
+            // return this.matrix_clips[
+            //     coord_clips[0],
+            //     coord_clips[1]
+            // ].get_ambitus();
+            return this.matrix_clips[coord_clips[0]][coord_clips[1]].get_ambitus();
         };
         ;
         return TreeWindow;

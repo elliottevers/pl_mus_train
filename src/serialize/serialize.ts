@@ -20,6 +20,8 @@ export namespace serialize {
     import Subtarget = target.Subtarget;
 
     export let serialize_subtarget = (subtarget: Subtarget) => {
+        // let subtarget_serialized: any;
+        // TODO: fix
         let subtarget_serialized = subtarget;
         subtarget_serialized.note = serialize_note(subtarget.note);
         return subtarget_serialized;
@@ -59,7 +61,6 @@ export namespace serialize {
         return sequence_target_deserialized;
     };
 }
-
 
 export namespace freeze {
     import Trainer = trainer.Trainer;

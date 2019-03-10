@@ -95,6 +95,7 @@ export namespace live {
         }
 
         load_notes_within_loop_brackets(): void {
+            // TODO: bring in _parse method from Clip
             this.notes = this.get_notes(
                 this.get_loop_bracket_lower(),
                 0,

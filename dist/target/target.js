@@ -1,40 +1,132 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// import {Segment} from "../segment/segment";
+// import {serialize_subtarget} from "../serialize/serialize";
 var target;
-(function (target) {
-    // let min_width_clip = 0.25;
-    // export type TargetType = TreeModel.Node<n.Note>[]
+(function (target_1) {
     var Subtarget = /** @class */ (function () {
         function Subtarget(note) {
             this.note = note;
         }
         return Subtarget;
     }());
-    target.Subtarget = Subtarget;
+    target_1.Subtarget = Subtarget;
     var SubtargetIterator = /** @class */ (function () {
         function SubtargetIterator(subtargets) {
             this.subtargets = subtargets;
+            this.i = -1;
         }
+        SubtargetIterator.prototype.next = function () {
+            var value_increment = 1;
+            this.i += value_increment;
+            if (this.i < 0) {
+                throw 'subtarget iterator < 0';
+            }
+            if (this.i < this.subtargets.length) {
+                return {
+                    value: this.subtargets[this.i],
+                    done: false
+                };
+            }
+            else {
+                return {
+                    value: null,
+                    done: true
+                };
+            }
+        };
+        SubtargetIterator.prototype.current = function () {
+            if (this.i > -1) {
+                return this.subtargets[this.i];
+            }
+            else {
+                return null;
+            }
+        };
+        SubtargetIterator.prototype.reset = function () {
+            this.i = -1;
+        };
+        SubtargetIterator.prototype.get_index_current = function () {
+            return this.i;
+        };
         return SubtargetIterator;
     }());
-    target.SubtargetIterator = SubtargetIterator;
+    target_1.SubtargetIterator = SubtargetIterator;
     var Target = /** @class */ (function () {
-        function Target(subtarget_iterator) {
-            this.subtarget_iterator = subtarget_iterator;
+        function Target(iterator_subtarget) {
+            this.iterator_subtarget = iterator_subtarget;
         }
         return Target;
     }());
-    target.Target = Target;
+    target_1.Target = Target;
     var TargetIterator = /** @class */ (function () {
         function TargetIterator(targets) {
             this.targets = targets;
+            this.i = -1;
         }
-        TargetIterator.from_segment_targetable = function (segment_targetable) {
-            return;
+        // need SegmentTargetable -> TargetIterator
+        TargetIterator.from_sequence_target = function (sequence_target) {
+            var targets = [];
+            for (var _i = 0, sequence_target_1 = sequence_target; _i < sequence_target_1.length; _i++) {
+                var notes = sequence_target_1[_i];
+                var subtargets = [];
+                for (var _a = 0, notes_1 = notes; _a < notes_1.length; _a++) {
+                    var note = notes_1[_a];
+                    subtargets.push(new Subtarget(note));
+                }
+                var iterator_subtarget = new SubtargetIterator(subtargets);
+                targets.push(new Target(iterator_subtarget));
+            }
+            return new TargetIterator(targets);
+        };
+        TargetIterator.prototype.get_notes = function () {
+            var notes = [];
+            for (var _i = 0, _a = this.targets; _i < _a.length; _i++) {
+                var target_2 = _a[_i];
+                var iterator_subtarget = target_2.iterator_subtarget;
+                for (var _b = 0, _c = iterator_subtarget.subtargets; _b < _c.length; _b++) {
+                    var subtarget = _c[_b];
+                    notes.push(subtarget.note);
+                }
+            }
+            return notes;
+        };
+        TargetIterator.prototype.next = function () {
+            var value_increment = 1;
+            this.i += value_increment;
+            if (this.i < 0) {
+                throw 'target iterator < 0';
+            }
+            if (this.i < this.targets.length) {
+                return {
+                    value: this.targets[this.i],
+                    done: false
+                };
+            }
+            else {
+                return {
+                    value: null,
+                    done: true
+                };
+            }
+        };
+        TargetIterator.prototype.current = function () {
+            if (this.i > -1) {
+                return this.targets[this.i];
+            }
+            else {
+                return null;
+            }
+        };
+        TargetIterator.prototype.reset = function () {
+            this.i = -1;
+        };
+        TargetIterator.prototype.get_index_current = function () {
+            return this.i;
         };
         return TargetIterator;
     }());
-    target.TargetIterator = TargetIterator;
+    target_1.TargetIterator = TargetIterator;
     // export class Target {
     // notes_grouped: TreeModel.Node<n.Note>[][];
     //
@@ -159,7 +251,7 @@ var target;
     //         // TODO: use direction in logic
     //         var direction_forward = this.phrase_iterator.direction_forward;
     //         var reverse;
-    //         var phrase_interval_beats = this.current.get_phrase_interval_beats();
+    //         var phrase_interval_beats = this.current.get_prhrase_interval_beats();
     //
     //         if (this.i === 0) {
     //             this.current.set_phrase_interval_beats(phrase_interval_beats);
