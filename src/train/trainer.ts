@@ -203,7 +203,13 @@ export namespace trainer {
                 this.segments
             );
 
-            let clone_matrix_iterator = l.cloneDeep(this.iterator_matrix_train);
+            this.matrix_target_iterator = FactoryMatrixTargetIterator.get_iterator_target(
+                this.algorithm,
+                this.segments
+            );
+
+            // NB: central source of truth
+            let clone_matrix_target_iterator = l.cloneDeep(this.matrix_target_iterator);
 
             this.history_user_input = FactoryHistoryUserInput.create_history_user_input(
                 this.algorithm,
@@ -211,11 +217,11 @@ export namespace trainer {
             );
 
             this.history_user_input.set_matrix(
-                clone_matrix_iterator
+                clone_matrix_target_iterator
             );
 
             this.window.set_matrix(
-                clone_matrix_iterator
+                clone_matrix_target_iterator
             );
 
             this.window.set_length_beats(
