@@ -103,7 +103,8 @@ export namespace target {
             return new TargetIterator(targets)
         }
 
-        targets: Target[];
+        public targets: Target[];
+
         i: number;
 
         constructor(targets: Target[]) {

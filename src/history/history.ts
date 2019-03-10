@@ -4,6 +4,8 @@ import TreeModel = require("tree-model");
 import {utils} from "../utils/utils";
 import {serialize} from "../serialize/serialize";
 import {algorithm} from "../train/algorithm";
+import {target} from "../target/target";
+import {trainer} from "../train/trainer";
 
 export namespace history {
 
@@ -12,6 +14,9 @@ export namespace history {
     import DETECT = algorithm.DETECT;
     import PREDICT = algorithm.PREDICT;
     import PARSE = algorithm.PARSE;
+    import Subtarget = target.Subtarget;
+    import MatrixIterator = trainer.MatrixIterator;
+    import Target = target.Target;
 
     export type TypeSubtarget = TreeModel.Node<n.Note>;
 
@@ -63,7 +68,7 @@ export namespace history {
 
     export class TargetHistory implements HistoryUserInput {
 
-        matrix_data: TypeSequenceTarget[][];
+        matrix_data: Target[][][];
 
         constructor(algorithm, segments) {
             let matrix_data = [];
@@ -81,8 +86,14 @@ export namespace history {
         //     return this.matrix_data[i_height][i_width]
         // }
 
-        add_subtarget() {
+        // add_subtarget(subtarget: Subtarget, iterator_matrix_train: MatrixIterator) {
+        //     let coord = iterator_matrix_train.get_coord_current();
+        //     this.matrix_data[coord[0]][coord[1]] = subtarget.note
+        // }
 
+        add_sequence_target(target_sequence: Target[], iterator_matrix_train: MatrixIterator) {
+            let coord = iterator_matrix_train.get_coord_current();
+            this.matrix_data[coord[0]][coord[1]] = target_sequence;
         }
 
         save(filename) {

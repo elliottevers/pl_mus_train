@@ -336,40 +336,46 @@ export namespace trainer {
         }
 
         private advance_subtarget() {
-            // this.segment_current = this.segment_iterator.next();
-            // this.target_current = this.target_iterator.next();
-            // this.subtarget_current = this.subtarget_current.next();
-            // [i_height, i_width] = this.iterator_matrix_train.next();
 
+            let possibly_history: Target[] = this.iterator_target_current.targets;
 
             let obj_next_subtarget = this.iterator_subtarget_current.next();
 
-            let obj_next_target;
-
             if (obj_next_subtarget.done) {
-                obj_next_target = this.iterator_target_current.next();
-            }
 
-            if (obj_next_target.done) {
-                let obj_next_coord = this.iterator_matrix_train.next();
+                let obj_next_target = this.iterator_target_current.next();
 
-                if (obj_next_coord.done) {
-                    this.algorithm.pre_terminate();
-                    return
+                if (obj_next_target.done) {
+
+                    let obj_next_coord = this.iterator_matrix_train.next();
+
+                    if (obj_next_coord.done) {
+                        this.history_user_input.add_sequence_target(
+                            possibly_history,
+                            this.iterator_matrix_train
+                        );
+                        this.algorithm.pre_terminate();
+                        return
+                    }
+
+                    let coord_next = obj_next_coord.value;
+
+                    this.iterator_target_current = this.matrix_target_iterator[coord_next[0]][coord_next[1]];
+
+                    this.segment_current = this.segments[coord_next[1]]
                 }
 
-                let coord_next = obj_next_coord.value;
+                this.target_current = obj_next_target.value;
 
-                this.iterator_target_current = this.matrix_target_iterator[coord_next[0]][coord_next[1]];
+                let obj_next_subtarget_again = this.target_current.iterator_subtarget.next();
+
+                this.subtarget_current = obj_next_subtarget_again.value;
+
+                this.iterator_subtarget_current = this.target_current.iterator_subtarget
+            } else {
+                this.subtarget_current = obj_next_subtarget.value;
             }
 
-            // let obj_matrix_next = this.iterator_matrix_train.next();
-            //
-            // if (obj_matrix_next.done) {
-            //     this.algorithm.pre_terminate()
-            // }
-
-            // set segment current
 
             if (this.algorithm.b_targeted()) {
                 // set the targets and shit
@@ -378,19 +384,6 @@ export namespace trainer {
             // set the context in ableton
             this.set_loop();
         }
-
-        // advance_target() {
-        //     this.target_current = this.target_iterator.next()
-        // }
-        //
-        // advance_subtarget() {
-        //     let val = this.subtarget_iterator.next();
-        //     if (val.done) {
-        //         this.advance_target()
-        //     } else {
-        //         this.subtarget_current = val.value
-        //     }
-        // }
 
         // user input can be either 1) a pitch or 2) a sequence of notes
         accept_input(input_user: TreeModel.Node<n.Note>[]) {
@@ -438,16 +431,17 @@ export namespace trainer {
 
             // detect/predict logic
             // NB: assumes we're only giving list of a single note as input
-            if (input_user[0].model.note.pitch === this.subtarget_current.note.pitch) {
+            if (input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
 
-                let coords = this.iterator_matrix_train.get_coord_current();
+                // let coords = this.iterator_matrix_train.get_coord_current();
 
-                let target_iterator_current = this.matrix_target_iterator[coords[0]][coords[1]];
+                // let target_iterator_current = this.matrix_target_iterator[coords[0]][coords[1]];
 
                 // NB: we actually add the note that the user was trying to guess, not the note played
-                this.history_user_input.add_subtarget(
-                    this.iterator_target_current.current().iterator_subtarget.current()
-                );
+                // this.history_user_input.add_subtarget(
+                //     this.iterator_target_current.current().iterator_subtarget.current(),
+                //     this.iterator_matrix_train
+                // );
 
                 this.advance_subtarget();
 

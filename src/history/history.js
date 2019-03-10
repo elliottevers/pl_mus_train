@@ -57,7 +57,13 @@ var history;
         // get_sequence_target(i_height, i_width): TypeSequenceTarget {
         //     return this.matrix_data[i_height][i_width]
         // }
-        TargetHistory.prototype.add_subtarget = function () {
+        // add_subtarget(subtarget: Subtarget, iterator_matrix_train: MatrixIterator) {
+        //     let coord = iterator_matrix_train.get_coord_current();
+        //     this.matrix_data[coord[0]][coord[1]] = subtarget.note
+        // }
+        TargetHistory.prototype.add_sequence_target = function (target_sequence, iterator_matrix_train) {
+            var coord = iterator_matrix_train.get_coord_current();
+            this.matrix_data[coord[0]][coord[1]] = target_sequence;
         };
         TargetHistory.prototype.save = function (filename) {
             // let data_serializable = this.matrix_data as any;
