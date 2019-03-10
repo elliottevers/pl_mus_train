@@ -516,7 +516,7 @@ export namespace trainer {
                 let coord_current = this.iterator_matrix_train.get_coord_current();
 
                 this.window.add(
-                    this.matrix_target_iterator[coord_current[0]][coord_current[1]],
+                    this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
                     coord_current,
                     this.segment_current
                 );

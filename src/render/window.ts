@@ -87,7 +87,6 @@ export namespace window {
         }
 
         get_messages_render_clip(coord_clip: number[]) {
-            // var clip = this.clips[index_clip];
             let clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
             let quadruplets = [];
             for (let node of clip_virtual.get_notes_within_loop_brackets()) {
@@ -195,22 +194,67 @@ export namespace window {
         public render(iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm) {
             this.clear();
             this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
-            this.render_notes(iterator_matrix_train, matrix_target_iterator);
+            this.render_clips(iterator_matrix_train, matrix_target_iterator);
+            return
         }
 
-        public render_notes(iterator_matrix_train, matrix_target_iterator) {
-            let messages_clips = [];
+        public render_clips(iterator_matrix_train, matrix_target_iterator) {
+            let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, matrix_target_iterator)
+            for (let messages_notes of messages_render_clips) {
+                for (let message_note of messages_notes) {
+                    this.messenger.message(message_note);
+                }
+            }
+        }
+
+        public get_messages_render_clips(iterator_matrix_train, matrix_target_iterator): any[][] {
+            let messages = [];
 
             for (let i of _.range(0, iterator_matrix_train.get_state_current())) {
+
                 let coord_clip: number[] = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
-                // for (let clip of this.matrix_clips[coord_clip[0]][coord_clip[1]]) {
-                //
-                // }
+
+                messages.push(
+                    this.get_messages_render_clip(coord_clip)
+                )
             }
 
             // messages_clips = this.get_messages_render_clip()
-            return
+            return messages
         }
+
+        // render_clips(): void {
+        //     var messages = this.get_messages_render_clips();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
+
+        // TODO: return signature
+        // get_messages_render_clips(history_user_input: HistoryUserInput)  {
+        //     var messages = [];
+        //     // for (let index_clip in this.clips) {
+        //     //     messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
+        //     // }
+        //     for (let index_clip in this.clips) {
+        //         messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
+        //     }
+        //     return messages;
+        // };
+
+        // get_messages_render_notes(clip: Clip) {
+        //     let quadruplets = [];
+        //     for (let node of clip.get_notes_within_loop_brackets()) {
+        //         quadruplets.push(this.get_position_quadruplet(node, index_clip));
+        //     }
+        //     return quadruplets.map(function (tuplet) {
+        //         let message = <any>["paintrect"].concat(tuplet);
+        //         message = message.concat(black);
+        //         return message;
+        //     })
+        // };
 
         public get_message_render_region_past(interval_current) {
             let offset_left_start, offset_top_start, offset_left_end, offset_top_end;
@@ -288,11 +332,11 @@ export namespace window {
         // }
     }
 
-    class MatrixClip {
-        data: LiveClipVirtual[][];
-
-
-    }
+    // class MatrixClip {
+    //     data: LiveClipVirtual[][];
+    //
+    //
+    // }
 
     export class TreeWindow extends Window {
 
@@ -451,6 +495,10 @@ export namespace window {
             }
         };
 
+        get_messages_render_tree() {
+            return []
+        }
+
         // render_clips(): void {
         //     var messages = this.get_messages_render_clips();
         //     for (var i=0; i < messages.length; i++) {
@@ -459,10 +507,6 @@ export namespace window {
         //         )
         //     }
         // };
-
-        get_messages_render_tree() {
-            return []
-        }
 
         // TODO: return signature
         // get_messages_render_clips(history_user_input: HistoryUserInput)  {
