@@ -3,12 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // import {parse_matrix, pwindow} from "../scripts/parse_tree";
 var algorithm_1 = require("./algorithm");
 var history_1 = require("../history/history");
+var target_1 = require("../target/target");
 var parse_1 = require("../parse/parse");
 var utils_1 = require("../utils/utils");
 var _ = require('underscore');
 var l = require('lodash');
 var trainer;
 (function (trainer) {
+    // import TargetType = target.TargetType;
+    var TargetIterator = target_1.target.TargetIterator;
     var ParseTree = parse_1.parse.ParseTree;
     var division_int = utils_1.utils.division_int;
     var remainder = utils_1.utils.remainder;
@@ -144,7 +147,8 @@ var trainer;
             for (var i_segment in this.segments) {
                 // need SegmentTargetable -> TargetIterator
                 var segment_2 = this.segments[Number(i_segment)];
-                this.matrix_target_iterator[0][Number(i_segment)] = this.algorithm.determine_targets(this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end, 128));
+                var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end, 128));
+                this.matrix_target_iterator[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             }
         };
         Trainer.prototype.clear_window = function () {
@@ -193,6 +197,7 @@ var trainer;
             var coord = obj_next_coord.value;
             this.segment_current = this.segments[coord[1]];
             this.iterator_target_current = this.matrix_target_iterator[coord[0]][coord[1]];
+            // TODO: why isn't this a 'TargetIterator'?
             var obj_target = this.iterator_target_current.next();
             if (obj_target.done) {
                 return;
@@ -248,6 +253,7 @@ var trainer;
         //         this.subtarget_current = val.value
         //     }
         // }
+        // user input can be either 1) a pitch or 2) a sequence of notes
         Trainer.prototype.accept_input = function (input_user) {
             this.counter_user_input++;
             if (this.counter_user_input >= this.limit_user_input) {
@@ -270,7 +276,8 @@ var trainer;
                 return;
             }
             // detect/predict logic
-            if (input_user.note.pitch === this.subtarget_current.note.pitch) {
+            // NB: assumes we're only giving list of a single note as input
+            if (input_user[0].model.note.pitch === this.subtarget_current.note.pitch) {
                 var coords = this.iterator_matrix_train.get_coord_current();
                 var target_iterator_current = this.matrix_target_iterator[coords[0]][coords[1]];
                 // NB: we actually add the note that the user was trying to guess, not the note played

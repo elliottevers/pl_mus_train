@@ -64,6 +64,21 @@ var target;
             this.targets = targets;
             this.i = -1;
         }
+        // need SegmentTargetable -> TargetIterator
+        TargetIterator.from_sequence_target = function (sequence_target) {
+            var targets = [];
+            for (var _i = 0, sequence_target_1 = sequence_target; _i < sequence_target_1.length; _i++) {
+                var notes = sequence_target_1[_i];
+                var subtargets = [];
+                for (var _a = 0, notes_1 = notes; _a < notes_1.length; _a++) {
+                    var note = notes_1[_a];
+                    subtargets.push(new Subtarget(note));
+                }
+                var iterator_subtarget = new SubtargetIterator(subtargets);
+                targets.push(new Target(iterator_subtarget));
+            }
+            return new TargetIterator(targets);
+        };
         TargetIterator.prototype.get_notes = function () {
             var notes = [];
             for (var _i = 0, _a = this.targets; _i < _a.length; _i++) {

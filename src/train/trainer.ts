@@ -241,14 +241,15 @@ export namespace trainer {
             for (let i_segment in this.segments) {
                 // need SegmentTargetable -> TargetIterator
                 let segment = this.segments[Number(i_segment)];
-                this.matrix_target_iterator[0][Number(i_segment)] = this.algorithm.determine_targets(
+                 let sequence_targets = this.algorithm.determine_targets(
                     this.clip_target.get_notes(
                         segment.beat_start,
                         0,
                         segment.beat_end,
                         128
                     )
-                )
+                );
+                this.matrix_target_iterator[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             }
         }
 
@@ -314,6 +315,7 @@ export namespace trainer {
             this.segment_current = this.segments[coord[1]];
             this.iterator_target_current = this.matrix_target_iterator[coord[0]][coord[1]];
 
+            // TODO: why isn't this a 'TargetIterator'?
             let obj_target = this.iterator_target_current.next();
 
             if (obj_target.done) {
@@ -390,7 +392,8 @@ export namespace trainer {
         //     }
         // }
 
-        accept_input(input_user) {
+        // user input can be either 1) a pitch or 2) a sequence of notes
+        accept_input(input_user: TreeModel.Node<n.Note>[]) {
 
             this.counter_user_input++;
 
@@ -434,7 +437,8 @@ export namespace trainer {
             }
 
             // detect/predict logic
-            if (input_user.note.pitch === this.subtarget_current.note.pitch) {
+            // NB: assumes we're only giving list of a single note as input
+            if (input_user[0].model.note.pitch === this.subtarget_current.note.pitch) {
 
                 let coords = this.iterator_matrix_train.get_coord_current();
 

@@ -115,11 +115,11 @@ var clip_target_virtual = new Clip(clip_dao_virtual);
 var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, clip_user_input, clip_target_virtual, song, segments, messenger);
 // test case - 2 segments, 2 notes a piece
 trainer_local.init();
-trainer_local.accept_input(note_target_1_subtarget_1);
-trainer_local.accept_input(note_target_1_subtarget_2);
-trainer_local.accept_input(note_target_2_subtarget_1);
-trainer_local.accept_input(note_target_2_subtarget_2);
-trainer_local.accept_input(note_target_3_subtarget_1);
+trainer_local.accept_input([note_target_1_subtarget_1]);
+trainer_local.accept_input([note_target_1_subtarget_2]);
+trainer_local.accept_input([note_target_2_subtarget_1]);
+trainer_local.accept_input([note_target_2_subtarget_2]);
+trainer_local.accept_input([note_target_3_subtarget_1]);
 trainer_local.clear_window();
 var freezer = new TrainFreezer('node');
 freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');

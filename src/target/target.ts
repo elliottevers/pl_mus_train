@@ -10,6 +10,8 @@ import {history} from "../history/history";
 export namespace target {
 
     import TypeTarget = history.TypeTarget;
+    import TypeSequenceTarget = history.TypeSequenceTarget;
+    import TypeSubtarget = history.TypeSubtarget;
 
     export class Subtarget {
         note: TreeModel.Node<n.Note>;
@@ -81,6 +83,25 @@ export namespace target {
 
     export class TargetIterator {
         // need SegmentTargetable -> TargetIterator
+
+        public static from_sequence_target(sequence_target: TypeSequenceTarget): TargetIterator {
+
+            let targets: Target[] = [];
+            for (let notes of sequence_target) {
+                let subtargets: TypeSubtarget[] = [];
+                for (let note of notes) {
+                    subtargets.push(
+                        new Subtarget(note)
+                    )
+                }
+                let iterator_subtarget = new SubtargetIterator(subtargets);
+                targets.push(
+                    new Target(iterator_subtarget)
+                )
+            }
+
+            return new TargetIterator(targets)
+        }
 
         targets: Target[];
         i: number;

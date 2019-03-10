@@ -275,23 +275,23 @@ trainer_local.init(
 );
 
 trainer_local.accept_input(
-    note_target_1_subtarget_1
+    [note_target_1_subtarget_1]
 );
 
 trainer_local.accept_input(
-    note_target_1_subtarget_2
+    [note_target_1_subtarget_2]
 );
 
 trainer_local.accept_input(
-    note_target_2_subtarget_1
+    [note_target_2_subtarget_1]
 );
 
 trainer_local.accept_input(
-    note_target_2_subtarget_2
+    [note_target_2_subtarget_2]
 );
 
 trainer_local.accept_input(
-    note_target_3_subtarget_1
+    [note_target_3_subtarget_1]
 );
 
 trainer_local.clear_window(
