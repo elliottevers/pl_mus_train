@@ -311,8 +311,20 @@ let thawer = new TrainThawer(
     'node'
 );
 
+let config = {
+    'window': window_local,
+    'user_input_handler': user_input_handler,
+    'algorithm': algorithm_train,
+    'clip_user_input': clip_user_input,
+    'clip_target_virtual': clip_target_virtual,
+    'song': song,
+    'segments': segments,
+    'messenger': messenger
+};
+
 let train_thawed = thawer.thaw(
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
+    config
 );
 
 train_thawed.render_window(

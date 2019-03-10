@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var TreeModel = require("tree-model");
+var trainer_1 = require("../train/trainer");
 var serialize;
 (function (serialize) {
     serialize.serialize_note = function (note) {
@@ -50,10 +51,26 @@ var serialize;
 })(serialize = exports.serialize || (exports.serialize = {}));
 var freeze;
 (function (freeze) {
+    var serialize_target_sequence = serialize.serialize_target_sequence;
     var TrainFreezer = /** @class */ (function () {
         function TrainFreezer(env) {
         }
         TrainFreezer.prototype.freeze = function (trainer, filepath) {
+            var data_serializable = trainer.history_user_input.matrix_data;
+            for (var i_row in trainer.history_user_input.matrix_data) {
+                for (var i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
+                    data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]);
+                }
+            }
+            var f = new File(filepath, "write", "JSON");
+            if (f.isopen) {
+                post("saving session");
+                f.writestring(JSON.stringify(data_serializable));
+                f.close();
+            }
+            else {
+                post("could not save session");
+            }
         };
         return TrainFreezer;
     }());
@@ -61,11 +78,31 @@ var freeze;
 })(freeze = exports.freeze || (exports.freeze = {}));
 var thaw;
 (function (thaw) {
+    var Trainer = trainer_1.trainer.Trainer;
+    var deserialize_target_sequence = serialize.deserialize_target_sequence;
     var TrainThawer = /** @class */ (function () {
         function TrainThawer(env) {
         }
-        TrainThawer.prototype.thaw = function (filepath) {
-            return;
+        TrainThawer.prototype.thaw = function (filepath, config) {
+            var f = new File(filepath, "read", "JSON");
+            var a, matrix_deserialized;
+            if (f.isopen) {
+                post("reading file");
+                // @ts-ignore
+                while ((a = f.readline()) != null) {
+                    matrix_deserialized = JSON.parse(a);
+                }
+                f.close();
+            }
+            else {
+                post("could not open file");
+            }
+            for (var i_row in matrix_deserialized) {
+                for (var i_col in matrix_deserialized[Number(i_row)]) {
+                    matrix_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(matrix_deserialized[Number(i_row)][Number(i_col)]);
+                }
+            }
+            return new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_target_virtual'], config['song'], config['segments'], config['messenger']);
         };
         return TrainThawer;
     }());

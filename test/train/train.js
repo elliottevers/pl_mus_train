@@ -124,7 +124,17 @@ trainer_local.clear_window();
 var freezer = new TrainFreezer('node');
 freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
 var thawer = new TrainThawer('node');
-var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
+var config = {
+    'window': window_local,
+    'user_input_handler': user_input_handler,
+    'algorithm': algorithm_train,
+    'clip_user_input': clip_user_input,
+    'clip_target_virtual': clip_target_virtual,
+    'song': song,
+    'segments': segments,
+    'messenger': messenger
+};
+var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json', config);
 train_thawed.render_window();
 // verify that it looks correct in window
 //# sourceMappingURL=train.js.map

@@ -1,4 +1,3 @@
-import {history} from "../history/history";
 import {target} from "../target/target";
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
@@ -64,6 +63,7 @@ export namespace serialize {
 
 export namespace freeze {
     import Trainer = trainer.Trainer;
+    import serialize_target_sequence = serialize.serialize_target_sequence;
 
     export class TrainFreezer {
         constructor(env: string) {
@@ -71,21 +71,70 @@ export namespace freeze {
         }
 
         public freeze(trainer: Trainer, filepath: string) {
+            let data_serializable = trainer.history_user_input.matrix_data as any;
+            for (let i_row in trainer.history_user_input.matrix_data) {
+                for (let i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
+                    data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
+                        trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]
+                    )
+                }
+            }
 
+            let f = new File(filepath,"write","JSON");
+
+            if (f.isopen) {
+                post("saving session");
+                f.writestring(JSON.stringify(data_serializable));
+                f.close();
+            } else {
+                post("could not save session");
+            }
         }
     }
 }
 
 export namespace thaw {
     import Trainer = trainer.Trainer;
+    import deserialize_target_sequence = serialize.deserialize_target_sequence;
 
     export class TrainThawer {
         constructor(env: string) {
 
         }
 
-        public thaw(filepath: string): Trainer {
-            return
+        public thaw(filepath: string, config): Trainer {
+            let f = new File(filepath, "read","JSON");
+            let a, matrix_deserialized;
+
+            if (f.isopen) {
+                post("reading file");
+                // @ts-ignore
+                while ((a = f.readline()) != null) {
+                    matrix_deserialized = JSON.parse(a) as any;
+                }
+                f.close();
+            } else {
+                post("could not open file");
+            }
+
+            for (let i_row in matrix_deserialized) {
+                for (let i_col in matrix_deserialized[Number(i_row)]) {
+                    matrix_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(
+                        matrix_deserialized[Number(i_row)][Number(i_col)]
+                    )
+                }
+            }
+
+            return new Trainer(
+                config['window'],
+                config['user_input_handler'],
+                config['algorithm'],
+                config['clip_user_input'],
+                config['clip_target_virtual'],
+                config['song'],
+                config['segments'],
+                config['messenger']
+            );
         }
     }
 }

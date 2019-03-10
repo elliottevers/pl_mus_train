@@ -1,11 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var serialize_1 = require("../serialize/serialize");
 var algorithm_1 = require("../train/algorithm");
 var history;
 (function (history) {
-    var serialize_target_sequence = serialize_1.serialize.serialize_target_sequence;
-    var deserialize_target_sequence = serialize_1.serialize.deserialize_target_sequence;
     var DETECT = algorithm_1.algorithm.DETECT;
     var PREDICT = algorithm_1.algorithm.PREDICT;
     var PARSE = algorithm_1.algorithm.PARSE;
@@ -63,51 +60,60 @@ var history;
         TargetHistory.prototype.add_subtarget = function () {
         };
         TargetHistory.prototype.save = function (filename) {
-            var data_serializable = this.matrix_data;
-            for (var i_row in this.matrix_data) {
-                for (var i_col in this.matrix_data[Number(i_row)]) {
-                    data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(this.matrix_data[Number(i_row)][Number(i_col)]);
-                }
-            }
-            var f = new File(filename, "write", "JSON");
-            if (f.isopen) {
-                post("saving session");
-                f.writestring(JSON.stringify(data_serializable));
-                f.close();
-            }
-            else {
-                post("could not save session");
-            }
+            // let data_serializable = this.matrix_data as any;
+            // for (let i_row in this.matrix_data) {
+            //     for (let i_col in this.matrix_data[Number(i_row)]) {
+            //         data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
+            //             this.matrix_data[Number(i_row)][Number(i_col)]
+            //         )
+            //     }
+            // }
+            //
+            // let f = new File(filename,"write","JSON");
+            //
+            // if (f.isopen) {
+            //     post("saving session");
+            //     f.writestring(JSON.stringify(data_serializable));
+            //     f.close();
+            // } else {
+            //     post("could not save session");
+            // }
         };
         TargetHistory.prototype.load = function (filename) {
-            var f = new File(filename, "read", "JSON");
-            var a, data_deserialized;
-            if (f.isopen) {
-                post("reading file");
-                // @ts-ignore
-                while ((a = f.readline()) != null) {
-                    var data_deserialized_1 = JSON.parse(a);
-                }
-                f.close();
-            }
-            else {
-                post("could not open file");
-            }
-            // let data_deserialized = data_serialized as any;
+            // let f = new File(filename, "read","JSON");
+            // let a, data_deserialized;
             //
-            // for (let i_row in data_serialized) {
-            //     for (let i_col in data_serialized[Number(i_row)]) {
-            //         data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
+            // if (f.isopen) {
+            //     post("reading file");
+            //     // @ts-ignore
+            //     while ((a = f.readline()) != null) {
+            //         let data_deserialized = JSON.parse(a) as any;
+            //     }
+            //     f.close();
+            // } else {
+            //     post("could not open file");
+            // }
+            //
+            // // let data_deserialized = data_serialized as any;
+            // //
+            // // for (let i_row in data_serialized) {
+            // //     for (let i_col in data_serialized[Number(i_row)]) {
+            // //         data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
+            // //     }
+            // // }
+            // //
+            // // return data_deserialized
+            //
+            // for (let i_row in this.matrix_data) {
+            //     for (let i_col in this.matrix_data[Number(i_row)]) {
+            //         data_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(
+            //             data_deserialized[Number(i_row)][Number(i_col)]
+            //         )
             //     }
             // }
             //
             // return data_deserialized
-            for (var i_row in this.matrix_data) {
-                for (var i_col in this.matrix_data[Number(i_row)]) {
-                    data_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(data_deserialized[Number(i_row)][Number(i_col)]);
-                }
-            }
-            return data_deserialized;
+            return;
         };
         return TargetHistory;
     }());

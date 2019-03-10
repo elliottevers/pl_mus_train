@@ -86,60 +86,61 @@ export namespace history {
         }
 
         save(filename) {
-            let data_serializable = this.matrix_data as any;
-            for (let i_row in this.matrix_data) {
-                for (let i_col in this.matrix_data[Number(i_row)]) {
-                    data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
-                        this.matrix_data[Number(i_row)][Number(i_col)]
-                    )
-                }
-            }
-
-            let f = new File(filename,"write","JSON");
-
-            if (f.isopen) {
-                post("saving session");
-                f.writestring(JSON.stringify(data_serializable));
-                f.close();
-            } else {
-                post("could not save session");
-            }
+            // let data_serializable = this.matrix_data as any;
+            // for (let i_row in this.matrix_data) {
+            //     for (let i_col in this.matrix_data[Number(i_row)]) {
+            //         data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
+            //             this.matrix_data[Number(i_row)][Number(i_col)]
+            //         )
+            //     }
+            // }
+            //
+            // let f = new File(filename,"write","JSON");
+            //
+            // if (f.isopen) {
+            //     post("saving session");
+            //     f.writestring(JSON.stringify(data_serializable));
+            //     f.close();
+            // } else {
+            //     post("could not save session");
+            // }
         }
 
         public load(filename): HistoryUserInput {
-            let f = new File(filename, "read","JSON");
-            let a, data_deserialized;
-
-            if (f.isopen) {
-                post("reading file");
-                // @ts-ignore
-                while ((a = f.readline()) != null) {
-                    let data_deserialized = JSON.parse(a) as any;
-                }
-                f.close();
-            } else {
-                post("could not open file");
-            }
-
-            // let data_deserialized = data_serialized as any;
+            // let f = new File(filename, "read","JSON");
+            // let a, data_deserialized;
             //
-            // for (let i_row in data_serialized) {
-            //     for (let i_col in data_serialized[Number(i_row)]) {
-            //         data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
+            // if (f.isopen) {
+            //     post("reading file");
+            //     // @ts-ignore
+            //     while ((a = f.readline()) != null) {
+            //         let data_deserialized = JSON.parse(a) as any;
+            //     }
+            //     f.close();
+            // } else {
+            //     post("could not open file");
+            // }
+            //
+            // // let data_deserialized = data_serialized as any;
+            // //
+            // // for (let i_row in data_serialized) {
+            // //     for (let i_col in data_serialized[Number(i_row)]) {
+            // //         data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
+            // //     }
+            // // }
+            // //
+            // // return data_deserialized
+            //
+            // for (let i_row in this.matrix_data) {
+            //     for (let i_col in this.matrix_data[Number(i_row)]) {
+            //         data_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(
+            //             data_deserialized[Number(i_row)][Number(i_col)]
+            //         )
             //     }
             // }
             //
             // return data_deserialized
-
-            for (let i_row in this.matrix_data) {
-                for (let i_col in this.matrix_data[Number(i_row)]) {
-                    data_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(
-                        data_deserialized[Number(i_row)][Number(i_col)]
-                    )
-                }
-            }
-
-            return data_deserialized
+            return
         }
     }
 

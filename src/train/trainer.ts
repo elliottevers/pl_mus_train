@@ -134,7 +134,7 @@ export namespace trainer {
         private messenger: Messenger;
 
         private list_parse_tree: ParseTree[];
-        private history_user_input;
+        public history_user_input;
 
         private counter_user_input: number;
         private limit_user_input: number;
