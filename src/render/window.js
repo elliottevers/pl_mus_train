@@ -41,8 +41,7 @@ var window;
             this.messenger = messenger;
         }
         Window.prototype.clear = function () {
-            var msg_clear = ["clear"];
-            // msg_clear.unshift('render');
+            var msg_clear = ["render", "clear"];
             this.messenger.message(msg_clear);
         };
         Window.prototype.set_matrix = function (matrix) {
@@ -65,14 +64,19 @@ var window;
         };
         Window.prototype.add_note_to_clip = function (note_to_add_to_clip, coord_current) {
             this.matrix_clips[coord_current[0]][coord_current[1]].append(note_to_add_to_clip);
+            return;
         };
-        Window.prototype.add = function (notes, coord_matrix_clip, segment) {
-            var clip_dao_virtual = new LiveClipVirtual(notes);
-            clip_dao_virtual.beat_start = segment.beat_start;
-            clip_dao_virtual.beat_end = segment.beat_end;
-            var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
-            this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
-        };
+        // public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
+        //     let clip_dao_virtual = new LiveClipVirtual(notes);
+        //
+        //     clip_dao_virtual.beat_start = segment.beat_start;
+        //
+        //     clip_dao_virtual.beat_end = segment.beat_end;
+        //
+        //     let clip_virtual = new c.Clip(clip_dao_virtual);
+        //
+        //     this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
+        // }
         Window.prototype.get_messages_render_clip = function (coord_clip) {
             var clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
             var quadruplets = [];
@@ -152,11 +156,10 @@ var window;
         ListWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm) {
             this.clear();
             this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
-            this.render_clips(iterator_matrix_train, matrix_target_iterator);
-            return;
+            this.render_clips(iterator_matrix_train);
         };
-        ListWindow.prototype.render_clips = function (iterator_matrix_train, matrix_target_iterator) {
-            var messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, matrix_target_iterator);
+        ListWindow.prototype.render_clips = function (iterator_matrix_train) {
+            var messages_render_clips = this.get_messages_render_clips(iterator_matrix_train);
             for (var _i = 0, messages_render_clips_1 = messages_render_clips; _i < messages_render_clips_1.length; _i++) {
                 var messages_notes = messages_render_clips_1[_i];
                 for (var _a = 0, messages_notes_1 = messages_notes; _a < messages_notes_1.length; _a++) {
@@ -165,9 +168,9 @@ var window;
                 }
             }
         };
-        ListWindow.prototype.get_messages_render_clips = function (iterator_matrix_train, matrix_target_iterator) {
+        ListWindow.prototype.get_messages_render_clips = function (iterator_matrix_train) {
             var messages = [];
-            for (var _i = 0, _a = _.range(0, iterator_matrix_train.get_state_current()); _i < _a.length; _i++) {
+            for (var _i = 0, _a = _.range(0, iterator_matrix_train.get_state_current() + 1); _i < _a.length; _i++) {
                 var i = _a[_i];
                 var coord_clip = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
                 messages.push(this.get_messages_render_clip(coord_clip));

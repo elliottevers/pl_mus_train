@@ -96,10 +96,10 @@ var clip;
         Clip.prototype.stop = function () {
             this.clip_dao.stop();
         };
-        Clip.prototype.get_notes_within_markers = function () {
-            // if (!this.notes) {
-            this.load_notes_within_markers();
-            // }
+        Clip.prototype.get_notes_within_markers = function (use_cache) {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_markers();
+            }
             // this.logger.log(
             //     JSON.stringify(
             //         this.get_notes(
@@ -112,10 +112,10 @@ var clip;
             // );
             return this.notes;
         };
-        Clip.prototype.get_notes_within_loop_brackets = function () {
-            // if (!this.notes) {
-            this.load_notes_within_loop_brackets();
-            // }
+        Clip.prototype.get_notes_within_loop_brackets = function (use_cache) {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_loop_brackets();
+            }
             return this.notes;
         };
         // TODO: only works virtual clips currently

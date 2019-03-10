@@ -277,10 +277,6 @@ export namespace trainer {
 
             this.clip_target.load_notes_within_markers();
 
-            // let segment_targetable: SegmentTargetable;
-
-            // let iterators_target: TargetIterator[] = [];
-
             for (let i_segment in this.segments) {
                 let sequence_targets = this.algorithm.determine_targets(
                     this.clip_target.get_notes(
@@ -503,16 +499,6 @@ export namespace trainer {
             // NB: assumes we're only giving list of a single note as input
             if (input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
 
-                // let coords = this.iterator_matrix_train.get_coord_current();
-
-                // let target_iterator_current = this.matrix_target_iterator[coords[0]][coords[1]];
-
-                // NB: we actually add the note that the user was trying to guess, not the note played
-                // this.history_user_input.add_subtarget(
-                //     this.iterator_target_current.current().iterator_subtarget.current(),
-                //     this.iterator_matrix_train
-                // );
-
                 let note_subtarget_at_time = this.subtarget_current.note;
 
                 let coord_at_time = this.iterator_matrix_train.get_coord_current();
@@ -530,12 +516,6 @@ export namespace trainer {
                     note_subtarget_at_time,
                     coord_at_time
                 );
-
-                // this.window.add(
-                //     this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
-                //     coord_current,
-                //     this.segment_current
-                // );
 
                 this.render_window();
             }

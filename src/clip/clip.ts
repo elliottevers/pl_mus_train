@@ -139,10 +139,10 @@ export namespace clip {
             this.clip_dao.stop();
         }
 
-        get_notes_within_markers(): TreeModel.Node<n.Note>[] {
-            // if (!this.notes) {
-            this.load_notes_within_markers();
-            // }
+        get_notes_within_markers(use_cache?: boolean): TreeModel.Node<n.Note>[] {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_markers();
+            }
             // this.logger.log(
             //     JSON.stringify(
             //         this.get_notes(
@@ -156,10 +156,10 @@ export namespace clip {
             return this.notes;
         }
 
-        get_notes_within_loop_brackets(): TreeModel.Node<n.Note>[] {
-            // if (!this.notes) {
-            this.load_notes_within_loop_brackets();
-            // }
+        get_notes_within_loop_brackets(use_cache?: boolean): TreeModel.Node<n.Note>[] {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_loop_brackets();
+            }
             return this.notes;
         }
 

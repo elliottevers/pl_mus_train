@@ -172,8 +172,6 @@ var trainer;
         // now we can assume we have a list instead of a matrix
         Trainer.prototype.create_targets = function () {
             this.clip_target.load_notes_within_markers();
-            // let segment_targetable: SegmentTargetable;
-            // let iterators_target: TargetIterator[] = [];
             for (var i_segment in this.segments) {
                 var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(this.segments[Number(i_segment)].beat_start, 0, this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start, 128));
                 this.matrix_target_iterator[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
@@ -298,13 +296,6 @@ var trainer;
             // detect/predict logic
             // NB: assumes we're only giving list of a single note as input
             if (input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
-                // let coords = this.iterator_matrix_train.get_coord_current();
-                // let target_iterator_current = this.matrix_target_iterator[coords[0]][coords[1]];
-                // NB: we actually add the note that the user was trying to guess, not the note played
-                // this.history_user_input.add_subtarget(
-                //     this.iterator_target_current.current().iterator_subtarget.current(),
-                //     this.iterator_matrix_train
-                // );
                 var note_subtarget_at_time = this.subtarget_current.note;
                 var coord_at_time = this.iterator_matrix_train.get_coord_current();
                 this.advance_subtarget();
@@ -314,11 +305,6 @@ var trainer;
                 // set the context in ableton
                 this.set_loop();
                 this.window.add_note_to_clip(note_subtarget_at_time, coord_at_time);
-                // this.window.add(
-                //     this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
-                //     coord_current,
-                //     this.segment_current
-                // );
                 this.render_window();
             }
         };

@@ -61,8 +61,7 @@ export namespace window {
         }
 
         public clear() {
-            let msg_clear = ["clear"];
-            // msg_clear.unshift('render');
+            let msg_clear = ["render", "clear"];
             this.messenger.message(msg_clear);
         }
 
@@ -88,20 +87,21 @@ export namespace window {
         }
 
         public add_note_to_clip(note_to_add_to_clip, coord_current) {
-            this.matrix_clips[coord_current[0]][coord_current[1]].append(note_to_add_to_clip)
+            this.matrix_clips[coord_current[0]][coord_current[1]].append(note_to_add_to_clip);
+            return
         }
 
-        public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
-            let clip_dao_virtual = new LiveClipVirtual(notes);
-
-            clip_dao_virtual.beat_start = segment.beat_start;
-
-            clip_dao_virtual.beat_end = segment.beat_end;
-
-            let clip_virtual = new c.Clip(clip_dao_virtual);
-
-            this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
-        }
+        // public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
+        //     let clip_dao_virtual = new LiveClipVirtual(notes);
+        //
+        //     clip_dao_virtual.beat_start = segment.beat_start;
+        //
+        //     clip_dao_virtual.beat_end = segment.beat_end;
+        //
+        //     let clip_virtual = new c.Clip(clip_dao_virtual);
+        //
+        //     this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
+        // }
 
         get_messages_render_clip(coord_clip: number[]) {
             let clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
@@ -211,12 +211,11 @@ export namespace window {
         public render(iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm) {
             this.clear();
             this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
-            this.render_clips(iterator_matrix_train, matrix_target_iterator);
-            return
+            this.render_clips(iterator_matrix_train);
         }
 
-        public render_clips(iterator_matrix_train, matrix_target_iterator) {
-            let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, matrix_target_iterator);
+        public render_clips(iterator_matrix_train) {
+            let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train);
             for (let messages_notes of messages_render_clips) {
                 for (let message_note of messages_notes) {
                     this.messenger.message(message_note);
@@ -224,10 +223,10 @@ export namespace window {
             }
         }
 
-        public get_messages_render_clips(iterator_matrix_train, matrix_target_iterator): any[][] {
+        public get_messages_render_clips(iterator_matrix_train): any[][] {
             let messages = [];
 
-            for (let i of _.range(0, iterator_matrix_train.get_state_current())) {
+            for (let i of _.range(0, iterator_matrix_train.get_state_current() + 1)) {
 
                 let coord_clip: number[] = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
 

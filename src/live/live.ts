@@ -1,12 +1,14 @@
 import TreeModel = require("tree-model");
 import {note as n} from "../note/note"
 import {clip} from "../clip/clip";
+import {user_input} from "../control/user_input";
 
 declare let LiveAPI: any;
 
 export namespace live {
 
     import Clip = clip.Clip;
+    import UserInputHandler = user_input.UserInputHandler;
 
     export interface iLiveApiJs {
         get(property: string): any;
@@ -94,7 +96,9 @@ export namespace live {
         // }
 
         append(note) {
-            this.notes.push(note);
+            let test = this.notes;
+            test.push(note);
+            this.notes = test;
         }
 
         get_ambitus(): number[] {
@@ -104,18 +108,18 @@ export namespace live {
         load_notes_within_loop_brackets(): void {
             this.notes = Clip._parse_notes(
                 this.get_notes(
-                    this.get_loop_bracket_lower(),
+                    this.get_loop_bracket_lower()[0],
                     0,
-                    this.get_loop_bracket_upper(),
+                    this.get_loop_bracket_upper()[0],
                     128
                 )
             )
         }
 
-        get_notes_within_loop_brackets(): TreeModel.Node<n.Note>[] {
-            // if (!this.notes) {
-            this.load_notes_within_loop_brackets();
-            // }
+        get_notes_within_loop_brackets(use_cache?: boolean): TreeModel.Node<n.Note>[] {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_loop_brackets();
+            }
             return this.notes;
         }
 
