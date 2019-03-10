@@ -110,11 +110,11 @@ var live;
                 this.notes.push(note);
             }
         };
-        LiveClipVirtual.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+        LiveClipVirtual.prototype.get_notes = function (beat_start, pitch_midi_min, beats_duration, pitch_midi_max) {
             var prefix, notes, suffix;
             prefix = ["notes", this.notes.length.toString()];
             notes = [];
-            for (var _i = 0, _a = this.notes; _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.notes.filter(function (node) { return beat_start <= node.model.note.beat_start && node.model.note.beat_start < beat_start + beats_duration; }); _i < _a.length; _i++) {
                 var node = _a[_i];
                 notes.push("note");
                 notes.push(node.model.note.pitch.toString());

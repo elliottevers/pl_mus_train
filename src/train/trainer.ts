@@ -239,13 +239,11 @@ export namespace trainer {
             // let iterators_target: TargetIterator[] = [];
 
             for (let i_segment in this.segments) {
-                // need SegmentTargetable -> TargetIterator
-                let segment = this.segments[Number(i_segment)];
-                 let sequence_targets = this.algorithm.determine_targets(
+                let sequence_targets = this.algorithm.determine_targets(
                     this.clip_target.get_notes(
-                        segment.beat_start,
+                        this.segments[Number(i_segment)].beat_start,
                         0,
-                        segment.beat_end,
+                        this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start,
                         128
                     )
                 );
@@ -349,12 +347,18 @@ export namespace trainer {
 
                     let obj_next_coord = this.iterator_matrix_train.next();
 
+                    this.history_user_input.add_sequence_target(
+                        possibly_history,
+                        this.iterator_matrix_train
+                    );
+
                     if (obj_next_coord.done) {
                         this.history_user_input.add_sequence_target(
                             possibly_history,
                             this.iterator_matrix_train
                         );
                         this.algorithm.pre_terminate();
+
                         return
                     }
 
@@ -362,27 +366,33 @@ export namespace trainer {
 
                     this.iterator_target_current = this.matrix_target_iterator[coord_next[0]][coord_next[1]];
 
-                    this.segment_current = this.segments[coord_next[1]]
+                    this.segment_current = this.segments[coord_next[1]];
+
+                    let obj_next_target_twice_nested = this.iterator_target_current.next();
+
+                    this.target_current = obj_next_target_twice_nested.value;
+
+                    let obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
+
+                    this.subtarget_current = obj_next_subtarget_twice_nested.value;
+
+                    this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+
+                    return
                 }
 
                 this.target_current = obj_next_target.value;
 
-                let obj_next_subtarget_again = this.target_current.iterator_subtarget.next();
+                let obj_next_subtarget_once_nested = this.target_current.iterator_subtarget.next();
 
-                this.subtarget_current = obj_next_subtarget_again.value;
+                this.subtarget_current = obj_next_subtarget_once_nested.value;
 
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget
-            } else {
-                this.subtarget_current = obj_next_subtarget.value;
+
+                return
             }
 
-
-            if (this.algorithm.b_targeted()) {
-                // set the targets and shit
-            }
-
-            // set the context in ableton
-            this.set_loop();
+            this.subtarget_current = obj_next_subtarget.value;
         }
 
         // user input can be either 1) a pitch or 2) a sequence of notes
@@ -444,6 +454,13 @@ export namespace trainer {
                 // );
 
                 this.advance_subtarget();
+
+                if (this.algorithm.b_targeted()) {
+                    // set the targets and shit
+                }
+
+                // set the context in ableton
+                this.set_loop();
 
                 this.window.render_regions(
                     this.iterator_matrix_train,

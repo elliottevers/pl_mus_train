@@ -172,11 +172,11 @@ export namespace live {
             }
         }
 
-        get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
+        get_notes(beat_start, pitch_midi_min, beats_duration, pitch_midi_max): string[] {
             let prefix, notes, suffix;
             prefix = ["notes", this.notes.length.toString()];
             notes = [];
-            for (let node of this.notes) {
+            for (let node of this.notes.filter(node => beat_start <= node.model.note.beat_start && node.model.note.beat_start < beat_start + beats_duration)) {
                 notes.push("note");
                 notes.push(node.model.note.pitch.toString());
                 notes.push(node.model.note.beat_start.toString());

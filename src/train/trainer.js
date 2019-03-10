@@ -145,9 +145,7 @@ var trainer;
             // let segment_targetable: SegmentTargetable;
             // let iterators_target: TargetIterator[] = [];
             for (var i_segment in this.segments) {
-                // need SegmentTargetable -> TargetIterator
-                var segment_2 = this.segments[Number(i_segment)];
-                var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end, 128));
+                var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(this.segments[Number(i_segment)].beat_start, 0, this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start, 128));
                 this.matrix_target_iterator[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             }
         };
@@ -217,6 +215,7 @@ var trainer;
                 var obj_next_target = this.iterator_target_current.next();
                 if (obj_next_target.done) {
                     var obj_next_coord = this.iterator_matrix_train.next();
+                    this.history_user_input.add_sequence_target(possibly_history, this.iterator_matrix_train);
                     if (obj_next_coord.done) {
                         this.history_user_input.add_sequence_target(possibly_history, this.iterator_matrix_train);
                         this.algorithm.pre_terminate();
@@ -225,20 +224,20 @@ var trainer;
                     var coord_next = obj_next_coord.value;
                     this.iterator_target_current = this.matrix_target_iterator[coord_next[0]][coord_next[1]];
                     this.segment_current = this.segments[coord_next[1]];
+                    var obj_next_target_twice_nested = this.iterator_target_current.next();
+                    this.target_current = obj_next_target_twice_nested.value;
+                    var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
+                    this.subtarget_current = obj_next_subtarget_twice_nested.value;
+                    this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+                    return;
                 }
                 this.target_current = obj_next_target.value;
-                var obj_next_subtarget_again = this.target_current.iterator_subtarget.next();
-                this.subtarget_current = obj_next_subtarget_again.value;
+                var obj_next_subtarget_once_nested = this.target_current.iterator_subtarget.next();
+                this.subtarget_current = obj_next_subtarget_once_nested.value;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+                return;
             }
-            else {
-                this.subtarget_current = obj_next_subtarget.value;
-            }
-            if (this.algorithm.b_targeted()) {
-                // set the targets and shit
-            }
-            // set the context in ableton
-            this.set_loop();
+            this.subtarget_current = obj_next_subtarget.value;
         };
         // user input can be either 1) a pitch or 2) a sequence of notes
         Trainer.prototype.accept_input = function (input_user) {
@@ -273,6 +272,11 @@ var trainer;
                 //     this.iterator_matrix_train
                 // );
                 this.advance_subtarget();
+                if (this.algorithm.b_targeted()) {
+                    // set the targets and shit
+                }
+                // set the context in ableton
+                this.set_loop();
                 this.window.render_regions(this.iterator_matrix_train, this.matrix_target_iterator);
             }
         };

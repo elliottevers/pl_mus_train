@@ -27,7 +27,7 @@ export namespace serialize {
 
     export let deserialize_subtarget = (subtarget_serialized) => {
         let subtarget_deserialized = subtarget_serialized;
-        subtarget_deserialized.note = deserialize_note(subtarget_serialized.note)
+        subtarget_deserialized.note = deserialize_note(subtarget_serialized.note);
         return subtarget_deserialized;
     };
 
@@ -36,7 +36,7 @@ export namespace serialize {
     export let serialize_target_sequence = (sequence_target) => {
         let sequence_target_serialized = sequence_target;
         for (let i_target in sequence_target) {
-            let subtargets = sequence_target[Number(i_target)].get_subtargets();
+            let subtargets = sequence_target[Number(i_target)].iterator_subtarget.subtargets;
             for (let i_subtarget in subtargets) {
                 let subtarget = subtargets[Number(i_subtarget)];
                 sequence_target_serialized[Number(i_target)][Number(i_subtarget)] = serialize_subtarget(subtarget)

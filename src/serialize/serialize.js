@@ -28,7 +28,7 @@ var serialize;
     serialize.serialize_target_sequence = function (sequence_target) {
         var sequence_target_serialized = sequence_target;
         for (var i_target in sequence_target) {
-            var subtargets = sequence_target[Number(i_target)].get_subtargets();
+            var subtargets = sequence_target[Number(i_target)].iterator_subtarget.subtargets;
             for (var i_subtarget in subtargets) {
                 var subtarget = subtargets[Number(i_subtarget)];
                 sequence_target_serialized[Number(i_target)][Number(i_subtarget)] = serialize.serialize_subtarget(subtarget);
