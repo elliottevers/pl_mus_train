@@ -1,6 +1,6 @@
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
-// import {parse_matrix, pwindow} from "../scripts/parse_tree";
+// import {struct_parse, pwindow} from "../scripts/parse_tree";
 import {algorithm, algorithm as algo} from "./algorithm";
 import {history} from "../history/history";
 import {target} from "../target/target";
@@ -16,13 +16,9 @@ const l = require('lodash');
 
 export namespace trainer {
 
-    // import Targetable = train.algorithm.Targetable;
     import HistoryUserInput = history.HistoryUserInput;
-    // import TargetType = target.TargetType;
     import TargetIterator = target.TargetIterator;
-    // import MatrixIterator = history.MatrixIterator;
     import Segment = segment.Segment;
-    // import ParseTree = parse.ParseTree;
     import Algorithm = algorithm.Algorithm;
     import division_int = utils.division_int;
     import remainder = utils.remainder;
@@ -30,24 +26,17 @@ export namespace trainer {
     import DERIVE = algorithm.DERIVE;
     import DETECT = algorithm.DETECT;
     import PREDICT = algorithm.PREDICT;
-    import Parse = algorithm.Parse;
-    import Renderable = window.Renderable;
-    import TreeRenderable = window.TreeRenderable;
     import Subtarget = target.Subtarget;
     import Target = target.Target;
     import Messenger = message.Messenger;
     import Song = song.Song;
     import Clip = clip.Clip;
-    import FactoryHistoryUserInput = history.FactoryHistoryUserInput;
     import SubtargetIterator = target.SubtargetIterator;
-    import ParseMatrix = parse.ParseMatrix;
+    import StructParse = parse.StructParse;
 
     export class MatrixIterator {
         private num_rows: number;
         private num_columns: number;
-
-        private row_current: number;
-        private column_current: number;
 
         private downward: boolean;
         private rightward: boolean;
@@ -156,10 +145,23 @@ export namespace trainer {
             let pos_column = remainder(i, num_columns);
             return [pos_row, pos_column]
         }
+
+        public static get_coord_above(coord) {
+            if (coord[0] === 1) {
+                // return [coord[0] - 1, 0]
+                return [0, 0]
+            } else {
+                return [coord[0] - 1, coord[1]]
+            }
+        }
+
+        public static get_coord_below(coord): number[] {
+            return [coord[0] + 1, coord[1]]
+        }
     }
 
     class FactoryMatrixTargetIterator {
-        public static get_iterator_target(algorithm: Algorithm, segments: Segment[]): any[][] {
+        public static create_matrix_focus(algorithm: Algorithm, segments: Segment[]): any[][] {
             let matrix_data = [];
             switch(algorithm.get_name()) {
                 case algo.DETECT || algo.PREDICT: {
@@ -170,11 +172,7 @@ export namespace trainer {
                 }
                 case algo.PARSE || algo.DERIVE: {
                     for (let i=0; i < algorithm.get_depth(); i++) {
-                        if (i == 0) {
-                            matrix_data[i] = new Array(1); // root of tree
-                        } else {
-                            matrix_data[i] = new Array(segments.length);
-                        }
+                        matrix_data[i] = new Array(segments.length);
                     }
                     break;
                 }
@@ -205,11 +203,11 @@ export namespace trainer {
                 case algo.PARSE: {
                     downward = false;
                     rightward = true;
-                    iterator = new MatrixIterator(algorithm.get_depth() + 1, segments.length, downward, rightward);
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length, downward, rightward);
                     break;
                 }
                 case algo.DERIVE: {
-                    iterator = new MatrixIterator(algorithm.get_depth() + 1, segments.length);
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
                     break;
                 }
                 default: {
@@ -230,8 +228,7 @@ export namespace trainer {
         private segments: Segment[];
         private messenger: Messenger;
 
-        // private list_parse_tree: ParseTree[];
-        private parse_matrix: ParseMatrix;
+        private struct_parse: StructParse;
         public history_user_input;
 
         private counter_user_input: number;
@@ -242,11 +239,9 @@ export namespace trainer {
         private target_current: Target;
         private subtarget_current: Subtarget;
 
-        private matrix_target_iterator: TargetIterator[][];
-        private iterator_target_current: TargetIterator;
-
+        private matrix_focus: TargetIterator[][];
         private iterator_matrix_train: MatrixIterator;
-
+        private iterator_target_current: TargetIterator;
         private iterator_subtarget_current: SubtargetIterator;
 
         constructor(window, user_input_handler, algorithm, clip_user_input, clip_target, song, segments, messenger) {
@@ -263,18 +258,13 @@ export namespace trainer {
                 this.segments
             );
 
-            this.matrix_target_iterator = FactoryMatrixTargetIterator.get_iterator_target(
+            this.matrix_focus = FactoryMatrixTargetIterator.create_matrix_focus(
                 this.algorithm,
                 this.segments
             );
 
-            this.history_user_input = FactoryHistoryUserInput.create_history_user_input(
-                this.algorithm,
-                this.segments
-            );
-
-            this.history_user_input.set_matrix(
-                l.cloneDeep(this.matrix_target_iterator)
+            this.history_user_input = new HistoryUserInput(
+                l.cloneDeep(this.matrix_focus)
             );
 
             this.window.initialize_clips(
@@ -289,32 +279,32 @@ export namespace trainer {
             if (this.algorithm.b_targeted()) {
                 this.create_targets()
             } else {
-                this.parse_matrix = new ParseMatrix(
-                    l.cloneDeep(this.matrix_target_iterator)
+                this.struct_parse = new StructParse(
+                    l.cloneDeep(this.matrix_focus)
                 );
-                this.initialize_parse_matrix();
+                this.initialize_struct_parse();
             }
         }
 
-        // TODO: everytime we add a note, call next() on matrix iterator
-        private initialize_parse_matrix() {
-
-            // set root
-            let coord_root = [0, 0];
+        private initialize_struct_parse() {
 
             let note_root = this.segments[0].get_note();
 
-            this.parse_matrix.matrix_note_sequence[coord_root[0]][coord_root[1]] = [note_root];
+            this.struct_parse.root = note_root;
 
-            // initialize
-            this.iterator_matrix_train.next();
+            this.window.add_note_to_clip_root(
+                note_root
+            );
 
             // set first layer, which are the various key center estimates
 
             for (let i_segment of this.segments) {
                 let segment = this.segments[Number(i_segment)];
-                this.parse_matrix.matrix_note_sequence[1][Number(i_segment)] = [segment.get_note()];
-                this.iterator_matrix_train.next();
+                let note = segment.get_note();
+                let coord_current_virtual = [0, Number(i_segment)];
+                // TODO: can we make a function to simultaneous add to all 3 of struct parse, history user input, and window?
+                this.struct_parse.matrix_leaves[coord_current_virtual[0]][coord_current_virtual[1]] = [note];
+                this.window.add_notes_to_clip(note, coord_current_virtual)
             }
 
             switch (this.algorithm.get_name()) {
@@ -327,7 +317,7 @@ export namespace trainer {
                             segment.beat_end - segment.beat_start,
                             128
                         );
-                        this.parse_matrix.matrix_note_sequence[this.algorithm.get_depth()][Number(i_segment)] = notes
+                        this.struct_parse.matrix_leaves[this.algorithm.get_depth() - 1][Number(i_segment)] = notes
                     }
                     break;
                 }
@@ -340,6 +330,8 @@ export namespace trainer {
                 }
             }
         }
+
+
 
         // now we can assume we have a list instead of a matrix
         private create_targets() {
@@ -355,7 +347,7 @@ export namespace trainer {
                         128
                     )
                 );
-                this.matrix_target_iterator[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
+                this.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             }
         }
 
@@ -366,17 +358,16 @@ export namespace trainer {
         public render_window() {
             this.window.render(
                 this.iterator_matrix_train,
-                this.matrix_target_iterator,
-                this.history_user_input,
+                this.matrix_focus,
                 this.algorithm,
-                this.parse_matrix
+                this.struct_parse
             )
         }
 
         public reset_user_input() {
             if (_.contains([DETECT, PREDICT], this.algorithm.get_name())) {
                 let coords = this.iterator_matrix_train.get_coord_current();
-                let notes_last = this.matrix_target_iterator[coords[0] - 1][coords[1]].get_notes();
+                let notes_last = this.matrix_focus[coords[0] - 1][coords[1]].get_notes();
                 this.clip_user_input.set_notes(
                     notes_last
                 );
@@ -455,12 +446,6 @@ export namespace trainer {
                             coord_at_time
                         );
 
-                        // this.window.add(
-                        //     this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
-                        //     coord_current,
-                        //     this.segment_current
-                        // );
-
                         this.algorithm.pre_terminate();
 
                         return
@@ -468,7 +453,7 @@ export namespace trainer {
 
                     let coord_next = obj_next_coord.value;
 
-                    this.iterator_target_current = this.matrix_target_iterator[coord_next[0]][coord_next[1]];
+                    this.iterator_target_current = this.matrix_focus[coord_next[0]][coord_next[1]];
 
                     this.segment_current = this.segments[coord_next[1]];
 
@@ -521,10 +506,15 @@ export namespace trainer {
                     this.iterator_matrix_train.get_coord_current()
                 );
 
+                this.window.add_notes_to_clip(
+                    this.subtarget_current.note,
+                    this.iterator_matrix_train.get_coord_current()
+                );
+
                 // TODO: implement
-                this.parse_matrix.add(
+                this.struct_parse.add(
                     notes_input_user,
-                    this.parse_matrix,
+                    this.struct_parse,
                     this.iterator_matrix_train
                 );
 
@@ -539,8 +529,8 @@ export namespace trainer {
             // NB: assumes we're only giving list of a single note as input
             if (notes_input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
 
-                this.window.add_note_to_clip(
-                    this.subtarget_current.note,
+                this.window.add_notes_to_clip(
+                    [this.subtarget_current.note],
                     this.iterator_matrix_train.get_coord_current()
                 );
 
@@ -552,7 +542,7 @@ export namespace trainer {
 
                 this.set_loop();
 
-                // this.render_window();
+                this.render_window();
             }
         }
     }

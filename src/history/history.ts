@@ -28,101 +28,74 @@ export namespace history {
 
     export type TypeSequenceTarget = TypeTarget[]
 
-    // export class SequenceTarget {
-    //     data: TypeSequenceTarget;
-    //
-    //     constructor() {
-    //
-    //     }
-    //
-    //     get_subtargets() {
-    //
+    // export class FactoryHistoryUserInput {
+    //     public static create_history_user_input(algorithm, matrix_target_iterator) {
+    //         switch (algorithm.get_name()) {
+    //             case DETECT: {
+    //                 return new TargetHistory(matrix_target_iterator);
+    //             }
+    //             case PREDICT: {
+    //                 return new TargetHistory(matrix_target_iterator);
+    //             }
+    //             case PARSE: {
+    //                 return new PhaseHistory(matrix_target_iterator);
+    //             }
+    //             case DERIVE: {
+    //                 return new PhaseHistory(matrix_target_iterator);
+    //             }
+    //             default: {
+    //                 throw 'factory history user input'
+    //             }
+    //         }
     //     }
     // }
 
-    export class FactoryHistoryUserInput {
-        public static create_history_user_input(algorithm, segments) {
-            switch (algorithm.get_name()) {
-                case DETECT: {
-                    return new TargetHistory();
-                }
-                case PREDICT: {
-                    return new TargetHistory();
-                }
-                case PARSE: {
-                    return new PhaseHistory();
-                }
-                case DERIVE: {
-                    return new PhaseHistory();
-                }
-                default: {
-                    throw 'factory history user input'
-                }
-            }
+    export class HistoryUserInput {
+        matrix_data: TreeModel.Node<Note>[][][];
+
+        constructor(matrix) {
+            this.matrix_data = matrix;
+        }
+
+        add(struct: any, coord: number[]) {
+            this.matrix_data[coord[0]][coord[1]] = struct;
+        }
+
+        get(coord: number[]): any {
+            return this.matrix_data[coord[0]][coord[1]];
         }
     }
 
-    export interface HistoryUserInput {
-        set_matrix(matrix): void;
-        add(struct, coord): void;
-        // get(coord);
-    }
-
-    export class PhaseHistory implements HistoryUserInput {
-        matrix_notes: TreeModel.Node<Note>[][][];
-
-        constructor() {
-
-        }
-
-        set_matrix(matrix) {
-            this.matrix_notes = matrix
-        }
-
-        add(notes: TreeModel.Node<Note>[], coord: number[]) {
-            this.matrix_notes[coord[0]][coord[1]] = notes;
-        }
-
-        get(coord: number[]): TreeModel.Node<n.Note>[] {
-            return this.matrix_notes[coord[0]][coord[1]];
-        }
-    }
-
-    export class TargetHistory implements HistoryUserInput {
-
-        matrix_data: Target[][][];
-
-        // constructor(algorithm, segments) {
-        //     let matrix_data = [];
-        //     for (let i=0; i < 1; i++) {
-        //         matrix_data[i] = new Array(segments.length);
-        //     }
-        //     this.matrix_data = matrix_data;
-        // }
-
-        constructor() {
-
-        }
-
-        set_matrix(matrix) {
-            this.matrix_data = matrix
-        }
-
-        // set_sequence_target(sequence_target: TypeSequenceTarget, coord_matrix: number[]) {
-        //     this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
-        // }
-        //
-        // get_sequence_target(i_height, i_width): TypeSequenceTarget {
-        //     return this.matrix_data[i_height][i_width]
-        // }
-
-        // add_subtarget(subtarget: Subtarget, iterator_matrix_train: MatrixIterator) {
-        //     let coord = iterator_matrix_train.get_coord_current();
-        //     this.matrix_data[coord[0]][coord[1]] = subtarget.note
-        // }
-
-        add(target_sequence: Target[], coord: number[]) {
-            this.matrix_data[coord[0]][coord[1]] = target_sequence;
-        }
-    }
+    // export class PhaseHistory implements HistoryUserInput {
+    //     matrix_data: TreeModel.Node<Note>[][][];
+    //
+    //     constructor(matrix) {
+    //         this.matrix_data = matrix;
+    //     }
+    //
+    //     add(notes: TreeModel.Node<Note>[], coord: number[]) {
+    //         this.matrix_data[coord[0]][coord[1]] = notes;
+    //     }
+    //
+    //     get(coord: number[]): TreeModel.Node<n.Note>[] {
+    //         return this.matrix_data[coord[0]][coord[1]];
+    //     }
+    // }
+    //
+    // export class TargetHistory implements HistoryUserInput {
+    //
+    //     matrix_data: Target[][][];
+    //
+    //     constructor(matrix) {
+    //         this.matrix_data = matrix
+    //     }
+    //
+    //     add(target_sequence: Target[], coord: number[]) {
+    //         this.matrix_data[coord[0]][coord[1]] = target_sequence;
+    //     }
+    //
+    //     get(coord: number[]) {
+    //         return this.matrix_data[coord[0]][coord[1]];
+    //     }
+    // }
 }

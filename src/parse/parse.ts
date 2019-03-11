@@ -6,6 +6,7 @@ import {utils} from "../utils/utils";
 import {live} from "../live/live";
 import {clip as c} from "../clip/clip";
 import {algorithm} from "../train/algorithm";
+import {trainer} from "../train/trainer";
 
 const _ = require("underscore");
 
@@ -15,6 +16,7 @@ export namespace parse {
     import DETECT = algorithm.DETECT;
     import PARSE = algorithm.PARSE;
     import DERIVE = algorithm.DERIVE;
+    import MatrixIterator = trainer.MatrixIterator;
 
     export interface Parsable {
         choose(): boolean;
@@ -35,57 +37,23 @@ export namespace parse {
         }
     }
 
-    export class ParseMatrix extends ParseTree {
+    export class StructParse extends ParseTree {
 
         root: TreeModel.Node<n.NoteRenderable>;
 
-        matrix_note_sequence: TreeModel.Node<n.NoteRenderable>[][][];
+        matrix_leaves: TreeModel.Node<n.NoteRenderable>[][][];
 
         coords_roots: number[][]; // list of coordinates
 
         constructor(matrix) {
             super();
-
-            // let tree: TreeModel = new TreeModel();
-
-            // this.root = tree.parse(
-            //     {
-            //         id: -1, // TODO: hashing scheme for clip id and beat start
-            //         note: new n.NoteRenderable(
-            //             // Number(splitted[0]),
-            //             // Number(splitted[1]),
-            //             // Number(splitted[2]),
-            //             // Number(splitted[3]),
-            //             // Number(splitted[4]),
-            //             // coordinates_matrix
-            //             note.model.note.pitch,
-            //             note.model.note.beat_start,
-            //             note.model.note.beats_duration,
-            //             note.model.note.velocity,
-            //             note.model.note.muted,
-            //             coordinates_matrix
-            //         ),
-            //         children: [
-            //
-            //         ]
-            //     }
-            // )
-
-            matrix.unshift([]);  // entire row reserved for root
-
-            this.matrix_note_sequence = matrix;
+            this.matrix_leaves = matrix;
         }
 
         public get_roots_at_coord(coord: number[]) {
-            return this.matrix_note_sequence[coord[0]][coord[1]]
+            return this.matrix_leaves[coord[0]][coord[1]]
         }
 
-        // // TODO: we actually have to implement
-        // public static add(input_user, list_parse_tree, iterator_matrix_train): ParseTree[] {
-        //     let coord = iterator_matrix_train.get_coord_current()
-        //     return
-        // }
-        //
         private static get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
             let same_start, same_duration, index_start_diff;
             for (let i=0; i < notes_old.length; i++) {
@@ -118,58 +86,39 @@ export namespace parse {
         // TODO: complete return method signature
         get_diff_index_notes(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): number[] {
             return [
-                ParseTree.get_diff_index_start(notes_child, notes_parent),
-                ParseTree.get_diff_index_end(notes_child, notes_parent)
+                StructParse.get_diff_index_start(notes_child, notes_parent),
+                StructParse.get_diff_index_end(notes_child, notes_parent)
             ];
         };
 
-        // public get_root(): TreeModel.Node<n.NoteRenderable> {
-        //     return this.root
-        // }
-
-        public to_coord_parse_matrix(coord: number[]): number[] {
-            if (coord[0] === 0) {
-                return [0, 0] // entire "row" is dedicated to root
-            } else {
-                return coord
-            }
-        }
-
         public add(notes_user_input, iterator_matrix_train, algorithm): void {
-            //
-            // ParseTree.add_layer(,notes_user_input);
-            // return
-
-
-            // TODO: remove coordinates of either 'notes_below' or 'notes_above'
-            this.coords_roots
 
             let coord_notes_previous;
 
-            let coord_notes_current = this.to_coord_parse_matrix(iterator_matrix_train.get_coord_current());
+            let coord_notes_current = iterator_matrix_train.get_coord_current();
 
-            this.matrix_note_sequence[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input;
+            this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input;
 
             switch (algorithm.get_name()) {
                 case PARSE: {
-                    // coord_notes_current = iterator_matrix_train.get_coord_current();
-                    coord_notes_previous = this.to_coord_parse_matrix([coord_notes_current[0] - 1, coord_notes_current[1]]);
-                    let notes_below = this.matrix_note_sequence[coord_notes_previous[0]][coord_notes_previous[1]];
+                    coord_notes_previous = MatrixIterator.get_coord_above([coord_notes_current[0], coord_notes_current[1]]);
+                    let notes_below = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
                     let notes_children = notes_below;
                     this.add_layer(
                         notes_user_input,
-                        notes_children
+                        notes_children,
+                        -1
                     );
                     break;
                 }
                 case DERIVE: {
-                    // coord_notes_current = this.to_coord_parse_matrix(iterator_matrix_train.get_coord_current());
-                    coord_notes_previous = this.to_coord_parse_matrix([coord_notes_current[0] + 1, coord_notes_current[1]]);
-                    let notes_above = this.matrix_note_sequence[coord_notes_previous[0]][coord_notes_previous[1]];
+                    coord_notes_previous = MatrixIterator.get_coord_below([coord_notes_current[0], coord_notes_current[1]]);
+                    let notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
                     let notes_parent = notes_above;
                     this.add_layer(
                         notes_parent,
-                        notes_user_input
+                        notes_user_input,
+                        -1
                     );
                     break;
                 }
@@ -178,24 +127,17 @@ export namespace parse {
                 }
             }
 
-            this.coords_roots.remove(coord_notes_previous);
+            // remove references to old leaves
+            this.coords_roots = this.coords_roots.filter((x) => {
+                return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1])
+            });
 
-            this.coords_roots.add(coord_notes_current);
-
+            // add references to new leaves
+            this.coords_roots.push(
+                coord_notes_current
+            )
         }
 
-        //
-        // private add_first_layer(notes: TreeModel.Node<n.Note>[], index_new_layer: number): void {
-        //     // var note_parent_best, b_successful;
-        //
-        //     for (let node of notes) {
-        //         node.model.id = index_new_layer;
-        //         this.root_parse_tree.addChild(node);
-        //     }
-        // }
-        //
-        // NB: only works top down currently
-        // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
         private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[], index_new_layer: number): void {
 
             var note_parent_best, b_successful;
