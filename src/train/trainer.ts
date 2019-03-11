@@ -35,46 +35,74 @@ export namespace trainer {
     import StructParse = parse.StructParse;
 
     export class MatrixIterator {
+
         private num_rows: number;
         private num_columns: number;
 
         private downward: boolean;
         private rightward: boolean;
 
-        private i;
+        private index_row_start: number;
+        private index_row_stop: number;
 
-        constructor(num_rows: number, num_columns: number, downward?: boolean, rightward?: boolean) {
+        private i;
+        private index_start;
+        private index_stop;
+
+        constructor(num_rows: number, num_columns: number, downward?: boolean, rightward?: boolean, start_at_row?: number, stop_at_row?: number) {
             this.num_rows = num_rows;
             this.num_columns = num_columns;
 
             this.downward = downward ? downward : true;
             this.rightward = rightward ? rightward : true;
 
-            if (this.downward && this.rightward) {
-                this.i = -1;
-            } else if (!this.downward && this.rightward) {
-                this.i = this.num_columns * this.num_rows + 1 - this.num_columns
-            } else if (this.downward && !this.rightward) {
-                this.i = -1 + this.num_columns
-            } else if (!this.downward && !this.rightward) {
-                this.i = this.num_columns * this.num_rows + 1
-            } else {
-                throw 'matrix iterator'
-            }
+            this.index_row_start = start_at_row;
+            this.index_row_stop = stop_at_row;
+
+            this.determine_index_start();
+            this.determine_index_stop();
         }
 
-        private next_row() {
+        private determine_index_start() {
+
+            let i_start;
+
             if (this.downward && this.rightward) {
-                this.i = this.i + this.num_columns;
+                i_start = -1 + (this.num_columns * this.index_row_start)
             } else if (!this.downward && this.rightward) {
-                this.i = this.i - 3;
+                i_start = (this.num_columns * (this.index_row_start + 2)) - 1
             } else if (this.downward && !this.rightward) {
-                this.i = this.i + 3;
-            } else if (!this.downward && !this.rightward) {
-                this.i = this.i - this.num_columns;
-            } else {
-                throw 'matrix iterator'
+                throw 'not yet supported'
             }
+            else if (!this.downward && !this.rightward) {
+                throw 'not yet supported'
+            }
+            else {
+                throw 'not yet supported'
+            }
+
+            this.index_start = i_start;
+        }
+
+        private determine_index_stop() {
+
+            let i_stop;
+
+            if (this.downward && this.rightward) {
+                i_stop = this.index_row_stop * this.num_columns
+            } else if (!this.downward && this.rightward) {
+                i_stop = this.index_row_stop * this.num_columns
+            } else if (this.downward && !this.rightward) {
+                throw 'not yet supported'
+            }
+            else if (!this.downward && !this.rightward) {
+                throw 'not yet supported'
+            }
+            else {
+                throw 'not yet supported'
+            }
+
+            this.index_stop = i_stop;
         }
 
         private next_column() {
@@ -87,29 +115,17 @@ export namespace trainer {
                     this.i++
                 }
             } else if (this.downward && !this.rightward) {
-                if (remainder(this.i + 1, this.num_rows) === 0) {
-                    this.i = this.i + (this.num_columns - 1) + this.num_columns
-                } else {
-                    this.i--
-                }
+                // if (remainder(this.i + 1, this.num_rows) === 0) {
+                //     this.i = this.i + (this.num_columns - 1) + this.num_columns
+                // } else {
+                //     this.i--
+                // }
+                throw 'not yet supported'
             } else if (!this.downward && !this.rightward) {
-                this.i--;
+                // this.i--;
+                throw 'not yet supported'
             } else {
-                throw 'matrix iterator'
-            }
-        }
-
-        private get_index_done(): number {
-            if (this.downward && this.rightward) {
-                return this.num_columns * this.num_rows
-            } else if (!this.downward && this.rightward) {
-                return -1 * this.num_rows
-            } else if (this.downward && !this.rightward) {
-                return this.num_columns * this.num_rows - 1 + this.num_rows
-            } else if (!this.downward && !this.rightward) {
-                return -1
-            } else {
-                throw 'matrix iterator'
+                throw 'not yet supported'
             }
         }
 
@@ -119,7 +135,7 @@ export namespace trainer {
 
             this.next_column();
 
-            if (this.i === this.get_index_done()) {
+            if (this.i === this.index_stop) {
                 return {
                     value: value,
                     done: true
@@ -147,12 +163,12 @@ export namespace trainer {
         }
 
         public static get_coord_above(coord) {
-            if (coord[0] === 1) {
-                // return [coord[0] - 1, 0]
-                return [0, 0]
-            } else {
-                return [coord[0] - 1, coord[1]]
-            }
+            // if (coord[0] === 1) {
+            //     // return [coord[0] - 1, 0]
+            //     return [0, 0]
+            // } else {
+            return [coord[0] - 1, coord[1]]
+            // }
         }
 
         public static get_coord_below(coord): number[] {
@@ -203,11 +219,31 @@ export namespace trainer {
                 case algo.PARSE: {
                     downward = false;
                     rightward = true;
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length, downward, rightward);
+                    let index_row_start = algorithm.get_depth() - 1;
+                    let index_row_stop = 1;
+                    iterator = new MatrixIterator(
+                        algorithm.get_depth(),
+                        segments.length,
+                        downward,
+                        rightward,
+                        index_row_start,
+                        index_row_stop
+                    );
                     break;
                 }
                 case algo.DERIVE: {
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
+                    downward = true;
+                    rightward = true;
+                    let index_row_start = 1;
+                    let index_row_stop = algorithm.get_depth();
+                    iterator = new MatrixIterator(
+                        algorithm.get_depth(),
+                        segments.length,
+                        downward,
+                        rightward,
+                        index_row_start,
+                        index_row_stop
+                    );
                     break;
                 }
                 default: {

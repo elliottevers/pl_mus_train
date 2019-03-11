@@ -20,43 +20,53 @@ var trainer;
     var PREDICT = algorithm_1.algorithm.PREDICT;
     var StructParse = parse_1.parse.StructParse;
     var MatrixIterator = /** @class */ (function () {
-        function MatrixIterator(num_rows, num_columns, downward, rightward) {
+        function MatrixIterator(num_rows, num_columns, downward, rightward, start_at_row, stop_at_row) {
             this.num_rows = num_rows;
             this.num_columns = num_columns;
             this.downward = downward ? downward : true;
             this.rightward = rightward ? rightward : true;
-            if (this.downward && this.rightward) {
-                this.i = -1;
-            }
-            else if (!this.downward && this.rightward) {
-                this.i = this.num_columns * this.num_rows + 1 - this.num_columns;
-            }
-            else if (this.downward && !this.rightward) {
-                this.i = -1 + this.num_columns;
-            }
-            else if (!this.downward && !this.rightward) {
-                this.i = this.num_columns * this.num_rows + 1;
-            }
-            else {
-                throw 'matrix iterator';
-            }
+            this.index_row_start = start_at_row;
+            this.index_row_stop = stop_at_row;
+            this.determine_index_start();
+            this.determine_index_stop();
         }
-        MatrixIterator.prototype.next_row = function () {
+        MatrixIterator.prototype.determine_index_start = function () {
+            var i_start;
             if (this.downward && this.rightward) {
-                this.i = this.i + this.num_columns;
+                i_start = -1 + (this.num_columns * this.index_row_start);
             }
             else if (!this.downward && this.rightward) {
-                this.i = this.i - 3;
+                i_start = (this.num_columns * (this.index_row_start + 2)) - 1;
             }
             else if (this.downward && !this.rightward) {
-                this.i = this.i + 3;
+                throw 'not yet supported';
             }
             else if (!this.downward && !this.rightward) {
-                this.i = this.i - this.num_columns;
+                throw 'not yet supported';
             }
             else {
-                throw 'matrix iterator';
+                throw 'not yet supported';
             }
+            this.index_start = i_start;
+        };
+        MatrixIterator.prototype.determine_index_stop = function () {
+            var i_stop;
+            if (this.downward && this.rightward) {
+                i_stop = this.index_row_stop * this.num_columns;
+            }
+            else if (!this.downward && this.rightward) {
+                i_stop = this.index_row_stop * this.num_columns;
+            }
+            else if (this.downward && !this.rightward) {
+                throw 'not yet supported';
+            }
+            else if (!this.downward && !this.rightward) {
+                throw 'not yet supported';
+            }
+            else {
+                throw 'not yet supported';
+            }
+            this.index_stop = i_stop;
         };
         MatrixIterator.prototype.next_column = function () {
             if (this.downward && this.rightward) {
@@ -71,41 +81,25 @@ var trainer;
                 }
             }
             else if (this.downward && !this.rightward) {
-                if (remainder(this.i + 1, this.num_rows) === 0) {
-                    this.i = this.i + (this.num_columns - 1) + this.num_columns;
-                }
-                else {
-                    this.i--;
-                }
+                // if (remainder(this.i + 1, this.num_rows) === 0) {
+                //     this.i = this.i + (this.num_columns - 1) + this.num_columns
+                // } else {
+                //     this.i--
+                // }
+                throw 'not yet supported';
             }
             else if (!this.downward && !this.rightward) {
-                this.i--;
+                // this.i--;
+                throw 'not yet supported';
             }
             else {
-                throw 'matrix iterator';
-            }
-        };
-        MatrixIterator.prototype.get_index_done = function () {
-            if (this.downward && this.rightward) {
-                return this.num_columns * this.num_rows;
-            }
-            else if (!this.downward && this.rightward) {
-                return -1 * this.num_rows;
-            }
-            else if (this.downward && !this.rightward) {
-                return this.num_columns * this.num_rows - 1 + this.num_rows;
-            }
-            else if (!this.downward && !this.rightward) {
-                return -1;
-            }
-            else {
-                throw 'matrix iterator';
+                throw 'not yet supported';
             }
         };
         MatrixIterator.prototype.next = function () {
             var value = null;
             this.next_column();
-            if (this.i === this.get_index_done()) {
+            if (this.i === this.index_stop) {
                 return {
                     value: value,
                     done: true
@@ -128,13 +122,12 @@ var trainer;
             return [pos_row, pos_column];
         };
         MatrixIterator.get_coord_above = function (coord) {
-            if (coord[0] === 1) {
-                // return [coord[0] - 1, 0]
-                return [0, 0];
-            }
-            else {
-                return [coord[0] - 1, coord[1]];
-            }
+            // if (coord[0] === 1) {
+            //     // return [coord[0] - 1, 0]
+            //     return [0, 0]
+            // } else {
+            return [coord[0] - 1, coord[1]];
+            // }
         };
         MatrixIterator.get_coord_below = function (coord) {
             return [coord[0] + 1, coord[1]];
@@ -186,11 +179,17 @@ var trainer;
                 case algorithm_1.algorithm.PARSE: {
                     downward = false;
                     rightward = true;
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length, downward, rightward);
+                    var index_row_start = algorithm.get_depth() - 1;
+                    var index_row_stop = 1;
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
                     break;
                 }
                 case algorithm_1.algorithm.DERIVE: {
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
+                    downward = true;
+                    rightward = true;
+                    var index_row_start = 1;
+                    var index_row_stop = algorithm.get_depth();
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
                     break;
                 }
                 default: {
