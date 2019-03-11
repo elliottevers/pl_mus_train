@@ -17,7 +17,6 @@ var algorithm_1 = require("../train/algorithm");
 var _ = require("underscore");
 var parse;
 (function (parse) {
-    var DETECT = algorithm_1.algorithm.DETECT;
     var PARSE = algorithm_1.algorithm.PARSE;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var ParseTree = /** @class */ (function () {
@@ -112,47 +111,38 @@ var parse;
                 return coord;
             }
         };
-        ParseMatrix.prototype.add = function (notes_user_input, list_parse_tree, iterator_matrix_train, algorithm, history_user_input) {
+        ParseMatrix.prototype.add = function (notes_user_input, iterator_matrix_train, algorithm) {
             //
             // ParseTree.add_layer(,notes_user_input);
             // return
+            // TODO: remove coordinates of either 'notes_below' or 'notes_above'
+            this.coords_roots;
+            var coord_notes_previous;
+            var coord_notes_current = this.to_coord_parse_matrix(iterator_matrix_train.get_coord_current());
+            this.matrix_note_sequence[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input;
             switch (algorithm.get_name()) {
                 case PARSE: {
-                    var coord = iterator_matrix_train.get_coord_current();
-                    var coord_notes_below = [coord[0] - 1, coord[1]];
-                    // let notes_below = history_user_input.get(coord_notes_below);
-                    // let notes_children = notes_below;
-                    // ParseTree.add_layer(
-                    //     notes_user_input,
-                    //     notes_children,
-                    //     coord[0]
-                    // );
-                    var notes_below = this.matrix_note_sequence[coord_notes_below[0]][coord_notes_below[1]];
+                    // coord_notes_current = iterator_matrix_train.get_coord_current();
+                    coord_notes_previous = this.to_coord_parse_matrix([coord_notes_current[0] - 1, coord_notes_current[1]]);
+                    var notes_below = this.matrix_note_sequence[coord_notes_previous[0]][coord_notes_previous[1]];
                     var notes_children = notes_below;
                     this.add_layer(notes_user_input, notes_children);
                     break;
                 }
                 case DERIVE: {
-                    var coord_parse_matrix = this.to_coord_parse_matrix(iterator_matrix_train.get_coord_current());
-                    var coord_notes_above = this.to_coord_parse_matrix([coord_parse_matrix[0] + 1, coord_parse_matrix[1]]);
-                    // let notes_below = history_user_input.get(coord_notes_below);
-                    // let notes_children = notes_below;
-                    // ParseTree.add_layer(
-                    //     notes_user_input,
-                    //     notes_children,
-                    //     coord[0]
-                    // );
-                    var notes_above = this.matrix_note_sequence[coord_notes_above[0]][coord_notes_above[1]];
-                    var notes_children = notes_above;
-                    this.add_layer(notes_above, notes_user_input);
+                    // coord_notes_current = this.to_coord_parse_matrix(iterator_matrix_train.get_coord_current());
+                    coord_notes_previous = this.to_coord_parse_matrix([coord_notes_current[0] + 1, coord_notes_current[1]]);
+                    var notes_above = this.matrix_note_sequence[coord_notes_previous[0]][coord_notes_previous[1]];
+                    var notes_parent = notes_above;
+                    this.add_layer(notes_parent, notes_user_input);
                     break;
                 }
                 default: {
                     throw 'adding notes to parse tree failed';
                 }
             }
-            if (algorithm.get_name() === DETECT) {
-            }
+            this.coords_roots.remove(coord_notes_previous);
+            this.coords_roots.add(coord_notes_current);
         };
         //
         // private add_first_layer(notes: TreeModel.Node<n.Note>[], index_new_layer: number): void {

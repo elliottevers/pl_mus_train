@@ -135,23 +135,26 @@ export namespace parse {
             }
         }
 
-        public add(notes_user_input, list_parse_tree, iterator_matrix_train, algorithm, history_user_input): void {
+        public add(notes_user_input, iterator_matrix_train, algorithm): void {
             //
             // ParseTree.add_layer(,notes_user_input);
             // return
 
+
+            // TODO: remove coordinates of either 'notes_below' or 'notes_above'
+            this.coords_roots
+
+            let coord_notes_previous;
+
+            let coord_notes_current = this.to_coord_parse_matrix(iterator_matrix_train.get_coord_current());
+
+            this.matrix_note_sequence[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input;
+
             switch (algorithm.get_name()) {
                 case PARSE: {
-                    let coord = iterator_matrix_train.get_coord_current();
-                    let coord_notes_below = [coord[0] - 1, coord[1]];
-                    // let notes_below = history_user_input.get(coord_notes_below);
-                    // let notes_children = notes_below;
-                    // ParseTree.add_layer(
-                    //     notes_user_input,
-                    //     notes_children,
-                    //     coord[0]
-                    // );
-                    let notes_below = this.matrix_note_sequence[coord_notes_below[0]][coord_notes_below[1]];
+                    // coord_notes_current = iterator_matrix_train.get_coord_current();
+                    coord_notes_previous = this.to_coord_parse_matrix([coord_notes_current[0] - 1, coord_notes_current[1]]);
+                    let notes_below = this.matrix_note_sequence[coord_notes_previous[0]][coord_notes_previous[1]];
                     let notes_children = notes_below;
                     this.add_layer(
                         notes_user_input,
@@ -160,19 +163,12 @@ export namespace parse {
                     break;
                 }
                 case DERIVE: {
-                    let coord_parse_matrix = this.to_coord_parse_matrix(iterator_matrix_train.get_coord_current());
-                    let coord_notes_above = this.to_coord_parse_matrix([coord_parse_matrix[0] + 1, coord_parse_matrix[1]]);
-                    // let notes_below = history_user_input.get(coord_notes_below);
-                    // let notes_children = notes_below;
-                    // ParseTree.add_layer(
-                    //     notes_user_input,
-                    //     notes_children,
-                    //     coord[0]
-                    // );
-                    let notes_above = this.matrix_note_sequence[coord_notes_above[0]][coord_notes_above[1]];
-                    let notes_children = notes_above;
+                    // coord_notes_current = this.to_coord_parse_matrix(iterator_matrix_train.get_coord_current());
+                    coord_notes_previous = this.to_coord_parse_matrix([coord_notes_current[0] + 1, coord_notes_current[1]]);
+                    let notes_above = this.matrix_note_sequence[coord_notes_previous[0]][coord_notes_previous[1]];
+                    let notes_parent = notes_above;
                     this.add_layer(
-                        notes_above,
+                        notes_parent,
                         notes_user_input
                     );
                     break;
@@ -181,9 +177,11 @@ export namespace parse {
                     throw 'adding notes to parse tree failed'
                 }
             }
-            if (algorithm.get_name() === DETECT) {
 
-            }
+            this.coords_roots.remove(coord_notes_previous);
+
+            this.coords_roots.add(coord_notes_current);
+
         }
 
         //

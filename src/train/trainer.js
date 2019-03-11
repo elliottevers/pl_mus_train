@@ -21,21 +21,92 @@ var trainer;
     var FactoryHistoryUserInput = history_1.history.FactoryHistoryUserInput;
     var ParseMatrix = parse_1.parse.ParseMatrix;
     var MatrixIterator = /** @class */ (function () {
-        function MatrixIterator(num_rows, num_columns) {
+        function MatrixIterator(num_rows, num_columns, downward, rightward) {
             this.num_rows = num_rows;
             this.num_columns = num_columns;
-            this.i = -1;
+            this.downward = downward ? downward : true;
+            this.rightward = rightward ? rightward : true;
+            if (this.downward && this.rightward) {
+                this.i = -1;
+            }
+            else if (!this.downward && this.rightward) {
+                this.i = this.num_columns * this.num_rows + 1 - this.num_columns;
+            }
+            else if (this.downward && !this.rightward) {
+                this.i = -1 + this.num_columns;
+            }
+            else if (!this.downward && !this.rightward) {
+                this.i = this.num_columns * this.num_rows + 1;
+            }
+            else {
+                throw 'matrix iterator';
+            }
         }
         MatrixIterator.prototype.next_row = function () {
-            this.i = this.i + this.num_columns;
+            if (this.downward && this.rightward) {
+                this.i = this.i + this.num_columns;
+            }
+            else if (!this.downward && this.rightward) {
+                this.i = this.i - 3;
+            }
+            else if (this.downward && !this.rightward) {
+                this.i = this.i + 3;
+            }
+            else if (!this.downward && !this.rightward) {
+                this.i = this.i - this.num_columns;
+            }
+            else {
+                throw 'matrix iterator';
+            }
         };
         MatrixIterator.prototype.next_column = function () {
-            this.i = this.i + 1;
+            if (this.downward && this.rightward) {
+                this.i++;
+            }
+            else if (!this.downward && this.rightward) {
+                if (remainder(this.i + 1, this.num_rows) === 0) {
+                    this.i = this.i - (this.num_columns - 1) - this.num_columns;
+                }
+                else {
+                    this.i++;
+                }
+            }
+            else if (this.downward && !this.rightward) {
+                if (remainder(this.i + 1, this.num_rows) === 0) {
+                    this.i = this.i + (this.num_columns - 1) + this.num_columns;
+                }
+                else {
+                    this.i--;
+                }
+            }
+            else if (!this.downward && !this.rightward) {
+                this.i--;
+            }
+            else {
+                throw 'matrix iterator';
+            }
+        };
+        MatrixIterator.prototype.get_index_done = function () {
+            if (this.downward && this.rightward) {
+                return this.num_columns * this.num_rows;
+            }
+            else if (!this.downward && this.rightward) {
+                return -1 * this.num_rows;
+            }
+            else if (this.downward && !this.rightward) {
+                return this.num_columns * this.num_rows - 1 + this.num_rows;
+            }
+            else if (!this.downward && !this.rightward) {
+                return -1;
+            }
+            else {
+                throw 'matrix iterator';
+            }
         };
         MatrixIterator.prototype.next = function () {
             var value = null;
             this.next_column();
-            if (this.i === this.num_columns * this.num_rows + 1) {
+            if (this.i === this.get_index_done()) {
                 return {
                     value: value,
                     done: true
@@ -47,7 +118,7 @@ var trainer;
             };
         };
         MatrixIterator.prototype.get_coord_current = function () {
-            return MatrixIterator.get_coord(this.get_state_current(), this.num_columns);
+            return MatrixIterator.get_coord(this.get_state_current() + 1, this.num_columns);
         };
         MatrixIterator.prototype.get_state_current = function () {
             return this.i;
@@ -96,6 +167,7 @@ var trainer;
         }
         IteratorTrainFactory.get_iterator_train = function (algorithm, segments) {
             var iterator;
+            var downward, rightward;
             switch (algorithm.get_name()) {
                 case algorithm_1.algorithm.DETECT: {
                     iterator = new MatrixIterator(1, segments.length);
@@ -106,11 +178,13 @@ var trainer;
                     break;
                 }
                 case algorithm_1.algorithm.PARSE: {
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
+                    downward = false;
+                    rightward = true;
+                    iterator = new MatrixIterator(algorithm.get_depth() + 1, segments.length, downward, rightward);
                     break;
                 }
                 case algorithm_1.algorithm.DERIVE: {
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
+                    iterator = new MatrixIterator(algorithm.get_depth() + 1, segments.length);
                     break;
                 }
                 default: {
@@ -144,16 +218,20 @@ var trainer;
                 this.initialize_parse_matrix();
             }
         }
+        // TODO: everytime we add a note, call next() on matrix iterator
         Trainer.prototype.initialize_parse_matrix = function () {
             // set root
             var coord_root = [0, 0];
             var note_root = this.segments[0].get_note();
             this.parse_matrix.matrix_note_sequence[coord_root[0]][coord_root[1]] = [note_root];
+            // initialize
+            this.iterator_matrix_train.next();
             // set first layer, which are the various key center estimates
             for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
                 var i_segment = _a[_i];
                 var segment_1 = this.segments[Number(i_segment)];
                 this.parse_matrix.matrix_note_sequence[1][Number(i_segment)] = [segment_1.get_note()];
+                this.iterator_matrix_train.next();
             }
             switch (this.algorithm.get_name()) {
                 case PARSE: {
@@ -203,9 +281,6 @@ var trainer;
             this.clip_user_input.set_endpoints_loop(interval[0], interval[1]);
         };
         Trainer.prototype.resume = function () {
-            // set segment current
-            // set target current
-            // set subtarget current
             this.algorithm.post_init();
         };
         Trainer.prototype.pause = function () {
@@ -214,7 +289,6 @@ var trainer;
         Trainer.prototype.terminate = function () {
             this.algorithm.pre_terminate();
         };
-        // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         Trainer.prototype.init = function () {
             if (this.algorithm.b_targeted()) {
                 this.advance_subtarget();
@@ -284,7 +358,7 @@ var trainer;
             if (!this.algorithm.b_targeted()) {
                 this.history_user_input.add(notes_input_user, this.iterator_matrix_train.get_coord_current());
                 // TODO: implement
-                this.matrix_par.add(notes_input_user, this.list_parse_tree, this.iterator_matrix_train, this.history_user_input);
+                this.parse_matrix.add(notes_input_user, this.parse_matrix, this.iterator_matrix_train);
                 this.advance_segment();
                 this.render_window();
                 return;

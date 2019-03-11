@@ -22,7 +22,7 @@ export namespace trainer {
     import TargetIterator = target.TargetIterator;
     // import MatrixIterator = history.MatrixIterator;
     import Segment = segment.Segment;
-    import ParseTree = parse.ParseTree;
+    // import ParseTree = parse.ParseTree;
     import Algorithm = algorithm.Algorithm;
     import division_int = utils.division_int;
     import remainder = utils.remainder;
@@ -49,21 +49,79 @@ export namespace trainer {
         private row_current: number;
         private column_current: number;
 
+        private downward: boolean;
+        private rightward: boolean;
+
         private i;
 
-        constructor(num_rows: number, num_columns: number) {
+        constructor(num_rows: number, num_columns: number, downward?: boolean, rightward?: boolean) {
             this.num_rows = num_rows;
             this.num_columns = num_columns;
 
-            this.i = -1;
+            this.downward = downward ? downward : true;
+            this.rightward = rightward ? rightward : true;
+
+            if (this.downward && this.rightward) {
+                this.i = -1;
+            } else if (!this.downward && this.rightward) {
+                this.i = this.num_columns * this.num_rows + 1 - this.num_columns
+            } else if (this.downward && !this.rightward) {
+                this.i = -1 + this.num_columns
+            } else if (!this.downward && !this.rightward) {
+                this.i = this.num_columns * this.num_rows + 1
+            } else {
+                throw 'matrix iterator'
+            }
         }
 
         private next_row() {
-            this.i = this.i + this.num_columns;
+            if (this.downward && this.rightward) {
+                this.i = this.i + this.num_columns;
+            } else if (!this.downward && this.rightward) {
+                this.i = this.i - 3;
+            } else if (this.downward && !this.rightward) {
+                this.i = this.i + 3;
+            } else if (!this.downward && !this.rightward) {
+                this.i = this.i - this.num_columns;
+            } else {
+                throw 'matrix iterator'
+            }
         }
 
         private next_column() {
-            this.i = this.i + 1;
+            if (this.downward && this.rightward) {
+                this.i++;
+            } else if (!this.downward && this.rightward) {
+                if (remainder(this.i + 1, this.num_rows) === 0) {
+                    this.i = this.i - (this.num_columns - 1) - this.num_columns
+                } else {
+                    this.i++
+                }
+            } else if (this.downward && !this.rightward) {
+                if (remainder(this.i + 1, this.num_rows) === 0) {
+                    this.i = this.i + (this.num_columns - 1) + this.num_columns
+                } else {
+                    this.i--
+                }
+            } else if (!this.downward && !this.rightward) {
+                this.i--;
+            } else {
+                throw 'matrix iterator'
+            }
+        }
+
+        private get_index_done(): number {
+            if (this.downward && this.rightward) {
+                return this.num_columns * this.num_rows
+            } else if (!this.downward && this.rightward) {
+                return -1 * this.num_rows
+            } else if (this.downward && !this.rightward) {
+                return this.num_columns * this.num_rows - 1 + this.num_rows
+            } else if (!this.downward && !this.rightward) {
+                return -1
+            } else {
+                throw 'matrix iterator'
+            }
         }
 
         public next() {
@@ -72,7 +130,7 @@ export namespace trainer {
 
             this.next_column();
 
-            if (this.i === this.num_columns * this.num_rows + 1) {
+            if (this.i === this.get_index_done()) {
                 return {
                     value: value,
                     done: true
@@ -86,7 +144,7 @@ export namespace trainer {
         }
 
         public get_coord_current(): number[] {
-            return MatrixIterator.get_coord(this.get_state_current(), this.num_columns)
+            return MatrixIterator.get_coord(this.get_state_current() + 1, this.num_columns)
         }
 
         public get_state_current(): number {
@@ -133,6 +191,8 @@ export namespace trainer {
 
             let iterator: MatrixIterator;
 
+            let downward, rightward;
+
             switch (algorithm.get_name()) {
                 case algo.DETECT: {
                     iterator = new MatrixIterator(1, segments.length);
@@ -143,11 +203,13 @@ export namespace trainer {
                     break;
                 }
                 case algo.PARSE: {
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
+                    downward = false;
+                    rightward = true;
+                    iterator = new MatrixIterator(algorithm.get_depth() + 1, segments.length, downward, rightward);
                     break;
                 }
                 case algo.DERIVE: {
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
+                    iterator = new MatrixIterator(algorithm.get_depth() + 1, segments.length);
                     break;
                 }
                 default: {
@@ -234,6 +296,7 @@ export namespace trainer {
             }
         }
 
+        // TODO: everytime we add a note, call next() on matrix iterator
         private initialize_parse_matrix() {
 
             // set root
@@ -243,11 +306,15 @@ export namespace trainer {
 
             this.parse_matrix.matrix_note_sequence[coord_root[0]][coord_root[1]] = [note_root];
 
+            // initialize
+            this.iterator_matrix_train.next();
+
             // set first layer, which are the various key center estimates
 
             for (let i_segment of this.segments) {
                 let segment = this.segments[Number(i_segment)];
-                this.parse_matrix.matrix_note_sequence[1][Number(i_segment)] = [segment.get_note()]
+                this.parse_matrix.matrix_note_sequence[1][Number(i_segment)] = [segment.get_note()];
+                this.iterator_matrix_train.next();
             }
 
             switch (this.algorithm.get_name()) {
@@ -328,9 +395,6 @@ export namespace trainer {
         }
 
         public resume() {
-            // set segment current
-            // set target current
-            // set subtarget current
             this.algorithm.post_init()
         }
 
@@ -342,7 +406,6 @@ export namespace trainer {
             this.algorithm.pre_terminate()
         }
 
-        // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         public init() {
             if (this.algorithm.b_targeted()) {
                 this.advance_subtarget();
@@ -459,11 +522,10 @@ export namespace trainer {
                 );
 
                 // TODO: implement
-                this.matrix_par.add(
+                this.parse_matrix.add(
                     notes_input_user,
-                    this.list_parse_tree,
-                    this.iterator_matrix_train,
-                    this.history_user_input
+                    this.parse_matrix,
+                    this.iterator_matrix_train
                 );
 
                 this.advance_segment();
