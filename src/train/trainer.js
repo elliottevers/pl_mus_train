@@ -134,9 +134,6 @@ var trainer;
             this.matrix_target_iterator = FactoryMatrixTargetIterator.get_iterator_target(this.algorithm, this.segments);
             this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
             this.history_user_input.set_matrix(l.cloneDeep(this.matrix_target_iterator));
-            // this.window.set_matrix(
-            //     l.cloneDeep(this.matrix_target_iterator)
-            // );
             this.window.initialize_clips(this.algorithm, this.segments);
             this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
             if (this.algorithm.b_targeted()) {
@@ -240,14 +237,15 @@ var trainer;
         };
         Trainer.prototype.advance_subtarget = function () {
             var possibly_history = this.iterator_target_current.targets;
+            var coord_at_time = this.iterator_matrix_train.get_coord_current();
             var obj_next_subtarget = this.iterator_subtarget_current.next();
             if (obj_next_subtarget.done) {
                 var obj_next_target = this.iterator_target_current.next();
                 if (obj_next_target.done) {
                     var obj_next_coord = this.iterator_matrix_train.next();
-                    this.history_user_input.add_sequence_target(possibly_history, this.iterator_matrix_train);
+                    this.history_user_input.add_sequence_target(possibly_history, coord_at_time);
                     if (obj_next_coord.done) {
-                        this.history_user_input.add_sequence_target(possibly_history, this.iterator_matrix_train);
+                        this.history_user_input.add_sequence_target(possibly_history, coord_at_time);
                         // this.window.add(
                         //     this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
                         //     coord_current,
@@ -307,7 +305,7 @@ var trainer;
                 // set the context in ableton
                 this.set_loop();
                 this.window.add_note_to_clip(note_subtarget_at_time, coord_at_time);
-                this.render_window();
+                // this.render_window();
             }
         };
         return Trainer;

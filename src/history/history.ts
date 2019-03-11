@@ -103,8 +103,7 @@ export namespace history {
         //     this.matrix_data[coord[0]][coord[1]] = subtarget.note
         // }
 
-        add_sequence_target(target_sequence: Target[], iterator_matrix_train: MatrixIterator) {
-            let coord = iterator_matrix_train.get_coord_current();
+        add_sequence_target(target_sequence: Target[], coord: number[]) {
             this.matrix_data[coord[0]][coord[1]] = target_sequence;
         }
 

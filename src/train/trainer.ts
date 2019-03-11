@@ -213,10 +213,6 @@ export namespace trainer {
                 l.cloneDeep(this.matrix_target_iterator)
             );
 
-            // this.window.set_matrix(
-            //     l.cloneDeep(this.matrix_target_iterator)
-            // );
-
             this.window.initialize_clips(
                 this.algorithm,
                 this.segments
@@ -382,6 +378,8 @@ export namespace trainer {
 
             let possibly_history: Target[] = this.iterator_target_current.targets;
 
+            let coord_at_time: number[] = this.iterator_matrix_train.get_coord_current();
+
             let obj_next_subtarget = this.iterator_subtarget_current.next();
 
             if (obj_next_subtarget.done) {
@@ -394,13 +392,13 @@ export namespace trainer {
 
                     this.history_user_input.add_sequence_target(
                         possibly_history,
-                        this.iterator_matrix_train
+                        coord_at_time
                     );
 
                     if (obj_next_coord.done) {
                         this.history_user_input.add_sequence_target(
                             possibly_history,
-                            this.iterator_matrix_train
+                            coord_at_time
                         );
 
                         // this.window.add(
@@ -518,7 +516,7 @@ export namespace trainer {
                     coord_at_time
                 );
 
-                this.render_window();
+                // this.render_window();
             }
         }
     }

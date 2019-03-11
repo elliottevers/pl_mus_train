@@ -64,7 +64,8 @@ export namespace window {
         }
 
         public clear() {
-            let msg_clear = ["render", "clear"];
+            // let msg_clear = ["render", "clear"];
+            let msg_clear = ["clear"];
             this.messenger.message(msg_clear);
         }
 

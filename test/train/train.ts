@@ -204,7 +204,7 @@ let user_input_handler = new UserInputHandler(
 );
 
 let env: string = 'node_for_max';
-// env = 'node';
+env = 'node';
 
 
 let messenger = new Messenger(env, 0, 'render');
@@ -298,44 +298,47 @@ trainer_local.accept_input(
     [note_target_3_subtarget_1]
 );
 
-// trainer_local.clear_window(
-//
-// );
-//
-// let freezer = new TrainFreezer(
-//     env
-// );
-//
-// freezer.freeze(
-//     trainer_local,
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
-//     env
-// );
-//
-// let thawer = new TrainThawer(
-//     env
-// );
-//
-// let config = {
-//     'window': window_local,
-//     'user_input_handler': user_input_handler,
-//     'algorithm': algorithm_train,
-//     'clip_user_input': clip_user_input,
-//     'clip_target_virtual': clip_target_virtual,
-//     'song': song,
-//     'segments': segments,
-//     'messenger': messenger,
-//     'env': env
-// };
-//
-// let train_thawed = thawer.thaw(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
-//     config
-// );
-//
-// train_thawed.render_window(
-//
-// );
+trainer_local.render_window(
+
+);
+
+trainer_local.clear_window(
+
+);
+
+let freezer = new TrainFreezer(
+    env
+);
+
+freezer.freeze(
+    trainer_local,
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
+);
+
+let thawer = new TrainThawer(
+    env
+);
+
+let config = {
+    'window': window_local,
+    'user_input_handler': user_input_handler,
+    'algorithm': algorithm_train,
+    'clip_user_input': clip_user_input,
+    'clip_target_virtual': clip_target_virtual,
+    'song': song,
+    'segments': segments,
+    'messenger': messenger,
+    'env': env
+};
+
+let train_thawed = thawer.thaw(
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
+    config
+);
+
+train_thawed.render_window(
+
+);
 
 
 // TODO: to finish test case, verify that it looks correct in window

@@ -41,7 +41,8 @@ var window;
             this.messenger = messenger;
         }
         Window.prototype.clear = function () {
-            var msg_clear = ["render", "clear"];
+            // let msg_clear = ["render", "clear"];
+            var msg_clear = ["clear"];
             this.messenger.message(msg_clear);
         };
         // public set_matrix(matrix) {
