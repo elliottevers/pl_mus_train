@@ -5,12 +5,16 @@ import {log} from "../log/logger";
 import {utils} from "../utils/utils";
 import {live} from "../live/live";
 import {clip as c} from "../clip/clip";
+import {algorithm} from "../train/algorithm";
 
 const _ = require("underscore");
 
 
 export namespace parse {
     import LiveClipVirtual = live.LiveClipVirtual;
+    import DETECT = algorithm.DETECT;
+    import PARSE = algorithm.PARSE;
+    import DERIVE = algorithm.DERIVE;
 
     export interface Parsable {
         choose(): boolean;
@@ -19,38 +23,61 @@ export namespace parse {
         get_best_candidate(list_candidate_note);
     }
 
-    export class ParseTree {
-        // matrix_clip: LiveClipVirtual[][];
+    abstract class ParseTree {
+        root: TreeModel.Node<n.NoteRenderable>;
+
+        constructor() {
+
+        }
+
+        public get_root(): TreeModel.Node<n.NoteRenderable> {
+            return this.root
+        }
+    }
+
+    export class ParseMatrix extends ParseTree {
 
         root: TreeModel.Node<n.NoteRenderable>;
 
-        constructor(note: TreeModel.Node<n.Note>, coordinates_matrix) {
-            let tree: TreeModel = new TreeModel();
+        matrix_note_sequence: TreeModel.Node<n.NoteRenderable>[][][];
 
-            // let splitted = messages[i_mess].split(' ');
+        coords_roots: number[][]; // list of coordinates
 
-            this.root = tree.parse(
-                {
-                    id: -1, // TODO: hashing scheme for clip id and beat start
-                    note: new n.NoteRenderable(
-                        // Number(splitted[0]),
-                        // Number(splitted[1]),
-                        // Number(splitted[2]),
-                        // Number(splitted[3]),
-                        // Number(splitted[4]),
-                        // coordinates_matrix
-                        note.model.note.pitch,
-                        note.model.note.beat_start,
-                        note.model.note.beats_duration,
-                        note.model.note.velocity,
-                        note.model.note.muted,
-                        coordinates_matrix
-                    ),
-                    children: [
+        constructor(matrix) {
+            super();
 
-                    ]
-                }
-            )
+            // let tree: TreeModel = new TreeModel();
+
+            // this.root = tree.parse(
+            //     {
+            //         id: -1, // TODO: hashing scheme for clip id and beat start
+            //         note: new n.NoteRenderable(
+            //             // Number(splitted[0]),
+            //             // Number(splitted[1]),
+            //             // Number(splitted[2]),
+            //             // Number(splitted[3]),
+            //             // Number(splitted[4]),
+            //             // coordinates_matrix
+            //             note.model.note.pitch,
+            //             note.model.note.beat_start,
+            //             note.model.note.beats_duration,
+            //             note.model.note.velocity,
+            //             note.model.note.muted,
+            //             coordinates_matrix
+            //         ),
+            //         children: [
+            //
+            //         ]
+            //     }
+            // )
+
+            matrix.unshift([]);  // entire row reserved for root
+
+            this.matrix_note_sequence = matrix;
+        }
+
+        public get_roots_at_coord(coord: number[]) {
+            return this.matrix_note_sequence[coord[0]][coord[1]]
         }
 
         // // TODO: we actually have to implement
@@ -59,49 +86,104 @@ export namespace parse {
         //     return
         // }
         //
-        // private static get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
-        //     let same_start, same_duration, index_start_diff;
-        //     for (let i=0; i < notes_old.length; i++) {
-        //         same_start = (notes_old[i].model.note.beat_start === notes_new[i].model.note.beat_start);
-        //         same_duration = (notes_old[i].model.note.beats_duration === notes_new[i].model.note.beats_duration);
-        //         if (!(same_start && same_duration)) {
-        //             index_start_diff = i;
-        //             break;
-        //         }
-        //     }
-        //
-        //     return index_start_diff;
-        // }
-        //
-        // private static get_diff_index_end(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
-        //     let same_start, same_duration, index_end_diff;
-        //     for (let i=-1; i > -1 * (notes_new.length + 1); i--) {
-        //         same_start = (notes_new.slice(i)[0].model.note.beat_start === notes_old.slice(i)[0].model.note.beat_start);
-        //         same_duration = (notes_new.slice(i)[0].model.note.beats_duration === notes_old.slice(i)[0].model.note.beats_duration);
-        //         if (!(same_start && same_duration)) {
-        //             index_end_diff = i;
-        //             break;
-        //         }
-        //     }
-        //
-        //     // NB: add one in order to use with array slice, unless of course the index is -1, then you'll access the front of the array
-        //     return index_end_diff;
-        // }
-        //
-        // // TODO: complete return method signature
-        // get_diff_index_notes(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): number[] {
-        //     return [
-        //         ParseTree.get_diff_index_start(notes_child, notes_parent),
-        //         ParseTree.get_diff_index_end(notes_child, notes_parent)
-        //     ];
-        // };
-        //
-        public get_root(): TreeModel.Node<n.NoteRenderable> {
-            return
+        private static get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
+            let same_start, same_duration, index_start_diff;
+            for (let i=0; i < notes_old.length; i++) {
+                same_start = (notes_old[i].model.note.beat_start === notes_new[i].model.note.beat_start);
+                same_duration = (notes_old[i].model.note.beats_duration === notes_new[i].model.note.beats_duration);
+                if (!(same_start && same_duration)) {
+                    index_start_diff = i;
+                    break;
+                }
+            }
+
+            return index_start_diff;
         }
 
-        public static add(input_user, list_parse_tree,iterator_matrix_train): ParseTree[] {
-            return
+        private static get_diff_index_end(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
+            let same_start, same_duration, index_end_diff;
+            for (let i=-1; i > -1 * (notes_new.length + 1); i--) {
+                same_start = (notes_new.slice(i)[0].model.note.beat_start === notes_old.slice(i)[0].model.note.beat_start);
+                same_duration = (notes_new.slice(i)[0].model.note.beats_duration === notes_old.slice(i)[0].model.note.beats_duration);
+                if (!(same_start && same_duration)) {
+                    index_end_diff = i;
+                    break;
+                }
+            }
+
+            // NB: add one in order to use with array slice, unless of course the index is -1, then you'll access the front of the array
+            return index_end_diff;
+        }
+
+        // TODO: complete return method signature
+        get_diff_index_notes(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): number[] {
+            return [
+                ParseTree.get_diff_index_start(notes_child, notes_parent),
+                ParseTree.get_diff_index_end(notes_child, notes_parent)
+            ];
+        };
+
+        // public get_root(): TreeModel.Node<n.NoteRenderable> {
+        //     return this.root
+        // }
+
+        public to_coord_parse_matrix(coord: number[]): number[] {
+            if (coord[0] === 0) {
+                return [0, 0] // entire "row" is dedicated to root
+            } else {
+                return coord
+            }
+        }
+
+        public add(notes_user_input, list_parse_tree, iterator_matrix_train, algorithm, history_user_input): void {
+            //
+            // ParseTree.add_layer(,notes_user_input);
+            // return
+
+            switch (algorithm.get_name()) {
+                case PARSE: {
+                    let coord = iterator_matrix_train.get_coord_current();
+                    let coord_notes_below = [coord[0] - 1, coord[1]];
+                    // let notes_below = history_user_input.get(coord_notes_below);
+                    // let notes_children = notes_below;
+                    // ParseTree.add_layer(
+                    //     notes_user_input,
+                    //     notes_children,
+                    //     coord[0]
+                    // );
+                    let notes_below = this.matrix_note_sequence[coord_notes_below[0]][coord_notes_below[1]];
+                    let notes_children = notes_below;
+                    this.add_layer(
+                        notes_user_input,
+                        notes_children
+                    );
+                    break;
+                }
+                case DERIVE: {
+                    let coord_parse_matrix = this.to_coord_parse_matrix(iterator_matrix_train.get_coord_current());
+                    let coord_notes_above = this.to_coord_parse_matrix([coord_parse_matrix[0] + 1, coord_parse_matrix[1]]);
+                    // let notes_below = history_user_input.get(coord_notes_below);
+                    // let notes_children = notes_below;
+                    // ParseTree.add_layer(
+                    //     notes_user_input,
+                    //     notes_children,
+                    //     coord[0]
+                    // );
+                    let notes_above = this.matrix_note_sequence[coord_notes_above[0]][coord_notes_above[1]];
+                    let notes_children = notes_above;
+                    this.add_layer(
+                        notes_above,
+                        notes_user_input
+                    );
+                    break;
+                }
+                default: {
+                    throw 'adding notes to parse tree failed'
+                }
+            }
+            if (algorithm.get_name() === DETECT) {
+
+            }
         }
 
         //
@@ -114,21 +196,21 @@ export namespace parse {
         //     }
         // }
         //
-        // // NB: only works top down currently
-        // // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
-        // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[], index_new_layer: number): void {
-        //
-        //     var note_parent_best, b_successful;
-        //
-        //     for (let node of notes_child) {
-        //         note_parent_best = node.model.note.get_best_candidate(notes_parent);
-        //         b_successful = node.model.note.choose();
-        //         if (b_successful) {
-        //             node.model.id = index_new_layer;
-        //             note_parent_best.addChild(node);
-        //         }
-        //     }
-        // };
+        // NB: only works top down currently
+        // private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): TreeModel.Node<n.Note>[] {
+        private add_layer(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[], index_new_layer: number): void {
+
+            var note_parent_best, b_successful;
+
+            for (let node of notes_child) {
+                note_parent_best = node.model.note.get_best_candidate(notes_parent);
+                b_successful = node.model.note.choose();
+                if (b_successful) {
+                    node.model.id = index_new_layer;
+                    note_parent_best.addChild(node);
+                }
+            }
+        };
         //
         // private update_leaves(leaves: TreeModel.Node<n.Note>[]) {
         //     // find leaves in parse/derive beat interval

@@ -122,6 +122,14 @@ var window;
             return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom];
         };
         ;
+        // render_tree(): void {
+        //     var messages = this.get_messages_render_tree();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
         Window.prototype.get_dist_from_top = function (pitch, coord_clip) {
             // var clip = this.clips[index_clip];
             var index_clip = this.coord_to_index_clip(coord_clip);
@@ -211,17 +219,101 @@ var window;
         return Window;
     }());
     window.Window = Window;
-    var ListWindow = /** @class */ (function (_super) {
-        __extends(ListWindow, _super);
-        function ListWindow(height, width, messenger) {
+    var MatrixWindow = /** @class */ (function (_super) {
+        __extends(MatrixWindow, _super);
+        function MatrixWindow(height, width, messenger) {
             return _super.call(this, height, width, messenger) || this;
         }
-        ListWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm) {
+        MatrixWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm, parse_matrix) {
             this.clear();
             this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
             this.render_clips(iterator_matrix_train);
+            if (!algorithm.b_targeted()) {
+                this.render_trees(parse_matrix);
+            }
         };
-        ListWindow.prototype.render_clips = function (iterator_matrix_train) {
+        MatrixWindow.prototype.render_trees = function (parse_matrix) {
+            var _this = this;
+            var color;
+            var messages = [];
+            var message;
+            for (var _i = 0, _a = parse_matrix.coords_roots; _i < _a.length; _i++) {
+                var coord = _a[_i];
+                for (var _b = 0, _c = parse_matrix.get_roots_at_coord(coord); _b < _c.length; _b++) {
+                    var root = _c[_b];
+                    root.walk(function (node) {
+                        if (node.hasChildren()) {
+                            for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
+                                var child = _a[_i];
+                                message = [
+                                    "linesegment",
+                                    _this.get_centroid(child)[0],
+                                    _this.get_centroid(child)[1],
+                                    _this.get_centroid(node)[0],
+                                    _this.get_centroid(node)[1]
+                                ];
+                                color = red;
+                                messages.push(message.concat(color));
+                            }
+                        }
+                        return true;
+                    });
+                }
+            }
+            // for (let parse_tree of list_parse_tree) {
+            //
+            //     let root = parse_tree.get_root();
+            //
+            //     root.walk((node)=>{
+            //
+            //         if (node.hasChildren()) {
+            //
+            //             for (let child of node.children) {
+            //
+            //                 message = [
+            //                     "linesegment",
+            //                     this.get_centroid(child)[0],
+            //                     this.get_centroid(child)[1],
+            //                     this.get_centroid(node)[0],
+            //                     this.get_centroid(node)[1]
+            //                 ];
+            //
+            //                 color = red;
+            //
+            //                 messages.push(message.concat(color));
+            //
+            //             }
+            //         }
+            //
+            //         return true;
+            //     });
+            // }
+            return messages;
+        };
+        MatrixWindow.prototype.get_centroid = function (node) {
+            var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
+            // let index_clip = node.model.id;
+            var coord_clip = node.model.note.get_coordinates_matrix();
+            // TODO: determine how to get the index of the clip from just depth of the node
+            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
+            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
+            return [
+                dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
+                dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
+            ];
+        };
+        ;
+        // render_tree(): void {
+        //     var messages = this.get_messages_render_tree();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
+        MatrixWindow.prototype.render_clips = function (iterator_matrix_train) {
             var messages_render_clips = this.get_messages_render_clips(iterator_matrix_train);
             for (var _i = 0, messages_render_clips_1 = messages_render_clips; _i < messages_render_clips_1.length; _i++) {
                 var messages_notes = messages_render_clips_1[_i];
@@ -231,7 +323,7 @@ var window;
                 }
             }
         };
-        ListWindow.prototype.get_messages_render_clips = function (iterator_matrix_train) {
+        MatrixWindow.prototype.get_messages_render_clips = function (iterator_matrix_train) {
             var messages = [];
             for (var _i = 0, _a = _.range(0, iterator_matrix_train.get_state_current() + 1); _i < _a.length; _i++) {
                 var i = _a[_i];
@@ -271,7 +363,7 @@ var window;
         //         return message;
         //     })
         // };
-        ListWindow.prototype.get_message_render_region_past = function (interval_current) {
+        MatrixWindow.prototype.get_message_render_region_past = function (interval_current) {
             var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
             offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());
             offset_left_end = this.get_dist_from_left(interval_current[0]);
@@ -279,7 +371,7 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        ListWindow.prototype.get_message_render_region_present = function (interval_current) {
+        MatrixWindow.prototype.get_message_render_region_present = function (interval_current) {
             var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
             offset_left_start = this.get_dist_from_left(interval_current[0]);
             offset_left_end = this.get_dist_from_left(interval_current[1]);
@@ -287,7 +379,7 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        ListWindow.prototype.get_message_render_region_future = function (interval_current) {
+        MatrixWindow.prototype.get_message_render_region_future = function (interval_current) {
             var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
             offset_left_start = this.get_dist_from_left(interval_current[1]);
             offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
@@ -295,7 +387,7 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        ListWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator, algorithm) {
+        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator, algorithm) {
             var coord = iterator_matrix_train.get_coord_current();
             var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
             var subtargets = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
@@ -316,9 +408,9 @@ var window;
                 this.messenger.message(quadruplet);
             }
         };
-        return ListWindow;
+        return MatrixWindow;
     }(Window));
-    window.ListWindow = ListWindow;
+    window.MatrixWindow = MatrixWindow;
     // class MatrixClip {
     //     data: LiveClipVirtual[][];
     //
@@ -341,7 +433,10 @@ var window;
             this.clear();
             var messages_regions = this.render_regions(matrix_history);
             var messages_notes = this.render_notes(matrix_history);
-            var messages_tree = this.render_tree();
+            //
+            // let messages_tree = this.render_tree(
+            //
+            // );
             // let msg_clear = ["clear"];
             // msg_clear.unshift('render');
             // this.messenger.message(msg_clear);
@@ -366,54 +461,68 @@ var window;
         TreeWindow.prototype.render_notes = function (history_user_input) {
             // for all non null clips, render
         };
-        TreeWindow.prototype.render_trees = function (list_parse_trees) {
-            var _this = this;
-            var color;
-            var messages = [];
-            var message;
-            for (var _i = 0, list_parse_trees_1 = list_parse_trees; _i < list_parse_trees_1.length; _i++) {
-                var parse_tree = list_parse_trees_1[_i];
-                var root = parse_tree.get_root();
-                root.walk(function (node) {
-                    if (node.hasChildren()) {
-                        var coords = node.model.note.get_coordinates_matrix();
-                        for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
-                            var child = _a[_i];
-                            message = [
-                                "linesegment",
-                                _this.get_centroid(child)[0],
-                                _this.get_centroid(child)[1],
-                                _this.get_centroid(node)[0],
-                                _this.get_centroid(node)[1]
-                            ];
-                            color = red;
-                            messages.push(message.concat(color));
-                        }
-                    }
-                    return true;
-                });
-            }
-            return messages;
-        };
+        // public render_trees(list_parse_trees: ParseTree[]) {
+        //
+        //     let color: number[];
+        //     let messages: any[] = [];
+        //     let message: any[];
+        //
+        //     for (let parse_tree of list_parse_trees) {
+        //
+        //         let root = parse_tree.get_root();
+        //
+        //         root.walk((node)=>{
+        //
+        //             if (node.hasChildren()) {
+        //
+        //                 let coords: number[] = node.model.note.get_coordinates_matrix();
+        //
+        //                 for (let child of node.children) {
+        //
+        //                     message = [
+        //                         "linesegment",
+        //                         this.get_centroid(child)[0],
+        //                         this.get_centroid(child)[1],
+        //                         this.get_centroid(node)[0],
+        //                         this.get_centroid(node)[1]
+        //                     ];
+        //
+        //                     color = red;
+        //
+        //                     messages.push(message.concat(color));
+        //
+        //                 }
+        //             }
+        //
+        //             return true;
+        //         });
+        //     }
+        //
+        //     return messages;
+        // }
         // TODO: implement
         TreeWindow.prototype.render_note = function (note, coord) {
         };
         // TODO: make node have indices to both clip and note
-        TreeWindow.prototype.get_centroid = function (node) {
-            var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
-            // let index_clip = node.model.id;
-            var coord_clip = node.model.note.get_coordinates_matrix();
-            // TODO: determine how to get the index of the clip from just depth of the node
-            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
-            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
-            return [
-                dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
-                dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
-            ];
-        };
-        ;
+        // get_centroid(node: TreeModel.Node<n.NoteRenderable>): number[] {
+        //
+        //     let dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
+        //
+        //     // let index_clip = node.model.id;
+        //     let coord_clip = node.model.note.get_coordinates_matrix();
+        //
+        //     // TODO: determine how to get the index of the clip from just depth of the node
+        //
+        //     dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
+        //     dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
+        //     dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
+        //     dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
+        //
+        //     return [
+        //         dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
+        //         dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
+        //     ]
+        // };
         // TODO: elaboration won't always
         TreeWindow.prototype.get_order_of_note_at_beat_start = function (notes, beat_start) {
             return _.findIndex(notes, function (node) {
@@ -431,13 +540,14 @@ var window;
                 notes[notes.length - 1].model.note.get_beat_end()
             ];
         };
-        TreeWindow.prototype.render_tree = function () {
-            var messages = this.get_messages_render_tree();
-            for (var i = 0; i < messages.length; i++) {
-                this.messenger.message(messages[i]);
-            }
-        };
-        ;
+        // render_tree(): void {
+        //     var messages = this.get_messages_render_tree();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
         TreeWindow.prototype.get_messages_render_tree = function () {
             return [];
         };

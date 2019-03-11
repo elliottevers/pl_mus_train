@@ -40,16 +40,6 @@ export namespace window {
     }
 
     export abstract class Window {
-        // height: number;
-        // width: number;
-        // messenger: m.Messenger;
-        // clips: c.Clip[];
-        // beats_per_measure: number;
-        // root_parse_tree: TreeModel.Node<n.Note>;
-        // leaves: TreeModel.Node<n.Note>[];
-        // logger: Logger;
-        // history_user_input: HistoryUserInput;
-
         // matrix_clips: Clip[][];
         list_clips: Clip[];
         height: number;
@@ -153,6 +143,15 @@ export namespace window {
 
             return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom]
         };
+
+        // render_tree(): void {
+        //     var messages = this.get_messages_render_tree();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
 
         get_dist_from_top(pitch: number, coord_clip: number[]): number {
             // var clip = this.clips[index_clip];
@@ -277,16 +276,115 @@ export namespace window {
         render_trees(list_parse_tree: ParseTree[])
     }
 
-    export class ListWindow extends Window implements Temporal {
+    export class MatrixWindow extends Window implements Temporal {
+
         constructor(height, width, messenger) {
             super(height, width, messenger);
         }
 
-        public render(iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm) {
+        public render(iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm, parse_matrix) {
             this.clear();
             this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
             this.render_clips(iterator_matrix_train);
+            if (!algorithm.b_targeted()) {
+                this.render_trees(parse_matrix)
+            }
         }
+
+        public render_trees(parse_matrix) {
+
+            let color: number[];
+            let messages: any[] = [];
+            let message: any[];
+
+            for (let coord of parse_matrix.coords_roots) {
+                for (let root of parse_matrix.get_roots_at_coord(coord)) {
+                    root.walk((node)=>{
+
+                        if (node.hasChildren()) {
+
+                            for (let child of node.children) {
+
+                                message = [
+                                    "linesegment",
+                                    this.get_centroid(child)[0],
+                                    this.get_centroid(child)[1],
+                                    this.get_centroid(node)[0],
+                                    this.get_centroid(node)[1]
+                                ];
+
+                                color = red;
+
+                                messages.push(message.concat(color));
+
+                            }
+                        }
+
+                        return true;
+                    });
+                }
+            }
+
+            // for (let parse_tree of list_parse_tree) {
+            //
+            //     let root = parse_tree.get_root();
+            //
+            //     root.walk((node)=>{
+            //
+            //         if (node.hasChildren()) {
+            //
+            //             for (let child of node.children) {
+            //
+            //                 message = [
+            //                     "linesegment",
+            //                     this.get_centroid(child)[0],
+            //                     this.get_centroid(child)[1],
+            //                     this.get_centroid(node)[0],
+            //                     this.get_centroid(node)[1]
+            //                 ];
+            //
+            //                 color = red;
+            //
+            //                 messages.push(message.concat(color));
+            //
+            //             }
+            //         }
+            //
+            //         return true;
+            //     });
+            // }
+
+            return messages;
+        }
+
+        get_centroid(node: TreeModel.Node<n.NoteRenderable>): number[] {
+
+            let dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
+
+            // let index_clip = node.model.id;
+            let coord_clip = node.model.note.get_coordinates_matrix();
+
+            // TODO: determine how to get the index of the clip from just depth of the node
+
+            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
+            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
+
+            return [
+                dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
+                dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
+            ]
+        };
+
+        // render_tree(): void {
+        //     var messages = this.get_messages_render_tree();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
 
         public render_clips(iterator_matrix_train) {
             let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train);
@@ -458,10 +556,10 @@ export namespace window {
             let messages_notes = this.render_notes(
                 matrix_history
             );
-
-            let messages_tree = this.render_tree(
-
-            );
+            //
+            // let messages_tree = this.render_tree(
+            //
+            // );
 
             // let msg_clear = ["clear"];
             // msg_clear.unshift('render');
@@ -491,45 +589,45 @@ export namespace window {
             // for all non null clips, render
         }
 
-        public render_trees(list_parse_trees: ParseTree[]) {
-
-            let color: number[];
-            let messages: any[] = [];
-            let message: any[];
-
-            for (let parse_tree of list_parse_trees) {
-
-                let root = parse_tree.get_root();
-
-                root.walk((node)=>{
-
-                    if (node.hasChildren()) {
-
-                        let coords: number[] = node.model.note.get_coordinates_matrix();
-
-                        for (let child of node.children) {
-
-                            message = [
-                                "linesegment",
-                                this.get_centroid(child)[0],
-                                this.get_centroid(child)[1],
-                                this.get_centroid(node)[0],
-                                this.get_centroid(node)[1]
-                            ];
-
-                            color = red;
-
-                            messages.push(message.concat(color));
-
-                        }
-                    }
-
-                    return true;
-                });
-            }
-
-            return messages;
-        }
+        // public render_trees(list_parse_trees: ParseTree[]) {
+        //
+        //     let color: number[];
+        //     let messages: any[] = [];
+        //     let message: any[];
+        //
+        //     for (let parse_tree of list_parse_trees) {
+        //
+        //         let root = parse_tree.get_root();
+        //
+        //         root.walk((node)=>{
+        //
+        //             if (node.hasChildren()) {
+        //
+        //                 let coords: number[] = node.model.note.get_coordinates_matrix();
+        //
+        //                 for (let child of node.children) {
+        //
+        //                     message = [
+        //                         "linesegment",
+        //                         this.get_centroid(child)[0],
+        //                         this.get_centroid(child)[1],
+        //                         this.get_centroid(node)[0],
+        //                         this.get_centroid(node)[1]
+        //                     ];
+        //
+        //                     color = red;
+        //
+        //                     messages.push(message.concat(color));
+        //
+        //                 }
+        //             }
+        //
+        //             return true;
+        //         });
+        //     }
+        //
+        //     return messages;
+        // }
 
         // TODO: implement
         private render_note(note: TreeModel.Node<n.Note>, coord: number[]) {
@@ -537,25 +635,25 @@ export namespace window {
         }
 
         // TODO: make node have indices to both clip and note
-        get_centroid(node: TreeModel.Node<n.NoteRenderable>): number[] {
-
-            let dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
-
-            // let index_clip = node.model.id;
-            let coord_clip = node.model.note.get_coordinates_matrix();
-
-            // TODO: determine how to get the index of the clip from just depth of the node
-
-            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
-            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
-
-            return [
-                dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
-                dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
-            ]
-        };
+        // get_centroid(node: TreeModel.Node<n.NoteRenderable>): number[] {
+        //
+        //     let dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
+        //
+        //     // let index_clip = node.model.id;
+        //     let coord_clip = node.model.note.get_coordinates_matrix();
+        //
+        //     // TODO: determine how to get the index of the clip from just depth of the node
+        //
+        //     dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
+        //     dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
+        //     dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
+        //     dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
+        //
+        //     return [
+        //         dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
+        //         dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
+        //     ]
+        // };
 
         // TODO: elaboration won't always
         get_order_of_note_at_beat_start(notes: TreeModel.Node<n.Note>[], beat_start: number): number {
@@ -577,14 +675,14 @@ export namespace window {
             ];
         }
 
-        render_tree(): void {
-            var messages = this.get_messages_render_tree();
-            for (var i=0; i < messages.length; i++) {
-                this.messenger.message(
-                    messages[i]
-                )
-            }
-        };
+        // render_tree(): void {
+        //     var messages = this.get_messages_render_tree();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
 
         get_messages_render_tree() {
             return []

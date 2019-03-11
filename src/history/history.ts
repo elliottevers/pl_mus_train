@@ -1,4 +1,4 @@
-import {note as n} from "../note/note";
+import {note, note as n} from "../note/note";
 import {log} from "../log/logger";
 import TreeModel = require("tree-model");
 import {utils} from "../utils/utils";
@@ -18,6 +18,7 @@ export namespace history {
     import Subtarget = target.Subtarget;
     import MatrixIterator = trainer.MatrixIterator;
     import Target = target.Target;
+    import Note = note.Note;
 
     export type TypeSubtarget = TreeModel.Node<n.Note>;
 
@@ -43,30 +44,48 @@ export namespace history {
         public static create_history_user_input(algorithm, segments) {
             switch (algorithm.get_name()) {
                 case DETECT: {
-                    // return new TargetHistory(algorithm, segments);
                     return new TargetHistory();
                 }
                 case PREDICT: {
-                    // return new TargetHistory(algorithm, segments);
                     return new TargetHistory();
                 }
                 case PARSE: {
-                    throw 'parse not yet implemented'
+                    return new PhaseHistory();
                 }
                 case DERIVE: {
-                    throw 'detect not yet implemented'
+                    return new PhaseHistory();
                 }
                 default: {
-                    throw 'from factory user input'
+                    throw 'factory history user input'
                 }
             }
         }
     }
 
     export interface HistoryUserInput {
-        save(filename: string): void
+        set_matrix(matrix): void;
+        add(struct, coord): void;
+        // get(coord);
+    }
 
-        load(filename: string): HistoryUserInput
+    export class PhaseHistory implements HistoryUserInput {
+        matrix_notes: TreeModel.Node<Note>[][][];
+
+        constructor() {
+
+        }
+
+        set_matrix(matrix) {
+            this.matrix_notes = matrix
+        }
+
+        add(notes: TreeModel.Node<Note>[], coord: number[]) {
+            this.matrix_notes[coord[0]][coord[1]] = notes;
+        }
+
+        get(coord: number[]): TreeModel.Node<n.Note>[] {
+            return this.matrix_notes[coord[0]][coord[1]];
+        }
     }
 
     export class TargetHistory implements HistoryUserInput {
@@ -89,7 +108,6 @@ export namespace history {
             this.matrix_data = matrix
         }
 
-
         // set_sequence_target(sequence_target: TypeSequenceTarget, coord_matrix: number[]) {
         //     this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
         // }
@@ -103,136 +121,8 @@ export namespace history {
         //     this.matrix_data[coord[0]][coord[1]] = subtarget.note
         // }
 
-        add_sequence_target(target_sequence: Target[], coord: number[]) {
+        add(target_sequence: Target[], coord: number[]) {
             this.matrix_data[coord[0]][coord[1]] = target_sequence;
         }
-
-        save(filename) {
-            // let data_serializable = this.matrix_data as any;
-            // for (let i_row in this.matrix_data) {
-            //     for (let i_col in this.matrix_data[Number(i_row)]) {
-            //         data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
-            //             this.matrix_data[Number(i_row)][Number(i_col)]
-            //         )
-            //     }
-            // }
-            //
-            // let f = new File(filename,"write","JSON");
-            //
-            // if (f.isopen) {
-            //     post("saving session");
-            //     f.writestring(JSON.stringify(data_serializable));
-            //     f.close();
-            // } else {
-            //     post("could not save session");
-            // }
-        }
-
-        public load(filename): HistoryUserInput {
-            // let f = new File(filename, "read","JSON");
-            // let a, data_deserialized;
-            //
-            // if (f.isopen) {
-            //     post("reading file");
-            //     // @ts-ignore
-            //     while ((a = f.readline()) != null) {
-            //         let data_deserialized = JSON.parse(a) as any;
-            //     }
-            //     f.close();
-            // } else {
-            //     post("could not open file");
-            // }
-            //
-            // // let data_deserialized = data_serialized as any;
-            // //
-            // // for (let i_row in data_serialized) {
-            // //     for (let i_col in data_serialized[Number(i_row)]) {
-            // //         data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
-            // //     }
-            // // }
-            // //
-            // // return data_deserialized
-            //
-            // for (let i_row in this.matrix_data) {
-            //     for (let i_col in this.matrix_data[Number(i_row)]) {
-            //         data_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(
-            //             data_deserialized[Number(i_row)][Number(i_col)]
-            //         )
-            //     }
-            // }
-            //
-            // return data_deserialized
-            return
-        }
     }
-
-    // export type TypeHistoryList = SegmentTargetable[]
-    //
-    // export type TypeHistoryMatrix = SegmentTargetable[][]
-
-    // export class ParseHistory implements HistoryUserInput {
-    //
-    //     // data: TreeModel.Node<note.Note>[][][];
-    //
-    //     matrix_data: SequenceNote[][];
-    //
-    //     logger: Logger;
-    //
-    //     constructor(algorithm, segments) {
-    //         let matrix_data = [];
-    //         for (let i=0; i < algorithm.get_depth(); i++) {
-    //             if (i == 0) {
-    //                 matrix_data[i] = new Array(1); // root of tree
-    //             } else {
-    //                 matrix_data[i] = new Array(segments.length);
-    //             }
-    //         }
-    //         this.matrix_data = matrix_data;
-    //     }
-    //
-    //     save(filename) {
-    //         let data_serializable = this.data as any;
-    //         for (let i_row in this.data) {
-    //             for (let i_col in this.data[Number(i_row)]) {
-    //                 data_serializable[Number(i_row)][Number(i_col)] = ParseMatrix.serialize(this.data[Number(i_row)][Number(i_col)])
-    //             }
-    //         }
-    //
-    //         let f = new File(filename,"write","JSON");
-    //
-    //         if (f.isopen) {
-    //             post("saving session");
-    //             f.writestring(JSON.stringify(data_serializable));
-    //             f.close();
-    //         } else {
-    //             post("could not save session");
-    //         }
-    //     }
-    //
-    //     public load(filename): HistoryUserInput {
-    //         let f = new File(filename, "read","JSON");
-    //         let a, data_serialized;
-    //
-    //         if (f.isopen) {
-    //             post("reading file");
-    //             // @ts-ignore
-    //             while ((a = f.readline()) != null) {
-    //                 data_serialized = JSON.parse(a)
-    //             }
-    //             f.close();
-    //         } else {
-    //             post("could not open file");
-    //         }
-    //
-    //         // let data_deserialized = data_serialized as any;
-    //         //
-    //         // for (let i_row in data_serialized) {
-    //         //     for (let i_col in data_serialized[Number(i_row)]) {
-    //         //         data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
-    //         //     }
-    //         // }
-    //
-    //         return data_deserialized
-    //     }
-    // }
 }

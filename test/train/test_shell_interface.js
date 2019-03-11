@@ -17,4 +17,4 @@ pyshell.end(function (err, code, signal) {
     console.log('finished');
     console.log('finished');
 });
-//# sourceMappingURL=train_test.js.map
+//# sourceMappingURL=test_shell_interface.js.map

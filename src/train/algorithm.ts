@@ -56,6 +56,12 @@ export namespace algorithm {
     }
 
     abstract class Parsed {
+        user_input_handler: UserInputHandler;
+
+        constructor(user_input_handler) {
+            this.user_input_handler = user_input_handler;
+        }
+
         public b_targeted(): boolean {
             return false;
         }
@@ -191,6 +197,10 @@ export namespace algorithm {
     export class Parse extends Parsed implements Algorithm, Temporal {
 
         depth: number;
+
+        constructor(user_input_handler) {
+            super(user_input_handler);
+        }
 
         public get_name(): string {
             return PARSE

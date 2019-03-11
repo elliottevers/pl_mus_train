@@ -40,6 +40,7 @@ export namespace trainer {
     import Clip = clip.Clip;
     import FactoryHistoryUserInput = history.FactoryHistoryUserInput;
     import SubtargetIterator = target.SubtargetIterator;
+    import ParseMatrix = parse.ParseMatrix;
 
     export class MatrixIterator {
         private num_rows: number;
@@ -167,7 +168,8 @@ export namespace trainer {
         private segments: Segment[];
         private messenger: Messenger;
 
-        private list_parse_tree: ParseTree[];
+        // private list_parse_tree: ParseTree[];
+        private parse_matrix: ParseMatrix;
         public history_user_input;
 
         private counter_user_input: number;
@@ -225,48 +227,51 @@ export namespace trainer {
             if (this.algorithm.b_targeted()) {
                 this.create_targets()
             } else {
-                this.create_parse_trees();
+                this.parse_matrix = new ParseMatrix(
+                    l.cloneDeep(this.matrix_target_iterator)
+                );
+                this.initialize_parse_matrix();
             }
         }
 
-        private create_parse_trees() {
-            let list_parse_tree: ParseTree[] = [];
+        private initialize_parse_matrix() {
+
+            // set root
+            let coord_root = [0, 0];
+
+            let note_root = this.segments[0].get_note();
+
+            this.parse_matrix.matrix_note_sequence[coord_root[0]][coord_root[1]] = [note_root];
+
+            // set first layer, which are the various key center estimates
+
+            for (let i_segment of this.segments) {
+                let segment = this.segments[Number(i_segment)];
+                this.parse_matrix.matrix_note_sequence[1][Number(i_segment)] = [segment.get_note()]
+            }
 
             switch (this.algorithm.get_name()) {
                 case PARSE: {
-                    for (let segment of this.segments) {
+                    for (let i_segment of this.segments) {
+                        let segment = this.segments[Number(i_segment)];
                         let notes = this.clip_user_input.get_notes(
                             segment.beat_start,
                             0,
                             segment.beat_end - segment.beat_start,
                             128
                         );
-                        for (let note of notes) {
-                            list_parse_tree.push(
-                                new ParseTree(
-                                    note,
-                                    this.algorithm.get_depth()
-                                )
-                            )
-                        }
+                        this.parse_matrix.matrix_note_sequence[this.algorithm.get_depth()][Number(i_segment)] = notes
                     }
                     break;
                 }
                 case DERIVE: {
-                    let note = this.segments[0].get_note();
-                    list_parse_tree.push(
-                        new ParseTree(
-                            note,
-                            this.algorithm.get_depth()
-                        )
-                    );
+                    //  TODO: anything?
                     break;
                 }
                 default: {
                     throw ['algorithm of name', this.algorithm.get_name(), 'not supported'].join(' ')
                 }
             }
-            return list_parse_tree;
         }
 
         // now we can assume we have a list instead of a matrix
@@ -296,7 +301,8 @@ export namespace trainer {
                 this.iterator_matrix_train,
                 this.matrix_target_iterator,
                 this.history_user_input,
-                this.algorithm
+                this.algorithm,
+                this.parse_matrix
             )
         }
 
@@ -338,7 +344,11 @@ export namespace trainer {
 
         // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         public init() {
-            this.advance_segment();
+            if (this.algorithm.b_targeted()) {
+                this.advance_subtarget();
+            } else {
+                this.advance_segment();
+            }
             this.algorithm.post_init(this.song, this.clip_user_input)
         }
 
@@ -351,27 +361,8 @@ export namespace trainer {
             }
 
             let coord = obj_next_coord.value;
+
             this.segment_current = this.segments[coord[1]];
-            this.iterator_target_current = this.matrix_target_iterator[coord[0]][coord[1]];
-
-            // TODO: why isn't this a 'TargetIterator'?
-            let obj_target = this.iterator_target_current.next();
-
-            if (obj_target.done) {
-                return
-            }
-
-            this.target_current = obj_target.value;
-
-            this.iterator_subtarget_current = this.target_current.iterator_subtarget;
-
-            let obj_subtarget = this.iterator_subtarget_current.next();
-
-            if (obj_subtarget.done) {
-                return
-            }
-
-            this.subtarget_current = obj_subtarget.value;
         }
 
         private advance_subtarget() {
@@ -446,7 +437,7 @@ export namespace trainer {
         }
 
         // user input can be either 1) a pitch or 2) a sequence of notes
-        accept_input(input_user: TreeModel.Node<n.Note>[]) {
+        accept_input(notes_input_user: TreeModel.Node<n.Note>[]) {
 
             this.counter_user_input++;
 
@@ -462,59 +453,42 @@ export namespace trainer {
             // parse/derive logic
             if (!this.algorithm.b_targeted()) {
 
-                this.list_parse_tree = ParseTree.add(
-                    input_user,
-                    this.list_parse_tree,
-                    this.iterator_matrix_train
+                this.history_user_input.add(
+                    notes_input_user,
+                    this.iterator_matrix_train.get_coord_current()
                 );
 
-                let coord_current = this.iterator_matrix_train.get_coord_current();
-
-                this.window.add(
-                    this.matrix_target_iterator[coord_current[0]][coord_current[1]].get_notes(),
-                    coord_current,
-                    this.segment_current
+                // TODO: implement
+                this.matrix_par.add(
+                    notes_input_user,
+                    this.list_parse_tree,
+                    this.iterator_matrix_train,
+                    this.history_user_input
                 );
 
                 this.advance_segment();
 
-                this.window.render_regions(
-                    this.iterator_matrix_train,
-                    this.matrix_target_iterator
-                );
-
-                this.window.render_notes(
-                    this.history_user_input
-                );
-
-                this.window.render_tree(
-                    this.list_parse_tree
-                );
+                this.render_window();
 
                 return
             }
 
             // detect/predict logic
             // NB: assumes we're only giving list of a single note as input
-            if (input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
+            if (notes_input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
 
-                let note_subtarget_at_time = this.subtarget_current.note;
-
-                let coord_at_time = this.iterator_matrix_train.get_coord_current();
-
-                this.advance_subtarget();
+                this.window.add_note_to_clip(
+                    this.subtarget_current.note,
+                    this.iterator_matrix_train.get_coord_current()
+                );
 
                 if (this.algorithm.b_targeted()) {
                     // set the targets and shit
                 }
 
-                // set the context in ableton
-                this.set_loop();
+                this.advance_subtarget();
 
-                this.window.add_note_to_clip(
-                    note_subtarget_at_time,
-                    coord_at_time
-                );
+                this.set_loop();
 
                 // this.render_window();
             }

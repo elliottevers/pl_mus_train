@@ -35,7 +35,8 @@ var algorithm;
         return Targeted;
     }());
     var Parsed = /** @class */ (function () {
-        function Parsed() {
+        function Parsed(user_input_handler) {
+            this.user_input_handler = user_input_handler;
         }
         Parsed.prototype.b_targeted = function () {
             return false;
@@ -141,8 +142,8 @@ var algorithm;
     algorithm.Predict = Predict;
     var Parse = /** @class */ (function (_super) {
         __extends(Parse, _super);
-        function Parse() {
-            return _super !== null && _super.apply(this, arguments) || this;
+        function Parse(user_input_handler) {
+            return _super.call(this, user_input_handler) || this;
         }
         Parse.prototype.get_name = function () {
             return algorithm.PARSE;
