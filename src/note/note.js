@@ -13,8 +13,9 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var TreeModel = require("tree-model");
 var note;
-(function (note) {
+(function (note_1) {
     var Note = /** @class */ (function () {
         function Note(pitch, beat_start, beats_duration, velocity, muted) {
             this.pitch = Number(pitch);
@@ -103,7 +104,7 @@ var note;
         };
         return Note;
     }());
-    note.Note = Note;
+    note_1.Note = Note;
     var NoteRenderable = /** @class */ (function (_super) {
         __extends(NoteRenderable, _super);
         function NoteRenderable(pitch, beat_start, beats_duration, velocity, muted, coordinates_matrix) {
@@ -114,9 +115,17 @@ var note;
         NoteRenderable.prototype.get_coordinates_matrix = function () {
             return this.coordinates_matrix;
         };
+        NoteRenderable.from_note = function (note, coord) {
+            var tree = new TreeModel();
+            return tree.parse({
+                id: -1,
+                note: new NoteRenderable(note.model.note.pitch, note.model.note.beat_start, note.model.note.beats_duration, note.model.note.velocity, note.model.note.b_muted, coord),
+                children: []
+            });
+        };
         return NoteRenderable;
     }(Note));
-    note.NoteRenderable = NoteRenderable;
+    note_1.NoteRenderable = NoteRenderable;
     var NoteIterator = /** @class */ (function () {
         function NoteIterator(notes, direction_forward) {
             this.notes = notes;
@@ -153,6 +162,6 @@ var note;
         };
         return NoteIterator;
     }());
-    note.NoteIterator = NoteIterator;
+    note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 //# sourceMappingURL=note.js.map

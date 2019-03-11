@@ -43,7 +43,7 @@ var iterate;
                 i_stop = this.index_row_stop * this.num_columns;
             }
             else if (!this.downward && this.rightward) {
-                i_stop = this.index_row_stop * this.num_columns;
+                i_stop = (this.index_row_stop - 1) * this.num_columns;
             }
             else if (this.downward && !this.rightward) {
                 throw 'not yet supported';
@@ -61,7 +61,7 @@ var iterate;
                 this.i++;
             }
             else if (!this.downward && this.rightward) {
-                if (remainder(this.i + 1, this.num_rows) === 0) {
+                if (remainder(this.i + 1, this.num_columns) === 0) {
                     this.i = this.i - (this.num_columns - 1) - this.num_columns;
                 }
                 else {

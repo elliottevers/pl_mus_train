@@ -81,11 +81,14 @@ var window;
         Window.prototype.add_notes_to_clip = function (notes_to_add_to_clip, coord_current) {
             var index_clip = Window.coord_to_index_clip(coord_current);
             for (var _i = 0, notes_to_add_to_clip_1 = notes_to_add_to_clip; _i < notes_to_add_to_clip_1.length; _i++) {
-                var note = notes_to_add_to_clip_1[_i];
-                this.list_clips[index_clip].append(note);
+                var note_1 = notes_to_add_to_clip_1[_i];
+                this.list_clips[index_clip].append(note_1);
             }
         };
         Window.prototype.add_note_to_clip_root = function (note) {
+            // this.list_clips[0].set_notes(
+            //     [NoteRenderable.from_note(note, [-1])]
+            // )
             this.list_clips[0].set_notes([note]);
         };
         // public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
@@ -243,7 +246,7 @@ var window;
             }
             else {
                 var coord = iterator_matrix_train.get_coord_current();
-                var notes_1 = parse_matrix.get_roots_at_coord(coord);
+                notes = parse_matrix.get_roots_at_coord(coord);
             }
             // TODO: 'notes' is undefined here, this is probably because the matrix iteration is wrong
             this.render_regions(iterator_matrix_train, notes, algorithm);
@@ -259,8 +262,15 @@ var window;
             var message;
             for (var _i = 0, _a = parse_matrix.coords_roots; _i < _a.length; _i++) {
                 var coord = _a[_i];
-                for (var _b = 0, _c = parse_matrix.get_roots_at_coord(coord); _b < _c.length; _b++) {
-                    var root = _c[_b];
+                var roots_parse_tree = void 0;
+                if (coord[0] === -1) {
+                    roots_parse_tree = [parse_matrix.get_root()];
+                }
+                else {
+                    roots_parse_tree = parse_matrix.get_roots_at_coord(coord);
+                }
+                for (var _b = 0, roots_parse_tree_1 = roots_parse_tree; _b < roots_parse_tree_1.length; _b++) {
+                    var root = roots_parse_tree_1[_b];
                     root.walk(function (node) {
                         if (node.hasChildren()) {
                             for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
@@ -381,7 +391,7 @@ var window;
         };
         // public render_regions(iterator_matrix_train, matrix_target_iterator, algorithm) {
         MatrixWindow.prototype.render_regions = function (iterator_matrix_train, notes, algorithm) {
-            var coord = iterator_matrix_train.get_coord_current();
+            // let coord = iterator_matrix_train.get_coord_current();
             // let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
             // let subtargets = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
             //     return subtarget.note

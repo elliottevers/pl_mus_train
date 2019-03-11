@@ -1,5 +1,6 @@
 import TreeModel = require("tree-model");
 import p = require("../parse/parse");
+import Note = note.Note;
 
 export namespace note {
 
@@ -152,6 +153,29 @@ export namespace note {
         public get_coordinates_matrix(): number[] {
             return this.coordinates_matrix;
         }
+
+        public static from_note(note, coord): TreeModel.Node<NoteRenderable> {
+            let tree: TreeModel = new TreeModel();
+
+            return tree.parse(
+                {
+                    id: -1, // TODO: hashing scheme for clip id and beat start
+                    note: new NoteRenderable(
+                        note.model.note.pitch,
+                        note.model.note.beat_start,
+                        note.model.note.beats_duration,
+                        note.model.note.velocity,
+                        note.model.note.b_muted,
+                        coord
+                    ),
+                    children: [
+
+                    ]
+                }
+            )
+        }
+
+
     }
 
     export class NoteIterator {

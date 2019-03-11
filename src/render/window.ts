@@ -1,7 +1,7 @@
 import TreeModel = require("tree-model");
 import {message, message as m} from "../message/messenger"
 import {clip, clip as c} from "../clip/clip";
-import {note as n} from "../note/note";
+import {note, note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
 import {log} from "../log/logger";
@@ -27,6 +27,8 @@ export namespace window {
     import Clip = clip.Clip;
     import Algorithm = algorithm.Algorithm;
     import MatrixIterator = iterate.MatrixIterator;
+    import Note = note.Note;
+    import NoteRenderable = note.NoteRenderable;
 
     const red = [255, 0, 0];
     const black = [0, 0, 0];
@@ -107,7 +109,12 @@ export namespace window {
         }
 
         add_note_to_clip_root(note) {
-            this.list_clips[0].set_notes([note])
+            // this.list_clips[0].set_notes(
+            //     [NoteRenderable.from_note(note, [-1])]
+            // )
+            this.list_clips[0].set_notes(
+                [note]
+            )
         }
 
         // public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
@@ -298,7 +305,7 @@ export namespace window {
                 });
             } else {
                 let coord = iterator_matrix_train.get_coord_current();
-                let notes = parse_matrix.get_roots_at_coord(coord)
+                notes = parse_matrix.get_roots_at_coord(coord)
             }
 
             // TODO: 'notes' is undefined here, this is probably because the matrix iteration is wrong
@@ -324,7 +331,14 @@ export namespace window {
             let message: any[];
 
             for (let coord of parse_matrix.coords_roots) {
-                for (let root of parse_matrix.get_roots_at_coord(coord)) {
+                let roots_parse_tree;
+                if (coord[0] === -1) {
+                    roots_parse_tree = [parse_matrix.get_root()]
+                } else {
+                    roots_parse_tree = parse_matrix.get_roots_at_coord(coord);
+                }
+
+                for (let root of roots_parse_tree) {
                     root.walk((node)=>{
 
                         if (node.hasChildren()) {
@@ -477,7 +491,7 @@ export namespace window {
 
         // public render_regions(iterator_matrix_train, matrix_target_iterator, algorithm) {
         public render_regions(iterator_matrix_train, notes, algorithm) {
-            let coord = iterator_matrix_train.get_coord_current();
+            // let coord = iterator_matrix_train.get_coord_current();
             // let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
             // let subtargets = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
             //     return subtarget.note
