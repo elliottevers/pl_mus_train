@@ -14,12 +14,7 @@ export namespace algorithm {
     export let PREDICT = 'predict';
     export let PARSE = 'parse';
     export let DERIVE = 'derive';
-
-    import LiveClipVirtual = live.LiveClipVirtual;
-    import Target = target.Target;
-    // import TargetType = target.TargetType;
     import Harmony = harmony.Harmony;
-    import TargetIterator = target.TargetIterator;
     import POLYPHONY = modes_texture.POLYPHONY;
     import MONOPONY = modes_texture.MONOPONY;
     import TypeSequenceTarget = history.TypeSequenceTarget;
@@ -27,10 +22,6 @@ export namespace algorithm {
 
     export interface Temporal {
         determine_region_present
-
-        // determine_region_past
-        //
-        // determine_region_upcoming
     }
 
     export interface Targetable {
@@ -120,7 +111,6 @@ export namespace algorithm {
         public determine_region_present(notes_target_next): number[] {
             return [
                 notes_target_next[0].model.note.beat_start,
-                // notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
                 notes_target_next[0].model.note.get_beat_end()
             ]
         }

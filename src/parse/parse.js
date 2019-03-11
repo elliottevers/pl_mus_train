@@ -34,6 +34,7 @@ var parse;
         function StructParse(matrix) {
             var _this = _super.call(this) || this;
             _this.matrix_leaves = matrix;
+            _this.coords_roots = [];
             return _this;
         }
         StructParse.prototype.get_roots_at_coord = function (coord) {

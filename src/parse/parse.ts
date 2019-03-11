@@ -50,6 +50,7 @@ export namespace parse {
         constructor(matrix) {
             super();
             this.matrix_leaves = matrix;
+            this.coords_roots = []
         }
 
         public get_roots_at_coord(coord: number[]) {

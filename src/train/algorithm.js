@@ -21,7 +21,6 @@ var algorithm;
     algorithm.PREDICT = 'predict';
     algorithm.PARSE = 'parse';
     algorithm.DERIVE = 'derive';
-    // import TargetType = target.TargetType;
     var Harmony = harmony_1.harmony.Harmony;
     var POLYPHONY = constants_1.modes_texture.POLYPHONY;
     var MONOPONY = constants_1.modes_texture.MONOPONY;
@@ -81,7 +80,6 @@ var algorithm;
         Detect.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
-                // notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
                 notes_target_next[0].model.note.get_beat_end()
             ];
         };

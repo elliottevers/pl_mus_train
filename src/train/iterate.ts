@@ -27,14 +27,16 @@ export namespace iterate {
             this.num_rows = num_rows;
             this.num_columns = num_columns;
 
-            this.downward = downward ? downward : true;
-            this.rightward = rightward ? rightward : true;
+            this.downward = (downward == null) ? true : downward;
+            this.rightward = (rightward == null) ? true : rightward;
 
             this.index_row_start = start_at_row;
             this.index_row_stop = stop_at_row;
 
             this.determine_index_start();
             this.determine_index_stop();
+
+            this.i = this.index_start
         }
 
         private determine_index_start() {
@@ -42,9 +44,9 @@ export namespace iterate {
             let i_start;
 
             if (this.downward && this.rightward) {
-                i_start = -1 + (this.num_columns * this.index_row_start)
+                i_start = -1 + (this.num_columns * this.index_row_start) - this.num_columns
             } else if (!this.downward && this.rightward) {
-                i_start = (this.num_columns * (this.index_row_start + 2)) - 1
+                i_start = (this.num_columns * (this.index_row_start + 2)) - 1 - this.num_columns
             } else if (this.downward && !this.rightward) {
                 throw 'not yet supported'
             }

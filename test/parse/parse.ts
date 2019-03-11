@@ -62,8 +62,142 @@ let segment_note_2_parse = tree.parse(
 );
 
 
-
 let note_melody_1 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            51,
+            1,
+            1,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+let note_melody_2 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            53,
+            2,
+            1,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+
+
+let note_melody_3 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            55,
+            3,
+            1,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+let note_melody_4 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            56,
+            4,
+            1,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+
+let note_melody_5 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            51,
+            5,
+            1,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+let note_melody_6 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            53,
+            6,
+            1,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+
+
+let note_melody_7 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            55,
+            7,
+            1,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+let note_melody_8 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            56,
+            8,
+            1,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+
+
+let note_melody_parsed_1 = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
@@ -79,7 +213,7 @@ let note_melody_1 = tree.parse(
     }
 );
 
-let note_melody_2 = tree.parse(
+let note_melody_parsed_2 = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
@@ -97,7 +231,7 @@ let note_melody_2 = tree.parse(
 
 
 
-let note_melody_3 = tree.parse(
+let note_melody_parsed_3 = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
@@ -113,7 +247,7 @@ let note_melody_3 = tree.parse(
     }
 );
 
-let note_melody_4 = tree.parse(
+let note_melody_parsed_4 = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
@@ -204,6 +338,10 @@ let algorithm_train_parse = new Parse(
     user_input_handler_parse
 );
 
+algorithm_train_parse.set_depth(
+    3
+);
+
 // stubs
 let song_parse = {
     set_overdub: (int) => {},
@@ -225,7 +363,11 @@ let notes_target_clip_parse = [
     note_melody_1,
     note_melody_2,
     note_melody_3,
-    note_melody_4
+    note_melody_4,
+    note_melody_5,
+    note_melody_6,
+    note_melody_7,
+    note_melody_8
 ];
 
 let segments_parse: Segment[] = [];
@@ -260,63 +402,51 @@ trainer_local_parse.init(
 );
 
 trainer_local_parse.accept_input(
-    [note_target_1_subtarget_1]
+    [note_melody_parsed_1, note_melody_parsed_2]
 );
 
 trainer_local_parse.accept_input(
-    [note_target_1_subtarget_2]
-);
-
-trainer_local_parse.accept_input(
-    [note_target_2_subtarget_1]
-);
-
-trainer_local_parse.accept_input(
-    [note_target_2_subtarget_2]
-);
-
-trainer_local_parse.accept_input(
-    [note_target_3_subtarget_1]
+    [note_melody_parsed_3, note_melody_parsed_4]
 );
 
 trainer_local_parse.render_window(
 
 );
-
-trainer_local_parse.clear_window(
-
-);
-
-let freezer_parse = new TrainFreezer(
-    env
-);
-
-freezer_parse.freeze(
-    trainer_local,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
-);
-
-let thawer_parse = new TrainThawer(
-    env_parse
-);
-
-let config_parse = {
-    'window': window_local_parse,
-    'user_input_handler': user_input_handler_parse,
-    'algorithm': algorithm_train_parse,
-    'clip_user_input': clip_user_input_parse,
-    'clip_target_virtual': clip_target_virtual_parse,
-    'song': song_parse,
-    'segments': segments_parse,
-    'messenger': messenger_parse,
-    'env': env_parse
-};
-
-let train_thawed_parse = thawer_parse.thaw(
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
-    config
-);
-
-train_thawed_parse.render_window(
-
-);
+//
+// trainer_local_parse.clear_window(
+//
+// );
+//
+// let freezer_parse = new TrainFreezer(
+//     env_parse
+// );
+//
+// freezer_parse.freeze(
+//     trainer_local_parse,
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
+// );
+//
+// let thawer_parse = new TrainThawer(
+//     env_parse
+// );
+//
+// let config_parse = {
+//     'window': window_local_parse,
+//     'user_input_handler': user_input_handler_parse,
+//     'algorithm': algorithm_train_parse,
+//     'clip_user_input': clip_user_input_parse,
+//     'clip_target_virtual': clip_target_virtual_parse,
+//     'song': song_parse,
+//     'segments': segments_parse,
+//     'messenger': messenger_parse,
+//     'env': env_parse
+// };
+//
+// let train_thawed_parse = thawer_parse.thaw(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
+//     config_parse
+// );
+//
+// train_thawed_parse.render_window(
+//
+// );

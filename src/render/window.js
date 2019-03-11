@@ -233,7 +233,20 @@ var window;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
             this.clear();
-            this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
+            var notes;
+            if (algorithm.b_targeted()) {
+                var coord = iterator_matrix_train.get_coord_current();
+                var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+                notes = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
+                    return subtarget.note;
+                });
+            }
+            else {
+                var coord = iterator_matrix_train.get_coord_current();
+                var notes_1 = parse_matrix.get_roots_at_coord(coord);
+            }
+            // TODO: 'notes' is undefined here, this is probably because the matrix iteration is wrong
+            this.render_regions(iterator_matrix_train, notes, algorithm);
             this.render_clips(iterator_matrix_train);
             if (!algorithm.b_targeted()) {
                 this.render_trees(parse_matrix);
@@ -366,13 +379,14 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator, algorithm) {
+        // public render_regions(iterator_matrix_train, matrix_target_iterator, algorithm) {
+        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, notes, algorithm) {
             var coord = iterator_matrix_train.get_coord_current();
-            var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-            var subtargets = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
-                return subtarget.note;
-            });
-            var interval_current = algorithm.determine_region_present(subtargets);
+            // let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+            // let subtargets = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
+            //     return subtarget.note
+            // });
+            var interval_current = algorithm.determine_region_present(notes);
             var quadruplet_region_past = this.get_message_render_region_past(interval_current);
             var quadruplet_region_present = this.get_message_render_region_present(interval_current);
             var quadruplet_region_future = this.get_message_render_region_future(interval_current);

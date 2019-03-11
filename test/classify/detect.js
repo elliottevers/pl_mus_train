@@ -18,12 +18,12 @@ var serialize_1 = require("../../src/serialize/serialize");
 var TrainFreezer = serialize_1.freeze.TrainFreezer;
 var TrainThawer = serialize_1.thaw.TrainThawer;
 var window_1 = require("../../src/render/window");
-var MatrixWindow = window_1.window.MatrixWindow;
 var trainer_1 = require("../../src/train/trainer");
 var Trainer = trainer_1.trainer.Trainer;
 var constants_1 = require("../../src/constants/constants");
 var POLYPHONY = constants_1.modes_texture.POLYPHONY;
 var INSTRUMENTAL = constants_1.modes_control.INSTRUMENTAL;
+var MatrixWindow = window_1.window.MatrixWindow;
 var tree = new TreeModel();
 var segment_note_1 = tree.parse({
     id: -1,

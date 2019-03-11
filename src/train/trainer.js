@@ -43,10 +43,10 @@ var trainer;
         Trainer.prototype.initialize_struct_parse = function () {
             var note_root = this.segments[0].get_note();
             this.struct_parse.root = note_root;
+            // TODO: make the root the length of the entire song
             this.window.add_note_to_clip_root(note_root);
             // set first layer, which are the various key center estimates
-            for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
-                var i_segment = _a[_i];
+            for (var i_segment in this.segments) {
                 var segment_1 = this.segments[Number(i_segment)];
                 var note = segment_1.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
@@ -56,10 +56,9 @@ var trainer;
             }
             switch (this.algorithm.get_name()) {
                 case PARSE: {
-                    for (var _b = 0, _c = this.segments; _b < _c.length; _b++) {
-                        var i_segment = _c[_b];
+                    for (var i_segment in this.segments) {
                         var segment_2 = this.segments[Number(i_segment)];
-                        var notes = this.clip_user_input.get_notes(segment_2.beat_start, 0, segment_2.beat_end - segment_2.beat_start, 128);
+                        var notes = this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end - segment_2.beat_start, 128);
                         this.struct_parse.matrix_leaves[this.algorithm.get_depth() - 1][Number(i_segment)] = notes;
                     }
                     break;
@@ -128,11 +127,14 @@ var trainer;
                     // public add(notes_user_input, iterator_matrix_train, algorithm): void {
                     for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
                         var segment_3 = _a[_i];
-                        this.struct_parse.add(segment_3.get_note(), this.struct_parse, this.iterator_matrix_train.get_coord_current());
+                        this.struct_parse.add([segment_3.get_note()], 
+                        // this.struct_parse,
+                        this.iterator_matrix_train.get_coord_current(), this.algorithm);
                     }
                     this.struct_parse.finish();
                 }
-                this.algorithm.pre_terminate();
+                this.algorithm.pre_terminate(this.song, this.clip_user_input);
+                return;
             }
             var coord = obj_next_coord.value;
             this.segment_current = this.segments[coord[1]];
@@ -182,9 +184,9 @@ var trainer;
             // parse/derive logic
             if (!this.algorithm.b_targeted()) {
                 this.history_user_input.add(notes_input_user, this.iterator_matrix_train.get_coord_current());
-                this.window.add_notes_to_clip(this.subtarget_current.note, this.iterator_matrix_train.get_coord_current());
+                this.window.add_notes_to_clip(notes_input_user, this.iterator_matrix_train.get_coord_current());
                 // TODO: implement
-                this.struct_parse.add(notes_input_user, this.struct_parse, this.iterator_matrix_train.get_coord_current());
+                this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
                 this.render_window();
                 return;

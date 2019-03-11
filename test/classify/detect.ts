@@ -16,7 +16,6 @@ import {freeze, thaw} from "../../src/serialize/serialize";
 import TrainFreezer = freeze.TrainFreezer;
 import TrainThawer = thaw.TrainThawer;
 import {window} from "../../src/render/window";
-import MatrixWindow = window.MatrixWindow;
 import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
 import {modes_control, modes_texture} from "../../src/constants/constants";

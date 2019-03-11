@@ -106,13 +106,15 @@ export namespace trainer {
 
             this.struct_parse.root = note_root;
 
+            // TODO: make the root the length of the entire song
+
             this.window.add_note_to_clip_root(
                 note_root
             );
 
             // set first layer, which are the various key center estimates
 
-            for (let i_segment of this.segments) {
+            for (let i_segment in this.segments) {
                 let segment = this.segments[Number(i_segment)];
                 let note = segment.get_note();
                 let coord_current_virtual = [0, Number(i_segment)];
@@ -123,9 +125,9 @@ export namespace trainer {
 
             switch (this.algorithm.get_name()) {
                 case PARSE: {
-                    for (let i_segment of this.segments) {
+                    for (let i_segment in this.segments) {
                         let segment = this.segments[Number(i_segment)];
-                        let notes = this.clip_user_input.get_notes(
+                        let notes = this.clip_target.get_notes(
                             segment.beat_start,
                             0,
                             segment.beat_end - segment.beat_start,
@@ -230,14 +232,16 @@ export namespace trainer {
                     // public add(notes_user_input, iterator_matrix_train, algorithm): void {
                     for (let segment of this.segments) {
                         this.struct_parse.add(
-                            segment.get_note(),
-                            this.struct_parse,
-                            this.iterator_matrix_train.get_coord_current()
+                            [segment.get_note()],
+                            // this.struct_parse,
+                            this.iterator_matrix_train.get_coord_current(),
+                            this.algorithm
                         );
                     }
                     this.struct_parse.finish()
                 }
-                this.algorithm.pre_terminate()
+                this.algorithm.pre_terminate(this.song, this.clip_user_input)
+                return
             }
 
             let coord = obj_next_coord.value;
@@ -333,15 +337,15 @@ export namespace trainer {
                 );
 
                 this.window.add_notes_to_clip(
-                    this.subtarget_current.note,
+                    notes_input_user,
                     this.iterator_matrix_train.get_coord_current()
                 );
 
                 // TODO: implement
                 this.struct_parse.add(
                     notes_input_user,
-                    this.struct_parse,
-                    this.iterator_matrix_train.get_coord_current()
+                    this.iterator_matrix_train.get_coord_current(),
+                    this.algorithm
                 );
 
                 this.advance_segment();
