@@ -22,11 +22,338 @@ import Trainer = trainer.Trainer;
 import {modes_control, modes_texture} from "../../src/constants/constants";
 import POLYPHONY = modes_texture.POLYPHONY;
 import INSTRUMENTAL = modes_control.INSTRUMENTAL;
+import MONOPONY = modes_texture.MONOPONY;
+import VOCAL = modes_control.VOCAL;
 
 
 let tree: TreeModel = new TreeModel();
 
-let segment_note_1 = tree.parse(
+// let segment_note_1 = tree.parse(
+//     {
+//         id: -1, // TODO: hashing scheme for clip id and beat start
+//         note: new n.Note(
+//             51,
+//             1,
+//             4,
+//             90,
+//             0
+//         ),
+//         children: [
+//
+//         ]
+//     }
+// );
+//
+// let segment_note_2 = tree.parse(
+//     {
+//         id: -1, // TODO: hashing scheme for clip id and beat start
+//         note: new n.Note(
+//             51,
+//             5,
+//             4,
+//             90,
+//             0
+//         ),
+//         children: [
+//
+//         ]
+//     }
+// );
+//
+//
+//
+// let note_target_1_subtarget_1 = tree.parse(
+//     {
+//             id: -1, // TODO: hashing scheme for clip id and beat start
+//             note: new n.Note(
+//                 51,
+//                 1,
+//                 2,
+//                 90,
+//                 0
+//             ),
+//             children: [
+//
+//             ]
+//     }
+// );
+//
+// let note_target_1_subtarget_2 = tree.parse(
+//     {
+//             id: -1, // TODO: hashing scheme for clip id and beat start
+//             note: new n.Note(
+//                 53,
+//                 1,
+//                 2,
+//                 90,
+//                 0
+//             ),
+//             children: [
+//
+//             ]
+//     }
+// );
+//
+//
+//
+// let note_target_2_subtarget_1 = tree.parse(
+//     {
+//             id: -1, // TODO: hashing scheme for clip id and beat start
+//             note: new n.Note(
+//                 52,
+//                 3,
+//                 2,
+//                 90,
+//                 0
+//             ),
+//             children: [
+//
+//             ]
+//     }
+// );
+//
+// let note_target_2_subtarget_2 = tree.parse(
+//     {
+//             id: -1, // TODO: hashing scheme for clip id and beat start
+//             note: new n.Note(
+//                 54,
+//                 3,
+//                 2,
+//                 90,
+//                 0
+//             ),
+//             children: [
+//
+//             ]
+//     }
+// );
+//
+//
+//
+// let note_target_3_subtarget_1 = tree.parse(
+//     {
+//             id: -1, // TODO: hashing scheme for clip id and beat start
+//             note: new n.Note(
+//                 53,
+//                 5,
+//                 2,
+//                 90,
+//                 0
+//             ),
+//             children: [
+//
+//             ]
+//     }
+// );
+//
+// let note_target_3_subtarget_2 = tree.parse(
+//     {
+//             id: -1, // TODO: hashing scheme for clip id and beat start
+//             note: new n.Note(
+//                 55,
+//                 5,
+//                 2,
+//                 90,
+//                 0
+//             ),
+//             children: [
+//
+//             ]
+//     }
+// );
+//
+//
+//
+// let note_target_4_subtarget_1 = tree.parse(
+//     {
+//             id: -1, // TODO: hashing scheme for clip id and beat start
+//             note: new n.Note(
+//                 54,
+//                 7,
+//                 2,
+//                 90,
+//                 0
+//             ),
+//             children: [
+//
+//             ]
+//     }
+// );
+//
+// let note_target_4_subtarget_2 = tree.parse(
+//     {
+//             id: -1, // TODO: hashing scheme for clip id and beat start
+//             note: new n.Note(
+//                 56,
+//                 7,
+//                 2,
+//                 90,
+//                 0
+//             ),
+//             children: [
+//
+//             ]
+//     }
+// );
+//
+//
+// let mode_texture = POLYPHONY;
+// let mode_control = INSTRUMENTAL;
+//
+// let user_input_handler = new UserInputHandler(
+//     mode_texture,
+//     mode_control
+// );
+//
+// let env: string = 'node_for_max';
+// env = 'node';
+//
+//
+// let messenger = new Messenger(env, 0, 'render');
+//
+// let window_local = new ListWindow(
+//     384,
+//     384,
+//     messenger
+// );
+//
+// let algorithm_train = new Detect(
+//     user_input_handler
+// );
+//
+// // stubs
+// let song = {
+//     set_overdub: (int) => {},
+//     set_session_record: (int) => {}
+// };
+//
+// let clip_user_input = {
+//     fire: () => {},
+//     stop: () => {},
+//     set_endpoints_loop: (former, latter) => {}
+// };
+//
+// let notes_segments = [
+//     segment_note_1,
+//     segment_note_2
+// ];
+//
+// let notes_target_clip = [
+//     note_target_1_subtarget_1,
+//     note_target_1_subtarget_2,
+//     note_target_2_subtarget_1,
+//     note_target_2_subtarget_2,
+//     note_target_3_subtarget_1,
+//     note_target_3_subtarget_2,
+//     note_target_4_subtarget_1,
+//     note_target_4_subtarget_2
+// ];
+//
+// let segments: Segment[] = [];
+//
+// for (let note of notes_segments) {
+//     segments.push(
+//         new Segment(
+//             note
+//         )
+//     )
+// }
+//
+// let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
+//
+// let clip_target_virtual = new Clip(clip_dao_virtual);
+//
+// let trainer_local = new Trainer(
+//     window_local,
+//     user_input_handler,
+//     algorithm_train,
+//     clip_user_input,
+//     clip_target_virtual,
+//     song,
+//     segments,
+//     messenger
+// );
+//
+// // test case - 2 segments, 2 notes a piece
+//
+// trainer_local.init(
+//
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_1_subtarget_1]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_1_subtarget_2]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_2_subtarget_1]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_2_subtarget_2]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_3_subtarget_1]
+// );
+//
+// trainer_local.render_window(
+//
+// );
+//
+// trainer_local.clear_window(
+//
+// );
+//
+// let freezer = new TrainFreezer(
+//     env
+// );
+//
+// freezer.freeze(
+//     trainer_local,
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
+// );
+//
+// let thawer = new TrainThawer(
+//     env
+// );
+//
+// let config = {
+//     'window': window_local,
+//     'user_input_handler': user_input_handler,
+//     'algorithm': algorithm_train,
+//     'clip_user_input': clip_user_input,
+//     'clip_target_virtual': clip_target_virtual,
+//     'song': song,
+//     'segments': segments,
+//     'messenger': messenger,
+//     'env': env
+// };
+//
+// let train_thawed = thawer.thaw(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
+//     config
+// );
+//
+// train_thawed.render_window(
+//
+// );
+
+
+// TODO: to finish test case, verify that it looks correct in window
+
+
+
+
+
+// PARSE
+
+// let tree: TreeModel = new TreeModel();
+
+let segment_note_1_parse = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
@@ -42,7 +369,7 @@ let segment_note_1 = tree.parse(
     }
 );
 
-let segment_note_2 = tree.parse(
+let segment_note_2_parse = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
@@ -60,285 +387,264 @@ let segment_note_2 = tree.parse(
 
 
 
-let note_target_1_subtarget_1 = tree.parse(
+let note_melody_1 = tree.parse(
     {
-            id: -1, // TODO: hashing scheme for clip id and beat start
-            note: new n.Note(
-                51,
-                1,
-                2,
-                90,
-                0
-            ),
-            children: [
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            51,
+            1,
+            2,
+            90,
+            0
+        ),
+        children: [
 
-            ]
+        ]
     }
 );
 
-let note_target_1_subtarget_2 = tree.parse(
+let note_melody_2 = tree.parse(
     {
-            id: -1, // TODO: hashing scheme for clip id and beat start
-            note: new n.Note(
-                53,
-                1,
-                2,
-                90,
-                0
-            ),
-            children: [
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            53,
+            3,
+            2,
+            90,
+            0
+        ),
+        children: [
 
-            ]
-    }
-);
-
-
-
-let note_target_2_subtarget_1 = tree.parse(
-    {
-            id: -1, // TODO: hashing scheme for clip id and beat start
-            note: new n.Note(
-                52,
-                3,
-                2,
-                90,
-                0
-            ),
-            children: [
-
-            ]
-    }
-);
-
-let note_target_2_subtarget_2 = tree.parse(
-    {
-            id: -1, // TODO: hashing scheme for clip id and beat start
-            note: new n.Note(
-                54,
-                3,
-                2,
-                90,
-                0
-            ),
-            children: [
-
-            ]
+        ]
     }
 );
 
 
 
-let note_target_3_subtarget_1 = tree.parse(
+let note_melody_3 = tree.parse(
     {
-            id: -1, // TODO: hashing scheme for clip id and beat start
-            note: new n.Note(
-                53,
-                5,
-                2,
-                90,
-                0
-            ),
-            children: [
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            55,
+            5,
+            2,
+            90,
+            0
+        ),
+        children: [
 
-            ]
+        ]
     }
 );
 
-let note_target_3_subtarget_2 = tree.parse(
+let note_melody_4 = tree.parse(
     {
-            id: -1, // TODO: hashing scheme for clip id and beat start
-            note: new n.Note(
-                55,
-                5,
-                2,
-                90,
-                0
-            ),
-            children: [
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            56,
+            7,
+            2,
+            90,
+            0
+        ),
+        children: [
 
-            ]
-    }
-);
-
-
-
-let note_target_4_subtarget_1 = tree.parse(
-    {
-            id: -1, // TODO: hashing scheme for clip id and beat start
-            note: new n.Note(
-                54,
-                7,
-                2,
-                90,
-                0
-            ),
-            children: [
-
-            ]
-    }
-);
-
-let note_target_4_subtarget_2 = tree.parse(
-    {
-            id: -1, // TODO: hashing scheme for clip id and beat start
-            note: new n.Note(
-                56,
-                7,
-                2,
-                90,
-                0
-            ),
-            children: [
-
-            ]
+        ]
     }
 );
 
 
-let mode_texture = POLYPHONY;
-let mode_control = INSTRUMENTAL;
 
-let user_input_handler = new UserInputHandler(
-    mode_texture,
-    mode_control
+let note_summarized_melody_1 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            51,
+            1,
+            4,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
 );
 
-let env: string = 'node_for_max';
-env = 'node';
+let note_summarized_melody_2 = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            55,
+            5,
+            4,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
+
+let note_summarized_root = tree.parse(
+    {
+        id: -1, // TODO: hashing scheme for clip id and beat start
+        note: new n.Note(
+            51,
+            1,
+            8,
+            90,
+            0
+        ),
+        children: [
+
+        ]
+    }
+);
 
 
-let messenger = new Messenger(env, 0, 'render');
+let mode_texture_parse = MONOPONY;
+let mode_control_parse = VOCAL;
 
-let window_local = new ListWindow(
+let user_input_handler_parse = new UserInputHandler(
+    mode_texture_parse,
+    mode_control_parse
+);
+
+let env_parse: string = 'node_for_max';
+env_parse = 'node';
+
+
+let messenger_parse = new Messenger(env_parse, 0, 'render_parse');
+
+let window_local_parse = new ListWindow(
     384,
     384,
-    messenger
+    messenger_parse
 );
 
-let algorithm_train = new Detect(
-    user_input_handler
+let algorithm_train_parse = new Detect(
+    user_input_handler_parse
 );
 
 // stubs
-let song = {
+let song_parse = {
     set_overdub: (int) => {},
     set_session_record: (int) => {}
 };
 
-let clip_user_input = {
+let clip_user_input_parse = {
     fire: () => {},
     stop: () => {},
     set_endpoints_loop: (former, latter) => {}
 };
 
-let notes_segments = [
-    segment_note_1,
-    segment_note_2
+let notes_segments_parse = [
+    segment_note_1_parse,
+    segment_note_2_parse
 ];
 
-let notes_target_clip = [
-    note_target_1_subtarget_1,
-    note_target_1_subtarget_2,
-    note_target_2_subtarget_1,
-    note_target_2_subtarget_2,
-    note_target_3_subtarget_1,
-    note_target_3_subtarget_2,
-    note_target_4_subtarget_1,
-    note_target_4_subtarget_2
+let notes_target_clip_parse = [
+    note_melody_1,
+    note_melody_2,
+    note_melody_3,
+    note_melody_4,
+    // note_target_3_subtarget_1,
+    // note_target_3_subtarget_2,
+    // note_target_4_subtarget_1,
+    // note_target_4_subtarget_2
 ];
 
-let segments: Segment[] = [];
+let segments_parse: Segment[] = [];
 
-for (let note of notes_segments) {
-    segments.push(
+for (let note of notes_segments_parse) {
+    segments_parse.push(
         new Segment(
             note
         )
     )
 }
 
-let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
+let clip_dao_virtual_parse = new LiveClipVirtual(notes_target_clip_parse);
 
-let clip_target_virtual = new Clip(clip_dao_virtual);
+let clip_target_virtual_parse = new Clip(clip_dao_virtual_parse);
 
-let trainer_local = new Trainer(
-    window_local,
-    user_input_handler,
-    algorithm_train,
-    clip_user_input,
-    clip_target_virtual,
-    song,
-    segments,
-    messenger
+let trainer_local_parse = new Trainer(
+    window_local_parse,
+    user_input_handler_parse,
+    algorithm_train_parse,
+    clip_user_input_parse,
+    clip_target_virtual_parse,
+    song_parse,
+    segments_parse,
+    messenger_parse
 );
 
 // test case - 2 segments, 2 notes a piece
 
-trainer_local.init(
+trainer_local_parse.init(
 
 );
 
-trainer_local.accept_input(
+trainer_local_parse.accept_input(
     [note_target_1_subtarget_1]
 );
 
-trainer_local.accept_input(
+trainer_local_parse.accept_input(
     [note_target_1_subtarget_2]
 );
 
-trainer_local.accept_input(
+trainer_local_parse.accept_input(
     [note_target_2_subtarget_1]
 );
 
-trainer_local.accept_input(
+trainer_local_parse.accept_input(
     [note_target_2_subtarget_2]
 );
 
-trainer_local.accept_input(
+trainer_local_parse.accept_input(
     [note_target_3_subtarget_1]
 );
 
-trainer_local.render_window(
+trainer_local_parse.render_window(
 
 );
 
-trainer_local.clear_window(
+trainer_local_parse.clear_window(
 
 );
 
-let freezer = new TrainFreezer(
+let freezer_parse = new TrainFreezer(
     env
 );
 
-freezer.freeze(
+freezer_parse.freeze(
     trainer_local,
     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
 );
 
-let thawer = new TrainThawer(
-    env
+let thawer_parse = new TrainThawer(
+    env_parse
 );
 
-let config = {
-    'window': window_local,
-    'user_input_handler': user_input_handler,
-    'algorithm': algorithm_train,
-    'clip_user_input': clip_user_input,
-    'clip_target_virtual': clip_target_virtual,
-    'song': song,
-    'segments': segments,
-    'messenger': messenger,
-    'env': env
+let config_parse = {
+    'window': window_local_parse,
+    'user_input_handler': user_input_handler_parse,
+    'algorithm': algorithm_train_parse,
+    'clip_user_input': clip_user_input_parse,
+    'clip_target_virtual': clip_target_virtual_parse,
+    'song': song_parse,
+    'segments': segments_parse,
+    'messenger': messenger_parse,
+    'env': env_parse
 };
 
-let train_thawed = thawer.thaw(
+let train_thawed_parse = thawer_parse.thaw(
     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
     config
 );
 
-train_thawed.render_window(
+train_thawed_parse.render_window(
 
 );
-
-
-// TODO: to finish test case, verify that it looks correct in window
