@@ -91,12 +91,24 @@ export namespace parse {
             ];
         };
 
-        public add(notes_user_input, iterator_matrix_train, algorithm): void {
+        public finish() {
+            for (let col of this.matrix_leaves[0]) {
+                for (let notes of col) {
+                    // @ts-ignore
+                    for (let note of notes) {
+                        this.add_layer(
+                            [this.root],
+                            note,
+                            -1
+                        )
+                    }
+                }
+            }
+        }
+
+        public add(notes_user_input, coord_notes_current, algorithm): void {
 
             let coord_notes_previous;
-
-            let coord_notes_current = iterator_matrix_train.get_coord_current();
-
             this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input;
 
             switch (algorithm.get_name()) {

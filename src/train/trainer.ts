@@ -447,7 +447,19 @@ export namespace trainer {
             let obj_next_coord = this.iterator_matrix_train.next();
 
             if (obj_next_coord.done) {
-                this.algorithm.terminate()
+                if (this.algorithm.get_name() === PARSE) {
+                    // TODO: make the connections with the root
+                    // public add(notes_user_input, iterator_matrix_train, algorithm): void {
+                    for (let segment of this.segments) {
+                        this.struct_parse.add(
+                            segment.get_note(),
+                            this.struct_parse,
+                            this.iterator_matrix_train.get_coord_current()
+                        );
+                    }
+                    this.struct_parse.finish()
+                }
+                this.algorithm.pre_terminate()
             }
 
             let coord = obj_next_coord.value;
@@ -551,7 +563,7 @@ export namespace trainer {
                 this.struct_parse.add(
                     notes_input_user,
                     this.struct_parse,
-                    this.iterator_matrix_train
+                    this.iterator_matrix_train.get_coord_current()
                 );
 
                 this.advance_segment();

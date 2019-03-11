@@ -72,9 +72,21 @@ var parse;
             ];
         };
         ;
-        StructParse.prototype.add = function (notes_user_input, iterator_matrix_train, algorithm) {
+        StructParse.prototype.finish = function () {
+            for (var _i = 0, _a = this.matrix_leaves[0]; _i < _a.length; _i++) {
+                var col = _a[_i];
+                for (var _b = 0, col_1 = col; _b < col_1.length; _b++) {
+                    var notes = col_1[_b];
+                    // @ts-ignore
+                    for (var _c = 0, notes_1 = notes; _c < notes_1.length; _c++) {
+                        var note_1 = notes_1[_c];
+                        this.add_layer([this.root], note_1, -1);
+                    }
+                }
+            }
+        };
+        StructParse.prototype.add = function (notes_user_input, coord_notes_current, algorithm) {
             var coord_notes_previous;
-            var coord_notes_current = iterator_matrix_train.get_coord_current();
             this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input;
             switch (algorithm.get_name()) {
                 case PARSE: {

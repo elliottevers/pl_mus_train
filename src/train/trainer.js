@@ -305,7 +305,16 @@ var trainer;
             // TODO:
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
-                this.algorithm.terminate();
+                if (this.algorithm.get_name() === PARSE) {
+                    // TODO: make the connections with the root
+                    // public add(notes_user_input, iterator_matrix_train, algorithm): void {
+                    for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
+                        var segment_3 = _a[_i];
+                        this.struct_parse.add(segment_3.get_note(), this.struct_parse, this.iterator_matrix_train.get_coord_current());
+                    }
+                    this.struct_parse.finish();
+                }
+                this.algorithm.pre_terminate();
             }
             var coord = obj_next_coord.value;
             this.segment_current = this.segments[coord[1]];
@@ -357,7 +366,7 @@ var trainer;
                 this.history_user_input.add(notes_input_user, this.iterator_matrix_train.get_coord_current());
                 this.window.add_notes_to_clip(this.subtarget_current.note, this.iterator_matrix_train.get_coord_current());
                 // TODO: implement
-                this.struct_parse.add(notes_input_user, this.struct_parse, this.iterator_matrix_train);
+                this.struct_parse.add(notes_input_user, this.struct_parse, this.iterator_matrix_train.get_coord_current());
                 this.advance_segment();
                 this.render_window();
                 return;
