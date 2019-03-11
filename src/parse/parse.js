@@ -14,13 +14,13 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var algorithm_1 = require("../train/algorithm");
-var trainer_1 = require("../train/trainer");
+var iterate_1 = require("../train/iterate");
 var _ = require("underscore");
 var parse;
 (function (parse) {
     var PARSE = algorithm_1.algorithm.PARSE;
     var DERIVE = algorithm_1.algorithm.DERIVE;
-    var MatrixIterator = trainer_1.trainer.MatrixIterator;
+    var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var ParseTree = /** @class */ (function () {
         function ParseTree() {
         }

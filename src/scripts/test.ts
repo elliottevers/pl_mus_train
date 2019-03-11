@@ -15,13 +15,15 @@ import Detect = algorithm.Detect;
 import {freeze, thaw} from "../../src/serialize/serialize";
 import TrainFreezer = freeze.TrainFreezer;
 import TrainThawer = thaw.TrainThawer;
-import {window} from "../../src/render/window";
-import ListWindow = window.ListWindow;
+// import {window} from "../../src/render/window";
+// import ListWindow = window.ListWindow;
 import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
 import {modes_control, modes_texture} from "../../src/constants/constants";
 import POLYPHONY = modes_texture.POLYPHONY;
 import INSTRUMENTAL = modes_control.INSTRUMENTAL;
+import {window} from "../render/window";
+import MatrixWindow = window.MatrixWindow;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -224,7 +226,7 @@ let test = () => {
 
     let messenger = new Messenger('node', 0);
 
-    let window_local = new ListWindow(
+    let window_local = new MatrixWindow(
         384,
         384,
         messenger
@@ -323,8 +325,7 @@ let test = () => {
 
     freezer.freeze(
         trainer_local,
-        '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
-        env
+        '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
     );
 
     let thawer = new TrainThawer(

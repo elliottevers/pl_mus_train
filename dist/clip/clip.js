@@ -22,6 +22,12 @@ var clip;
                 this.clip_dao.set_loop_bracket_upper(beat_end);
             }
         };
+        Clip.prototype.get_beat_start = function () {
+            return this.clip_dao.beat_start;
+        };
+        Clip.prototype.get_beat_end = function () {
+            return this.clip_dao.beat_end;
+        };
         Clip.prototype.get_path = function () {
             return this.clip_dao.get_path();
         };
@@ -43,14 +49,13 @@ var clip;
         };
         // TODO: annotations
         Clip.prototype.load_notes_within_markers = function () {
-            this.notes = this.get_notes(0, // this.get_start_marker(),
-            0, 16 * 4, // this.get_end_marker(),
-            128);
+            this.notes = this.get_notes(this.get_start_marker(), 0, this.get_end_marker(), 128);
         };
         // TODO: annotations
-        Clip.prototype.get_pitch_max = function () {
+        Clip.prototype.get_pitch_max = function (interval) {
             var pitch_max = 0;
-            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
+            var interval_search = interval ? interval : [this.get_loop_bracket_lower(), this.get_loop_bracket_upper()];
+            for (var _i = 0, _a = this.get_notes(interval_search[0], 0, interval_search[1], 128); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch > pitch_max) {
                     pitch_max = node.model.note.pitch;
@@ -59,9 +64,15 @@ var clip;
             return pitch_max;
         };
         // TODO: annotations
-        Clip.prototype.get_pitch_min = function () {
+        Clip.prototype.get_pitch_min = function (interval) {
             var pitch_min = 128;
-            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
+            // for (let node of this.get_notes_within_loop_brackets()) {
+            //     if (node.model.note.pitch < pitch_min) {
+            //         pitch_min = node.model.note.pitch;
+            //     }
+            // }
+            var interval_search = interval ? interval : [this.get_loop_bracket_lower(), this.get_loop_bracket_upper()];
+            for (var _i = 0, _a = this.get_notes(interval_search[0], 0, interval_search[1], 128); _i < _a.length; _i++) {
                 var node = _a[_i];
                 if (node.model.note.pitch < pitch_min) {
                     pitch_min = node.model.note.pitch;
@@ -69,8 +80,8 @@ var clip;
             }
             return pitch_min;
         };
-        Clip.prototype.get_ambitus = function () {
-            return [this.get_pitch_min(), this.get_pitch_max()];
+        Clip.prototype.get_ambitus = function (interval) {
+            return [this.get_pitch_min(interval), this.get_pitch_max(interval)];
         };
         Clip.prototype.set_loop_bracket_lower = function (beat) {
             this.clip_dao.set_loop_bracket_lower(beat);
@@ -96,10 +107,10 @@ var clip;
         Clip.prototype.stop = function () {
             this.clip_dao.stop();
         };
-        Clip.prototype.get_notes_within_markers = function () {
-            // if (!this.notes) {
-            this.load_notes_within_markers();
-            // }
+        Clip.prototype.get_notes_within_markers = function (use_cache) {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_markers();
+            }
             // this.logger.log(
             //     JSON.stringify(
             //         this.get_notes(
@@ -112,11 +123,15 @@ var clip;
             // );
             return this.notes;
         };
-        Clip.prototype.get_notes_within_loop_brackets = function () {
-            // if (!this.notes) {
-            this.load_notes_within_loop_brackets();
-            // }
+        Clip.prototype.get_notes_within_loop_brackets = function (use_cache) {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_loop_brackets();
+            }
             return this.notes;
+        };
+        // TODO: only works virtual clips currently
+        Clip.prototype.append = function (note) {
+            this.clip_dao.append(note);
         };
         Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
             return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max));

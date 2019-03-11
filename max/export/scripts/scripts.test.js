@@ -1,6 +1,1259 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var note_1 = require("../note/note");
+var TreeModel = require("tree-model");
+var logger_1 = require("../log/logger");
+var utils_1 = require("../utils/utils");
+var clip;
+(function (clip) {
+    var Logger = logger_1.log.Logger;
+    var Clip = /** @class */ (function () {
+        function Clip(clip_dao) {
+            this.clip_dao = clip_dao;
+            this.logger = new Logger('max');
+        }
+        Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
+            if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
+                this.clip_dao.set_loop_bracket_upper(beat_end);
+                this.clip_dao.set_loop_bracket_lower(beat_start);
+            }
+            else {
+                this.clip_dao.set_loop_bracket_lower(beat_start);
+                this.clip_dao.set_loop_bracket_upper(beat_end);
+            }
+        };
+        Clip.prototype.get_beat_start = function () {
+            return this.clip_dao.beat_start;
+        };
+        Clip.prototype.get_beat_end = function () {
+            return this.clip_dao.beat_end;
+        };
+        Clip.prototype.get_path = function () {
+            return this.clip_dao.get_path();
+        };
+        Clip.prototype.set_path_deferlow = function (key_route) {
+            this.clip_dao.set_path_deferlow(key_route, this.get_path());
+        };
+        Clip.prototype.get_num_measures = function () {
+            return (this.get_end_marker() - this.get_start_marker()) / 4;
+        };
+        Clip.prototype.get_end_marker = function () {
+            return this.clip_dao.get_end_marker();
+        };
+        Clip.prototype.get_start_marker = function () {
+            return this.clip_dao.get_start_marker();
+        };
+        // TODO: annotations
+        Clip.prototype.load_notes_within_loop_brackets = function () {
+            this.notes = this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128);
+        };
+        // TODO: annotations
+        Clip.prototype.load_notes_within_markers = function () {
+            this.notes = this.get_notes(this.get_start_marker(), 0, this.get_end_marker(), 128);
+        };
+        // TODO: annotations
+        Clip.prototype.get_pitch_max = function (interval) {
+            var pitch_max = 0;
+            var interval_search = interval ? interval : [this.get_loop_bracket_lower(), this.get_loop_bracket_upper()];
+            for (var _i = 0, _a = this.get_notes(interval_search[0], 0, interval_search[1], 128); _i < _a.length; _i++) {
+                var node = _a[_i];
+                if (node.model.note.pitch > pitch_max) {
+                    pitch_max = node.model.note.pitch;
+                }
+            }
+            return pitch_max;
+        };
+        // TODO: annotations
+        Clip.prototype.get_pitch_min = function (interval) {
+            var pitch_min = 128;
+            // for (let node of this.get_notes_within_loop_brackets()) {
+            //     if (node.model.note.pitch < pitch_min) {
+            //         pitch_min = node.model.note.pitch;
+            //     }
+            // }
+            var interval_search = interval ? interval : [this.get_loop_bracket_lower(), this.get_loop_bracket_upper()];
+            for (var _i = 0, _a = this.get_notes(interval_search[0], 0, interval_search[1], 128); _i < _a.length; _i++) {
+                var node = _a[_i];
+                if (node.model.note.pitch < pitch_min) {
+                    pitch_min = node.model.note.pitch;
+                }
+            }
+            return pitch_min;
+        };
+        Clip.prototype.get_ambitus = function (interval) {
+            return [this.get_pitch_min(interval), this.get_pitch_max(interval)];
+        };
+        Clip.prototype.set_loop_bracket_lower = function (beat) {
+            this.clip_dao.set_loop_bracket_lower(beat);
+        };
+        Clip.prototype.set_loop_bracket_upper = function (beat) {
+            this.clip_dao.set_loop_bracket_upper(beat);
+        };
+        Clip.prototype.get_loop_bracket_lower = function () {
+            return this.clip_dao.get_loop_bracket_lower()[0];
+        };
+        Clip.prototype.get_loop_bracket_upper = function () {
+            return this.clip_dao.get_loop_bracket_upper()[0];
+        };
+        Clip.prototype.set_clip_endpoint_lower = function (beat) {
+            this.clip_dao.set_clip_endpoint_lower(beat);
+        };
+        Clip.prototype.set_clip_endpoint_upper = function (beat) {
+            this.clip_dao.set_clip_endpoint_upper(beat);
+        };
+        Clip.prototype.fire = function () {
+            this.clip_dao.fire();
+        };
+        Clip.prototype.stop = function () {
+            this.clip_dao.stop();
+        };
+        Clip.prototype.get_notes_within_markers = function (use_cache) {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_markers();
+            }
+            // this.logger.log(
+            //     JSON.stringify(
+            //         this.get_notes(
+            //             0, // this.get_start_marker(),
+            //             0,
+            //             16 * 4, // this.get_end_marker(),
+            //             128
+            //         )
+            //     )
+            // );
+            return this.notes;
+        };
+        Clip.prototype.get_notes_within_loop_brackets = function (use_cache) {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_loop_brackets();
+            }
+            return this.notes;
+        };
+        // TODO: only works virtual clips currently
+        Clip.prototype.append = function (note) {
+            this.clip_dao.append(note);
+        };
+        Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
+            return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max));
+        };
+        Clip.prototype.set_notes = function (notes) {
+            this.clip_dao.set_notes(notes);
+        };
+        // TODO: *actually* make private
+        Clip.prototype._get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            return this.clip_dao.get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+        };
+        Clip.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
+            var epsilon = 1 / (48 * 2);
+            this.clip_dao.remove_notes(beat_start - epsilon, pitch_midi_min, beat_duration, pitch_midi_max);
+        };
+        Clip.parse_note_messages = function (messages) {
+            var notes = [];
+            for (var i_mess in messages) {
+                if (i_mess == String(0)) {
+                    continue;
+                }
+                if (i_mess == String(messages.length - 1)) {
+                    continue;
+                }
+                var tree = new TreeModel();
+                var splitted = messages[i_mess].split(' ');
+                notes.push(tree.parse({
+                    id: -1,
+                    note: new note_1.note.Note(Number(splitted[0]), Number(splitted[1]), Number(splitted[2]), Number(splitted[3]), Number(splitted[4])),
+                    children: []
+                }));
+            }
+            return notes;
+        };
+        // TODO: remove underscore prefix
+        Clip._parse_notes = function (notes) {
+            var data = [];
+            var notes_parsed = [];
+            var pitch;
+            var beat_start;
+            var beats_duration;
+            var velocity;
+            var b_muted;
+            var index_num_expected_notes = null;
+            for (var i = 0; i < notes.length; i++) {
+                if (notes[i] === 'done') {
+                    continue;
+                }
+                if (notes[i] === 'note') {
+                    data = [];
+                    continue;
+                }
+                if (notes[i] === 'notes') {
+                    data = [];
+                    continue;
+                }
+                if (i === index_num_expected_notes) {
+                    data = [];
+                    continue;
+                }
+                data.push(notes[i]);
+                if (data.length === 5) {
+                    pitch = data[0];
+                    beat_start = data[1];
+                    beats_duration = data[2];
+                    velocity = data[3];
+                    b_muted = data[4];
+                    var tree = new TreeModel();
+                    notes_parsed.push(tree.parse({
+                        id: -1,
+                        note: new note_1.note.Note(pitch, beat_start, beats_duration, velocity, b_muted),
+                        children: []
+                    }));
+                }
+            }
+            function compare(note_former, note_latter) {
+                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
+                    return -1;
+                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
+                    return 1;
+                return 0;
+            }
+            notes_parsed.sort(compare);
+            // TODO: fail gracefully
+            // if (notes_parsed.length !== num_expected_notes) {
+            //     throw "notes retrieved from clip less than expected"
+            // }
+            // l.log(notes_parsed);
+            return notes_parsed;
+        };
+        return Clip;
+    }());
+    clip.Clip = Clip;
+    var ClipDao = /** @class */ (function () {
+        // private logger: Logger;
+        function ClipDao(clip_live, messenger, deferlow, key_route, env) {
+            this.clip_live = clip_live;
+            this.messenger = messenger;
+            if (deferlow && !key_route) {
+                throw new Error('key route not specified when using deferlow');
+            }
+            this.deferlow = deferlow;
+            this.key_route = key_route;
+            this.env = env;
+            // this.logger = new Logger('max');
+        }
+        ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            var mess = [key_route_override];
+            for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
+                var word = _a[_i];
+                mess.push(word);
+            }
+            // let logger = new Logger('max');
+            // logger.log(mess.toString());
+            this.messenger.message(mess);
+        };
+        // TODO: check if these actually return arrays
+        ClipDao.prototype.get_end_marker = function () {
+            // return this.clip_live.get('end_marker')[0];
+            // this.logger.log(JSON.stringify(this.clip_live.get('end_marker')));
+            return this.clip_live.get('end_marker')[0];
+        };
+        // TODO: check if these actually return arrays
+        ClipDao.prototype.get_start_marker = function () {
+            // return this.clip_live.get('start_marker')[0];
+            // this.logger.log(JSON.stringify(this.clip_live.get('start_marker')));
+            return this.clip_live.get('start_marker')[0];
+        };
+        ClipDao.prototype.get_path = function () {
+            return this.clip_live.get_path();
+        };
+        ClipDao.prototype.set_loop_bracket_lower = function (beat) {
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "loop_start", beat]);
+            }
+            else {
+                this.clip_live.set('loop_start', beat);
+            }
+        };
+        ClipDao.prototype.set_loop_bracket_upper = function (beat) {
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "loop_end", beat]);
+            }
+            else {
+                this.clip_live.set('loop_end', beat);
+            }
+        };
+        ClipDao.prototype.get_loop_bracket_lower = function () {
+            return this.clip_live.get('loop_start');
+        };
+        ClipDao.prototype.get_loop_bracket_upper = function () {
+            return this.clip_live.get('loop_end');
+        };
+        ClipDao.prototype.set_clip_endpoint_lower = function (beat) {
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "start_marker", beat]);
+            }
+            else {
+                this.clip_live.set('start_marker', beat);
+            }
+        };
+        ClipDao.prototype.set_clip_endpoint_upper = function (beat) {
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "end_marker", beat]);
+            }
+            else {
+                this.clip_live.set('end_marker', beat);
+            }
+        };
+        ClipDao.prototype.fire = function () {
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "call", "fire"]);
+            }
+            else {
+                this.clip_live.call('fire');
+            }
+        };
+        ;
+        ClipDao.prototype.stop = function () {
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "call", "stop"]);
+            }
+            else {
+                this.clip_live.call('stop');
+            }
+        };
+        ;
+        ClipDao.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            if (this.env === 'node_for_max') {
+                return this.notes_cached;
+            }
+            else {
+                return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            }
+        };
+        ;
+        ClipDao.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            if (this.deferlow) {
+                this.messenger.message([
+                    this.key_route,
+                    "call",
+                    "remove_notes",
+                    beat_start,
+                    pitch_midi_min,
+                    beat_end,
+                    pitch_midi_max
+                ]);
+            }
+            else {
+                this.clip_live.call('remove_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
+            }
+        };
+        ;
+        ClipDao.prototype.set_notes = function (notes) {
+            if (this.env === 'node_for_max') {
+                var notes_cached = [];
+                notes_cached.push('notes');
+                notes_cached.push(notes.length.toString());
+                for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                    var note = notes_1[_i];
+                    notes_cached.push(note.model.note.pitch.toString());
+                    notes_cached.push(note.model.note.beat_start.toString());
+                    notes_cached.push(note.model.note.beats_duration.toString());
+                    notes_cached.push(note.model.note.velocity.toString());
+                    notes_cached.push(note.model.note.muted.toString());
+                }
+                notes_cached.push('done');
+            }
+            else if (this.deferlow) {
+                this.messenger.message([this.key_route, 'call', 'set_notes']);
+                this.messenger.message([this.key_route, 'call', 'notes', notes.length]);
+                for (var _a = 0, notes_2 = notes; _a < notes_2.length; _a++) {
+                    var node = notes_2[_a];
+                    this.messenger.message([
+                        this.key_route,
+                        'call',
+                        'note',
+                        node.model.note.pitch,
+                        node.model.note.beat_start.toFixed(4),
+                        node.model.note.beats_duration.toFixed(4),
+                        node.model.note.velocity,
+                        node.model.note.muted
+                    ]);
+                }
+                this.messenger.message([this.key_route, 'call', 'done']);
+            }
+            else {
+                this.clip_live.call('set_notes');
+                this.clip_live.call('notes', notes.length);
+                for (var _b = 0, notes_3 = notes; _b < notes_3.length; _b++) {
+                    var node = notes_3[_b];
+                    this.clip_live.call("note", node.model.note.pitch, node.model.note.beat_start.toFixed(4), node.model.note.beats_duration.toFixed(4), node.model.note.velocity, node.model.note.muted);
+                }
+                this.clip_live.call("done");
+            }
+        };
+        return ClipDao;
+    }());
+    clip.ClipDao = ClipDao;
+})(clip = exports.clip || (exports.clip = {}));
+
+},{"../log/logger":4,"../note/note":6,"../utils/utils":11,"tree-model":16}],2:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var modes_texture;
+(function (modes_texture) {
+    modes_texture.POLYPHONY = 'polyphony';
+    modes_texture.MONOPONY = 'monophony';
+})(modes_texture = exports.modes_texture || (exports.modes_texture = {}));
+var modes_control;
+(function (modes_control) {
+    modes_control.VOCAL = 'vocal';
+    modes_control.INSTRUMENTAL = 'instrumental';
+})(modes_control = exports.modes_control || (exports.modes_control = {}));
+
+},{}],3:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var clip_1 = require("../clip/clip");
+var live;
+(function (live) {
+    var Clip = clip_1.clip.Clip;
+    var LiveApiJs = /** @class */ (function () {
+        function LiveApiJs(path, env) {
+            if (env == 'node') {
+            }
+            else {
+                this.live_api = new LiveAPI(null, path);
+            }
+        }
+        LiveApiJs.prototype.get = function (property) {
+            return this.live_api.get(property);
+        };
+        LiveApiJs.prototype.set = function (property, value) {
+            this.live_api.set(property, value);
+        };
+        LiveApiJs.prototype.call = function (func) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            var _a;
+            return (_a = this.live_api).call.apply(_a, [func].concat(args));
+        };
+        LiveApiJs.prototype.get_id = function () {
+            return this.live_api.id;
+        };
+        LiveApiJs.prototype.get_path = function () {
+            return this.live_api.path;
+        };
+        LiveApiJs.prototype.get_children = function () {
+            return this.live_api.children;
+        };
+        return LiveApiJs;
+    }());
+    live.LiveApiJs = LiveApiJs;
+    var LiveClipVirtual = /** @class */ (function () {
+        function LiveClipVirtual(notes) {
+            this.notes = notes;
+        }
+        // load_notes_within_loop_brackets(): void {
+        //     this.notes = this.get_notes(
+        //         this.get_loop_bracket_lower(),
+        //         0,
+        //         this.get_loop_bracket_upper(),
+        //         128
+        //     )
+        // }
+        LiveClipVirtual.prototype.append = function (note) {
+            var test = this.notes;
+            test.push(note);
+            this.notes = test;
+        };
+        LiveClipVirtual.prototype.get_ambitus = function () {
+            return [];
+        };
+        LiveClipVirtual.prototype.load_notes_within_loop_brackets = function () {
+            this.notes = Clip._parse_notes(this.get_notes(this.get_loop_bracket_lower()[0], 0, this.get_loop_bracket_upper()[0], 128));
+        };
+        LiveClipVirtual.prototype.get_notes_within_loop_brackets = function (use_cache) {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_loop_brackets();
+            }
+            return this.notes;
+        };
+        LiveClipVirtual.prototype.get_pitch_max = function () {
+            var pitch_max = 0;
+            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
+                var node = _a[_i];
+                if (node.model.note.pitch > pitch_max) {
+                    pitch_max = node.model.note.pitch;
+                }
+            }
+            return pitch_max;
+        };
+        LiveClipVirtual.prototype.get_end_marker = function () {
+            return this.beat_end;
+            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
+        };
+        LiveClipVirtual.prototype.get_start_marker = function () {
+            return this.beat_start;
+            // return this.notes[0].model.note.beat_start;
+        };
+        LiveClipVirtual.prototype.get_loop_bracket_upper = function () {
+            return [this.beat_end];
+            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
+        };
+        LiveClipVirtual.prototype.get_loop_bracket_lower = function () {
+            return [this.beat_start];
+            // return this.notes[0].model.note.beat_start;
+        };
+        LiveClipVirtual.prototype.set_loop_bracket_lower = function (beat) {
+            return;
+        };
+        LiveClipVirtual.prototype.set_loop_bracket_upper = function (beat) {
+            return;
+        };
+        LiveClipVirtual.prototype.set_clip_endpoint_lower = function (beat) {
+            return;
+        };
+        LiveClipVirtual.prototype.set_clip_endpoint_upper = function (beat) {
+            return;
+        };
+        LiveClipVirtual.prototype.fire = function () {
+            return;
+        };
+        LiveClipVirtual.prototype.stop = function () {
+            return;
+        };
+        LiveClipVirtual.prototype.set_notes = function (notes) {
+            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                var note = notes_1[_i];
+                this.notes.push(note);
+            }
+        };
+        LiveClipVirtual.prototype.get_notes = function (beat_start, pitch_midi_min, beats_duration, pitch_midi_max) {
+            var prefix, notes, suffix;
+            prefix = ["notes", this.notes.length.toString()];
+            notes = [];
+            for (var _i = 0, _a = this.notes.filter(function (node) { return beat_start <= node.model.note.beat_start && node.model.note.beat_start < beat_start + beats_duration; }); _i < _a.length; _i++) {
+                var node = _a[_i];
+                notes.push("note");
+                notes.push(node.model.note.pitch.toString());
+                notes.push(node.model.note.beat_start.toString());
+                notes.push(node.model.note.beats_duration.toString());
+                notes.push(node.model.note.velocity.toString());
+                notes.push(node.model.note.muted.toString());
+            }
+            suffix = ["done"];
+            return prefix.concat(notes).concat(suffix);
+        };
+        LiveClipVirtual.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
+            return;
+        };
+        return LiveClipVirtual;
+    }());
+    live.LiveClipVirtual = LiveClipVirtual;
+})(live = exports.live || (exports.live = {}));
+
+},{"../clip/clip":1}],4:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var log;
+(function (log) {
+    var Logger = /** @class */ (function () {
+        function Logger(env) {
+            this.env = env;
+        }
+        Logger.log_max_static = function (message) {
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    post(s);
+                }
+                else if (message === null) {
+                    post("<null>");
+                }
+                else {
+                    post(message);
+                }
+            }
+            post("\n");
+        };
+        Logger.prototype.log = function (message) {
+            if (this.env === 'max') {
+                this.log_max(message);
+            }
+            else if (this.env === 'node') {
+                this.log_node(message);
+            }
+            else {
+                post('env: ' + this.env);
+                post('\n');
+                throw 'environment invalid';
+            }
+        };
+        // TODO: make static
+        Logger.prototype.log_max = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                var message = arguments[i];
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    post(s);
+                }
+                else if (message === null) {
+                    post("<null>");
+                }
+                else {
+                    post(message);
+                }
+            }
+            post("\n");
+        };
+        // TODO: make static
+        Logger.prototype.log_node = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                var message = arguments[i];
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    console.log(s);
+                }
+                else if (message === null) {
+                    console.log("<null>");
+                }
+                else {
+                    console.log(message);
+                }
+            }
+            console.log("\n");
+        };
+        return Logger;
+    }());
+    log.Logger = Logger;
+})(log = exports.log || (exports.log = {}));
+
+},{}],5:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var note_1 = require("../note/note");
+var TreeModel = require("tree-model");
+var _ = require('underscore');
+var harmony;
+(function (harmony) {
+    var Harmony = /** @class */ (function () {
+        function Harmony() {
+        }
+        Harmony.group = function (notes) {
+            // TODO: should probably factor in beat end as well, but this works for now
+            var grouped = _.groupBy(notes, function (note) {
+                return note.model.note.beat_start;
+            });
+            var notes_grouped = [];
+            for (var beat_start in grouped) {
+                notes_grouped.push(grouped[beat_start]);
+            }
+            return notes_grouped;
+        };
+        Harmony.monophonify = function (notes) {
+            function compare(note_former, note_latter) {
+                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
+                    return -1;
+                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
+                    return 1;
+                return 0;
+            }
+            notes.sort(compare);
+            var length_beats = notes[notes.length - 1].model.note.get_beat_end() - notes[0].model.note.beat_start;
+            var duration_monophonic = length_beats / notes.length;
+            var beat_current = notes[0].model.note.beat_start;
+            var notes_monophonic = [];
+            var tree = new TreeModel();
+            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                var note = notes_1[_i];
+                notes_monophonic.push(tree.parse({
+                    id: -1,
+                    note: new note_1.note.Note(note.model.note.pitch, beat_current, duration_monophonic, note.model.note.velocity, note.model.note.muted),
+                    children: []
+                }));
+                beat_current = beat_current + duration_monophonic;
+            }
+            return notes_monophonic;
+        };
+        return Harmony;
+    }());
+    harmony.Harmony = Harmony;
+})(harmony = exports.harmony || (exports.harmony = {}));
+
+},{"../note/note":6,"tree-model":16,"underscore":17}],6:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var note;
+(function (note) {
+    var Note = /** @class */ (function () {
+        function Note(pitch, beat_start, beats_duration, velocity, muted) {
+            this.pitch = Number(pitch);
+            this.beat_start = Number(beat_start);
+            this.beats_duration = Number(beats_duration);
+            this.velocity = Number(velocity);
+            this.muted = Number(muted);
+            this._b_has_chosen = false;
+        }
+        Note.get_overlap_beats = function (beat_start_former, beat_end_former, beat_start_latter, beat_end_latter) {
+            var a = beat_start_former, b = beat_end_former, c = beat_start_latter, d = beat_end_latter;
+            var former_starts_before_latter = (a <= c);
+            var former_ends_before_latter = (b <= d);
+            // TODO: check logic
+            if (former_starts_before_latter && former_ends_before_latter) {
+                return b - c;
+            }
+            else if (former_starts_before_latter && !former_ends_before_latter) {
+                return a - c;
+            }
+            else if (!former_starts_before_latter && !former_ends_before_latter) {
+                return 0;
+            }
+            else if (!former_starts_before_latter && former_ends_before_latter) {
+                return b - a;
+            }
+            throw 'case not considered';
+        };
+        Note.prototype.encode = function () {
+            return this.to_array().join(' ');
+        };
+        // to_json():any {
+        //     return {
+        //         pitch: this.pitch,
+        //         beat_start: this.beat_start,
+        //         beats_duration: this.beats_duration,
+        //         velocity: this.velocity,
+        //         muted: this.muted
+        //     }
+        // }
+        Note.prototype.to_array = function () {
+            return [this.pitch, this.beat_start, this.beats_duration, this.velocity, this.muted];
+        };
+        Note.prototype.get_beat_end = function () {
+            return this.beat_start + this.beats_duration;
+        };
+        Note.prototype.get_interval_beats = function () {
+            return [this.beat_start, this.get_beat_end()];
+        };
+        // TODO: add type of argument and return value
+        Note.prototype.get_best_candidate = function (list_candidate_note) {
+            var beats_overlap, beats_max_overlap, list_candidate_note_max_overlap;
+            list_candidate_note_max_overlap = [];
+            beats_max_overlap = 0;
+            for (var _i = 0, list_candidate_note_1 = list_candidate_note; _i < list_candidate_note_1.length; _i++) {
+                var candidate_note = list_candidate_note_1[_i];
+                beats_overlap = Note.get_overlap_beats(this.beat_start, this.beat_start + this.beats_duration, candidate_note.model.note.beat_start, candidate_note.model.note.beat_start + candidate_note.model.note.beats_duration);
+                if (beats_overlap > beats_max_overlap) {
+                    beats_max_overlap = beats_overlap;
+                    list_candidate_note_max_overlap = [];
+                }
+                if (beats_overlap === beats_max_overlap) {
+                    list_candidate_note_max_overlap.push(candidate_note);
+                }
+            }
+            function compare(note_former, note_latter) {
+                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
+                    return -1;
+                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
+                    return 1;
+                return 0;
+            }
+            list_candidate_note_max_overlap.sort(compare);
+            return list_candidate_note_max_overlap[0];
+        };
+        Note.prototype.choose = function () {
+            if (!this._b_has_chosen) {
+                // tree.children[0].appendChild(left_left).appendChild(left_right);
+                // note_parent.addChild(this);
+                this._b_has_chosen = true;
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        return Note;
+    }());
+    note.Note = Note;
+    var NoteRenderable = /** @class */ (function (_super) {
+        __extends(NoteRenderable, _super);
+        function NoteRenderable(pitch, beat_start, beats_duration, velocity, muted, coordinates_matrix) {
+            var _this = _super.call(this, pitch, beat_start, beats_duration, velocity, muted) || this;
+            _this.coordinates_matrix = coordinates_matrix;
+            return _this;
+        }
+        NoteRenderable.prototype.get_coordinates_matrix = function () {
+            return this.coordinates_matrix;
+        };
+        return NoteRenderable;
+    }(Note));
+    note.NoteRenderable = NoteRenderable;
+    var NoteIterator = /** @class */ (function () {
+        function NoteIterator(notes, direction_forward) {
+            this.notes = notes;
+            this.direction_forward = direction_forward;
+            this.i = -1;
+        }
+        // TODO: type declarations
+        NoteIterator.prototype.next = function () {
+            var value_increment = (this.direction_forward) ? 1 : -1;
+            this.i += value_increment;
+            if (this.i < 0) {
+                throw 'note iterator < 0';
+            }
+            if (this.i < this.notes.length) {
+                return {
+                    value: this.notes[this.i],
+                    done: false
+                };
+            }
+            else {
+                return {
+                    value: null,
+                    done: true
+                };
+            }
+        };
+        NoteIterator.prototype.current = function () {
+            if (this.i > -1) {
+                return this.notes[this.i];
+            }
+            else {
+                return null;
+            }
+        };
+        return NoteIterator;
+    }());
+    note.NoteIterator = NoteIterator;
+})(note = exports.note || (exports.note = {}));
+
+},{}],7:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var clip_1 = require("../clip/clip");
+var live_1 = require("../live/live");
+var _ = require("lodash");
+var iterate_1 = require("../train/iterate");
+var window;
+(function (window) {
+    var LiveClipVirtual = live_1.live.LiveClipVirtual;
+    var MatrixIterator = iterate_1.iterate.MatrixIterator;
+    var red = [255, 0, 0];
+    var black = [0, 0, 0];
+    var region_yellow = [254, 254, 10];
+    var region_green = [33, 354, 6];
+    var region_red = [251, 1, 6];
+    var Window = /** @class */ (function () {
+        function Window(height, width, messenger) {
+            this.beat_to_pixel = function (beat) {
+                var num_pixels_width = this.width;
+                // var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
+                // let num_beats_window = this.num_measures * this.beats_per_measure;
+                return beat * (num_pixels_width / this.length_beats);
+            };
+            this.height = height;
+            this.width = width;
+            this.messenger = messenger;
+        }
+        Window.prototype.clear = function () {
+            var msg_clear = ["clear"];
+            this.messenger.message(msg_clear);
+        };
+        // because it's a *list* of clips
+        Window.coord_to_index_clip = function (coord) {
+            return coord[0] + 1; // we prepend the root to the list
+        };
+        // TODO: this won't work for a parse tree
+        // public initialize_clips_matrix(segments: Segment[]) {
+        //     for (let i_row in this.matrix_clips) {
+        //         for (let i_col in this.matrix_clips[Number(i_row)]) {
+        //             let segment = segments[Number(i_col)];
+        //             let clip_dao_virtual = new LiveClipVirtual([]);
+        //             clip_dao_virtual.beat_start = segment.beat_start;
+        //             clip_dao_virtual.beat_end = segment.beat_end;
+        //             this.matrix_clips[Number(i_row)][Number(i_col)] = new c.Clip(clip_dao_virtual);
+        //         }
+        //     }
+        // }
+        Window.prototype.initialize_clips = function (algorithm, segments) {
+            var list_clips = [];
+            var depth = algorithm.get_depth();
+            var beat_start_song = segments[0].beat_start;
+            var beat_end_song = segments[segments.length - 1].beat_end;
+            for (var i in _.range(0, depth + 1)) {
+                var clip_dao_virtual = new LiveClipVirtual([]);
+                clip_dao_virtual.beat_start = beat_start_song;
+                clip_dao_virtual.beat_end = beat_end_song;
+                var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
+                list_clips.push(clip_virtual);
+            }
+            this.list_clips = list_clips;
+        };
+        Window.prototype.set_length_beats = function (beats) {
+            this.length_beats = beats;
+        };
+        // public add_note_to_clip(note_to_add_to_clip, coord_current) {
+        //     this.matrix_clips[coord_current[0]][coord_current[1]].append(note_to_add_to_clip);
+        // }
+        Window.prototype.add_notes_to_clip = function (notes_to_add_to_clip, coord_current) {
+            var index_clip = Window.coord_to_index_clip(coord_current);
+            for (var _i = 0, notes_to_add_to_clip_1 = notes_to_add_to_clip; _i < notes_to_add_to_clip_1.length; _i++) {
+                var note = notes_to_add_to_clip_1[_i];
+                this.list_clips[index_clip].append(note);
+            }
+        };
+        Window.prototype.add_note_to_clip_root = function (note) {
+            this.list_clips[0].set_notes([note]);
+        };
+        // public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
+        //     let clip_dao_virtual = new LiveClipVirtual(notes);
+        //
+        //     clip_dao_virtual.beat_start = segment.beat_start;
+        //
+        //     clip_dao_virtual.beat_end = segment.beat_end;
+        //
+        //     let clip_virtual = new c.Clip(clip_dao_virtual);
+        //
+        //     this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
+        // }
+        Window.prototype.get_messages_render_clip = function (coord) {
+            var index_clip = Window.coord_to_index_clip(coord);
+            var clip_virtual = this.list_clips[index_clip];
+            var quadruplets = [];
+            for (var _i = 0, _a = clip_virtual.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
+                var node = _a[_i];
+                quadruplets.push(this.get_position_quadruplet(node, coord));
+            }
+            return quadruplets.map(function (tuplet) {
+                var message = ["paintrect"].concat(tuplet);
+                message = message.concat(black);
+                return message;
+            });
+        };
+        ;
+        Window.prototype.get_position_quadruplet = function (node, coord_clip) {
+            var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
+            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
+            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
+            return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom];
+        };
+        ;
+        // render_tree(): void {
+        //     var messages = this.get_messages_render_tree();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
+        Window.prototype.get_dist_from_top = function (pitch, coord) {
+            // var clip = this.clips[index_clip];
+            var index_clip = Window.coord_to_index_clip(coord);
+            var clip = this.list_clips[index_clip];
+            // let offset = index_clip;
+            var offset = coord[0];
+            // let offset = coord_clip[1];
+            // TODO: make this configurable
+            if (false) {
+                // offset = this.clips.length - 1 - index_clip;
+                // offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
+                offset = this.list_clips.length - 1 - coord[0];
+            }
+            var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(coord);
+            return dist + (this.get_height_clip() * offset);
+        };
+        ;
+        Window.prototype.get_dist_from_left = function (beat) {
+            return this.beat_to_pixel(beat);
+        };
+        ;
+        Window.prototype.get_offset_pixel_leftmost = function () {
+            return 0;
+        };
+        Window.prototype.get_offset_pixel_topmost = function () {
+            return 0;
+        };
+        Window.prototype.get_offset_pixel_rightmost = function () {
+            return this.width;
+        };
+        Window.prototype.get_offset_pixel_bottommost = function () {
+            return this.height;
+        };
+        Window.prototype.get_height_clip = function () {
+            // return this.height / this.matrix_clips.length;
+            return this.height / this.list_clips.length;
+        };
+        ;
+        // TODO: make a virtual "append" clip method so we can get the ambitus across columns
+        // get_height_note(coord_clip: number[]): number {
+        //     let notes_row = [];
+        //     let interval_ambitus: number[] = [-Infinity, Infinity];
+        //     for (let i_row in this.matrix_clips) {
+        //         for (let i_col in this.matrix_clips[Number(i_row)]) {
+        //             if (Number(i_col) == 0) {
+        //                 interval_ambitus[0] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_start()
+        //             }
+        //             notes_row = notes_row.concat(this.matrix_clips[coord_clip[0]][Number(i_col)].get_notes_within_loop_brackets())
+        //             interval_ambitus[1] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_end()
+        //         }
+        //     }
+        //     let clip_dao_row_virtual = new LiveClipVirtual([]);
+        //     let clip_row_virtual = new Clip(clip_dao_row_virtual);
+        //     clip_row_virtual.set_notes(
+        //         notes_row
+        //     );
+        //     // let ambitus = this.get_ambitus(coord_clip);
+        //     let ambitus = clip_row_virtual.get_ambitus(interval_ambitus);
+        //     let dist_pitch = ambitus[1] - ambitus[0] + 1;
+        //     return this.get_height_clip() / dist_pitch;
+        // };
+        Window.prototype.get_height_note = function (coord) {
+            // let notes_row = [];
+            // let interval_ambitus: number[] = [-Infinity, Infinity];
+            // for (let i_row in this.matrix_clips) {
+            //     for (let i_col in this.matrix_clips[Number(i_row)]) {
+            //         if (Number(i_col) == 0) {
+            //             interval_ambitus[0] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_start()
+            //         }
+            //         notes_row = notes_row.concat(this.matrix_clips[coord_clip[0]][Number(i_col)].get_notes_within_loop_brackets())
+            //         interval_ambitus[1] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_end()
+            //     }
+            // }
+            // let clip_dao_row_virtual = new LiveClipVirtual([]);
+            // let clip_row_virtual = new Clip(clip_dao_row_virtual);
+            // clip_row_virtual.set_notes(
+            //     notes_row
+            // );
+            var index_clip = Window.coord_to_index_clip(coord);
+            var clip = this.list_clips[index_clip];
+            // let ambitus = this.get_ambitus(coord_clip);
+            var ambitus = clip.get_ambitus();
+            var dist_pitch = ambitus[1] - ambitus[0] + 1;
+            return this.get_height_clip() / dist_pitch;
+        };
+        ;
+        return Window;
+    }());
+    window.Window = Window;
+    // export interface TreeRenderable extends Renderable {
+    //
+    //     render_regions(iterator_matrix_train)
+    //
+    //     render_trees(list_parse_tree: ParseTree[])
+    // }
+    var MatrixWindow = /** @class */ (function (_super) {
+        __extends(MatrixWindow, _super);
+        function MatrixWindow(height, width, messenger) {
+            return _super.call(this, height, width, messenger) || this;
+        }
+        MatrixWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
+            this.clear();
+            this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
+            this.render_clips(iterator_matrix_train);
+            if (!algorithm.b_targeted()) {
+                this.render_trees(parse_matrix);
+            }
+        };
+        MatrixWindow.prototype.render_trees = function (parse_matrix) {
+            var _this = this;
+            var color;
+            var messages = [];
+            var message;
+            for (var _i = 0, _a = parse_matrix.coords_roots; _i < _a.length; _i++) {
+                var coord = _a[_i];
+                for (var _b = 0, _c = parse_matrix.get_roots_at_coord(coord); _b < _c.length; _b++) {
+                    var root = _c[_b];
+                    root.walk(function (node) {
+                        if (node.hasChildren()) {
+                            for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
+                                var child = _a[_i];
+                                message = [
+                                    "linesegment",
+                                    _this.get_centroid(child)[0],
+                                    _this.get_centroid(child)[1],
+                                    _this.get_centroid(node)[0],
+                                    _this.get_centroid(node)[1]
+                                ];
+                                color = red;
+                                messages.push(message.concat(color));
+                            }
+                        }
+                        return true;
+                    });
+                }
+            }
+            return messages;
+        };
+        MatrixWindow.prototype.get_centroid = function (node) {
+            var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
+            // let index_clip = node.model.id;
+            var coord_clip = node.model.note.get_coordinates_matrix();
+            // TODO: determine how to get the index of the clip from just depth of the node
+            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
+            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
+            return [
+                dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
+                dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
+            ];
+        };
+        ;
+        // render_tree(): void {
+        //     var messages = this.get_messages_render_tree();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
+        MatrixWindow.prototype.render_clips = function (iterator_matrix_train) {
+            var messages_render_clips = this.get_messages_render_clips(iterator_matrix_train);
+            for (var _i = 0, messages_render_clips_1 = messages_render_clips; _i < messages_render_clips_1.length; _i++) {
+                var messages_notes = messages_render_clips_1[_i];
+                for (var _a = 0, messages_notes_1 = messages_notes; _a < messages_notes_1.length; _a++) {
+                    var message_note = messages_notes_1[_a];
+                    this.messenger.message(message_note);
+                }
+            }
+        };
+        MatrixWindow.prototype.get_messages_render_clips = function (iterator_matrix_train) {
+            var messages = [];
+            for (var _i = 0, _a = _.range(0, iterator_matrix_train.get_state_current() + 1); _i < _a.length; _i++) {
+                var i = _a[_i];
+                // let coord_clip: number[] = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
+                var coord_clip = MatrixIterator.get_coord(i, iterator_matrix_train.num_columns);
+                messages.push(this.get_messages_render_clip(coord_clip));
+            }
+            return messages;
+        };
+        // render_clips(): void {
+        //     var messages = this.get_messages_render_clips();
+        //     for (var i=0; i < messages.length; i++) {
+        //         this.messenger.message(
+        //             messages[i]
+        //         )
+        //     }
+        // };
+        // TODO: return signature
+        // get_messages_render_clips(history_user_input: HistoryUserInput)  {
+        //     var messages = [];
+        //     // for (let index_clip in this.clips) {
+        //     //     messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
+        //     // }
+        //     for (let index_clip in this.clips) {
+        //         messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
+        //     }
+        //     return messages;
+        // };
+        // get_messages_render_notes(clip: Clip) {
+        //     let quadruplets = [];
+        //     for (let node of clip.get_notes_within_loop_brackets()) {
+        //         quadruplets.push(this.get_position_quadruplet(node, index_clip));
+        //     }
+        //     return quadruplets.map(function (tuplet) {
+        //         let message = <any>["paintrect"].concat(tuplet);
+        //         message = message.concat(black);
+        //         return message;
+        //     })
+        // };
+        MatrixWindow.prototype.get_message_render_region_past = function (interval_current) {
+            var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
+            offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());
+            offset_left_end = this.get_dist_from_left(interval_current[0]);
+            offset_top_start = this.get_offset_pixel_topmost();
+            offset_top_end = this.get_offset_pixel_bottommost();
+            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
+        };
+        MatrixWindow.prototype.get_message_render_region_present = function (interval_current) {
+            var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
+            offset_left_start = this.get_dist_from_left(interval_current[0]);
+            offset_left_end = this.get_dist_from_left(interval_current[1]);
+            offset_top_start = this.get_offset_pixel_topmost();
+            offset_top_end = this.get_offset_pixel_bottommost();
+            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
+        };
+        MatrixWindow.prototype.get_message_render_region_future = function (interval_current) {
+            var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
+            offset_left_start = this.get_dist_from_left(interval_current[1]);
+            offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
+            offset_top_start = this.get_offset_pixel_topmost();
+            offset_top_end = this.get_offset_pixel_bottommost();
+            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
+        };
+        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator, algorithm) {
+            var coord = iterator_matrix_train.get_coord_current();
+            var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+            var subtargets = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
+                return subtarget.note;
+            });
+            var interval_current = algorithm.determine_region_present(subtargets);
+            var quadruplet_region_past = this.get_message_render_region_past(interval_current);
+            var quadruplet_region_present = this.get_message_render_region_present(interval_current);
+            var quadruplet_region_future = this.get_message_render_region_future(interval_current);
+            quadruplet_region_past.unshift('paintrect');
+            quadruplet_region_past = quadruplet_region_past.concat(region_green);
+            quadruplet_region_present.unshift('paintrect');
+            quadruplet_region_present = quadruplet_region_present.concat(region_red);
+            quadruplet_region_future.unshift('paintrect');
+            quadruplet_region_future = quadruplet_region_future.concat(region_yellow);
+            for (var _i = 0, _a = [quadruplet_region_past, quadruplet_region_present, quadruplet_region_future]; _i < _a.length; _i++) {
+                var quadruplet = _a[_i];
+                this.messenger.message(quadruplet);
+            }
+        };
+        return MatrixWindow;
+    }(Window));
+    window.MatrixWindow = MatrixWindow;
+})(window = exports.window || (exports.window = {}));
+
+},{"../clip/clip":1,"../live/live":3,"../train/iterate":10,"lodash":14}],8:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../../src/note/note");
 var TreeModel = require("tree-model");
 var user_input_1 = require("../../src/control/user_input");
@@ -18,13 +1271,15 @@ var Detect = algorithm_1.algorithm.Detect;
 var serialize_1 = require("../../src/serialize/serialize");
 var TrainFreezer = serialize_1.freeze.TrainFreezer;
 var TrainThawer = serialize_1.thaw.TrainThawer;
-var window_1 = require("../../src/render/window");
-var ListWindow = window_1.window.ListWindow;
+// import {window} from "../../src/render/window";
+// import ListWindow = window.ListWindow;
 var trainer_1 = require("../../src/train/trainer");
 var Trainer = trainer_1.trainer.Trainer;
 var constants_1 = require("../../src/constants/constants");
 var POLYPHONY = constants_1.modes_texture.POLYPHONY;
 var INSTRUMENTAL = constants_1.modes_control.INSTRUMENTAL;
+var window_1 = require("../render/window");
+var MatrixWindow = window_1.window.MatrixWindow;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -86,7 +1341,7 @@ var test = function () {
     var mode_control = INSTRUMENTAL;
     var user_input_handler = new UserInputHandler(mode_texture, mode_control);
     var messenger = new Messenger('node', 0);
-    var window_local = new ListWindow(384, 384, messenger);
+    var window_local = new MatrixWindow(384, 384, messenger);
     var algorithm_train = new Detect(user_input_handler);
     // stubs
     var song = {
@@ -129,7 +1384,7 @@ var test = function () {
     trainer_local.accept_input([note_target_3_subtarget_1]);
     trainer_local.clear_window();
     var freezer = new TrainFreezer('node');
-    freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json', env);
+    freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
     var thawer = new TrainThawer('node');
     var config = {
         'window': window_local,
@@ -151,9 +1406,493 @@ if (typeof Global !== "undefined") {
     Global.test.test = test;
 }
 
-},{"../../src/clip/clip":8,"../../src/constants/constants":9,"../../src/control/user_input":10,"../../src/live/live":13,"../../src/message/messenger":15,"../../src/note/note":17,"../../src/render/window":19,"../../src/segment/segment":20,"../../src/serialize/serialize":21,"../../src/train/algorithm":23,"../../src/train/trainer":24,"tree-model":6}],2:[function(require,module,exports){
+},{"../../src/clip/clip":18,"../../src/constants/constants":19,"../../src/control/user_input":20,"../../src/live/live":23,"../../src/message/messenger":25,"../../src/note/note":27,"../../src/segment/segment":29,"../../src/serialize/serialize":30,"../../src/train/algorithm":32,"../../src/train/trainer":34,"../render/window":7,"tree-model":16}],9:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var harmony_1 = require("../music/harmony");
+var constants_1 = require("../constants/constants");
+var algorithm;
+(function (algorithm) {
+    algorithm.DETECT = 'detect';
+    algorithm.PREDICT = 'predict';
+    algorithm.PARSE = 'parse';
+    algorithm.DERIVE = 'derive';
+    // import TargetType = target.TargetType;
+    var Harmony = harmony_1.harmony.Harmony;
+    var POLYPHONY = constants_1.modes_texture.POLYPHONY;
+    var MONOPONY = constants_1.modes_texture.MONOPONY;
+    var Targeted = /** @class */ (function () {
+        function Targeted(user_input_handler) {
+            this.user_input_handler = user_input_handler;
+        }
+        Targeted.prototype.b_targeted = function () {
+            return true;
+        };
+        return Targeted;
+    }());
+    var Parsed = /** @class */ (function () {
+        function Parsed(user_input_handler) {
+            this.user_input_handler = user_input_handler;
+        }
+        Parsed.prototype.b_targeted = function () {
+            return false;
+        };
+        return Parsed;
+    }());
+    var Detect = /** @class */ (function (_super) {
+        __extends(Detect, _super);
+        function Detect(user_input_handler) {
+            return _super.call(this, user_input_handler) || this;
+        }
+        Detect.prototype.get_depth = function () {
+            return 1;
+        };
+        Detect.prototype.get_name = function () {
+            return algorithm.DETECT;
+        };
+        Detect.prototype.determine_targets = function (notes_segment_next) {
+            if (this.user_input_handler.mode_texture === POLYPHONY) {
+                var chords_grouped = Harmony.group(notes_segment_next);
+                var chords_monophonified = [];
+                for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
+                    var chord = chords_grouped_1[_i];
+                    var notes_monophonified = Harmony.monophonify(chord);
+                    chords_monophonified.push(notes_monophonified);
+                }
+                return chords_monophonified;
+            }
+            else if (this.user_input_handler.mode_texture === MONOPONY) {
+                var notes_grouped_trivial = [];
+                for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
+                    var note_1 = notes_segment_next_1[_a];
+                    notes_grouped_trivial.push(note_1);
+                }
+                // Subtarget -> Subtarget Iterator -> Target -> Target Iterator
+                return notes_grouped_trivial;
+            }
+            else {
+                throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
+            }
+        };
+        Detect.prototype.determine_region_present = function (notes_target_next) {
+            return [
+                notes_target_next[0].model.note.beat_start,
+                // notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+                notes_target_next[0].model.note.get_beat_end()
+            ];
+        };
+        Detect.prototype.pre_advance = function (clip_user_input) {
+        };
+        Detect.prototype.post_init = function (song, clip_user_input) {
+            clip_user_input.fire();
+        };
+        return Detect;
+    }(Targeted));
+    algorithm.Detect = Detect;
+    var Predict = /** @class */ (function (_super) {
+        __extends(Predict, _super);
+        function Predict() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Predict.prototype.get_name = function () {
+            return algorithm.PREDICT;
+        };
+        Predict.prototype.get_depth = function () {
+            return 1;
+        };
+        // TODO: put all calls to Clip in whatever class is a client to algorithms
+        // NB: there can be multiple targets per segment
+        // TODO: replace the notes in clip_target with these
+        Predict.prototype.determine_targets = function (notes_segment_next) {
+            if (this.user_input_handler.mode_texture === POLYPHONY) {
+                var chords_grouped = Harmony.group(notes_segment_next);
+                var chords_monophonified = [];
+                for (var _i = 0, chords_grouped_2 = chords_grouped; _i < chords_grouped_2.length; _i++) {
+                    var note_group = chords_grouped_2[_i];
+                    chords_monophonified.push(Harmony.monophonify(note_group));
+                }
+                return chords_monophonified;
+            }
+            else if (this.user_input_handler.mode_texture === MONOPONY) {
+                var notes_grouped_trivial = [];
+                for (var _a = 0, notes_segment_next_2 = notes_segment_next; _a < notes_segment_next_2.length; _a++) {
+                    var note_2 = notes_segment_next_2[_a];
+                    notes_grouped_trivial.push(note_2);
+                }
+                return notes_grouped_trivial;
+            }
+            else {
+                throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
+            }
+        };
+        Predict.prototype.determine_region_present = function (notes_target_next) {
+            return [
+                notes_target_next[0].model.note.beat_start,
+                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+            ];
+        };
+        Predict.prototype.pre_advance = function () {
+        };
+        return Predict;
+    }(Targeted));
+    algorithm.Predict = Predict;
+    var Parse = /** @class */ (function (_super) {
+        __extends(Parse, _super);
+        function Parse(user_input_handler) {
+            return _super.call(this, user_input_handler) || this;
+        }
+        Parse.prototype.get_name = function () {
+            return algorithm.PARSE;
+        };
+        Parse.prototype.get_depth = function () {
+            return this.depth;
+        };
+        Parse.prototype.set_depth = function (depth) {
+            this.depth = depth;
+        };
+        // happens after loop of first target is set
+        Parse.prototype.post_init = function (song, clip_user_input) {
+            song.set_overdub(1);
+            song.set_session_record(1);
+            clip_user_input.fire();
+        };
+        // happens after last target is guessed
+        Parse.prototype.pre_terminate = function (song, clip_user_input) {
+            song.set_overdub(0);
+            song.set_session_record(0);
+            clip_user_input.stop();
+        };
+        Parse.prototype.determine_region_present = function (notes_target_next) {
+            return [
+                notes_target_next[0].model.note.beat_start,
+                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+            ];
+        };
+        return Parse;
+    }(Parsed));
+    algorithm.Parse = Parse;
+    var Derive = /** @class */ (function (_super) {
+        __extends(Derive, _super);
+        function Derive() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Derive.prototype.get_name = function () {
+            return algorithm.DERIVE;
+        };
+        Derive.prototype.get_depth = function () {
+            return this.depth;
+        };
+        Derive.prototype.set_depth = function (depth) {
+            this.depth = depth;
+        };
+        // happens after loop of first target is set
+        Derive.prototype.post_init = function (song, clip_user_input) {
+            song.set_overdub(1);
+            song.set_session_record(1);
+            clip_user_input.fire();
+        };
+        // happens after last target is guessed
+        Derive.prototype.pre_terminate = function (song, clip_user_input) {
+            song.set_overdub(0);
+            song.set_session_record(0);
+            clip_user_input.stop();
+        };
+        Derive.prototype.determine_region_present = function (notes_target_next) {
+            return [
+                notes_target_next[0].model.note.beat_start,
+                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+            ];
+        };
+        // // set right interval
+        // determine_region_past(notes_target_next): number {
+        //     return notes_target_next[0].model.note.beat_start
+        // }
+        //
+        // // set left interval
+        // determine_region_upcoming(notes_target_next): number {
+        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+        // }
+        Derive.prototype.accept = function (elaboration, i_depth, i_breadth) {
+            // if (index_layer + 1 > this.clips.length) {
+            //     let clip_dao_virtual = new LiveClipVirtual(elaboration);
+            //
+            //     clip_dao_virtual.beat_start = elaboration[0].model.note.beat_start;
+            //     clip_dao_virtual.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
+            //
+            //     let clip_virtual = new c.Clip(clip_dao_virtual);
+            //     this.add_clsip(clip_virtual);
+            // } else {
+            //     let clip_last = this.clips[this.clips.length - 1];
+            //     clip_last.clip_dao.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
+            //     clip_last.set_notes(elaboration);
+            // }
+            //
+            // let leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
+            //
+            // if (index_layer == 1) {
+            //     this.add_first_layer(elaboration, this.clips.length - 1)
+            // } else {
+            //     this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
+            // }
+            //
+            // this.update_leaves(leaves_within_interval);
+        };
+        return Derive;
+    }(Parsed));
+    algorithm.Derive = Derive;
+})(algorithm = exports.algorithm || (exports.algorithm = {}));
 
-},{}],3:[function(require,module,exports){
+},{"../constants/constants":2,"../music/harmony":5}],10:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var algorithm_1 = require("./algorithm");
+var utils_1 = require("../utils/utils");
+var iterate;
+(function (iterate) {
+    var division_int = utils_1.utils.division_int;
+    var remainder = utils_1.utils.remainder;
+    var MatrixIterator = /** @class */ (function () {
+        function MatrixIterator(num_rows, num_columns, downward, rightward, start_at_row, stop_at_row) {
+            this.num_rows = num_rows;
+            this.num_columns = num_columns;
+            this.downward = downward ? downward : true;
+            this.rightward = rightward ? rightward : true;
+            this.index_row_start = start_at_row;
+            this.index_row_stop = stop_at_row;
+            this.determine_index_start();
+            this.determine_index_stop();
+        }
+        MatrixIterator.prototype.determine_index_start = function () {
+            var i_start;
+            if (this.downward && this.rightward) {
+                i_start = -1 + (this.num_columns * this.index_row_start);
+            }
+            else if (!this.downward && this.rightward) {
+                i_start = (this.num_columns * (this.index_row_start + 2)) - 1;
+            }
+            else if (this.downward && !this.rightward) {
+                throw 'not yet supported';
+            }
+            else if (!this.downward && !this.rightward) {
+                throw 'not yet supported';
+            }
+            else {
+                throw 'not yet supported';
+            }
+            this.index_start = i_start;
+        };
+        MatrixIterator.prototype.determine_index_stop = function () {
+            var i_stop;
+            if (this.downward && this.rightward) {
+                i_stop = this.index_row_stop * this.num_columns;
+            }
+            else if (!this.downward && this.rightward) {
+                i_stop = this.index_row_stop * this.num_columns;
+            }
+            else if (this.downward && !this.rightward) {
+                throw 'not yet supported';
+            }
+            else if (!this.downward && !this.rightward) {
+                throw 'not yet supported';
+            }
+            else {
+                throw 'not yet supported';
+            }
+            this.index_stop = i_stop;
+        };
+        MatrixIterator.prototype.next_column = function () {
+            if (this.downward && this.rightward) {
+                this.i++;
+            }
+            else if (!this.downward && this.rightward) {
+                if (remainder(this.i + 1, this.num_rows) === 0) {
+                    this.i = this.i - (this.num_columns - 1) - this.num_columns;
+                }
+                else {
+                    this.i++;
+                }
+            }
+            else if (this.downward && !this.rightward) {
+                // if (remainder(this.i + 1, this.num_rows) === 0) {
+                //     this.i = this.i + (this.num_columns - 1) + this.num_columns
+                // } else {
+                //     this.i--
+                // }
+                throw 'not yet supported';
+            }
+            else if (!this.downward && !this.rightward) {
+                // this.i--;
+                throw 'not yet supported';
+            }
+            else {
+                throw 'not yet supported';
+            }
+        };
+        MatrixIterator.prototype.next = function () {
+            var value = null;
+            this.next_column();
+            if (this.i === this.index_stop) {
+                return {
+                    value: value,
+                    done: true
+                };
+            }
+            return {
+                value: this.get_coord_current(),
+                done: false
+            };
+        };
+        MatrixIterator.prototype.get_coord_current = function () {
+            return MatrixIterator.get_coord(this.get_state_current() + 1, this.num_columns);
+        };
+        MatrixIterator.prototype.get_state_current = function () {
+            return this.i;
+        };
+        MatrixIterator.get_coord = function (i, num_columns) {
+            var pos_row = division_int(i, num_columns);
+            var pos_column = remainder(i, num_columns);
+            return [pos_row, pos_column];
+        };
+        MatrixIterator.get_coord_above = function (coord) {
+            // if (coord[0] === 1) {
+            //     // return [coord[0] - 1, 0]
+            //     return [0, 0]
+            // } else {
+            return [coord[0] - 1, coord[1]];
+            // }
+        };
+        MatrixIterator.get_coord_below = function (coord) {
+            return [coord[0] + 1, coord[1]];
+        };
+        return MatrixIterator;
+    }());
+    iterate.MatrixIterator = MatrixIterator;
+    var FactoryMatrixTargetIterator = /** @class */ (function () {
+        function FactoryMatrixTargetIterator() {
+        }
+        FactoryMatrixTargetIterator.create_matrix_focus = function (algorithm, segments) {
+            var matrix_data = [];
+            switch (algorithm.get_name()) {
+                case algorithm_1.algorithm.DETECT || algorithm_1.algorithm.PREDICT: {
+                    for (var i = 0; i < 1; i++) {
+                        matrix_data[i] = new Array(segments.length);
+                    }
+                    break;
+                }
+                case algorithm_1.algorithm.PARSE || algorithm_1.algorithm.DERIVE: {
+                    for (var i = 0; i < algorithm.get_depth(); i++) {
+                        matrix_data[i] = new Array(segments.length);
+                    }
+                    break;
+                }
+                default: {
+                    throw 'case not considered';
+                }
+            }
+            return matrix_data;
+        };
+        return FactoryMatrixTargetIterator;
+    }());
+    iterate.FactoryMatrixTargetIterator = FactoryMatrixTargetIterator;
+    var IteratorTrainFactory = /** @class */ (function () {
+        function IteratorTrainFactory() {
+        }
+        IteratorTrainFactory.get_iterator_train = function (algorithm, segments) {
+            var iterator;
+            var downward, rightward;
+            switch (algorithm.get_name()) {
+                case algorithm_1.algorithm.DETECT: {
+                    iterator = new MatrixIterator(1, segments.length);
+                    break;
+                }
+                case algorithm_1.algorithm.PREDICT: {
+                    iterator = new MatrixIterator(1, segments.length);
+                    break;
+                }
+                case algorithm_1.algorithm.PARSE: {
+                    downward = false;
+                    rightward = true;
+                    var index_row_start = algorithm.get_depth() - 1;
+                    var index_row_stop = 1;
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
+                    break;
+                }
+                case algorithm_1.algorithm.DERIVE: {
+                    downward = true;
+                    rightward = true;
+                    var index_row_start = 1;
+                    var index_row_stop = algorithm.get_depth();
+                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
+                    break;
+                }
+                default: {
+                    throw ['algorithm of name', algorithm.get_name(), 'not supported'].join(' ');
+                }
+            }
+            return iterator;
+        };
+        return IteratorTrainFactory;
+    }());
+    iterate.IteratorTrainFactory = IteratorTrainFactory;
+})(iterate = exports.iterate || (exports.iterate = {}));
+
+},{"../utils/utils":11,"./algorithm":9}],11:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var utils;
+(function (utils) {
+    var PathLive = /** @class */ (function () {
+        function PathLive() {
+        }
+        // pre-sending message
+        PathLive.to_vector = function (path_live) {
+            var message = [];
+            for (var _i = 0, _a = path_live.split(' '); _i < _a.length; _i++) {
+                var word = _a[_i];
+                var cleansed = word.replace(/"/g, "");
+                if (isNaN(Number(cleansed))) {
+                    message.push(cleansed);
+                }
+                else {
+                    message.push(Number(cleansed));
+                }
+            }
+            return message;
+        };
+        PathLive.to_message = function (path_live) {
+            return PathLive.to_vector(path_live);
+        };
+        // parsing sent message
+        PathLive.to_string = function (vector_path_live) {
+            return PathLive.to_message(vector_path_live.join(' ')).join(' ');
+        };
+        return PathLive;
+    }());
+    utils.PathLive = PathLive;
+    utils.remainder = function (top, bottom) {
+        return ((top % bottom) + bottom) % bottom;
+    };
+    utils.division_int = function (top, bottom) {
+        return Math.floor(top / bottom);
+    };
+})(utils = exports.utils || (exports.utils = {}));
+
+},{}],12:[function(require,module,exports){
+
+},{}],13:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -177,7 +1916,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],4:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -17288,7 +19027,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],5:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -17340,7 +19079,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],6:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -17633,7 +19372,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":3,"mergesort":5}],7:[function(require,module,exports){
+},{"find-insert-index":13,"mergesort":15}],17:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -19329,402 +21068,11 @@ module.exports = (function () {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var note_1 = require("../note/note");
-var TreeModel = require("tree-model");
-var logger_1 = require("../log/logger");
-var utils_1 = require("../utils/utils");
-var clip;
-(function (clip) {
-    var Logger = logger_1.log.Logger;
-    var Clip = /** @class */ (function () {
-        function Clip(clip_dao) {
-            this.clip_dao = clip_dao;
-            this.logger = new Logger('max');
-        }
-        Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
-            if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
-                this.clip_dao.set_loop_bracket_upper(beat_end);
-                this.clip_dao.set_loop_bracket_lower(beat_start);
-            }
-            else {
-                this.clip_dao.set_loop_bracket_lower(beat_start);
-                this.clip_dao.set_loop_bracket_upper(beat_end);
-            }
-        };
-        Clip.prototype.get_path = function () {
-            return this.clip_dao.get_path();
-        };
-        Clip.prototype.set_path_deferlow = function (key_route) {
-            this.clip_dao.set_path_deferlow(key_route, this.get_path());
-        };
-        Clip.prototype.get_num_measures = function () {
-            return (this.get_end_marker() - this.get_start_marker()) / 4;
-        };
-        Clip.prototype.get_end_marker = function () {
-            return this.clip_dao.get_end_marker();
-        };
-        Clip.prototype.get_start_marker = function () {
-            return this.clip_dao.get_start_marker();
-        };
-        // TODO: annotations
-        Clip.prototype.load_notes_within_loop_brackets = function () {
-            this.notes = this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128);
-        };
-        // TODO: annotations
-        Clip.prototype.load_notes_within_markers = function () {
-            this.notes = this.get_notes(0, // this.get_start_marker(),
-            0, 16 * 4, // this.get_end_marker(),
-            128);
-        };
-        // TODO: annotations
-        Clip.prototype.get_pitch_max = function () {
-            var pitch_max = 0;
-            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
-                var node = _a[_i];
-                if (node.model.note.pitch > pitch_max) {
-                    pitch_max = node.model.note.pitch;
-                }
-            }
-            return pitch_max;
-        };
-        // TODO: annotations
-        Clip.prototype.get_pitch_min = function () {
-            var pitch_min = 128;
-            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
-                var node = _a[_i];
-                if (node.model.note.pitch < pitch_min) {
-                    pitch_min = node.model.note.pitch;
-                }
-            }
-            return pitch_min;
-        };
-        Clip.prototype.get_ambitus = function () {
-            return [this.get_pitch_min(), this.get_pitch_max()];
-        };
-        Clip.prototype.set_loop_bracket_lower = function (beat) {
-            this.clip_dao.set_loop_bracket_lower(beat);
-        };
-        Clip.prototype.set_loop_bracket_upper = function (beat) {
-            this.clip_dao.set_loop_bracket_upper(beat);
-        };
-        Clip.prototype.get_loop_bracket_lower = function () {
-            return this.clip_dao.get_loop_bracket_lower()[0];
-        };
-        Clip.prototype.get_loop_bracket_upper = function () {
-            return this.clip_dao.get_loop_bracket_upper()[0];
-        };
-        Clip.prototype.set_clip_endpoint_lower = function (beat) {
-            this.clip_dao.set_clip_endpoint_lower(beat);
-        };
-        Clip.prototype.set_clip_endpoint_upper = function (beat) {
-            this.clip_dao.set_clip_endpoint_upper(beat);
-        };
-        Clip.prototype.fire = function () {
-            this.clip_dao.fire();
-        };
-        Clip.prototype.stop = function () {
-            this.clip_dao.stop();
-        };
-        Clip.prototype.get_notes_within_markers = function () {
-            // if (!this.notes) {
-            this.load_notes_within_markers();
-            // }
-            // this.logger.log(
-            //     JSON.stringify(
-            //         this.get_notes(
-            //             0, // this.get_start_marker(),
-            //             0,
-            //             16 * 4, // this.get_end_marker(),
-            //             128
-            //         )
-            //     )
-            // );
-            return this.notes;
-        };
-        Clip.prototype.get_notes_within_loop_brackets = function () {
-            // if (!this.notes) {
-            this.load_notes_within_loop_brackets();
-            // }
-            return this.notes;
-        };
-        Clip.prototype.get_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
-            return Clip._parse_notes(this._get_notes(beat_start, pitch_midi_min, beat_duration, pitch_midi_max));
-        };
-        Clip.prototype.set_notes = function (notes) {
-            this.clip_dao.set_notes(notes);
-        };
-        // TODO: *actually* make private
-        Clip.prototype._get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            return this.clip_dao.get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max);
-        };
-        Clip.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_duration, pitch_midi_max) {
-            var epsilon = 1 / (48 * 2);
-            this.clip_dao.remove_notes(beat_start - epsilon, pitch_midi_min, beat_duration, pitch_midi_max);
-        };
-        Clip.parse_note_messages = function (messages) {
-            var notes = [];
-            for (var i_mess in messages) {
-                if (i_mess == String(0)) {
-                    continue;
-                }
-                if (i_mess == String(messages.length - 1)) {
-                    continue;
-                }
-                var tree = new TreeModel();
-                var splitted = messages[i_mess].split(' ');
-                notes.push(tree.parse({
-                    id: -1,
-                    note: new note_1.note.Note(Number(splitted[0]), Number(splitted[1]), Number(splitted[2]), Number(splitted[3]), Number(splitted[4])),
-                    children: []
-                }));
-            }
-            return notes;
-        };
-        // TODO: remove underscore prefix
-        Clip._parse_notes = function (notes) {
-            var data = [];
-            var notes_parsed = [];
-            var pitch;
-            var beat_start;
-            var beats_duration;
-            var velocity;
-            var b_muted;
-            var index_num_expected_notes = null;
-            for (var i = 0; i < notes.length; i++) {
-                if (notes[i] === 'done') {
-                    continue;
-                }
-                if (notes[i] === 'note') {
-                    data = [];
-                    continue;
-                }
-                if (notes[i] === 'notes') {
-                    data = [];
-                    continue;
-                }
-                if (i === index_num_expected_notes) {
-                    data = [];
-                    continue;
-                }
-                data.push(notes[i]);
-                if (data.length === 5) {
-                    pitch = data[0];
-                    beat_start = data[1];
-                    beats_duration = data[2];
-                    velocity = data[3];
-                    b_muted = data[4];
-                    var tree = new TreeModel();
-                    notes_parsed.push(tree.parse({
-                        id: -1,
-                        note: new note_1.note.Note(pitch, beat_start, beats_duration, velocity, b_muted),
-                        children: []
-                    }));
-                }
-            }
-            function compare(note_former, note_latter) {
-                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
-                    return -1;
-                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
-                    return 1;
-                return 0;
-            }
-            notes_parsed.sort(compare);
-            // TODO: fail gracefully
-            // if (notes_parsed.length !== num_expected_notes) {
-            //     throw "notes retrieved from clip less than expected"
-            // }
-            // l.log(notes_parsed);
-            return notes_parsed;
-        };
-        return Clip;
-    }());
-    clip.Clip = Clip;
-    var ClipDao = /** @class */ (function () {
-        // private logger: Logger;
-        function ClipDao(clip_live, messenger, deferlow, key_route, env) {
-            this.clip_live = clip_live;
-            this.messenger = messenger;
-            if (deferlow && !key_route) {
-                throw new Error('key route not specified when using deferlow');
-            }
-            this.deferlow = deferlow;
-            this.key_route = key_route;
-            this.env = env;
-            // this.logger = new Logger('max');
-        }
-        ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
-            var mess = [key_route_override];
-            for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
-                var word = _a[_i];
-                mess.push(word);
-            }
-            // let logger = new Logger('max');
-            // logger.log(mess.toString());
-            this.messenger.message(mess);
-        };
-        // TODO: check if these actually return arrays
-        ClipDao.prototype.get_end_marker = function () {
-            // return this.clip_live.get('end_marker')[0];
-            // this.logger.log(JSON.stringify(this.clip_live.get('end_marker')));
-            return this.clip_live.get('end_marker')[0];
-        };
-        // TODO: check if these actually return arrays
-        ClipDao.prototype.get_start_marker = function () {
-            // return this.clip_live.get('start_marker')[0];
-            // this.logger.log(JSON.stringify(this.clip_live.get('start_marker')));
-            return this.clip_live.get('start_marker')[0];
-        };
-        ClipDao.prototype.get_path = function () {
-            return this.clip_live.get_path();
-        };
-        ClipDao.prototype.set_loop_bracket_lower = function (beat) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "loop_start", beat]);
-            }
-            else {
-                this.clip_live.set('loop_start', beat);
-            }
-        };
-        ClipDao.prototype.set_loop_bracket_upper = function (beat) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "loop_end", beat]);
-            }
-            else {
-                this.clip_live.set('loop_end', beat);
-            }
-        };
-        ClipDao.prototype.get_loop_bracket_lower = function () {
-            return this.clip_live.get('loop_start');
-        };
-        ClipDao.prototype.get_loop_bracket_upper = function () {
-            return this.clip_live.get('loop_end');
-        };
-        ClipDao.prototype.set_clip_endpoint_lower = function (beat) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "start_marker", beat]);
-            }
-            else {
-                this.clip_live.set('start_marker', beat);
-            }
-        };
-        ClipDao.prototype.set_clip_endpoint_upper = function (beat) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "end_marker", beat]);
-            }
-            else {
-                this.clip_live.set('end_marker', beat);
-            }
-        };
-        ClipDao.prototype.fire = function () {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "call", "fire"]);
-            }
-            else {
-                this.clip_live.call('fire');
-            }
-        };
-        ;
-        ClipDao.prototype.stop = function () {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "call", "stop"]);
-            }
-            else {
-                this.clip_live.call('stop');
-            }
-        };
-        ;
-        ClipDao.prototype.get_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            if (this.env === 'node_for_max') {
-                return this.notes_cached;
-            }
-            else {
-                return this.clip_live.call('get_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
-            }
-        };
-        ;
-        ClipDao.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            if (this.deferlow) {
-                this.messenger.message([
-                    this.key_route,
-                    "call",
-                    "remove_notes",
-                    beat_start,
-                    pitch_midi_min,
-                    beat_end,
-                    pitch_midi_max
-                ]);
-            }
-            else {
-                this.clip_live.call('remove_notes', beat_start, pitch_midi_min, beat_end, pitch_midi_max);
-            }
-        };
-        ;
-        ClipDao.prototype.set_notes = function (notes) {
-            if (this.env === 'node_for_max') {
-                var notes_cached = [];
-                notes_cached.push('notes');
-                notes_cached.push(notes.length.toString());
-                for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
-                    var note = notes_1[_i];
-                    notes_cached.push(note.model.note.pitch.toString());
-                    notes_cached.push(note.model.note.beat_start.toString());
-                    notes_cached.push(note.model.note.beats_duration.toString());
-                    notes_cached.push(note.model.note.velocity.toString());
-                    notes_cached.push(note.model.note.muted.toString());
-                }
-                notes_cached.push('done');
-            }
-            else if (this.deferlow) {
-                this.messenger.message([this.key_route, 'call', 'set_notes']);
-                this.messenger.message([this.key_route, 'call', 'notes', notes.length]);
-                for (var _a = 0, notes_2 = notes; _a < notes_2.length; _a++) {
-                    var node = notes_2[_a];
-                    this.messenger.message([
-                        this.key_route,
-                        'call',
-                        'note',
-                        node.model.note.pitch,
-                        node.model.note.beat_start.toFixed(4),
-                        node.model.note.beats_duration.toFixed(4),
-                        node.model.note.velocity,
-                        node.model.note.muted
-                    ]);
-                }
-                this.messenger.message([this.key_route, 'call', 'done']);
-            }
-            else {
-                this.clip_live.call('set_notes');
-                this.clip_live.call('notes', notes.length);
-                for (var _b = 0, notes_3 = notes; _b < notes_3.length; _b++) {
-                    var node = notes_3[_b];
-                    this.clip_live.call("note", node.model.note.pitch, node.model.note.beat_start.toFixed(4), node.model.note.beats_duration.toFixed(4), node.model.note.velocity, node.model.note.muted);
-                }
-                this.clip_live.call("done");
-            }
-        };
-        return ClipDao;
-    }());
-    clip.ClipDao = ClipDao;
-})(clip = exports.clip || (exports.clip = {}));
-
-},{"../log/logger":14,"../note/note":17,"../utils/utils":25,"tree-model":6}],9:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var modes_texture;
-(function (modes_texture) {
-    modes_texture.POLYPHONY = 'polyphony';
-    modes_texture.MONOPONY = 'monophony';
-})(modes_texture = exports.modes_texture || (exports.modes_texture = {}));
-var modes_control;
-(function (modes_control) {
-    modes_control.VOCAL = 'vocal';
-    modes_control.INSTRUMENTAL = 'instrumental';
-})(modes_control = exports.modes_control || (exports.modes_control = {}));
-
-},{}],10:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
+arguments[4][1][0].apply(exports,arguments)
+},{"../log/logger":24,"../note/note":27,"../utils/utils":35,"dup":1,"tree-model":16}],19:[function(require,module,exports){
+arguments[4][2][0].apply(exports,arguments)
+},{"dup":2}],20:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var user_input;
@@ -19739,217 +21087,104 @@ var user_input;
     user_input.UserInputHandler = UserInputHandler;
 })(user_input = exports.user_input || (exports.user_input = {}));
 
-},{}],11:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var algorithm_1 = require("../train/algorithm");
 var history;
 (function (history) {
-    var DETECT = algorithm_1.algorithm.DETECT;
-    var PREDICT = algorithm_1.algorithm.PREDICT;
-    var PARSE = algorithm_1.algorithm.PARSE;
-    // export class SequenceTarget {
-    //     data: TypeSequenceTarget;
-    //
-    //     constructor() {
-    //
-    //     }
-    //
-    //     get_subtargets() {
-    //
+    // export class FactoryHistoryUserInput {
+    //     public static create_history_user_input(algorithm, matrix_target_iterator) {
+    //         switch (algorithm.get_name()) {
+    //             case DETECT: {
+    //                 return new TargetHistory(matrix_target_iterator);
+    //             }
+    //             case PREDICT: {
+    //                 return new TargetHistory(matrix_target_iterator);
+    //             }
+    //             case PARSE: {
+    //                 return new PhaseHistory(matrix_target_iterator);
+    //             }
+    //             case DERIVE: {
+    //                 return new PhaseHistory(matrix_target_iterator);
+    //             }
+    //             default: {
+    //                 throw 'factory history user input'
+    //             }
+    //         }
     //     }
     // }
-    var FactoryHistoryUserInput = /** @class */ (function () {
-        function FactoryHistoryUserInput() {
+    var HistoryUserInput = /** @class */ (function () {
+        function HistoryUserInput(matrix) {
+            this.matrix_data = matrix;
         }
-        FactoryHistoryUserInput.create_history_user_input = function (algorithm, segments) {
-            switch (algorithm.get_name()) {
-                case DETECT: {
-                    return new TargetHistory(algorithm, segments);
-                }
-                case PREDICT: {
-                    return new TargetHistory(algorithm, segments);
-                }
-                case PARSE: {
-                    throw 'parse not yet implemented';
-                }
-                case DETECT: {
-                    throw 'detect not yet implemented';
-                }
-                default: {
-                    throw 'from factory user input';
-                }
-            }
+        HistoryUserInput.prototype.add = function (struct, coord) {
+            this.matrix_data[coord[0]][coord[1]] = struct;
         };
-        return FactoryHistoryUserInput;
+        HistoryUserInput.prototype.get = function (coord) {
+            return this.matrix_data[coord[0]][coord[1]];
+        };
+        return HistoryUserInput;
     }());
-    history.FactoryHistoryUserInput = FactoryHistoryUserInput;
-    var TargetHistory = /** @class */ (function () {
-        function TargetHistory(algorithm, segments) {
-            var matrix_data = [];
-            for (var i = 0; i < 1; i++) {
-                matrix_data[i] = new Array(segments.length);
-            }
-            this.matrix_data = matrix_data;
-        }
-        // set_sequence_target(sequence_target: TypeSequenceTarget, coord_matrix: number[]) {
-        //     this.matrix_data[coord_matrix[0]][coord_matrix[1]] = sequence_target;
-        // }
-        //
-        // get_sequence_target(i_height, i_width): TypeSequenceTarget {
-        //     return this.matrix_data[i_height][i_width]
-        // }
-        // add_subtarget(subtarget: Subtarget, iterator_matrix_train: MatrixIterator) {
-        //     let coord = iterator_matrix_train.get_coord_current();
-        //     this.matrix_data[coord[0]][coord[1]] = subtarget.note
-        // }
-        TargetHistory.prototype.add_sequence_target = function (target_sequence, iterator_matrix_train) {
-            var coord = iterator_matrix_train.get_coord_current();
-            this.matrix_data[coord[0]][coord[1]] = target_sequence;
-        };
-        TargetHistory.prototype.save = function (filename) {
-            // let data_serializable = this.matrix_data as any;
-            // for (let i_row in this.matrix_data) {
-            //     for (let i_col in this.matrix_data[Number(i_row)]) {
-            //         data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
-            //             this.matrix_data[Number(i_row)][Number(i_col)]
-            //         )
-            //     }
-            // }
-            //
-            // let f = new File(filename,"write","JSON");
-            //
-            // if (f.isopen) {
-            //     post("saving session");
-            //     f.writestring(JSON.stringify(data_serializable));
-            //     f.close();
-            // } else {
-            //     post("could not save session");
-            // }
-        };
-        TargetHistory.prototype.load = function (filename) {
-            // let f = new File(filename, "read","JSON");
-            // let a, data_deserialized;
-            //
-            // if (f.isopen) {
-            //     post("reading file");
-            //     // @ts-ignore
-            //     while ((a = f.readline()) != null) {
-            //         let data_deserialized = JSON.parse(a) as any;
-            //     }
-            //     f.close();
-            // } else {
-            //     post("could not open file");
-            // }
-            //
-            // // let data_deserialized = data_serialized as any;
-            // //
-            // // for (let i_row in data_serialized) {
-            // //     for (let i_col in data_serialized[Number(i_row)]) {
-            // //         data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
-            // //     }
-            // // }
-            // //
-            // // return data_deserialized
-            //
-            // for (let i_row in this.matrix_data) {
-            //     for (let i_col in this.matrix_data[Number(i_row)]) {
-            //         data_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(
-            //             data_deserialized[Number(i_row)][Number(i_col)]
-            //         )
-            //     }
-            // }
-            //
-            // return data_deserialized
-            return;
-        };
-        return TargetHistory;
-    }());
-    history.TargetHistory = TargetHistory;
-    // export type TypeHistoryList = SegmentTargetable[]
+    history.HistoryUserInput = HistoryUserInput;
+    // export class PhaseHistory implements HistoryUserInput {
+    //     matrix_data: TreeModel.Node<Note>[][][];
     //
-    // export type TypeHistoryMatrix = SegmentTargetable[][]
-    // export class ParseHistory implements HistoryUserInput {
-    //
-    //     // data: TreeModel.Node<note.Note>[][][];
-    //
-    //     matrix_data: SequenceNote[][];
-    //
-    //     logger: Logger;
-    //
-    //     constructor(algorithm, segments) {
-    //         let matrix_data = [];
-    //         for (let i=0; i < algorithm.get_depth(); i++) {
-    //             if (i == 0) {
-    //                 matrix_data[i] = new Array(1); // root of tree
-    //             } else {
-    //                 matrix_data[i] = new Array(segments.length);
-    //             }
-    //         }
-    //         this.matrix_data = matrix_data;
+    //     constructor(matrix) {
+    //         this.matrix_data = matrix;
     //     }
     //
-    //     save(filename) {
-    //         let data_serializable = this.data as any;
-    //         for (let i_row in this.data) {
-    //             for (let i_col in this.data[Number(i_row)]) {
-    //                 data_serializable[Number(i_row)][Number(i_col)] = ParseMatrix.serialize(this.data[Number(i_row)][Number(i_col)])
-    //             }
-    //         }
-    //
-    //         let f = new File(filename,"write","JSON");
-    //
-    //         if (f.isopen) {
-    //             post("saving session");
-    //             f.writestring(JSON.stringify(data_serializable));
-    //             f.close();
-    //         } else {
-    //             post("could not save session");
-    //         }
+    //     add(notes: TreeModel.Node<Note>[], coord: number[]) {
+    //         this.matrix_data[coord[0]][coord[1]] = notes;
     //     }
     //
-    //     public load(filename): HistoryUserInput {
-    //         let f = new File(filename, "read","JSON");
-    //         let a, data_serialized;
+    //     get(coord: number[]): TreeModel.Node<n.Note>[] {
+    //         return this.matrix_data[coord[0]][coord[1]];
+    //     }
+    // }
     //
-    //         if (f.isopen) {
-    //             post("reading file");
-    //             // @ts-ignore
-    //             while ((a = f.readline()) != null) {
-    //                 data_serialized = JSON.parse(a)
-    //             }
-    //             f.close();
-    //         } else {
-    //             post("could not open file");
-    //         }
+    // export class TargetHistory implements HistoryUserInput {
     //
-    //         // let data_deserialized = data_serialized as any;
-    //         //
-    //         // for (let i_row in data_serialized) {
-    //         //     for (let i_col in data_serialized[Number(i_row)]) {
-    //         //         data_deserialized[Number(i_row)][Number(i_col)] = ParseMatrix.deserialize(data_serialized[Number(i_row)][Number(i_col)])
-    //         //     }
-    //         // }
+    //     matrix_data: Target[][][];
     //
-    //         return data_deserialized
+    //     constructor(matrix) {
+    //         this.matrix_data = matrix
+    //     }
+    //
+    //     add(target_sequence: Target[], coord: number[]) {
+    //         this.matrix_data[coord[0]][coord[1]] = target_sequence;
+    //     }
+    //
+    //     get(coord: number[]) {
+    //         return this.matrix_data[coord[0]][coord[1]];
     //     }
     // }
 })(history = exports.history || (exports.history = {}));
 
-},{"../train/algorithm":23}],12:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file;
 (function (file) {
     file.to_json = function (string_json, filename, env) {
+        // console.log(env);
         switch (env) {
-            case 'node' || 'node_for_max': {
+            case 'node_for_max': {
+                console.log('writing json');
                 var fs = require("fs");
-                // let data = "New File Contents";
-                fs.writeFile("temp.txt", JSON.stringify(string_json), function (err, data) {
-                    if (err)
-                        console.log(err);
-                    console.log("saving session");
+                fs.writeFileSync(filename, JSON.stringify(string_json), 'utf8', function (err, data) {
+                    if (err) {
+                        console.log('error writing json');
+                    }
+                });
+                break;
+            }
+            case 'node': {
+                console.log('writing json');
+                var fs = require("fs");
+                fs.writeFileSync(filename, JSON.stringify(string_json), 'utf8', function (err, data) {
+                    if (err) {
+                        console.log('error writing json');
+                    }
                 });
                 break;
             }
@@ -19973,14 +21208,26 @@ var file;
     file.from_json = function (filepath, env) {
         var matrix_deserialized;
         switch (env) {
-            case 'node' || 'node_for_max': {
-                var lineReader = require('readline').createInterface({
-                    input: require('fs').createReadStream(filepath)
-                });
-                lineReader.on('line', function (line) {
-                    matrix_deserialized = JSON.parse(line);
-                });
-                // lineReader.on('close', callback);
+            case 'node_for_max': {
+                console.log('reading json');
+                var fs = require("fs");
+                // TODO: fix in node_for_max
+                matrix_deserialized = JSON.parse(fs.readFileSync(filepath, 'utf8', function (err, data) {
+                    if (err) {
+                        console.log(err);
+                    }
+                }));
+                break;
+            }
+            case 'node': {
+                console.log('reading json');
+                var fs = require("fs");
+                // TODO: fix in node_for_max
+                matrix_deserialized = JSON.parse(fs.readFileSync(filepath, 'utf8', function (err, data) {
+                    if (err) {
+                        console.log(err);
+                    }
+                }));
                 break;
             }
             case 'max': {
@@ -20007,239 +21254,11 @@ var file;
     };
 })(file = exports.file || (exports.file = {}));
 
-},{"fs":2,"readline":2}],13:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var clip_1 = require("../clip/clip");
-var live;
-(function (live) {
-    var Clip = clip_1.clip.Clip;
-    var LiveApiJs = /** @class */ (function () {
-        function LiveApiJs(path, env) {
-            if (env == 'node') {
-            }
-            else {
-                this.live_api = new LiveAPI(null, path);
-            }
-        }
-        LiveApiJs.prototype.get = function (property) {
-            return this.live_api.get(property);
-        };
-        LiveApiJs.prototype.set = function (property, value) {
-            this.live_api.set(property, value);
-        };
-        LiveApiJs.prototype.call = function (func) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
-            var _a;
-            return (_a = this.live_api).call.apply(_a, [func].concat(args));
-        };
-        LiveApiJs.prototype.get_id = function () {
-            return this.live_api.id;
-        };
-        LiveApiJs.prototype.get_path = function () {
-            return this.live_api.path;
-        };
-        LiveApiJs.prototype.get_children = function () {
-            return this.live_api.children;
-        };
-        return LiveApiJs;
-    }());
-    live.LiveApiJs = LiveApiJs;
-    var LiveClipVirtual = /** @class */ (function () {
-        function LiveClipVirtual(notes) {
-            this.notes = notes;
-        }
-        // load_notes_within_loop_brackets(): void {
-        //     this.notes = this.get_notes(
-        //         this.get_loop_bracket_lower(),
-        //         0,
-        //         this.get_loop_bracket_upper(),
-        //         128
-        //     )
-        // }
-        LiveClipVirtual.prototype.get_ambitus = function () {
-            return [];
-        };
-        LiveClipVirtual.prototype.load_notes_within_loop_brackets = function () {
-            this.notes = Clip._parse_notes(this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128));
-        };
-        LiveClipVirtual.prototype.get_notes_within_loop_brackets = function () {
-            // if (!this.notes) {
-            this.load_notes_within_loop_brackets();
-            // }
-            return this.notes;
-        };
-        LiveClipVirtual.prototype.get_pitch_max = function () {
-            var pitch_max = 0;
-            for (var _i = 0, _a = this.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
-                var node = _a[_i];
-                if (node.model.note.pitch > pitch_max) {
-                    pitch_max = node.model.note.pitch;
-                }
-            }
-            return pitch_max;
-        };
-        LiveClipVirtual.prototype.get_end_marker = function () {
-            return this.beat_end;
-            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
-        };
-        LiveClipVirtual.prototype.get_start_marker = function () {
-            return this.beat_start;
-            // return this.notes[0].model.note.beat_start;
-        };
-        LiveClipVirtual.prototype.get_loop_bracket_upper = function () {
-            return [this.beat_end];
-            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
-        };
-        LiveClipVirtual.prototype.get_loop_bracket_lower = function () {
-            return [this.beat_start];
-            // return this.notes[0].model.note.beat_start;
-        };
-        LiveClipVirtual.prototype.set_loop_bracket_lower = function (beat) {
-            return;
-        };
-        LiveClipVirtual.prototype.set_loop_bracket_upper = function (beat) {
-            return;
-        };
-        LiveClipVirtual.prototype.set_clip_endpoint_lower = function (beat) {
-            return;
-        };
-        LiveClipVirtual.prototype.set_clip_endpoint_upper = function (beat) {
-            return;
-        };
-        LiveClipVirtual.prototype.fire = function () {
-            return;
-        };
-        LiveClipVirtual.prototype.stop = function () {
-            return;
-        };
-        LiveClipVirtual.prototype.set_notes = function (notes) {
-            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
-                var note = notes_1[_i];
-                this.notes.push(note);
-            }
-        };
-        LiveClipVirtual.prototype.get_notes = function (beat_start, pitch_midi_min, beats_duration, pitch_midi_max) {
-            var prefix, notes, suffix;
-            prefix = ["notes", this.notes.length.toString()];
-            notes = [];
-            for (var _i = 0, _a = this.notes.filter(function (node) { return beat_start <= node.model.note.beat_start && node.model.note.beat_start < beat_start + beats_duration; }); _i < _a.length; _i++) {
-                var node = _a[_i];
-                notes.push("note");
-                notes.push(node.model.note.pitch.toString());
-                notes.push(node.model.note.beat_start.toString());
-                notes.push(node.model.note.beats_duration.toString());
-                notes.push(node.model.note.velocity.toString());
-                notes.push(node.model.note.muted.toString());
-            }
-            suffix = ["done"];
-            return prefix.concat(notes).concat(suffix);
-        };
-        LiveClipVirtual.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
-            return;
-        };
-        return LiveClipVirtual;
-    }());
-    live.LiveClipVirtual = LiveClipVirtual;
-})(live = exports.live || (exports.live = {}));
-
-},{"../clip/clip":8}],14:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var log;
-(function (log) {
-    var Logger = /** @class */ (function () {
-        function Logger(env) {
-            this.env = env;
-        }
-        Logger.log_max_static = function (message) {
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    post(s);
-                }
-                else if (message === null) {
-                    post("<null>");
-                }
-                else {
-                    post(message);
-                }
-            }
-            post("\n");
-        };
-        Logger.prototype.log = function (message) {
-            if (this.env === 'max') {
-                this.log_max(message);
-            }
-            else if (this.env === 'node') {
-                this.log_node(message);
-            }
-            else {
-                post('env: ' + this.env);
-                post('\n');
-                throw 'environment invalid';
-            }
-        };
-        // TODO: make static
-        Logger.prototype.log_max = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                var message = arguments[i];
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    post(s);
-                }
-                else if (message === null) {
-                    post("<null>");
-                }
-                else {
-                    post(message);
-                }
-            }
-            post("\n");
-        };
-        // TODO: make static
-        Logger.prototype.log_node = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                var message = arguments[i];
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    console.log(s);
-                }
-                else if (message === null) {
-                    console.log("<null>");
-                }
-                else {
-                    console.log(message);
-                }
-            }
-            console.log("\n");
-        };
-        return Logger;
-    }());
-    log.Logger = Logger;
-})(log = exports.log || (exports.log = {}));
-
-},{}],15:[function(require,module,exports){
+},{"fs":12}],23:[function(require,module,exports){
+arguments[4][3][0].apply(exports,arguments)
+},{"../clip/clip":18,"dup":3}],24:[function(require,module,exports){
+arguments[4][4][0].apply(exports,arguments)
+},{"dup":4}],25:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
@@ -20296,59 +21315,11 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],16:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var note_1 = require("../note/note");
-var TreeModel = require("tree-model");
-var _ = require('underscore');
-var harmony;
-(function (harmony) {
-    var Harmony = /** @class */ (function () {
-        function Harmony() {
-        }
-        Harmony.group = function (notes) {
-            // TODO: should probably factor in beat end as well, but this works for now
-            var grouped = _.groupBy(notes, function (note) {
-                return note.model.note.beat_start;
-            });
-            var notes_grouped = [];
-            for (var beat_start in grouped) {
-                notes_grouped.push(grouped[beat_start]);
-            }
-            return notes_grouped;
-        };
-        Harmony.monophonify = function (notes) {
-            function compare(note_former, note_latter) {
-                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
-                    return -1;
-                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
-                    return 1;
-                return 0;
-            }
-            notes.sort(compare);
-            var length_beats = notes[notes.length - 1].model.note.get_beat_end() - notes[0].model.note.beat_start;
-            var duration_monophonic = length_beats / notes.length;
-            var beat_current = notes[0].model.note.beat_start;
-            var notes_monophonic = [];
-            var tree = new TreeModel();
-            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
-                var note = notes_1[_i];
-                notes_monophonic.push(tree.parse({
-                    id: -1,
-                    note: new note_1.note.Note(note.model.note.pitch, beat_current, duration_monophonic, note.model.note.velocity, note.model.note.muted),
-                    children: []
-                }));
-                beat_current = beat_current + duration_monophonic;
-            }
-            return notes_monophonic;
-        };
-        return Harmony;
-    }());
-    harmony.Harmony = Harmony;
-})(harmony = exports.harmony || (exports.harmony = {}));
-
-},{"../note/note":17,"tree-model":6,"underscore":7}],17:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
+arguments[4][5][0].apply(exports,arguments)
+},{"../note/note":27,"dup":5,"tree-model":16,"underscore":17}],27:[function(require,module,exports){
+arguments[4][6][0].apply(exports,arguments)
+},{"dup":6}],28:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20364,547 +21335,126 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var note;
-(function (note) {
-    var Note = /** @class */ (function () {
-        function Note(pitch, beat_start, beats_duration, velocity, muted) {
-            this.pitch = Number(pitch);
-            this.beat_start = Number(beat_start);
-            this.beats_duration = Number(beats_duration);
-            this.velocity = Number(velocity);
-            this.muted = Number(muted);
-            this._b_has_chosen = false;
-        }
-        Note.get_overlap_beats = function (beat_start_former, beat_end_former, beat_start_latter, beat_end_latter) {
-            var a = beat_start_former, b = beat_end_former, c = beat_start_latter, d = beat_end_latter;
-            var former_starts_before_latter = (a <= c);
-            var former_ends_before_latter = (b <= d);
-            // TODO: check logic
-            if (former_starts_before_latter && former_ends_before_latter) {
-                return b - c;
-            }
-            else if (former_starts_before_latter && !former_ends_before_latter) {
-                return a - c;
-            }
-            else if (!former_starts_before_latter && !former_ends_before_latter) {
-                return 0;
-            }
-            else if (!former_starts_before_latter && former_ends_before_latter) {
-                return b - a;
-            }
-            throw 'case not considered';
-        };
-        Note.prototype.encode = function () {
-            return this.to_array().join(' ');
-        };
-        // to_json():any {
-        //     return {
-        //         pitch: this.pitch,
-        //         beat_start: this.beat_start,
-        //         beats_duration: this.beats_duration,
-        //         velocity: this.velocity,
-        //         muted: this.muted
-        //     }
-        // }
-        Note.prototype.to_array = function () {
-            return [this.pitch, this.beat_start, this.beats_duration, this.velocity, this.muted];
-        };
-        Note.prototype.get_beat_end = function () {
-            return this.beat_start + this.beats_duration;
-        };
-        Note.prototype.get_interval_beats = function () {
-            return [this.beat_start, this.get_beat_end()];
-        };
-        // TODO: add type of argument and return value
-        Note.prototype.get_best_candidate = function (list_candidate_note) {
-            var beats_overlap, beats_max_overlap, list_candidate_note_max_overlap;
-            list_candidate_note_max_overlap = [];
-            beats_max_overlap = 0;
-            for (var _i = 0, list_candidate_note_1 = list_candidate_note; _i < list_candidate_note_1.length; _i++) {
-                var candidate_note = list_candidate_note_1[_i];
-                beats_overlap = Note.get_overlap_beats(this.beat_start, this.beat_start + this.beats_duration, candidate_note.model.note.beat_start, candidate_note.model.note.beat_start + candidate_note.model.note.beats_duration);
-                if (beats_overlap > beats_max_overlap) {
-                    beats_max_overlap = beats_overlap;
-                    list_candidate_note_max_overlap = [];
-                }
-                if (beats_overlap === beats_max_overlap) {
-                    list_candidate_note_max_overlap.push(candidate_note);
-                }
-            }
-            function compare(note_former, note_latter) {
-                if (note_former.model.note.beat_start < note_latter.model.note.beat_start)
-                    return -1;
-                if (note_former.model.note.beat_start > note_latter.model.note.beat_start)
-                    return 1;
-                return 0;
-            }
-            list_candidate_note_max_overlap.sort(compare);
-            return list_candidate_note_max_overlap[0];
-        };
-        Note.prototype.choose = function () {
-            if (!this._b_has_chosen) {
-                // tree.children[0].appendChild(left_left).appendChild(left_right);
-                // note_parent.addChild(this);
-                this._b_has_chosen = true;
-                return true;
-            }
-            else {
-                return false;
-            }
-        };
-        return Note;
-    }());
-    note.Note = Note;
-    var NoteRenderable = /** @class */ (function (_super) {
-        __extends(NoteRenderable, _super);
-        function NoteRenderable(pitch, beat_start, beats_duration, velocity, muted, coordinates_matrix) {
-            var _this = _super.call(this, pitch, beat_start, beats_duration, velocity, muted) || this;
-            _this.coordinates_matrix = coordinates_matrix;
-            return _this;
-        }
-        NoteRenderable.prototype.get_coordinates_matrix = function () {
-            return this.coordinates_matrix;
-        };
-        return NoteRenderable;
-    }(Note));
-    note.NoteRenderable = NoteRenderable;
-    var NoteIterator = /** @class */ (function () {
-        function NoteIterator(notes, direction_forward) {
-            this.notes = notes;
-            this.direction_forward = direction_forward;
-            this.i = -1;
-        }
-        // TODO: type declarations
-        NoteIterator.prototype.next = function () {
-            var value_increment = (this.direction_forward) ? 1 : -1;
-            this.i += value_increment;
-            if (this.i < 0) {
-                throw 'note iterator < 0';
-            }
-            if (this.i < this.notes.length) {
-                return {
-                    value: this.notes[this.i],
-                    done: false
-                };
-            }
-            else {
-                return {
-                    value: null,
-                    done: true
-                };
-            }
-        };
-        NoteIterator.prototype.current = function () {
-            if (this.i > -1) {
-                return this.notes[this.i];
-            }
-            else {
-                return null;
-            }
-        };
-        return NoteIterator;
-    }());
-    note.NoteIterator = NoteIterator;
-})(note = exports.note || (exports.note = {}));
-
-},{}],18:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var note_1 = require("../note/note");
-var TreeModel = require("tree-model");
+var algorithm_1 = require("../train/algorithm");
+var iterate_1 = require("../train/iterate");
 var _ = require("underscore");
 var parse;
 (function (parse) {
+    var PARSE = algorithm_1.algorithm.PARSE;
+    var DERIVE = algorithm_1.algorithm.DERIVE;
+    var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var ParseTree = /** @class */ (function () {
-        function ParseTree(note, coordinates_matrix) {
-            var tree = new TreeModel();
-            // let splitted = messages[i_mess].split(' ');
-            this.root = tree.parse({
-                id: -1,
-                note: new note_1.note.NoteRenderable(
-                // Number(splitted[0]),
-                // Number(splitted[1]),
-                // Number(splitted[2]),
-                // Number(splitted[3]),
-                // Number(splitted[4]),
-                // coordinates_matrix
-                note.model.note.pitch, note.model.note.beat_start, note.model.note.beats_duration, note.model.note.velocity, note.model.note.muted, coordinates_matrix),
-                children: []
-            });
+        function ParseTree() {
         }
-        // // TODO: we actually have to implement
-        // public static add(input_user, list_parse_tree, iterator_matrix_train): ParseTree[] {
-        //     let coord = iterator_matrix_train.get_coord_current()
-        //     return
-        // }
-        //
-        // private static get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
-        //     let same_start, same_duration, index_start_diff;
-        //     for (let i=0; i < notes_old.length; i++) {
-        //         same_start = (notes_old[i].model.note.beat_start === notes_new[i].model.note.beat_start);
-        //         same_duration = (notes_old[i].model.note.beats_duration === notes_new[i].model.note.beats_duration);
-        //         if (!(same_start && same_duration)) {
-        //             index_start_diff = i;
-        //             break;
-        //         }
-        //     }
-        //
-        //     return index_start_diff;
-        // }
-        //
-        // private static get_diff_index_end(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
-        //     let same_start, same_duration, index_end_diff;
-        //     for (let i=-1; i > -1 * (notes_new.length + 1); i--) {
-        //         same_start = (notes_new.slice(i)[0].model.note.beat_start === notes_old.slice(i)[0].model.note.beat_start);
-        //         same_duration = (notes_new.slice(i)[0].model.note.beats_duration === notes_old.slice(i)[0].model.note.beats_duration);
-        //         if (!(same_start && same_duration)) {
-        //             index_end_diff = i;
-        //             break;
-        //         }
-        //     }
-        //
-        //     // NB: add one in order to use with array slice, unless of course the index is -1, then you'll access the front of the array
-        //     return index_end_diff;
-        // }
-        //
-        // // TODO: complete return method signature
-        // get_diff_index_notes(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): number[] {
-        //     return [
-        //         ParseTree.get_diff_index_start(notes_child, notes_parent),
-        //         ParseTree.get_diff_index_end(notes_child, notes_parent)
-        //     ];
-        // };
-        //
         ParseTree.prototype.get_root = function () {
-            return;
-        };
-        ParseTree.add = function (input_user, list_parse_tree, iterator_matrix_train) {
-            return;
+            return this.root;
         };
         return ParseTree;
     }());
-    parse.ParseTree = ParseTree;
+    var StructParse = /** @class */ (function (_super) {
+        __extends(StructParse, _super);
+        function StructParse(matrix) {
+            var _this = _super.call(this) || this;
+            _this.matrix_leaves = matrix;
+            return _this;
+        }
+        StructParse.prototype.get_roots_at_coord = function (coord) {
+            return this.matrix_leaves[coord[0]][coord[1]];
+        };
+        StructParse.get_diff_index_start = function (notes_new, notes_old) {
+            var same_start, same_duration, index_start_diff;
+            for (var i = 0; i < notes_old.length; i++) {
+                same_start = (notes_old[i].model.note.beat_start === notes_new[i].model.note.beat_start);
+                same_duration = (notes_old[i].model.note.beats_duration === notes_new[i].model.note.beats_duration);
+                if (!(same_start && same_duration)) {
+                    index_start_diff = i;
+                    break;
+                }
+            }
+            return index_start_diff;
+        };
+        StructParse.get_diff_index_end = function (notes_new, notes_old) {
+            var same_start, same_duration, index_end_diff;
+            for (var i = -1; i > -1 * (notes_new.length + 1); i--) {
+                same_start = (notes_new.slice(i)[0].model.note.beat_start === notes_old.slice(i)[0].model.note.beat_start);
+                same_duration = (notes_new.slice(i)[0].model.note.beats_duration === notes_old.slice(i)[0].model.note.beats_duration);
+                if (!(same_start && same_duration)) {
+                    index_end_diff = i;
+                    break;
+                }
+            }
+            // NB: add one in order to use with array slice, unless of course the index is -1, then you'll access the front of the array
+            return index_end_diff;
+        };
+        // TODO: complete return method signature
+        StructParse.prototype.get_diff_index_notes = function (notes_parent, notes_child) {
+            return [
+                StructParse.get_diff_index_start(notes_child, notes_parent),
+                StructParse.get_diff_index_end(notes_child, notes_parent)
+            ];
+        };
+        ;
+        StructParse.prototype.finish = function () {
+            for (var _i = 0, _a = this.matrix_leaves[0]; _i < _a.length; _i++) {
+                var col = _a[_i];
+                for (var _b = 0, col_1 = col; _b < col_1.length; _b++) {
+                    var notes = col_1[_b];
+                    // @ts-ignore
+                    for (var _c = 0, notes_1 = notes; _c < notes_1.length; _c++) {
+                        var note_1 = notes_1[_c];
+                        this.add_layer([this.root], note_1, -1);
+                    }
+                }
+            }
+        };
+        StructParse.prototype.add = function (notes_user_input, coord_notes_current, algorithm) {
+            var coord_notes_previous;
+            this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input;
+            switch (algorithm.get_name()) {
+                case PARSE: {
+                    coord_notes_previous = MatrixIterator.get_coord_above([coord_notes_current[0], coord_notes_current[1]]);
+                    var notes_below = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
+                    var notes_children = notes_below;
+                    this.add_layer(notes_user_input, notes_children, -1);
+                    break;
+                }
+                case DERIVE: {
+                    coord_notes_previous = MatrixIterator.get_coord_below([coord_notes_current[0], coord_notes_current[1]]);
+                    var notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
+                    var notes_parent = notes_above;
+                    this.add_layer(notes_parent, notes_user_input, -1);
+                    break;
+                }
+                default: {
+                    throw 'adding notes to parse tree failed';
+                }
+            }
+            // remove references to old leaves
+            this.coords_roots = this.coords_roots.filter(function (x) {
+                return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1]);
+            });
+            // add references to new leaves
+            this.coords_roots.push(coord_notes_current);
+        };
+        StructParse.prototype.add_layer = function (notes_parent, notes_child, index_new_layer) {
+            var note_parent_best, b_successful;
+            for (var _i = 0, notes_child_1 = notes_child; _i < notes_child_1.length; _i++) {
+                var node = notes_child_1[_i];
+                note_parent_best = node.model.note.get_best_candidate(notes_parent);
+                b_successful = node.model.note.choose();
+                if (b_successful) {
+                    node.model.id = index_new_layer;
+                    note_parent_best.addChild(node);
+                }
+            }
+        };
+        ;
+        return StructParse;
+    }(ParseTree));
+    parse.StructParse = StructParse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../note/note":17,"tree-model":6,"underscore":7}],19:[function(require,module,exports){
-"use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-var _ = require("lodash");
-var window;
-(function (window) {
-    var red = [255, 0, 0];
-    var black = [0, 0, 0];
-    var Window = /** @class */ (function () {
-        function Window(height, width, messenger) {
-            this.beat_to_pixel = function (beat) {
-                var num_pixels_width = this.width;
-                // var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
-                // let num_beats_window = this.num_measures * this.beats_per_measure;
-                return beat * (num_pixels_width / this.length_beats);
-            };
-            this.height = height;
-            this.width = width;
-            this.messenger = messenger;
-        }
-        Window.prototype.clear = function () {
-            var msg_clear = ["clear"];
-            // msg_clear.unshift('render');
-            this.messenger.message(msg_clear);
-        };
-        // public set_num_measures(num_measures) {
-        //     this.num_measures = num_measures;
-        // }
-        Window.prototype.set_length_beats = function (beats) {
-            this.length_beats = beats;
-        };
-        Window.prototype.add = function (notes) {
-        };
-        Window.prototype.get_messages_render_notes = function (coord_clip) {
-            // var clip = this.clips[index_clip];
-            var clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
-            var quadruplets = [];
-            for (var _i = 0, _a = clip_virtual.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
-                var node = _a[_i];
-                quadruplets.push(this.get_position_quadruplet(node, coord_clip));
-            }
-            return quadruplets.map(function (tuplet) {
-                var message = ["paintrect"].concat(tuplet);
-                message = message.concat(black);
-                return message;
-            });
-        };
-        ;
-        Window.prototype.get_position_quadruplet = function (node, coord_clip) {
-            var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
-            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
-            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
-            return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom];
-        };
-        ;
-        Window.prototype.get_dist_from_top = function (pitch, coord_clip) {
-            // var clip = this.clips[index_clip];
-            var clip = this.matrix_clips[coord_clip[0]][coord_clip[1]];
-            // let offset = index_clip;
-            var offset = coord_clip[0];
-            // TODO: make this configurable
-            if (false) {
-                // offset = this.clips.length - 1 - index_clip;
-                // offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
-                offset = this.matrix_clips.length - 1 - coord_clip[0];
-            }
-            var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(coord_clip);
-            return dist + (this.get_height_clip() * offset);
-        };
-        ;
-        Window.prototype.get_dist_from_left = function (beat) {
-            return this.beat_to_pixel(beat);
-        };
-        ;
-        Window.prototype.get_offset_pixel_leftmost = function () {
-            return 0;
-        };
-        Window.prototype.get_offset_pixel_topmost = function () {
-            return 0;
-        };
-        Window.prototype.get_offset_pixel_rightmost = function () {
-            return this.width;
-        };
-        Window.prototype.get_offset_pixel_bottommost = function () {
-            return this.height;
-        };
-        Window.prototype.get_height_clip = function () {
-            return this.height / this.matrix_clips.length;
-        };
-        ;
-        Window.prototype.get_height_note = function (coord_clip) {
-            var ambitus = this.get_ambitus(coord_clip);
-            var dist_pitch = ambitus[1] - ambitus[0] + 1;
-            return this.get_height_clip() / dist_pitch;
-        };
-        ;
-        Window.prototype.get_ambitus = function (coord_clips) {
-            return this.matrix_clips[coord_clips[0]][coord_clips[1]].get_ambitus();
-        };
-        ;
-        return Window;
-    }());
-    window.Window = Window;
-    var ListWindow = /** @class */ (function (_super) {
-        __extends(ListWindow, _super);
-        function ListWindow(height, width, messenger) {
-            return _super.call(this, height, width, messenger) || this;
-        }
-        ListWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, history_user_input, algorithm) {
-            this.clear();
-            this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm);
-            this.render_notes(history_user_input);
-        };
-        ListWindow.prototype.get_message_render_region_past = function (interval_current) {
-            var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
-            offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());
-            offset_left_end = this.get_dist_from_left(interval_current[0]);
-            offset_top_start = this.get_offset_pixel_topmost();
-            offset_top_end = this.get_offset_pixel_bottommost();
-            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
-        };
-        ListWindow.prototype.get_message_render_region_present = function (interval_current) {
-            var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
-            offset_left_start = this.get_dist_from_left(interval_current[0]);
-            offset_left_end = this.get_dist_from_left(interval_current[1]);
-            offset_top_start = this.get_offset_pixel_topmost();
-            offset_top_end = this.get_offset_pixel_bottommost();
-            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
-        };
-        ListWindow.prototype.get_message_render_region_future = function (interval_current) {
-            var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
-            offset_left_start = this.get_dist_from_left(interval_current[1]);
-            offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
-            offset_top_start = this.get_offset_pixel_topmost();
-            offset_top_end = this.get_offset_pixel_bottommost();
-            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
-        };
-        ListWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator, algorithm) {
-            // this.get_dist_from_left(0);
-            // let clip_virtual = this.matrix_clips[coord_clip[0]][coord_clip[1]];
-            // let quadruplets = [];
-            // for (let node of clip_virtual.get_notes_within_loop_brackets()) {
-            //     quadruplets.push(this.get_position_quadruplet(node, coord_clip));
-            // }
-            // return quadruplets.map(function (tuplet) {
-            //     let message = <any>["paintrect"].concat(tuplet);
-            //     message = message.concat(black);
-            //     return message;
-            // })
-            var coord = iterator_matrix_train.get_coord_current();
-            var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-            var interval_current = algorithm.determine_region_present(target_iterator.get_notes());
-            var quadruplet_region_past = this.get_message_render_region_past(interval_current);
-            var quadruplet_region_present = this.get_message_render_region_present(interval_current);
-            var quadruplet_region_future = this.get_message_render_region_future(interval_current);
-            for (var _i = 0, _a = [quadruplet_region_past, quadruplet_region_present, quadruplet_region_future]; _i < _a.length; _i++) {
-                var quadruplet = _a[_i];
-                quadruplet.unshift('paintrect');
-                this.messenger.message(quadruplet);
-            }
-            return;
-        };
-        ListWindow.prototype.render_notes = function (history_user_input) {
-            return;
-        };
-        return ListWindow;
-    }(Window));
-    window.ListWindow = ListWindow;
-    var MatrixClip = /** @class */ (function () {
-        function MatrixClip() {
-        }
-        return MatrixClip;
-    }());
-    var TreeWindow = /** @class */ (function (_super) {
-        __extends(TreeWindow, _super);
-        // matrix_clips: LiveClipVirtual[][];
-        function TreeWindow(height, width, messenger) {
-            return _super.call(this, height, width, messenger) || this;
-            // this.struct = new struct.StructList();
-        }
-        TreeWindow.set_parent_child_relationships = function () {
-        };
-        // public render(list_parse_tree, matrix_history) {
-        //     this.clear()
-        //
-        // }
-        TreeWindow.prototype.render = function (list_parse_tree, matrix_history) {
-            this.clear();
-            var messages_regions = this.render_regions(matrix_history);
-            var messages_notes = this.render_notes(matrix_history);
-            var messages_tree = this.render_tree();
-            // let msg_clear = ["clear"];
-            // msg_clear.unshift('render');
-            // this.messenger.message(msg_clear);
-            // for (let message of messages_regions) {
-            //     message.unshift('render');
-            //     this.messenger.message(message);
-            // }
-            //
-            // for (let message of messages_notes) {
-            //     message.unshift('render');
-            //     this.messenger.message(message);
-            // }
-            //
-            // for (let message of messages_tree) {
-            //     message.unshift('render');
-            //     this.messenger.message(message);
-            // }
-        };
-        TreeWindow.prototype.render_regions = function (iterator_matrix_train) {
-            // determine the coordinates of the last null region (assuming we're working forward)
-        };
-        TreeWindow.prototype.render_notes = function (history_user_input) {
-            // for all non null clips, render
-        };
-        TreeWindow.prototype.render_trees = function (list_parse_trees) {
-            var _this = this;
-            var color;
-            var messages = [];
-            var message;
-            for (var _i = 0, list_parse_trees_1 = list_parse_trees; _i < list_parse_trees_1.length; _i++) {
-                var parse_tree = list_parse_trees_1[_i];
-                var root = parse_tree.get_root();
-                root.walk(function (node) {
-                    if (node.hasChildren()) {
-                        var coords = node.model.note.get_coordinates_matrix();
-                        for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
-                            var child = _a[_i];
-                            message = [
-                                "linesegment",
-                                _this.get_centroid(child)[0],
-                                _this.get_centroid(child)[1],
-                                _this.get_centroid(node)[0],
-                                _this.get_centroid(node)[1]
-                            ];
-                            color = red;
-                            messages.push(message.concat(color));
-                        }
-                    }
-                    return true;
-                });
-            }
-            return messages;
-        };
-        // TODO: implement
-        TreeWindow.prototype.render_note = function (note, coord) {
-        };
-        // TODO: make node have indices to both clip and note
-        TreeWindow.prototype.get_centroid = function (node) {
-            var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
-            // let index_clip = node.model.id;
-            var coord_clip = node.model.note.get_coordinates_matrix();
-            // TODO: determine how to get the index of the clip from just depth of the node
-            dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
-            dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
-            return [
-                dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
-                dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
-            ];
-        };
-        ;
-        // TODO: elaboration won't always
-        TreeWindow.prototype.get_order_of_note_at_beat_start = function (notes, beat_start) {
-            return _.findIndex(notes, function (node) {
-                return node.model.note.beat_start === beat_start;
-            });
-        };
-        TreeWindow.prototype.get_order_of_note_at_beat_end = function (notes, beat_end) {
-            return _.findIndex(notes, function (node) {
-                return node.model.note.get_beat_end() === beat_end;
-            });
-        };
-        TreeWindow.prototype.get_interval_beats = function (notes) {
-            return [
-                notes[0].model.note.beat_start,
-                notes[notes.length - 1].model.note.get_beat_end()
-            ];
-        };
-        TreeWindow.prototype.render_tree = function () {
-            var messages = this.get_messages_render_tree();
-            for (var i = 0; i < messages.length; i++) {
-                this.messenger.message(messages[i]);
-            }
-        };
-        ;
-        // render_clips(): void {
-        //     var messages = this.get_messages_render_clips();
-        //     for (var i=0; i < messages.length; i++) {
-        //         this.messenger.message(
-        //             messages[i]
-        //         )
-        //     }
-        // };
-        TreeWindow.prototype.get_messages_render_tree = function () {
-            return [];
-        };
-        return TreeWindow;
-    }(Window));
-    window.TreeWindow = TreeWindow;
-})(window = exports.window || (exports.window = {}));
-
-},{"lodash":4}],20:[function(require,module,exports){
+},{"../train/algorithm":32,"../train/iterate":33,"underscore":17}],29:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -20981,9 +21531,10 @@ var segment;
     segment.SegmentIterator = SegmentIterator;
 })(segment = exports.segment || (exports.segment = {}));
 
-},{"../clip/clip":8,"../live/live":13}],21:[function(require,module,exports){
+},{"../clip/clip":18,"../live/live":23}],30:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
 var trainer_1 = require("../train/trainer");
 var file_1 = require("../io/file");
@@ -21043,15 +21594,16 @@ var freeze;
     var to_json = file_1.file.to_json;
     var TrainFreezer = /** @class */ (function () {
         function TrainFreezer(env) {
+            this.env = env;
         }
-        TrainFreezer.prototype.freeze = function (trainer, filepath, env) {
+        TrainFreezer.prototype.freeze = function (trainer, filepath) {
             var data_serializable = trainer.history_user_input.matrix_data;
             for (var i_row in trainer.history_user_input.matrix_data) {
                 for (var i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
                     data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]);
                 }
             }
-            to_json(data_serializable, filepath, env);
+            to_json(data_serializable, filepath, this.env);
         };
         return TrainFreezer;
     }());
@@ -21060,26 +21612,51 @@ var freeze;
 var thaw;
 (function (thaw) {
     var Trainer = trainer_1.trainer.Trainer;
-    var deserialize_target_sequence = serialize.deserialize_target_sequence;
     var from_json = file_1.file.from_json;
+    var Note = note_1.note.Note;
     var TrainThawer = /** @class */ (function () {
         function TrainThawer(env) {
         }
         TrainThawer.prototype.thaw = function (filepath, config) {
             var matrix_deserialized = from_json(filepath, config['env']);
-            for (var i_row in matrix_deserialized) {
-                for (var i_col in matrix_deserialized[Number(i_row)]) {
-                    matrix_deserialized[Number(i_row)][Number(i_col)] = deserialize_target_sequence(matrix_deserialized[Number(i_row)][Number(i_col)]);
+            var notes = [];
+            for (var _i = 0, matrix_deserialized_1 = matrix_deserialized; _i < matrix_deserialized_1.length; _i++) {
+                var row = matrix_deserialized_1[_i];
+                for (var _a = 0, row_1 = row; _a < row_1.length; _a++) {
+                    var col = row_1[_a];
+                    if (col === null) {
+                        continue;
+                    }
+                    for (var _b = 0, col_1 = col; _b < col_1.length; _b++) {
+                        var sequence_target = col_1[_b];
+                        for (var _c = 0, _d = sequence_target.iterator_subtarget.subtargets; _c < _d.length; _c++) {
+                            var note_2 = _d[_c];
+                            notes.push(note_2);
+                        }
+                    }
                 }
             }
-            return new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_target_virtual'], config['song'], config['segments'], config['messenger']);
+            var notes_parsed = notes.map(function (obj) { return JSON.parse(obj.note); });
+            var trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_target_virtual'], config['song'], config['segments'], config['messenger']);
+            trainer.init();
+            var tree = new TreeModel();
+            for (var _e = 0, notes_parsed_1 = notes_parsed; _e < notes_parsed_1.length; _e++) {
+                var note_parsed = notes_parsed_1[_e];
+                var note_recovered = tree.parse({
+                    id: -1,
+                    note: new Note(note_parsed.note.pitch, note_parsed.note.beat_start, note_parsed.note.beats_duration, note_parsed.note.velocity, note_parsed.note.b_muted),
+                    children: []
+                });
+                trainer.accept_input([note_recovered]);
+            }
+            return trainer;
         };
         return TrainThawer;
     }());
     thaw.TrainThawer = TrainThawer;
 })(thaw = exports.thaw || (exports.thaw = {}));
 
-},{"../io/file":12,"../train/trainer":24,"tree-model":6}],22:[function(require,module,exports){
+},{"../io/file":22,"../note/note":27,"../train/trainer":34,"tree-model":16}],31:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {Segment} from "../segment/segment";
@@ -21353,366 +21930,32 @@ var target;
     // }
 })(target = exports.target || (exports.target = {}));
 
-},{}],23:[function(require,module,exports){
-"use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-var harmony_1 = require("../music/harmony");
-var constants_1 = require("../constants/constants");
-var algorithm;
-(function (algorithm) {
-    algorithm.DETECT = 'detect';
-    algorithm.PREDICT = 'predict';
-    algorithm.PARSE = 'parse';
-    algorithm.DERIVE = 'derive';
-    // import TargetType = target.TargetType;
-    var Harmony = harmony_1.harmony.Harmony;
-    var POLYPHONY = constants_1.modes_texture.POLYPHONY;
-    var MONOPONY = constants_1.modes_texture.MONOPONY;
-    var Targeted = /** @class */ (function () {
-        function Targeted(user_input_handler) {
-            this.user_input_handler = user_input_handler;
-        }
-        Targeted.prototype.b_targeted = function () {
-            return true;
-        };
-        return Targeted;
-    }());
-    var Parsed = /** @class */ (function () {
-        function Parsed() {
-        }
-        Parsed.prototype.b_targeted = function () {
-            return false;
-        };
-        return Parsed;
-    }());
-    var Detect = /** @class */ (function (_super) {
-        __extends(Detect, _super);
-        function Detect(user_input_handler) {
-            return _super.call(this, user_input_handler) || this;
-        }
-        Detect.prototype.get_depth = function () {
-            return 1;
-        };
-        Detect.prototype.get_name = function () {
-            return algorithm.DETECT;
-        };
-        Detect.prototype.determine_targets = function (notes_segment_next) {
-            if (this.user_input_handler.mode_texture === POLYPHONY) {
-                var chords_grouped = Harmony.group(notes_segment_next);
-                var chords_monophonified = [];
-                for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
-                    var chord = chords_grouped_1[_i];
-                    var notes_monophonified = Harmony.monophonify(chord);
-                    chords_monophonified.push(notes_monophonified);
-                }
-                return chords_monophonified;
-            }
-            else if (this.user_input_handler.mode_texture === MONOPONY) {
-                var notes_grouped_trivial = [];
-                for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
-                    var note_1 = notes_segment_next_1[_a];
-                    notes_grouped_trivial.push(note_1);
-                }
-                // Subtarget -> Subtarget Iterator -> Target -> Target Iterator
-                return notes_grouped_trivial;
-            }
-            else {
-                throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
-            }
-        };
-        Detect.prototype.determine_region_present = function (notes_target_next) {
-            return [
-                notes_target_next[0].model.note.beat_start,
-                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-            ];
-        };
-        // // set right interval
-        // determine_region_past(notes_target_next): number {
-        //     return notes_target_next[0].model.note.beat_start
-        // }
-        //
-        // // set left interval
-        // determine_region_upcoming(notes_target_next): number {
-        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        // }
-        Detect.prototype.pre_advance = function (clip_user_input) {
-        };
-        Detect.prototype.post_init = function (song, clip_user_input) {
-            clip_user_input.fire();
-        };
-        return Detect;
-    }(Targeted));
-    algorithm.Detect = Detect;
-    var Predict = /** @class */ (function (_super) {
-        __extends(Predict, _super);
-        function Predict() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        Predict.prototype.get_name = function () {
-            return algorithm.PREDICT;
-        };
-        Predict.prototype.get_depth = function () {
-            return 1;
-        };
-        // TODO: put all calls to Clip in whatever class is a client to algorithms
-        // NB: there can be multiple targets per segment
-        // TODO: replace the notes in clip_target with these
-        Predict.prototype.determine_targets = function (notes_segment_next) {
-            if (this.user_input_handler.mode_texture === POLYPHONY) {
-                var chords_grouped = Harmony.group(notes_segment_next);
-                var chords_monophonified = [];
-                for (var _i = 0, chords_grouped_2 = chords_grouped; _i < chords_grouped_2.length; _i++) {
-                    var note_group = chords_grouped_2[_i];
-                    chords_monophonified.push(Harmony.monophonify(note_group));
-                }
-                return chords_monophonified;
-            }
-            else if (this.user_input_handler.mode_texture === MONOPONY) {
-                var notes_grouped_trivial = [];
-                for (var _a = 0, notes_segment_next_2 = notes_segment_next; _a < notes_segment_next_2.length; _a++) {
-                    var note_2 = notes_segment_next_2[_a];
-                    notes_grouped_trivial.push(note_2);
-                }
-                return notes_grouped_trivial;
-            }
-            else {
-                throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
-            }
-        };
-        Predict.prototype.determine_region_present = function (notes_target_next) {
-            return [
-                notes_target_next[0].model.note.beat_start,
-                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-            ];
-        };
-        // set right interval
-        // determine_region_past(notes_target_next): number {
-        //     return notes_target_next[0].model.note.beat_start
-        // }
-        //
-        // // set left interval
-        // determine_region_upcoming(notes_target_next): number {
-        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        // }
-        Predict.prototype.pre_advance = function () {
-            //
-        };
-        return Predict;
-    }(Targeted));
-    algorithm.Predict = Predict;
-    var Parse = /** @class */ (function (_super) {
-        __extends(Parse, _super);
-        function Parse() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        Parse.prototype.get_name = function () {
-            return algorithm.PARSE;
-        };
-        Parse.prototype.get_depth = function () {
-            return this.depth;
-        };
-        Parse.prototype.set_depth = function (depth) {
-            this.depth = depth;
-        };
-        // happens after loop of first target is set
-        Parse.prototype.post_init = function (song, clip_user_input) {
-            song.set_overdub(1);
-            song.set_session_record(1);
-            clip_user_input.fire();
-        };
-        // happens after last target is guessed
-        Parse.prototype.pre_terminate = function (song, clip_user_input) {
-            song.set_overdub(0);
-            song.set_session_record(0);
-            clip_user_input.stop();
-        };
-        Parse.prototype.determine_region_present = function (notes_target_next) {
-            return [
-                notes_target_next[0].model.note.beat_start,
-                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-            ];
-        };
-        return Parse;
-    }(Parsed));
-    algorithm.Parse = Parse;
-    var Derive = /** @class */ (function (_super) {
-        __extends(Derive, _super);
-        function Derive() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        Derive.prototype.get_name = function () {
-            return algorithm.DERIVE;
-        };
-        Derive.prototype.get_depth = function () {
-            return this.depth;
-        };
-        Derive.prototype.set_depth = function (depth) {
-            this.depth = depth;
-        };
-        // happens after loop of first target is set
-        Derive.prototype.post_init = function (song, clip_user_input) {
-            song.set_overdub(1);
-            song.set_session_record(1);
-            clip_user_input.fire();
-        };
-        // happens after last target is guessed
-        Derive.prototype.pre_terminate = function (song, clip_user_input) {
-            song.set_overdub(0);
-            song.set_session_record(0);
-            clip_user_input.stop();
-        };
-        Derive.prototype.determine_region_present = function (notes_target_next) {
-            return [
-                notes_target_next[0].model.note.beat_start,
-                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-            ];
-        };
-        // // set right interval
-        // determine_region_past(notes_target_next): number {
-        //     return notes_target_next[0].model.note.beat_start
-        // }
-        //
-        // // set left interval
-        // determine_region_upcoming(notes_target_next): number {
-        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        // }
-        Derive.prototype.accept = function (elaboration, i_depth, i_breadth) {
-            // if (index_layer + 1 > this.clips.length) {
-            //     let clip_dao_virtual = new LiveClipVirtual(elaboration);
-            //
-            //     clip_dao_virtual.beat_start = elaboration[0].model.note.beat_start;
-            //     clip_dao_virtual.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
-            //
-            //     let clip_virtual = new c.Clip(clip_dao_virtual);
-            //     this.add_clsip(clip_virtual);
-            // } else {
-            //     let clip_last = this.clips[this.clips.length - 1];
-            //     clip_last.clip_dao.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
-            //     clip_last.set_notes(elaboration);
-            // }
-            //
-            // let leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
-            //
-            // if (index_layer == 1) {
-            //     this.add_first_layer(elaboration, this.clips.length - 1)
-            // } else {
-            //     this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
-            // }
-            //
-            // this.update_leaves(leaves_within_interval);
-        };
-        return Derive;
-    }(Parsed));
-    algorithm.Derive = Derive;
-})(algorithm = exports.algorithm || (exports.algorithm = {}));
-
-},{"../constants/constants":9,"../music/harmony":16}],24:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
+arguments[4][9][0].apply(exports,arguments)
+},{"../constants/constants":19,"../music/harmony":26,"dup":9}],33:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"../utils/utils":35,"./algorithm":32,"dup":10}],34:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// import {parse_matrix, pwindow} from "../scripts/parse_tree";
 var algorithm_1 = require("./algorithm");
 var history_1 = require("../history/history");
 var target_1 = require("../target/target");
 var parse_1 = require("../parse/parse");
-var utils_1 = require("../utils/utils");
+var iterate_1 = require("./iterate");
 var _ = require('underscore');
 var l = require('lodash');
 var trainer;
 (function (trainer) {
-    // import TargetType = target.TargetType;
+    var HistoryUserInput = history_1.history.HistoryUserInput;
     var TargetIterator = target_1.target.TargetIterator;
-    var ParseTree = parse_1.parse.ParseTree;
-    var division_int = utils_1.utils.division_int;
-    var remainder = utils_1.utils.remainder;
     var PARSE = algorithm_1.algorithm.PARSE;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var DETECT = algorithm_1.algorithm.DETECT;
     var PREDICT = algorithm_1.algorithm.PREDICT;
-    var FactoryHistoryUserInput = history_1.history.FactoryHistoryUserInput;
-    var MatrixIterator = /** @class */ (function () {
-        function MatrixIterator(num_rows, num_columns) {
-            this.num_rows = num_rows;
-            this.num_columns = num_columns;
-            this.i = -1;
-        }
-        MatrixIterator.prototype.next_row = function () {
-            this.i = this.i + this.num_columns;
-        };
-        MatrixIterator.prototype.next_column = function () {
-            this.i = this.i + 1;
-        };
-        MatrixIterator.prototype.next = function () {
-            var value = null;
-            this.next_column();
-            if (this.i === this.num_columns * this.num_rows + 1) {
-                return {
-                    value: value,
-                    done: true
-                };
-            }
-            return {
-                value: this.get_coord_current(),
-                done: false
-            };
-        };
-        MatrixIterator.prototype.get_coord_current = function () {
-            // let pos_row = division_int(this.i + 1, this.num_columns);
-            // let pos_column = remainder(this.i + 1, this.num_columns);
-            var pos_row = division_int(this.i, this.num_columns);
-            var pos_column = remainder(this.i, this.num_columns);
-            return [pos_row, pos_column];
-        };
-        return MatrixIterator;
-    }());
-    trainer.MatrixIterator = MatrixIterator;
-    var IteratorTrainFactory = /** @class */ (function () {
-        function IteratorTrainFactory() {
-        }
-        IteratorTrainFactory.get_iterator_train = function (algorithm, segments) {
-            var iterator;
-            switch (algorithm.get_name()) {
-                case algorithm_1.algorithm.DETECT: {
-                    iterator = new MatrixIterator(1, segments.length);
-                    break;
-                }
-                case algorithm_1.algorithm.PREDICT: {
-                    iterator = new MatrixIterator(1, segments.length);
-                    break;
-                }
-                case algorithm_1.algorithm.PARSE: {
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
-                    break;
-                }
-                case algorithm_1.algorithm.DERIVE: {
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length);
-                    break;
-                }
-                default: {
-                    throw ['algorithm of name', algorithm.get_name(), 'not supported'].join(' ');
-                }
-            }
-            return iterator;
-        };
-        return IteratorTrainFactory;
-    }());
+    var StructParse = parse_1.parse.StructParse;
+    var FactoryMatrixTargetIterator = iterate_1.iterate.FactoryMatrixTargetIterator;
+    var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var Trainer = /** @class */ (function () {
-        // window is either tree or list
-        // mode is either harmonic or melodic
-        // algorithm is either detect, predict, parse, or derive
-        // history
         function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_target, song, segments, messenger) {
             this.window = window;
             this.algorithm = algorithm;
@@ -21721,65 +21964,70 @@ var trainer;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
-            this.history_user_input = FactoryHistoryUserInput.create_history_user_input(this.algorithm, this.segments);
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
-            this.matrix_target_iterator = l.cloneDeep(this.history_user_input.matrix_data);
+            this.matrix_focus = FactoryMatrixTargetIterator.create_matrix_focus(this.algorithm, this.segments);
+            this.history_user_input = new HistoryUserInput(l.cloneDeep(this.matrix_focus));
+            this.window.initialize_clips(this.algorithm, this.segments);
+            this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
             if (this.algorithm.b_targeted()) {
                 this.create_targets();
             }
             else {
-                this.create_parse_trees();
+                this.struct_parse = new StructParse(l.cloneDeep(this.matrix_focus));
+                this.initialize_struct_parse();
             }
-            this.initialize_window();
         }
-        Trainer.prototype.initialize_window = function () {
-            this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
-        };
-        Trainer.prototype.create_parse_trees = function () {
-            var list_parse_tree = [];
+        Trainer.prototype.initialize_struct_parse = function () {
+            var note_root = this.segments[0].get_note();
+            this.struct_parse.root = note_root;
+            this.window.add_note_to_clip_root(note_root);
+            // set first layer, which are the various key center estimates
+            for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
+                var i_segment = _a[_i];
+                var segment_1 = this.segments[Number(i_segment)];
+                var note = segment_1.get_note();
+                var coord_current_virtual = [0, Number(i_segment)];
+                // TODO: can we make a function to simultaneous add to all 3 of struct parse, history user input, and window?
+                this.struct_parse.matrix_leaves[coord_current_virtual[0]][coord_current_virtual[1]] = [note];
+                this.window.add_notes_to_clip(note, coord_current_virtual);
+            }
             switch (this.algorithm.get_name()) {
                 case PARSE: {
-                    for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
-                        var segment_1 = _a[_i];
-                        var notes = this.clip_user_input.get_notes(segment_1.beat_start, 0, segment_1.beat_end - segment_1.beat_start, 128);
-                        for (var _b = 0, notes_1 = notes; _b < notes_1.length; _b++) {
-                            var note = notes_1[_b];
-                            list_parse_tree.push(new ParseTree(note, this.algorithm.get_depth()));
-                        }
+                    for (var _b = 0, _c = this.segments; _b < _c.length; _b++) {
+                        var i_segment = _c[_b];
+                        var segment_2 = this.segments[Number(i_segment)];
+                        var notes = this.clip_user_input.get_notes(segment_2.beat_start, 0, segment_2.beat_end - segment_2.beat_start, 128);
+                        this.struct_parse.matrix_leaves[this.algorithm.get_depth() - 1][Number(i_segment)] = notes;
                     }
                     break;
                 }
                 case DERIVE: {
-                    var note = this.segments[0].get_note();
-                    list_parse_tree.push(new ParseTree(note, this.algorithm.get_depth()));
+                    //  TODO: anything?
                     break;
                 }
                 default: {
                     throw ['algorithm of name', this.algorithm.get_name(), 'not supported'].join(' ');
                 }
             }
-            return list_parse_tree;
         };
         // now we can assume we have a list instead of a matrix
         Trainer.prototype.create_targets = function () {
             this.clip_target.load_notes_within_markers();
-            // let segment_targetable: SegmentTargetable;
-            // let iterators_target: TargetIterator[] = [];
             for (var i_segment in this.segments) {
                 var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(this.segments[Number(i_segment)].beat_start, 0, this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start, 128));
-                this.matrix_target_iterator[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
+                this.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             }
         };
         Trainer.prototype.clear_window = function () {
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            this.window.render(this.iterator_matrix_train, this.matrix_target_iterator, this.history_user_input, this.algorithm);
+            this.window.render(this.iterator_matrix_train, this.matrix_focus, this.algorithm, this.struct_parse);
         };
         Trainer.prototype.reset_user_input = function () {
             if (_.contains([DETECT, PREDICT], this.algorithm.get_name())) {
                 var coords = this.iterator_matrix_train.get_coord_current();
-                var notes_last = this.matrix_target_iterator[coords[0] - 1][coords[1]].get_notes();
+                var notes_last = this.matrix_focus[coords[0] - 1][coords[1]].get_notes();
                 this.clip_user_input.set_notes(notes_last);
             }
             else {
@@ -21791,9 +22039,6 @@ var trainer;
             this.clip_user_input.set_endpoints_loop(interval[0], interval[1]);
         };
         Trainer.prototype.resume = function () {
-            // set segment current
-            // set target current
-            // set subtarget current
             this.algorithm.post_init();
         };
         Trainer.prototype.pause = function () {
@@ -21802,48 +22047,49 @@ var trainer;
         Trainer.prototype.terminate = function () {
             this.algorithm.pre_terminate();
         };
-        // calls next() under the hood, emits intervals to the UserInputHandler, renders the region of interest to cue user
         Trainer.prototype.init = function () {
-            this.advance_segment();
+            if (this.algorithm.b_targeted()) {
+                this.advance_subtarget();
+            }
+            else {
+                this.advance_segment();
+            }
             this.algorithm.post_init(this.song, this.clip_user_input);
         };
         Trainer.prototype.advance_segment = function () {
             // TODO:
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
-                this.algorithm.terminate();
+                if (this.algorithm.get_name() === PARSE) {
+                    // TODO: make the connections with the root
+                    // public add(notes_user_input, iterator_matrix_train, algorithm): void {
+                    for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
+                        var segment_3 = _a[_i];
+                        this.struct_parse.add(segment_3.get_note(), this.struct_parse, this.iterator_matrix_train.get_coord_current());
+                    }
+                    this.struct_parse.finish();
+                }
+                this.algorithm.pre_terminate();
             }
             var coord = obj_next_coord.value;
             this.segment_current = this.segments[coord[1]];
-            this.iterator_target_current = this.matrix_target_iterator[coord[0]][coord[1]];
-            // TODO: why isn't this a 'TargetIterator'?
-            var obj_target = this.iterator_target_current.next();
-            if (obj_target.done) {
-                return;
-            }
-            this.target_current = obj_target.value;
-            this.iterator_subtarget_current = this.target_current.iterator_subtarget;
-            var obj_subtarget = this.iterator_subtarget_current.next();
-            if (obj_subtarget.done) {
-                return;
-            }
-            this.subtarget_current = obj_subtarget.value;
         };
         Trainer.prototype.advance_subtarget = function () {
             var possibly_history = this.iterator_target_current.targets;
+            var coord_at_time = this.iterator_matrix_train.get_coord_current();
             var obj_next_subtarget = this.iterator_subtarget_current.next();
             if (obj_next_subtarget.done) {
                 var obj_next_target = this.iterator_target_current.next();
                 if (obj_next_target.done) {
                     var obj_next_coord = this.iterator_matrix_train.next();
-                    this.history_user_input.add_sequence_target(possibly_history, this.iterator_matrix_train);
+                    this.history_user_input.add_sequence_target(possibly_history, coord_at_time);
                     if (obj_next_coord.done) {
-                        this.history_user_input.add_sequence_target(possibly_history, this.iterator_matrix_train);
+                        this.history_user_input.add_sequence_target(possibly_history, coord_at_time);
                         this.algorithm.pre_terminate();
                         return;
                     }
                     var coord_next = obj_next_coord.value;
-                    this.iterator_target_current = this.matrix_target_iterator[coord_next[0]][coord_next[1]];
+                    this.iterator_target_current = this.matrix_focus[coord_next[0]][coord_next[1]];
                     this.segment_current = this.segments[coord_next[1]];
                     var obj_next_target_twice_nested = this.iterator_target_current.next();
                     this.target_current = obj_next_target_twice_nested.value;
@@ -21861,7 +22107,7 @@ var trainer;
             this.subtarget_current = obj_next_subtarget.value;
         };
         // user input can be either 1) a pitch or 2) a sequence of notes
-        Trainer.prototype.accept_input = function (input_user) {
+        Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;
             if (this.counter_user_input >= this.limit_user_input) {
                 this.limit_input_reached = true;
@@ -21872,31 +22118,22 @@ var trainer;
             }
             // parse/derive logic
             if (!this.algorithm.b_targeted()) {
-                // this.struct.add(
-                //     input_user
-                // );
-                this.list_parse_tree = ParseTree.add(input_user, this.list_parse_tree, this.iterator_matrix_train);
+                this.history_user_input.add(notes_input_user, this.iterator_matrix_train.get_coord_current());
+                this.window.add_notes_to_clip(this.subtarget_current.note, this.iterator_matrix_train.get_coord_current());
+                // TODO: implement
+                this.struct_parse.add(notes_input_user, this.struct_parse, this.iterator_matrix_train.get_coord_current());
                 this.advance_segment();
-                this.window.render_regions(this.iterator_matrix_train, this.matrix_target_iterator);
-                this.window.render_notes(this.history_user_input);
-                this.window.render_tree(this.list_parse_tree);
+                this.render_window();
                 return;
             }
             // detect/predict logic
             // NB: assumes we're only giving list of a single note as input
-            if (input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
-                // let coords = this.iterator_matrix_train.get_coord_current();
-                // let target_iterator_current = this.matrix_target_iterator[coords[0]][coords[1]];
-                // NB: we actually add the note that the user was trying to guess, not the note played
-                // this.history_user_input.add_subtarget(
-                //     this.iterator_target_current.current().iterator_subtarget.current(),
-                //     this.iterator_matrix_train
-                // );
-                this.advance_subtarget();
+            if (notes_input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
+                this.window.add_notes_to_clip([this.subtarget_current.note], this.iterator_matrix_train.get_coord_current());
                 if (this.algorithm.b_targeted()) {
                     // set the targets and shit
                 }
-                // set the context in ableton
+                this.advance_subtarget();
                 this.set_loop();
                 this.render_window();
             }
@@ -21906,47 +22143,8 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../history/history":11,"../parse/parse":18,"../target/target":22,"../utils/utils":25,"./algorithm":23,"lodash":4,"underscore":7}],25:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var utils;
-(function (utils) {
-    var PathLive = /** @class */ (function () {
-        function PathLive() {
-        }
-        // pre-sending message
-        PathLive.to_vector = function (path_live) {
-            var message = [];
-            for (var _i = 0, _a = path_live.split(' '); _i < _a.length; _i++) {
-                var word = _a[_i];
-                var cleansed = word.replace(/"/g, "");
-                if (isNaN(Number(cleansed))) {
-                    message.push(cleansed);
-                }
-                else {
-                    message.push(Number(cleansed));
-                }
-            }
-            return message;
-        };
-        PathLive.to_message = function (path_live) {
-            return PathLive.to_vector(path_live);
-        };
-        // parsing sent message
-        PathLive.to_string = function (vector_path_live) {
-            return PathLive.to_message(vector_path_live.join(' ')).join(' ');
-        };
-        return PathLive;
-    }());
-    utils.PathLive = PathLive;
-    utils.remainder = function (top, bottom) {
-        return ((top % bottom) + bottom) % bottom;
-    };
-    utils.division_int = function (top, bottom) {
-        return Math.floor(top / bottom);
-    };
-})(utils = exports.utils || (exports.utils = {}));
-
-},{}]},{},[1]);
+},{"../history/history":21,"../parse/parse":28,"../target/target":31,"./algorithm":32,"./iterate":33,"lodash":14,"underscore":17}],35:[function(require,module,exports){
+arguments[4][11][0].apply(exports,arguments)
+},{"dup":11}]},{},[8]);
 
 var test = Global.test.test;

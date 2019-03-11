@@ -35,7 +35,8 @@ var algorithm;
         return Targeted;
     }());
     var Parsed = /** @class */ (function () {
-        function Parsed() {
+        function Parsed(user_input_handler) {
+            this.user_input_handler = user_input_handler;
         }
         Parsed.prototype.b_targeted = function () {
             return false;
@@ -80,18 +81,10 @@ var algorithm;
         Detect.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
-                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+                // notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+                notes_target_next[0].model.note.get_beat_end()
             ];
         };
-        // // set right interval
-        // determine_region_past(notes_target_next): number {
-        //     return notes_target_next[0].model.note.beat_start
-        // }
-        //
-        // // set left interval
-        // determine_region_upcoming(notes_target_next): number {
-        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        // }
         Detect.prototype.pre_advance = function (clip_user_input) {
         };
         Detect.prototype.post_init = function (song, clip_user_input) {
@@ -142,25 +135,15 @@ var algorithm;
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
         };
-        // set right interval
-        // determine_region_past(notes_target_next): number {
-        //     return notes_target_next[0].model.note.beat_start
-        // }
-        //
-        // // set left interval
-        // determine_region_upcoming(notes_target_next): number {
-        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        // }
         Predict.prototype.pre_advance = function () {
-            //
         };
         return Predict;
     }(Targeted));
     algorithm.Predict = Predict;
     var Parse = /** @class */ (function (_super) {
         __extends(Parse, _super);
-        function Parse() {
-            return _super !== null && _super.apply(this, arguments) || this;
+        function Parse(user_input_handler) {
+            return _super.call(this, user_input_handler) || this;
         }
         Parse.prototype.get_name = function () {
             return algorithm.PARSE;

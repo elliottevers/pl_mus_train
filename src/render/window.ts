@@ -12,6 +12,7 @@ import {trainer} from "../train/trainer";
 import {parse} from "../parse/parse";
 import {segment} from "../segment/segment";
 import {algorithm} from "../train/algorithm";
+import {iterate} from "../train/iterate";
 
 export namespace window {
 
@@ -20,11 +21,12 @@ export namespace window {
     import HistoryUserInput = history.HistoryUserInput;
     // import ParseTree = parse.ParseTree;
     import Messenger = message.Messenger;
-    import MatrixIterator = trainer.MatrixIterator;
+    // import MatrixIterator = trainer.MatrixIterator;
     // import ParseTree = parse.ParseTree;
     import Segment = segment.Segment;
     import Clip = clip.Clip;
     import Algorithm = algorithm.Algorithm;
+    import MatrixIterator = iterate.MatrixIterator;
 
     const red = [255, 0, 0];
     const black = [0, 0, 0];

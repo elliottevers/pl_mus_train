@@ -16,13 +16,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
-// import {struct} from "../train/struct";
-// import {parse} from "../parse/parse";
-var trainer_1 = require("../train/trainer");
+var iterate_1 = require("../train/iterate");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
-    var MatrixIterator = trainer_1.trainer.MatrixIterator;
+    var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var red = [255, 0, 0];
     var black = [0, 0, 0];
     var region_yellow = [254, 254, 10];

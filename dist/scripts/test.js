@@ -17,13 +17,15 @@ var Detect = algorithm_1.algorithm.Detect;
 var serialize_1 = require("../../src/serialize/serialize");
 var TrainFreezer = serialize_1.freeze.TrainFreezer;
 var TrainThawer = serialize_1.thaw.TrainThawer;
-var window_1 = require("../../src/render/window");
-var ListWindow = window_1.window.ListWindow;
+// import {window} from "../../src/render/window";
+// import ListWindow = window.ListWindow;
 var trainer_1 = require("../../src/train/trainer");
 var Trainer = trainer_1.trainer.Trainer;
 var constants_1 = require("../../src/constants/constants");
 var POLYPHONY = constants_1.modes_texture.POLYPHONY;
 var INSTRUMENTAL = constants_1.modes_control.INSTRUMENTAL;
+var window_1 = require("../render/window");
+var MatrixWindow = window_1.window.MatrixWindow;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -85,7 +87,7 @@ var test = function () {
     var mode_control = INSTRUMENTAL;
     var user_input_handler = new UserInputHandler(mode_texture, mode_control);
     var messenger = new Messenger('node', 0);
-    var window_local = new ListWindow(384, 384, messenger);
+    var window_local = new MatrixWindow(384, 384, messenger);
     var algorithm_train = new Detect(user_input_handler);
     // stubs
     var song = {
@@ -128,7 +130,7 @@ var test = function () {
     trainer_local.accept_input([note_target_3_subtarget_1]);
     trainer_local.clear_window();
     var freezer = new TrainFreezer('node');
-    freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json', env);
+    freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
     var thawer = new TrainThawer('node');
     var config = {
         'window': window_local,

@@ -16,7 +16,7 @@ export namespace history {
     import PARSE = algorithm.PARSE;
     import DERIVE = algorithm.DERIVE;
     import Subtarget = target.Subtarget;
-    import MatrixIterator = trainer.MatrixIterator;
+    // import MatrixIterator = trainer.MatrixIterator;
     import Target = target.Target;
     import Note = note.Note;
 

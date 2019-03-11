@@ -50,16 +50,21 @@ var live;
         //         128
         //     )
         // }
+        LiveClipVirtual.prototype.append = function (note) {
+            var test = this.notes;
+            test.push(note);
+            this.notes = test;
+        };
         LiveClipVirtual.prototype.get_ambitus = function () {
             return [];
         };
         LiveClipVirtual.prototype.load_notes_within_loop_brackets = function () {
-            this.notes = Clip._parse_notes(this.get_notes(this.get_loop_bracket_lower(), 0, this.get_loop_bracket_upper(), 128));
+            this.notes = Clip._parse_notes(this.get_notes(this.get_loop_bracket_lower()[0], 0, this.get_loop_bracket_upper()[0], 128));
         };
-        LiveClipVirtual.prototype.get_notes_within_loop_brackets = function () {
-            // if (!this.notes) {
-            this.load_notes_within_loop_brackets();
-            // }
+        LiveClipVirtual.prototype.get_notes_within_loop_brackets = function (use_cache) {
+            if (!this.notes || !use_cache) {
+                this.load_notes_within_loop_brackets();
+            }
             return this.notes;
         };
         LiveClipVirtual.prototype.get_pitch_max = function () {

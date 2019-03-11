@@ -3,14 +3,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var file;
 (function (file) {
     file.to_json = function (string_json, filename, env) {
+        // console.log(env);
         switch (env) {
-            case 'node' || 'node_for_max': {
+            case 'node_for_max': {
+                console.log('writing json');
                 var fs = require("fs");
-                // let data = "New File Contents";
-                fs.writeFile("temp.txt", JSON.stringify(string_json), function (err, data) {
-                    if (err)
-                        console.log(err);
-                    console.log("saving session");
+                fs.writeFileSync(filename, JSON.stringify(string_json), 'utf8', function (err, data) {
+                    if (err) {
+                        console.log('error writing json');
+                    }
+                });
+                break;
+            }
+            case 'node': {
+                console.log('writing json');
+                var fs = require("fs");
+                fs.writeFileSync(filename, JSON.stringify(string_json), 'utf8', function (err, data) {
+                    if (err) {
+                        console.log('error writing json');
+                    }
                 });
                 break;
             }
@@ -34,14 +45,26 @@ var file;
     file.from_json = function (filepath, env) {
         var matrix_deserialized;
         switch (env) {
-            case 'node' || 'node_for_max': {
-                var lineReader = require('readline').createInterface({
-                    input: require('fs').createReadStream(filepath)
-                });
-                lineReader.on('line', function (line) {
-                    matrix_deserialized = JSON.parse(line);
-                });
-                // lineReader.on('close', callback);
+            case 'node_for_max': {
+                console.log('reading json');
+                var fs = require("fs");
+                // TODO: fix in node_for_max
+                matrix_deserialized = JSON.parse(fs.readFileSync(filepath, 'utf8', function (err, data) {
+                    if (err) {
+                        console.log(err);
+                    }
+                }));
+                break;
+            }
+            case 'node': {
+                console.log('reading json');
+                var fs = require("fs");
+                // TODO: fix in node_for_max
+                matrix_deserialized = JSON.parse(fs.readFileSync(filepath, 'utf8', function (err, data) {
+                    if (err) {
+                        console.log(err);
+                    }
+                }));
                 break;
             }
             case 'max': {

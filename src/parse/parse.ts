@@ -7,6 +7,7 @@ import {live} from "../live/live";
 import {clip as c} from "../clip/clip";
 import {algorithm} from "../train/algorithm";
 import {trainer} from "../train/trainer";
+import {iterate} from "../train/iterate";
 
 const _ = require("underscore");
 
@@ -16,7 +17,8 @@ export namespace parse {
     import DETECT = algorithm.DETECT;
     import PARSE = algorithm.PARSE;
     import DERIVE = algorithm.DERIVE;
-    import MatrixIterator = trainer.MatrixIterator;
+    import MatrixIterator = iterate.MatrixIterator;
+    // import MatrixIterator = trainer.MatrixIterator;
 
     export interface Parsable {
         choose(): boolean;
