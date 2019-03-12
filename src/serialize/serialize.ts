@@ -150,7 +150,7 @@ export namespace thaw {
                             note_parsed.note.beat_start,
                             note_parsed.note.beats_duration,
                             note_parsed.note.velocity,
-                            note_parsed.note.b_muted
+                            note_parsed.note.muted
                         ),
                         children: [
 

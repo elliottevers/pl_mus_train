@@ -305,12 +305,10 @@ export namespace window {
                 });
             } else {
                 coord = iterator_matrix_train.get_coord_current();
-                // TODO: THESE HAVEN"T EVEN BEEN ADDED TO THE PARSE MATRIX YET
                 let coord_segment = [0, coord[1]];
                 notes = parse_matrix.get_roots_at_coord(coord_segment);
             }
 
-            // TODO: 'notes' is undefined here, this is probably because the matrix iteration is wrong
             this.render_regions(
                 iterator_matrix_train,
                 notes,
@@ -327,6 +325,16 @@ export namespace window {
         }
 
         public render_trees(parse_matrix) {
+            let messages_render_trees = this.get_messages_render_trees(parse_matrix);
+            for (let message_tree of messages_render_trees) {
+                // for (let message of messages_tree) {
+                //     this.messenger.message(message);
+                // }
+                this.messenger.message(message_tree)
+            }
+        }
+
+        public get_messages_render_trees(parse_matrix) {
 
             let color: number[];
             let messages: any[] = [];
@@ -355,7 +363,7 @@ export namespace window {
                                     this.get_centroid(node)[1]
                                 ];
 
-                                color = red;
+                                color = black;
 
                                 messages.push(message.concat(color));
 
@@ -411,7 +419,7 @@ export namespace window {
         public get_messages_render_clips(iterator_matrix_train): any[][] {
             let messages = [];
 
-            for (let i of _.range(0, iterator_matrix_train.get_state_current() + 1)) {
+            for (let i of iterator_matrix_train.get_history()) {
 
                 // let coord_clip: number[] = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
 
@@ -491,14 +499,7 @@ export namespace window {
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end]
         }
 
-        // public render_regions(iterator_matrix_train, matrix_target_iterator, algorithm) {
         public render_regions(iterator_matrix_train, notes, algorithm) {
-            // let coord = iterator_matrix_train.get_coord_current();
-            // let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-            // let subtargets = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
-            //     return subtarget.note
-            // });
-
             let interval_current = algorithm.determine_region_present(
                 notes
             );

@@ -91,14 +91,14 @@ var parse;
             this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input;
             switch (algorithm.get_name()) {
                 case PARSE: {
-                    coord_notes_previous = MatrixIterator.get_coord_above([coord_notes_current[0], coord_notes_current[1]]);
+                    coord_notes_previous = MatrixIterator.get_coord_below([coord_notes_current[0], coord_notes_current[1]]);
                     var notes_below = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
                     var notes_children = notes_below;
                     this.add_layer(notes_user_input, notes_children, -1);
                     break;
                 }
                 case DERIVE: {
-                    coord_notes_previous = MatrixIterator.get_coord_below([coord_notes_current[0], coord_notes_current[1]]);
+                    coord_notes_previous = MatrixIterator.get_coord_above([coord_notes_current[0], coord_notes_current[1]]);
                     var notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
                     var notes_parent = notes_above;
                     this.add_layer(notes_parent, notes_user_input, -1);

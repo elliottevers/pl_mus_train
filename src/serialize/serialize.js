@@ -110,7 +110,7 @@ var thaw;
                 var note_parsed = notes_parsed_1[_e];
                 var note_recovered = tree.parse({
                     id: -1,
-                    note: new Note(note_parsed.note.pitch, note_parsed.note.beat_start, note_parsed.note.beats_duration, note_parsed.note.velocity, note_parsed.note.b_muted),
+                    note: new Note(note_parsed.note.pitch, note_parsed.note.beat_start, note_parsed.note.beats_duration, note_parsed.note.velocity, note_parsed.note.muted),
                     children: []
                 });
                 trainer.accept_input([note_recovered]);

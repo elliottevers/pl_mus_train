@@ -23,6 +23,8 @@ export namespace iterate {
         private index_start;
         private index_stop;
 
+        private history: number[];
+
         constructor(num_rows: number, num_columns: number, downward?: boolean, rightward?: boolean, start_at_row?: number, stop_at_row?: number) {
             this.num_rows = num_rows;
             this.num_columns = num_columns;
@@ -36,7 +38,8 @@ export namespace iterate {
             this.determine_index_start();
             this.determine_index_stop();
 
-            this.i = this.index_start
+            this.i = this.index_start;
+            this.history = [];
         }
 
         private determine_index_start() {
@@ -105,11 +108,21 @@ export namespace iterate {
             }
         }
 
+        add_history(i): void {
+            this.history.push(i)
+        }
+
+        get_history(): number[] {
+            return this.history
+        }
+
         public next() {
 
             let value: number[] = null;
 
             this.next_column();
+
+            this.add_history(this.i);
 
             if (this.i === this.index_stop) {
                 return {

@@ -116,7 +116,7 @@ export namespace parse {
 
             switch (algorithm.get_name()) {
                 case PARSE: {
-                    coord_notes_previous = MatrixIterator.get_coord_above([coord_notes_current[0], coord_notes_current[1]]);
+                    coord_notes_previous = MatrixIterator.get_coord_below([coord_notes_current[0], coord_notes_current[1]]);
                     let notes_below = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
                     let notes_children = notes_below;
                     this.add_layer(
@@ -127,7 +127,7 @@ export namespace parse {
                     break;
                 }
                 case DERIVE: {
-                    coord_notes_previous = MatrixIterator.get_coord_below([coord_notes_current[0], coord_notes_current[1]]);
+                    coord_notes_previous = MatrixIterator.get_coord_above([coord_notes_current[0], coord_notes_current[1]]);
                     let notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
                     let notes_parent = notes_above;
                     this.add_layer(

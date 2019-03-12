@@ -17,6 +17,7 @@ var iterate;
             this.determine_index_start();
             this.determine_index_stop();
             this.i = this.index_start;
+            this.history = [];
         }
         MatrixIterator.prototype.determine_index_start = function () {
             var i_start;
@@ -84,9 +85,16 @@ var iterate;
                 throw 'not yet supported';
             }
         };
+        MatrixIterator.prototype.add_history = function (i) {
+            this.history.push(i);
+        };
+        MatrixIterator.prototype.get_history = function () {
+            return this.history;
+        };
         MatrixIterator.prototype.next = function () {
             var value = null;
             this.next_column();
+            this.add_history(this.i);
             if (this.i === this.index_stop) {
                 return {
                     value: value,

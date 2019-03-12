@@ -165,7 +165,7 @@ export namespace note {
                         note.model.note.beat_start,
                         note.model.note.beats_duration,
                         note.model.note.velocity,
-                        note.model.note.b_muted,
+                        note.model.note.muted,
                         coord
                     ),
                     children: [

@@ -119,7 +119,7 @@ var note;
             var tree = new TreeModel();
             return tree.parse({
                 id: -1,
-                note: new NoteRenderable(note.model.note.pitch, note.model.note.beat_start, note.model.note.beats_duration, note.model.note.velocity, note.model.note.b_muted, coord),
+                note: new NoteRenderable(note.model.note.pitch, note.model.note.beat_start, note.model.note.beats_duration, note.model.note.velocity, note.model.note.muted, coord),
                 children: []
             });
         };

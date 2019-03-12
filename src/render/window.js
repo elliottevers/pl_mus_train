@@ -246,11 +246,9 @@ var window;
             }
             else {
                 coord = iterator_matrix_train.get_coord_current();
-                // TODO: THESE HAVEN"T EVEN BEEN ADDED TO THE PARSE MATRIX YET
                 var coord_segment = [0, coord[1]];
                 notes = parse_matrix.get_roots_at_coord(coord_segment);
             }
-            // TODO: 'notes' is undefined here, this is probably because the matrix iteration is wrong
             this.render_regions(iterator_matrix_train, notes, algorithm);
             this.render_clips(iterator_matrix_train);
             if (!algorithm.b_targeted()) {
@@ -258,6 +256,16 @@ var window;
             }
         };
         MatrixWindow.prototype.render_trees = function (parse_matrix) {
+            var messages_render_trees = this.get_messages_render_trees(parse_matrix);
+            for (var _i = 0, messages_render_trees_1 = messages_render_trees; _i < messages_render_trees_1.length; _i++) {
+                var message_tree = messages_render_trees_1[_i];
+                // for (let message of messages_tree) {
+                //     this.messenger.message(message);
+                // }
+                this.messenger.message(message_tree);
+            }
+        };
+        MatrixWindow.prototype.get_messages_render_trees = function (parse_matrix) {
             var _this = this;
             var color;
             var messages = [];
@@ -284,7 +292,7 @@ var window;
                                     _this.get_centroid(node)[0],
                                     _this.get_centroid(node)[1]
                                 ];
-                                color = red;
+                                color = black;
                                 messages.push(message.concat(color));
                             }
                         }
@@ -329,7 +337,7 @@ var window;
         };
         MatrixWindow.prototype.get_messages_render_clips = function (iterator_matrix_train) {
             var messages = [];
-            for (var _i = 0, _a = _.range(0, iterator_matrix_train.get_state_current() + 1); _i < _a.length; _i++) {
+            for (var _i = 0, _a = iterator_matrix_train.get_history(); _i < _a.length; _i++) {
                 var i = _a[_i];
                 // let coord_clip: number[] = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
                 var coord_clip = MatrixIterator.get_coord(i, iterator_matrix_train.num_columns);
@@ -391,13 +399,7 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        // public render_regions(iterator_matrix_train, matrix_target_iterator, algorithm) {
         MatrixWindow.prototype.render_regions = function (iterator_matrix_train, notes, algorithm) {
-            // let coord = iterator_matrix_train.get_coord_current();
-            // let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-            // let subtargets = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
-            //     return subtarget.note
-            // });
             var interval_current = algorithm.determine_region_present(notes);
             var quadruplet_region_past = this.get_message_render_region_past(interval_current);
             var quadruplet_region_present = this.get_message_render_region_present(interval_current);
