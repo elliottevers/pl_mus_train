@@ -88,6 +88,9 @@ var algorithm;
         Detect.prototype.post_init = function (song, clip_user_input) {
             clip_user_input.fire();
         };
+        Detect.prototype.pre_terminate = function (song, clip_user_input) {
+            clip_user_input.stop();
+        };
         return Detect;
     }(Targeted));
     algorithm.Detect = Detect;

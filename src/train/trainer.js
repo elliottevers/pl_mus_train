@@ -123,19 +123,21 @@ var trainer;
             this.algorithm.post_init();
         };
         Trainer.prototype.pause = function () {
-            this.algorithm.pre_terminate();
+            this.algorithm.pre_terminate(this.song, this.clip_user_input);
         };
         Trainer.prototype.terminate = function () {
-            this.algorithm.pre_terminate();
+            this.algorithm.pre_terminate(this.song, this.clip_user_input);
         };
-        Trainer.prototype.init = function () {
+        Trainer.prototype.init = function (virtual) {
             if (this.algorithm.b_targeted()) {
                 this.advance_subtarget();
             }
             else {
                 this.advance_segment();
             }
-            this.algorithm.post_init(this.song, this.clip_user_input);
+            if (!virtual) {
+                this.algorithm.post_init(this.song, this.clip_user_input);
+            }
         };
         Trainer.prototype.advance_segment = function () {
             var obj_next_coord = this.iterator_matrix_train.next();

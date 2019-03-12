@@ -3,6 +3,7 @@ import {note} from "../note/note";
 import TreeModel = require("tree-model");
 import {trainer} from "../train/trainer";
 import {file} from "../io/file";
+import {algorithm} from "../train/algorithm";
 
 export namespace serialize {
 
@@ -16,6 +17,17 @@ export namespace serialize {
         }
         let tree = new TreeModel();
         return tree.parse(JSON.parse(note_serialized));
+    };
+
+    export let serialize_sequence_note = (notes) => {
+        if (!notes) {
+            return null
+        }
+        let notes_serialized = [];
+        for (let note of notes) {
+            notes_serialized.push(serialize_note(note))
+        }
+        return notes_serialized
     };
 
     import Subtarget = target.Subtarget;
@@ -68,6 +80,11 @@ export namespace freeze {
     import Trainer = trainer.Trainer;
     import serialize_target_sequence = serialize.serialize_target_sequence;
     import to_json = file.to_json;
+    import DETECT = algorithm.DETECT;
+    import PREDICT = algorithm.PREDICT;
+    import PARSE = algorithm.PARSE;
+    import DERIVE = algorithm.DERIVE;
+    import serialize_sequence_note = serialize.serialize_sequence_note;
 
     export class TrainFreezer {
 
@@ -79,11 +96,33 @@ export namespace freeze {
 
         public freeze(trainer: Trainer, filepath: string) {
             let data_serializable = trainer.history_user_input.matrix_data as any;
-            for (let i_row in trainer.history_user_input.matrix_data) {
-                for (let i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
-                    data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
-                        trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]
-                    )
+
+            switch (trainer.algorithm.get_name()) {
+                case DETECT: {
+                    for (let i_row in trainer.history_user_input.matrix_data) {
+                        for (let i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
+                            data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
+                                trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]
+                            )
+                        }
+                    }
+                    break;
+                }
+                case PREDICT: {
+                    break;
+                }
+                case PARSE: {
+                    for (let i_row in trainer.history_user_input.matrix_data) {
+                        for (let i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
+                            data_serializable[Number(i_row)][Number(i_col)] = serialize_sequence_note(
+                                trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]
+                            )
+                        }
+                    }
+                    break;
+                }
+                case DERIVE: {
+                    break;
                 }
             }
 
@@ -97,70 +136,131 @@ export namespace thaw {
     import deserialize_target_sequence = serialize.deserialize_target_sequence;
     import from_json = file.from_json;
     import Note = note.Note;
+    import PREDICT = algorithm.PREDICT;
+    import PARSE = algorithm.PARSE;
+    import serialize_target_sequence = serialize.serialize_target_sequence;
+    import serialize_sequence_note = serialize.serialize_sequence_note;
+    import DERIVE = algorithm.DERIVE;
+    import DETECT = algorithm.DETECT;
+    import deserialize_note = serialize.deserialize_note;
 
     export class TrainThawer {
-        constructor(env: string) {
+        env: string;
 
+        constructor(env: string) {
+            this.env = env;
         }
 
         public thaw(filepath: string, config): Trainer {
 
-            let matrix_deserialized = from_json(filepath, config['env']);
+            let trainer;
 
-            let notes = [];
-
-            for (let row of matrix_deserialized) {
-                for (let col of row) {
-                    if (col === null) {
-                        continue;
-                    }
-                    for (let sequence_target of col) {
-                        for (let note of sequence_target.iterator_subtarget.subtargets) {
-                            notes.push(note)
+            switch (config['algorithm'].get_name()) {
+                case DETECT: {
+                    let matrix_deserialized = from_json(filepath, config['env']);
+                    let notes = [];
+                    // TODO: this is only valid for forward iteration
+                    for (let row of matrix_deserialized) {
+                        for (let col of row) {
+                            if (col === null) {
+                                continue;
+                            }
+                            for (let sequence_target of col) {
+                                for (let note of sequence_target.iterator_subtarget.subtargets) {
+                                    notes.push(note)
+                                }
+                            }
                         }
                     }
+                    let notes_parsed = notes.map((obj)=>{return JSON.parse(obj.note)});
+
+                    trainer =  new Trainer(
+                        config['window'],
+                        config['user_input_handler'],
+                        config['algorithm'],
+                        config['clip_user_input'],
+                        config['clip_target_virtual'],
+                        config['song'],
+                        config['segments'],
+                        config['messenger']
+                    );
+
+                    trainer.init(
+                        true
+                    );
+
+                    let tree: TreeModel = new TreeModel();
+
+                    for (let note_parsed of notes_parsed) {
+                        let note_recovered = tree.parse(
+                            {
+                                id: -1, // TODO: hashing scheme for clip id and beat start
+                                note: new Note(
+                                    note_parsed.note.pitch,
+                                    note_parsed.note.beat_start,
+                                    note_parsed.note.beats_duration,
+                                    note_parsed.note.velocity,
+                                    note_parsed.note.muted
+                                ),
+                                children: [
+
+                                ]
+                            }
+                        );
+                        trainer.accept_input(
+                            [note_recovered]
+                        );
+                    }
+
+                    trainer.pause();
+
+                    break;
+                }
+                case PREDICT: {
+                    break;
+                }
+                case PARSE: {
+                    let matrix_deserialized = from_json(filepath, config['env']);
+
+                    trainer =  new Trainer(
+                        config['window'],
+                        config['user_input_handler'],
+                        config['algorithm'],
+                        config['clip_user_input'],
+                        config['clip_target_virtual'],
+                        config['song'],
+                        config['segments'],
+                        config['messenger']
+                    );
+
+                    trainer.init(
+                        true
+                    );
+
+                    let input_left = true;
+
+                    while (input_left) {
+                        let coord_current = trainer.iterator_matrix_train.get_coord_current();
+                        trainer.accept_input(
+                            matrix_deserialized[coord_current[0]][coord_current[1]].map((note_serialized) => {
+                                return deserialize_note(note_serialized)
+                            })
+                        );
+
+                        if (trainer.iterator_matrix_train.done) {
+                            input_left = false;
+                        }
+                    }
+
+                    trainer.pause();
+
+                    break;
+                }
+                case DERIVE: {
+                    break;
                 }
             }
 
-            let notes_parsed = notes.map((obj)=>{return JSON.parse(obj.note)});
-
-            let trainer =  new Trainer(
-                config['window'],
-                config['user_input_handler'],
-                config['algorithm'],
-                config['clip_user_input'],
-                config['clip_target_virtual'],
-                config['song'],
-                config['segments'],
-                config['messenger']
-            );
-
-            trainer.init(
-
-            );
-
-            let tree: TreeModel = new TreeModel();
-
-            for (let note_parsed of notes_parsed) {
-                let note_recovered = tree.parse(
-                    {
-                        id: -1, // TODO: hashing scheme for clip id and beat start
-                        note: new Note(
-                            note_parsed.note.pitch,
-                            note_parsed.note.beat_start,
-                            note_parsed.note.beats_duration,
-                            note_parsed.note.velocity,
-                            note_parsed.note.muted
-                        ),
-                        children: [
-
-                        ]
-                    }
-                );
-                trainer.accept_input(
-                    [note_recovered]
-                );
-            }
 
             return trainer;
         }

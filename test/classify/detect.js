@@ -125,7 +125,7 @@ trainer_local.accept_input([note_target_3_subtarget_1]);
 trainer_local.render_window();
 trainer_local.clear_window();
 var freezer = new TrainFreezer(env);
-freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json');
+freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
 var thawer = new TrainThawer(env);
 var config = {
     'window': window_local,
@@ -138,6 +138,6 @@ var config = {
     'messenger': messenger,
     'env': env
 };
-var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json', config);
+var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', config);
 train_thawed.render_window();
 //# sourceMappingURL=detect.js.map

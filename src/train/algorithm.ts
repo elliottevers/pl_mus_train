@@ -122,6 +122,10 @@ export namespace algorithm {
         post_init(song, clip_user_input) {
             clip_user_input.fire();
         }
+
+        pre_terminate(song, clip_user_input) {
+            clip_user_input.stop();
+        }
     }
 
     export class Predict extends Targeted implements Algorithm, Temporal, Targetable {

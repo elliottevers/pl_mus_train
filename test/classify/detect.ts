@@ -313,7 +313,7 @@ let freezer = new TrainFreezer(
 
 freezer.freeze(
     trainer_local,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json'
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json'
 );
 
 let thawer = new TrainThawer(
@@ -333,7 +333,7 @@ let config = {
 };
 
 let train_thawed = thawer.thaw(
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train.json',
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
     config
 );
 

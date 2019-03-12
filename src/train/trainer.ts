@@ -36,7 +36,7 @@ export namespace trainer {
     export class Trainer {
 
         private window;
-        private algorithm; // TODO: type
+        public algorithm; // TODO: type
         private clip_user_input: Clip;
         private clip_target: Clip;
         private song: Song;
@@ -55,7 +55,7 @@ export namespace trainer {
         private subtarget_current: Subtarget;
 
         private matrix_focus: TargetIterator[][];
-        private iterator_matrix_train: MatrixIterator;
+        public iterator_matrix_train: MatrixIterator;
         private iterator_target_current: TargetIterator;
         private iterator_subtarget_current: SubtargetIterator;
 
@@ -251,20 +251,23 @@ export namespace trainer {
         }
 
         public pause() {
-            this.algorithm.pre_terminate()
+            this.algorithm.pre_terminate(this.song, this.clip_user_input)
         }
 
         public terminate() {
-            this.algorithm.pre_terminate()
+            this.algorithm.pre_terminate(this.song, this.clip_user_input)
         }
 
-        public init() {
+        public init(virtual?: boolean) {
             if (this.algorithm.b_targeted()) {
                 this.advance_subtarget();
             } else {
                 this.advance_segment();
             }
-            this.algorithm.post_init(this.song, this.clip_user_input)
+            if (!virtual) {
+                this.algorithm.post_init(this.song, this.clip_user_input)
+
+            }
         }
 
         private advance_segment() {
