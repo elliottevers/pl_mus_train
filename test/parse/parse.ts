@@ -323,7 +323,7 @@ let user_input_handler_parse = new UserInputHandler(
 );
 
 let env_parse: string = 'node_for_max';
-env_parse = 'node';
+// env_parse = 'node';
 
 
 let messenger_parse = new Messenger(env_parse, 0, 'render_parse');
@@ -405,9 +405,9 @@ trainer_local_parse.accept_input(
     [note_melody_parsed_1, note_melody_parsed_2]
 );
 
-trainer_local_parse.accept_input(
-    [note_melody_parsed_3, note_melody_parsed_4]
-);
+// trainer_local_parse.accept_input(
+//     [note_melody_parsed_3, note_melody_parsed_4]
+// );
 
 trainer_local_parse.render_window(
 

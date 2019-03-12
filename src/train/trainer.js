@@ -53,29 +53,27 @@ var trainer;
                 var segment_1 = this.segments[Number(i_segment)];
                 var note_2 = segment_1.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
-                // TODO: can we make a function to simultaneous add to all 3 of struct parse, history user input, and window?
-                // this.struct_parse.matrix_leaves[coord_current_virtual[0]][coord_current_virtual[1]] = [
-                //     NoteRenderable.from_note(note, coord_current_virtual)
-                // ];
-                // this.struct_parse.matrix_leaves[coord_current_virtual[0]][coord_current_virtual[1]] = [
-                //     NoteRenderable.from_note(note, coord_current_virtual)
-                // ];
                 this.struct_parse.set_notes([note_2], coord_current_virtual);
                 this.window.add_notes_to_clip(note_2, coord_current_virtual);
             }
             switch (this.algorithm.get_name()) {
                 case PARSE: {
-                    var _loop_1 = function (i_segment) {
-                        var segment_2 = this_1.segments[Number(i_segment)];
-                        var notes = this_1.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end - segment_2.beat_start, 128);
-                        var coord_current_virtual = [0, Number(i_segment)];
-                        this_1.struct_parse.matrix_leaves[this_1.algorithm.get_depth() - 1][Number(i_segment)] = notes.map(function (note) {
-                            return NoteRenderable.from_note(note, coord_current_virtual);
-                        });
-                    };
-                    var this_1 = this;
                     for (var i_segment in this.segments) {
-                        _loop_1(i_segment);
+                        var segment_2 = this.segments[Number(i_segment)];
+                        var notes = this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end - segment_2.beat_start, 128);
+                        var coord_current_virtual = [this.algorithm.get_depth() - 1, Number(i_segment)];
+                        // this.struct_parse.matrix_leaves[this.algorithm.get_depth() - 1][Number(i_segment)] = notes.map((note) => {
+                        //     return NoteRenderable.from_note(note, coord_current_virtual)
+                        // });
+                        // this.struct_parse.set_notes(
+                        //     [note],
+                        //     coord_current_virtual
+                        // );
+                        // let notes_renderable = notes.map((note) => {
+                        //     return NoteRenderable.from_note(note, coord_current_virtual)
+                        // });
+                        this.struct_parse.set_notes(notes, coord_current_virtual);
+                        this.window.add_notes_to_clip(notes, coord_current_virtual);
                     }
                     break;
                 }

@@ -1,15 +1,9 @@
 import TreeModel = require("tree-model");
 import {message, message as m} from "../message/messenger"
 import {clip, clip as c} from "../clip/clip";
-import {note, note as n} from "../note/note";
+import {note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
-import {log} from "../log/logger";
-import {history} from "../history/history";
-// import {struct} from "../train/struct";
-// import {parse} from "../parse/parse";
-import {trainer} from "../train/trainer";
-import {parse} from "../parse/parse";
 import {segment} from "../segment/segment";
 import {algorithm} from "../train/algorithm";
 import {iterate} from "../train/iterate";
@@ -17,18 +11,11 @@ import {iterate} from "../train/iterate";
 export namespace window {
 
     import LiveClipVirtual = live.LiveClipVirtual;
-    import Logger = log.Logger;
-    import HistoryUserInput = history.HistoryUserInput;
-    // import ParseTree = parse.ParseTree;
     import Messenger = message.Messenger;
-    // import MatrixIterator = trainer.MatrixIterator;
-    // import ParseTree = parse.ParseTree;
     import Segment = segment.Segment;
     import Clip = clip.Clip;
     import Algorithm = algorithm.Algorithm;
     import MatrixIterator = iterate.MatrixIterator;
-    import Note = note.Note;
-    import NoteRenderable = note.NoteRenderable;
 
     const red = [255, 0, 0];
     const black = [0, 0, 0];
@@ -65,19 +52,6 @@ export namespace window {
             return coord[0] + 1  // we prepend the root to the list
         }
 
-        // TODO: this won't work for a parse tree
-        // public initialize_clips_matrix(segments: Segment[]) {
-        //     for (let i_row in this.matrix_clips) {
-        //         for (let i_col in this.matrix_clips[Number(i_row)]) {
-        //             let segment = segments[Number(i_col)];
-        //             let clip_dao_virtual = new LiveClipVirtual([]);
-        //             clip_dao_virtual.beat_start = segment.beat_start;
-        //             clip_dao_virtual.beat_end = segment.beat_end;
-        //             this.matrix_clips[Number(i_row)][Number(i_col)] = new c.Clip(clip_dao_virtual);
-        //         }
-        //     }
-        // }
-
         public initialize_clips(algorithm: Algorithm, segments: Segment[]) {
             let list_clips = [];
             let depth = algorithm.get_depth();
@@ -97,10 +71,6 @@ export namespace window {
             this.length_beats = beats;
         }
 
-        // public add_note_to_clip(note_to_add_to_clip, coord_current) {
-        //     this.matrix_clips[coord_current[0]][coord_current[1]].append(note_to_add_to_clip);
-        // }
-
         public add_notes_to_clip(notes_to_add_to_clip, coord_current) {
             let index_clip = Window.coord_to_index_clip(coord_current);
             for (let note of notes_to_add_to_clip) {
@@ -109,25 +79,10 @@ export namespace window {
         }
 
         add_note_to_clip_root(note) {
-            // this.list_clips[0].set_notes(
-            //     [NoteRenderable.from_note(note, [-1])]
-            // )
             this.list_clips[0].set_notes(
                 [note]
             )
         }
-
-        // public add(notes: TreeModel.Node<n.Note>[], coord_matrix_clip: number[], segment: Segment) {
-        //     let clip_dao_virtual = new LiveClipVirtual(notes);
-        //
-        //     clip_dao_virtual.beat_start = segment.beat_start;
-        //
-        //     clip_dao_virtual.beat_end = segment.beat_end;
-        //
-        //     let clip_virtual = new c.Clip(clip_dao_virtual);
-        //
-        //     this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
-        // }
 
         get_messages_render_clip(coord: number[]) {
             let index_clip: number;
@@ -161,21 +116,13 @@ export namespace window {
             return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom]
         };
 
-        // render_tree(): void {
-        //     var messages = this.get_messages_render_tree();
-        //     for (var i=0; i < messages.length; i++) {
-        //         this.messenger.message(
-        //             messages[i]
-        //         )
-        //     }
-        // };
-
         get_dist_from_top(pitch: number, coord: number[]): number {
             // var clip = this.clips[index_clip];
             let index_clip = Window.coord_to_index_clip(coord);
             var clip = this.list_clips[index_clip];
             // let offset = index_clip;
-            let offset = coord[0];
+            // let offset = coord[0];
+            let offset = coord[0] + 1;
             // let offset = coord_clip[1];
             // TODO: make this configurable
             if (false) {
@@ -216,52 +163,10 @@ export namespace window {
         }
 
         get_height_clip(): number {
-            // return this.height / this.matrix_clips.length;
             return this.height / this.list_clips.length;
         };
 
-        // TODO: make a virtual "append" clip method so we can get the ambitus across columns
-        // get_height_note(coord_clip: number[]): number {
-        //     let notes_row = [];
-        //     let interval_ambitus: number[] = [-Infinity, Infinity];
-        //     for (let i_row in this.matrix_clips) {
-        //         for (let i_col in this.matrix_clips[Number(i_row)]) {
-        //             if (Number(i_col) == 0) {
-        //                 interval_ambitus[0] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_start()
-        //             }
-        //             notes_row = notes_row.concat(this.matrix_clips[coord_clip[0]][Number(i_col)].get_notes_within_loop_brackets())
-        //             interval_ambitus[1] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_end()
-        //         }
-        //     }
-        //     let clip_dao_row_virtual = new LiveClipVirtual([]);
-        //     let clip_row_virtual = new Clip(clip_dao_row_virtual);
-        //     clip_row_virtual.set_notes(
-        //         notes_row
-        //     );
-        //     // let ambitus = this.get_ambitus(coord_clip);
-        //     let ambitus = clip_row_virtual.get_ambitus(interval_ambitus);
-        //     let dist_pitch = ambitus[1] - ambitus[0] + 1;
-        //     return this.get_height_clip() / dist_pitch;
-        // };
-
         get_height_note(coord: number[]): number {
-            // let notes_row = [];
-            // let interval_ambitus: number[] = [-Infinity, Infinity];
-            // for (let i_row in this.matrix_clips) {
-            //     for (let i_col in this.matrix_clips[Number(i_row)]) {
-            //         if (Number(i_col) == 0) {
-            //             interval_ambitus[0] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_start()
-            //         }
-            //         notes_row = notes_row.concat(this.matrix_clips[coord_clip[0]][Number(i_col)].get_notes_within_loop_brackets())
-            //         interval_ambitus[1] = this.matrix_clips[coord_clip[0]][Number(i_col)].get_beat_end()
-            //     }
-            // }
-            // let clip_dao_row_virtual = new LiveClipVirtual([]);
-            // let clip_row_virtual = new Clip(clip_dao_row_virtual);
-            // clip_row_virtual.set_notes(
-            //     notes_row
-            // );
-
             let index_clip = Window.coord_to_index_clip(coord);
             let clip = this.list_clips[index_clip];
             // let ambitus = this.get_ambitus(coord_clip);
@@ -269,10 +174,6 @@ export namespace window {
             let dist_pitch = ambitus[1] - ambitus[0] + 1;
             return this.get_height_clip() / dist_pitch;
         };
-
-        // get_ambitus(coord_clips: number[]): number[] {
-        //     return this.matrix_clips[coord_clips[0]][coord_clips[1]].get_ambitus();
-        // };
     }
 
     export interface Renderable {
@@ -321,7 +222,9 @@ export namespace window {
                     null
                 );
             } else {
-                this.render_trees(parse_matrix);
+                this.render_trees(
+                    parse_matrix
+                );
                 this.render_clips(
                     iterator_matrix_train,
                     parse_matrix
@@ -384,7 +287,6 @@ export namespace window {
 
             let dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
 
-            // let index_clip = node.model.id;
             let coord_clip = node.model.note.get_coordinates_matrix();
 
             // TODO: determine how to get the index of the clip from just depth of the node

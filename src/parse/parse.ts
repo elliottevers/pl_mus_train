@@ -119,7 +119,7 @@ export namespace parse {
             this.root = NoteRenderable.from_note(note, coord_root)
         }
 
-        public set_notes(notes, coord) {
+        public set_notes(notes: TreeModel.Node<n.Note>[], coord) {
             this.history.push(coord);
             this.matrix_leaves[coord[0]][coord[1]] = notes.map((note) => {
                 return NoteRenderable.from_note(note, coord)

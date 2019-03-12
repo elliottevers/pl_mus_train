@@ -119,16 +119,13 @@ export namespace trainer {
             // set first layer, which are the various key center estimates
 
             for (let i_segment in this.segments) {
+
                 let segment = this.segments[Number(i_segment)];
+
                 let note = segment.get_note();
+
                 let coord_current_virtual = [0, Number(i_segment)];
-                // TODO: can we make a function to simultaneous add to all 3 of struct parse, history user input, and window?
-                // this.struct_parse.matrix_leaves[coord_current_virtual[0]][coord_current_virtual[1]] = [
-                //     NoteRenderable.from_note(note, coord_current_virtual)
-                // ];
-                // this.struct_parse.matrix_leaves[coord_current_virtual[0]][coord_current_virtual[1]] = [
-                //     NoteRenderable.from_note(note, coord_current_virtual)
-                // ];
+
                 this.struct_parse.set_notes(
                     [note],
                     coord_current_virtual
@@ -146,10 +143,25 @@ export namespace trainer {
                             segment.beat_end - segment.beat_start,
                             128
                         );
-                        let coord_current_virtual = [0, Number(i_segment)];
-                        this.struct_parse.matrix_leaves[this.algorithm.get_depth() - 1][Number(i_segment)] = notes.map((note) => {
-                            return NoteRenderable.from_note(note, coord_current_virtual)
-                        });
+                        let coord_current_virtual = [this.algorithm.get_depth() - 1, Number(i_segment)];
+                        // this.struct_parse.matrix_leaves[this.algorithm.get_depth() - 1][Number(i_segment)] = notes.map((note) => {
+                        //     return NoteRenderable.from_note(note, coord_current_virtual)
+                        // });
+                        // this.struct_parse.set_notes(
+                        //     [note],
+                        //     coord_current_virtual
+                        // );
+                        // let notes_renderable = notes.map((note) => {
+                        //     return NoteRenderable.from_note(note, coord_current_virtual)
+                        // });
+                        this.struct_parse.set_notes(
+                            notes,
+                            coord_current_virtual
+                        );
+                        this.window.add_notes_to_clip(
+                            notes,
+                            coord_current_virtual
+                        )
                     }
                     break;
                 }
