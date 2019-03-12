@@ -18,6 +18,7 @@ var iterate;
             this.determine_index_stop();
             this.i = this.index_start;
             this.history = [];
+            this.done = false;
         }
         MatrixIterator.prototype.determine_index_start = function () {
             var i_start;
@@ -96,9 +97,10 @@ var iterate;
             this.next_column();
             this.add_history(this.i);
             if (this.i === this.index_stop) {
+                this.done = true;
                 return {
                     value: value,
-                    done: true
+                    done: this.done
                 };
             }
             return {

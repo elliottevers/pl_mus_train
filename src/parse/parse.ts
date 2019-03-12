@@ -55,7 +55,7 @@ export namespace parse {
             this.history = [];
         }
 
-        public get_roots_at_coord(coord: number[]) {
+        public get_notes_at_coord(coord: number[]) {
             return this.matrix_leaves[coord[0]][coord[1]]
         }
 

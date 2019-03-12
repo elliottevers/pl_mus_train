@@ -190,24 +190,25 @@ export namespace window {
         public render(iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
             this.clear();
 
-            let notes, coord;
-
-            if (algorithm.b_targeted()) {
-                coord = iterator_matrix_train.get_coord_current();
-                let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-                notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
-                    return subtarget.note
-                });
-            } else {
-                coord = iterator_matrix_train.get_coord_current();
-                let coord_segment = [0, coord[1]];
-                notes = parse_matrix.get_roots_at_coord(coord_segment);
-            }
+            // let notes, coord;
+            //
+            // if (algorithm.b_targeted()) {
+            //     coord = iterator_matrix_train.get_coord_current();
+            //     let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+            //     notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
+            //         return subtarget.note
+            //     });
+            // } else {
+            //     coord = iterator_matrix_train.get_coord_current();
+            //     let coord_segment = [0, coord[1]];
+            //     notes = parse_matrix.get_roots_at_coord(coord_segment);
+            // }
 
             this.render_regions(
                 iterator_matrix_train,
-                notes,
-                algorithm
+                matrix_target_iterator,
+                algorithm,
+                parse_matrix
             );
 
             if (algorithm.b_targeted()) {
@@ -244,7 +245,7 @@ export namespace window {
                 if (coord[0] === -1) {
                     roots_parse_tree = [parse_matrix.get_root()]
                 } else {
-                    roots_parse_tree = parse_matrix.get_roots_at_coord(coord);
+                    roots_parse_tree = parse_matrix.get_notes_at_coord(coord);
                 }
 
                 for (let root of roots_parse_tree) {
@@ -374,10 +375,49 @@ export namespace window {
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end]
         }
 
-        public render_regions(iterator_matrix_train, notes, algorithm) {
-            let interval_current = algorithm.determine_region_present(
-                notes
-            );
+        // public render_regions(iterator_matrix_train: MatrixIterator, notes, algorithm) {
+        public render_regions(iterator_matrix_train: MatrixIterator, matrix_target_iterator, algorithm, parse_matrix) {
+
+            let notes, coord;
+
+            let interval_current;
+
+            if (algorithm.b_targeted()) {
+                coord = iterator_matrix_train.get_coord_current();
+                let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+                notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
+                    return subtarget.note
+                });
+                interval_current = algorithm.determine_region_present(
+                    notes
+                );
+            } else {
+                if (iterator_matrix_train.done) {
+                    interval_current = [
+                        parse_matrix.root.model.note.get_beat_end(),
+                        parse_matrix.root.model.note.get_beat_end()
+                    ]
+                } else {
+                    coord = iterator_matrix_train.get_coord_current();
+
+                    let coord_segment = [0, coord[1]];
+
+                    notes = parse_matrix.get_notes_at_coord(coord_segment);
+
+                    interval_current = algorithm.determine_region_present(
+                        notes
+                    );
+                }
+            }
+
+            // let interval_current;
+            // if (iterator_matrix_train.done) {
+            //
+            // } else {
+            //     interval_current = algorithm.determine_region_present(
+            //         notes
+            //     );
+            // }
 
             let quadruplet_region_past = this.get_message_render_region_past(interval_current);
             let quadruplet_region_present = this.get_message_render_region_present(interval_current);

@@ -24,6 +24,7 @@ export namespace iterate {
         private index_stop;
 
         private history: number[];
+        public done: boolean;
 
         constructor(num_rows: number, num_columns: number, downward?: boolean, rightward?: boolean, start_at_row?: number, stop_at_row?: number) {
             this.num_rows = num_rows;
@@ -40,6 +41,7 @@ export namespace iterate {
 
             this.i = this.index_start;
             this.history = [];
+            this.done = false;
         }
 
         private determine_index_start() {
@@ -125,9 +127,10 @@ export namespace iterate {
             this.add_history(this.i);
 
             if (this.i === this.index_stop) {
+                this.done = true;
                 return {
                     value: value,
-                    done: true
+                    done: this.done
                 }
             }
 
@@ -162,7 +165,9 @@ export namespace iterate {
 
     export class FactoryMatrixTargetIterator {
         public static create_matrix_focus(algorithm: Algorithm, segments: Segment[]): any[][] {
+
             let matrix_data = [];
+
             switch(algorithm.get_name()) {
                 case algo.DETECT || algo.PREDICT: {
                     for (let i=0; i < 1; i++) {

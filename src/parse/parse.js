@@ -40,7 +40,7 @@ var parse;
             _this.history = [];
             return _this;
         }
-        StructParse.prototype.get_roots_at_coord = function (coord) {
+        StructParse.prototype.get_notes_at_coord = function (coord) {
             return this.matrix_leaves[coord[0]][coord[1]];
         };
         StructParse.get_diff_index_start = function (notes_new, notes_old) {

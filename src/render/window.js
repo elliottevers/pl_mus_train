@@ -153,20 +153,20 @@ var window;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
             this.clear();
-            var notes, coord;
-            if (algorithm.b_targeted()) {
-                coord = iterator_matrix_train.get_coord_current();
-                var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-                notes = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
-                    return subtarget.note;
-                });
-            }
-            else {
-                coord = iterator_matrix_train.get_coord_current();
-                var coord_segment = [0, coord[1]];
-                notes = parse_matrix.get_roots_at_coord(coord_segment);
-            }
-            this.render_regions(iterator_matrix_train, notes, algorithm);
+            // let notes, coord;
+            //
+            // if (algorithm.b_targeted()) {
+            //     coord = iterator_matrix_train.get_coord_current();
+            //     let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+            //     notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
+            //         return subtarget.note
+            //     });
+            // } else {
+            //     coord = iterator_matrix_train.get_coord_current();
+            //     let coord_segment = [0, coord[1]];
+            //     notes = parse_matrix.get_roots_at_coord(coord_segment);
+            // }
+            this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix);
             if (algorithm.b_targeted()) {
                 this.render_clips(iterator_matrix_train, null);
             }
@@ -194,7 +194,7 @@ var window;
                     roots_parse_tree = [parse_matrix.get_root()];
                 }
                 else {
-                    roots_parse_tree = parse_matrix.get_roots_at_coord(coord);
+                    roots_parse_tree = parse_matrix.get_notes_at_coord(coord);
                 }
                 for (var _b = 0, roots_parse_tree_1 = roots_parse_tree; _b < roots_parse_tree_1.length; _b++) {
                     var root = roots_parse_tree_1[_b];
@@ -286,8 +286,40 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, notes, algorithm) {
-            var interval_current = algorithm.determine_region_present(notes);
+        // public render_regions(iterator_matrix_train: MatrixIterator, notes, algorithm) {
+        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
+            var notes, coord;
+            var interval_current;
+            if (algorithm.b_targeted()) {
+                coord = iterator_matrix_train.get_coord_current();
+                var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+                notes = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
+                    return subtarget.note;
+                });
+                interval_current = algorithm.determine_region_present(notes);
+            }
+            else {
+                if (iterator_matrix_train.done) {
+                    interval_current = [
+                        parse_matrix.root.model.note.get_beat_end(),
+                        parse_matrix.root.model.note.get_beat_end()
+                    ];
+                }
+                else {
+                    coord = iterator_matrix_train.get_coord_current();
+                    var coord_segment = [0, coord[1]];
+                    notes = parse_matrix.get_notes_at_coord(coord_segment);
+                    interval_current = algorithm.determine_region_present(notes);
+                }
+            }
+            // let interval_current;
+            // if (iterator_matrix_train.done) {
+            //
+            // } else {
+            //     interval_current = algorithm.determine_region_present(
+            //         notes
+            //     );
+            // }
             var quadruplet_region_past = this.get_message_render_region_past(interval_current);
             var quadruplet_region_present = this.get_message_render_region_present(interval_current);
             var quadruplet_region_future = this.get_message_render_region_future(interval_current);
