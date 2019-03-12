@@ -105,20 +105,24 @@ var parse;
         };
         StructParse.prototype.add = function (notes_user_input, coord_notes_current, algorithm) {
             var coord_notes_previous;
-            this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input;
+            var notes_user_input_renderable = notes_user_input.map(function (note) {
+                return NoteRenderable.from_note(note, coord_notes_current);
+            });
+            this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
+            this.history.push(coord_notes_current);
             switch (algorithm.get_name()) {
                 case PARSE: {
                     coord_notes_previous = MatrixIterator.get_coord_below([coord_notes_current[0], coord_notes_current[1]]);
                     var notes_below = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
                     var notes_children = notes_below;
-                    this.add_layer(notes_user_input, notes_children, -1);
+                    this.add_layer(notes_user_input_renderable, notes_children, -1);
                     break;
                 }
                 case DERIVE: {
                     coord_notes_previous = MatrixIterator.get_coord_above([coord_notes_current[0], coord_notes_current[1]]);
                     var notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
                     var notes_parent = notes_above;
-                    this.add_layer(notes_parent, notes_user_input, -1);
+                    this.add_layer(notes_parent, notes_user_input_renderable, -1);
                     break;
                 }
                 default: {

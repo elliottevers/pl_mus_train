@@ -11,7 +11,6 @@ import Segment = segment.Segment;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
 import {algorithm} from "../../src/train/algorithm";
-import Detect = algorithm.Detect;
 import {freeze, thaw} from "../../src/serialize/serialize";
 import TrainFreezer = freeze.TrainFreezer;
 import TrainThawer = thaw.TrainThawer;

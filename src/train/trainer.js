@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
+var TreeModel = require("tree-model");
 var algorithm_1 = require("./algorithm");
 var history_1 = require("../history/history");
 var target_1 = require("../target/target");
@@ -19,7 +20,6 @@ var trainer;
     var StructParse = parse_1.parse.StructParse;
     var FactoryMatrixTargetIterator = iterate_1.iterate.FactoryMatrixTargetIterator;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
-    var NoteRenderable = note_1.note.NoteRenderable;
     var Trainer = /** @class */ (function () {
         function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_target, song, segments, messenger) {
             this.window = window;
@@ -43,18 +43,22 @@ var trainer;
             }
         }
         Trainer.prototype.initialize_struct_parse = function () {
-            var note_root = this.segments[0].get_note();
-            this.struct_parse.set_root(note_root);
-            // this.struct_parse.root = NoteRenderable.from_note(note_root, [-1]);
+            var note_segment_last = this.segments[this.segments.length - 1].get_note();
+            var tree = new TreeModel();
+            this.struct_parse.set_root(tree.parse({
+                id: -1,
+                note: new note_1.note.Note(note_segment_last.model.note.pitch, this.segments[0].get_note().model.note.beat_start, (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - this.segments[0].get_note().model.note.beat_start, note_segment_last.model.note.velocity, note_segment_last.model.note.muted),
+                children: []
+            }));
             // TODO: make the root the length of the entire song
-            this.window.add_note_to_clip_root(note_root);
+            this.window.add_note_to_clip_root(note_segment_last);
             // set first layer, which are the various key center estimates
             for (var i_segment in this.segments) {
                 var segment_1 = this.segments[Number(i_segment)];
                 var note_2 = segment_1.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
                 this.struct_parse.set_notes([note_2], coord_current_virtual);
-                this.window.add_notes_to_clip(note_2, coord_current_virtual);
+                this.window.add_notes_to_clip([note_2], coord_current_virtual);
             }
             switch (this.algorithm.get_name()) {
                 case PARSE: {
@@ -62,16 +66,6 @@ var trainer;
                         var segment_2 = this.segments[Number(i_segment)];
                         var notes = this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end - segment_2.beat_start, 128);
                         var coord_current_virtual = [this.algorithm.get_depth() - 1, Number(i_segment)];
-                        // this.struct_parse.matrix_leaves[this.algorithm.get_depth() - 1][Number(i_segment)] = notes.map((note) => {
-                        //     return NoteRenderable.from_note(note, coord_current_virtual)
-                        // });
-                        // this.struct_parse.set_notes(
-                        //     [note],
-                        //     coord_current_virtual
-                        // );
-                        // let notes_renderable = notes.map((note) => {
-                        //     return NoteRenderable.from_note(note, coord_current_virtual)
-                        // });
                         this.struct_parse.set_notes(notes, coord_current_virtual);
                         this.window.add_notes_to_clip(notes, coord_current_virtual);
                     }
@@ -138,11 +132,9 @@ var trainer;
             if (obj_next_coord.done) {
                 if (this.algorithm.get_name() === PARSE) {
                     // TODO: make the connections with the root
-                    // public add(notes_user_input, iterator_matrix_train, algorithm): void {
-                    for (var i_segment in this.segments) {
-                        var segment_3 = this.segments[Number(i_segment)];
-                        var coord_current_virtual = [0, Number(i_segment)];
-                        this.struct_parse.add([NoteRenderable.from_note(segment_3.get_note(), coord_current_virtual)], coords_at_time, this.algorithm);
+                    for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
+                        var segment_3 = _a[_i];
+                        this.struct_parse.add([segment_3.get_note()], coords_at_time, this.algorithm);
                     }
                     this.struct_parse.finish();
                 }
@@ -186,7 +178,6 @@ var trainer;
         };
         // user input can be either 1) a pitch or 2) a sequence of notes
         Trainer.prototype.accept_input = function (notes_input_user) {
-            var _this = this;
             this.counter_user_input++;
             if (this.counter_user_input >= this.limit_user_input) {
                 this.limit_input_reached = true;
@@ -200,9 +191,7 @@ var trainer;
                 this.history_user_input.add(notes_input_user, this.iterator_matrix_train.get_coord_current());
                 this.window.add_notes_to_clip(notes_input_user, this.iterator_matrix_train.get_coord_current());
                 // TODO: implement
-                this.struct_parse.add(notes_input_user.map(function (note) {
-                    return NoteRenderable.from_note(note, _this.iterator_matrix_train.get_coord_current());
-                }), this.iterator_matrix_train.get_coord_current(), this.algorithm);
+                this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
                 this.render_window();
                 return;

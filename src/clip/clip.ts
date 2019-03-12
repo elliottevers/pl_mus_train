@@ -12,7 +12,6 @@ export namespace clip {
 
     export class Clip {
 
-        // private clip_dao;
         public clip_dao;
 
         private notes: TreeModel.Node<n.Note>[];
@@ -104,12 +103,6 @@ export namespace clip {
         get_pitch_min(interval?): number {
             let pitch_min = 128;
 
-            // for (let node of this.get_notes_within_loop_brackets()) {
-            //     if (node.model.note.pitch < pitch_min) {
-            //         pitch_min = node.model.note.pitch;
-            //     }
-            // }
-
             let interval_search = interval ? interval : [this.get_loop_bracket_lower(), this.get_loop_bracket_upper()];
 
             for (let node of this.get_notes(interval_search[0], 0, interval_search[1], 128)) {
@@ -161,16 +154,6 @@ export namespace clip {
             if (!this.notes || !use_cache) {
                 this.load_notes_within_markers();
             }
-            // this.logger.log(
-            //     JSON.stringify(
-            //         this.get_notes(
-            //             0, // this.get_start_marker(),
-            //             0,
-            //             16 * 4, // this.get_end_marker(),
-            //             128
-            //         )
-            //     )
-            // );
             return this.notes;
         }
 
@@ -341,7 +324,6 @@ export namespace clip {
             //     throw "notes retrieved from clip less than expected"
             // }
 
-            // l.log(notes_parsed);
             return notes_parsed;
         }
     }
@@ -354,7 +336,6 @@ export namespace clip {
         private key_route: string;
         private env: string;
         private notes_cached: string[];
-        // private logger: Logger;
 
         constructor(clip_live: live.iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
             this.clip_live = clip_live;
@@ -365,7 +346,6 @@ export namespace clip {
             this.deferlow = deferlow;
             this.key_route = key_route;
             this.env = env;
-            // this.logger = new Logger('max');
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {
@@ -374,22 +354,17 @@ export namespace clip {
             for (let word of utils.PathLive.to_message(path_live)) {
                 mess.push(word)
             }
-            // let logger = new Logger('max');
-            // logger.log(mess.toString());
+
             this.messenger.message(mess)
         }
 
         // TODO: check if these actually return arrays
         get_end_marker(): number {
-            // return this.clip_live.get('end_marker')[0];
-            // this.logger.log(JSON.stringify(this.clip_live.get('end_marker')));
             return this.clip_live.get('end_marker')[0];
         }
 
         // TODO: check if these actually return arrays
         get_start_marker(): number {
-            // return this.clip_live.get('start_marker')[0];
-            // this.logger.log(JSON.stringify(this.clip_live.get('start_marker')));
             return this.clip_live.get('start_marker')[0];
         }
 

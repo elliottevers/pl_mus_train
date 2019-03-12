@@ -30,8 +30,6 @@ var window;
         function Window(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
                 var num_pixels_width = this.width;
-                // var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
-                // let num_beats_window = this.num_measures * this.beats_per_measure;
                 return beat * (num_pixels_width / this.length_beats);
             };
             this.height = height;
@@ -78,14 +76,7 @@ var window;
         Window.prototype.add_note_to_clip_root = function (note) {
             this.list_clips[0].set_notes([note]);
         };
-        // get_messages_render_clip(coord: number[]) {
         Window.prototype.get_messages_render_clip = function (index_clip) {
-            // let index_clip: number;
-            // if (coord[0] === -1) {
-            //     index_clip = 0
-            // } else {
-            //     index_clip = Window.coord_to_index_clip(coord);
-            // }
             var clip_virtual = this.list_clips[index_clip];
             var quadruplets = [];
             for (var _i = 0, _a = clip_virtual.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
@@ -249,7 +240,8 @@ var window;
         };
         MatrixWindow.prototype.get_messages_render_clips = function (iterator_matrix_train, parse_matrix) {
             var messages = [];
-            if (parse_matrix === null) {
+            var b_targeted = (parse_matrix === null);
+            if (b_targeted) {
                 for (var _i = 0, _a = iterator_matrix_train.get_history(); _i < _a.length; _i++) {
                     var i = _a[_i];
                     var index_clip = Window.coord_to_index_clip(MatrixIterator.get_coord(i, iterator_matrix_train.num_columns));
@@ -257,7 +249,6 @@ var window;
                 }
             }
             else {
-                this.get_messages_render_clip(0); // root
                 for (var _b = 0, _c = parse_matrix.get_history(); _b < _c.length; _b++) {
                     var coord = _c[_b];
                     messages.push(this.get_messages_render_clip(Window.coord_to_index_clip(coord)));

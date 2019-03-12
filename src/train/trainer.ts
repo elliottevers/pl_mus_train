@@ -31,7 +31,6 @@ export namespace trainer {
     import MatrixIterator = iterate.MatrixIterator;
     import FactoryMatrixTargetIterator = iterate.FactoryMatrixTargetIterator;
     import IteratorTrainFactory = iterate.IteratorTrainFactory;
-    import NoteRenderable = note.NoteRenderable;
 
     export class Trainer {
 
@@ -103,17 +102,32 @@ export namespace trainer {
 
         private initialize_struct_parse() {
 
-            let note_root = this.segments[0].get_note();
+            let note_segment_last = this.segments[this.segments.length - 1].get_note();
+
+            let tree: TreeModel = new TreeModel();
 
             this.struct_parse.set_root(
-                note_root
+                tree.parse(
+                    {
+                        id: -1, // TODO: hashing scheme for clip id and beat start
+                        note: new n.Note(
+                            note_segment_last.model.note.pitch,
+                            this.segments[0].get_note().model.note.beat_start,
+                            (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - this.segments[0].get_note().model.note.beat_start,
+                            note_segment_last.model.note.velocity,
+                            note_segment_last.model.note.muted
+                        ),
+                        children: [
+
+                        ]
+                    }
+                )
             );
-            // this.struct_parse.root = NoteRenderable.from_note(note_root, [-1]);
 
             // TODO: make the root the length of the entire song
 
             this.window.add_note_to_clip_root(
-                note_root
+                note_segment_last
             );
 
             // set first layer, which are the various key center estimates
@@ -130,7 +144,10 @@ export namespace trainer {
                     [note],
                     coord_current_virtual
                 );
-                this.window.add_notes_to_clip(note, coord_current_virtual)
+                this.window.add_notes_to_clip(
+                    [note],
+                    coord_current_virtual
+                )
             }
 
             switch (this.algorithm.get_name()) {
@@ -144,16 +161,7 @@ export namespace trainer {
                             128
                         );
                         let coord_current_virtual = [this.algorithm.get_depth() - 1, Number(i_segment)];
-                        // this.struct_parse.matrix_leaves[this.algorithm.get_depth() - 1][Number(i_segment)] = notes.map((note) => {
-                        //     return NoteRenderable.from_note(note, coord_current_virtual)
-                        // });
-                        // this.struct_parse.set_notes(
-                        //     [note],
-                        //     coord_current_virtual
-                        // );
-                        // let notes_renderable = notes.map((note) => {
-                        //     return NoteRenderable.from_note(note, coord_current_virtual)
-                        // });
+
                         this.struct_parse.set_notes(
                             notes,
                             coord_current_virtual
@@ -258,12 +266,9 @@ export namespace trainer {
             if (obj_next_coord.done) {
                 if (this.algorithm.get_name() === PARSE) {
                     // TODO: make the connections with the root
-                    // public add(notes_user_input, iterator_matrix_train, algorithm): void {
-                    for (let i_segment in this.segments) {
-                        let segment = this.segments[Number(i_segment)];
-                        let coord_current_virtual = [0, Number(i_segment)];
+                    for (let segment of this.segments) {
                         this.struct_parse.add(
-                            [NoteRenderable.from_note(segment.get_note(), coord_current_virtual)],
+                            [segment.get_note()],
                             coords_at_time,
                             this.algorithm
                         );
@@ -373,9 +378,7 @@ export namespace trainer {
 
                 // TODO: implement
                 this.struct_parse.add(
-                    notes_input_user.map((note) => {
-                        return NoteRenderable.from_note(note, this.iterator_matrix_train.get_coord_current())
-                    }),
+                    notes_input_user,
                     this.iterator_matrix_train.get_coord_current(),
                     this.algorithm
                 );

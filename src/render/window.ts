@@ -7,6 +7,7 @@ import * as _ from "lodash";
 import {segment} from "../segment/segment";
 import {algorithm} from "../train/algorithm";
 import {iterate} from "../train/iterate";
+import {parse} from "../parse/parse";
 
 export namespace window {
 
@@ -16,6 +17,7 @@ export namespace window {
     import Clip = clip.Clip;
     import Algorithm = algorithm.Algorithm;
     import MatrixIterator = iterate.MatrixIterator;
+    import StructParse = parse.StructParse;
 
     const red = [255, 0, 0];
     const black = [0, 0, 0];
@@ -88,16 +90,7 @@ export namespace window {
             )
         }
 
-        // get_messages_render_clip(coord: number[]) {
         get_messages_render_clip(index_clip: number) {
-            // let index_clip: number;
-
-            // if (coord[0] === -1) {
-            //     index_clip = 0
-            // } else {
-            //     index_clip = Window.coord_to_index_clip(coord);
-            // }
-
             let clip_virtual = this.list_clips[index_clip];
             let quadruplets = [];
             for (let node of clip_virtual.get_notes_within_loop_brackets()) {
@@ -135,8 +128,6 @@ export namespace window {
 
         beat_to_pixel = function (beat: number): number {
             let num_pixels_width = this.width;
-            // var num_beats_in_clip = this.get_num_measures_clip() * this.beats_per_measure;
-            // let num_beats_window = this.num_measures * this.beats_per_measure;
             return beat * (num_pixels_width / this.length_beats);
         };
 
@@ -309,10 +300,12 @@ export namespace window {
             }
         }
 
-        public get_messages_render_clips(iterator_matrix_train, parse_matrix): any[][] {
+        public get_messages_render_clips(iterator_matrix_train, parse_matrix: StructParse): any[][] {
             let messages = [];
 
-            if (parse_matrix === null) {
+            let b_targeted = (parse_matrix === null);
+
+            if (b_targeted) {
                 for (let i of iterator_matrix_train.get_history()) {
 
                     let index_clip: number = Window.coord_to_index_clip(
@@ -327,7 +320,6 @@ export namespace window {
                     )
                 }
             } else {
-                this.get_messages_render_clip(0);  // root
                 for (let coord of parse_matrix.get_history()) {
                     messages.push(
                         this.get_messages_render_clip(
