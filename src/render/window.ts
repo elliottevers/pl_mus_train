@@ -130,7 +130,14 @@ export namespace window {
         // }
 
         get_messages_render_clip(coord: number[]) {
-            let index_clip = Window.coord_to_index_clip(coord);
+            let index_clip: number;
+
+            if (coord[0] === -1) {
+                index_clip = 0
+            } else {
+                index_clip = Window.coord_to_index_clip(coord);
+            }
+
             let clip_virtual = this.list_clips[index_clip];
             let quadruplets = [];
             for (let node of clip_virtual.get_notes_within_loop_brackets()) {
@@ -279,13 +286,6 @@ export namespace window {
         )
     }
 
-    // export interface TreeRenderable extends Renderable {
-    //
-    //     render_regions(iterator_matrix_train)
-    //
-    //     render_trees(list_parse_tree: ParseTree[])
-    // }
-
     export class MatrixWindow extends Window implements Temporal {
 
         constructor(height, width, messenger) {
@@ -315,21 +315,23 @@ export namespace window {
                 algorithm
             );
 
-            this.render_clips(
-                iterator_matrix_train
-            );
-
-            if (!algorithm.b_targeted()) {
-                this.render_trees(parse_matrix)
+            if (algorithm.b_targeted()) {
+                this.render_clips(
+                    iterator_matrix_train,
+                    null
+                );
+            } else {
+                this.render_trees(parse_matrix);
+                this.render_clips(
+                    iterator_matrix_train,
+                    parse_matrix
+                );
             }
         }
 
         public render_trees(parse_matrix) {
             let messages_render_trees = this.get_messages_render_trees(parse_matrix);
             for (let message_tree of messages_render_trees) {
-                // for (let message of messages_tree) {
-                //     this.messenger.message(message);
-                // }
                 this.messenger.message(message_tree)
             }
         }
@@ -398,17 +400,8 @@ export namespace window {
             ]
         };
 
-        // render_tree(): void {
-        //     var messages = this.get_messages_render_tree();
-        //     for (var i=0; i < messages.length; i++) {
-        //         this.messenger.message(
-        //             messages[i]
-        //         )
-        //     }
-        // };
-
-        public render_clips(iterator_matrix_train) {
-            let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train);
+        public render_clips(iterator_matrix_train, parse_matrix) {
+            let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, parse_matrix);
             for (let messages_notes of messages_render_clips) {
                 for (let message_note of messages_notes) {
                     this.messenger.message(message_note);
@@ -416,55 +409,29 @@ export namespace window {
             }
         }
 
-        public get_messages_render_clips(iterator_matrix_train): any[][] {
+        public get_messages_render_clips(iterator_matrix_train, parse_matrix): any[][] {
             let messages = [];
 
-            for (let i of iterator_matrix_train.get_history()) {
+            if (parse_matrix === null) {
+                for (let i of iterator_matrix_train.get_history()) {
 
-                // let coord_clip: number[] = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
+                    let coord_clip: number[] = MatrixIterator.get_coord(i, iterator_matrix_train.num_columns);
 
-                let coord_clip: number[] = MatrixIterator.get_coord(i, iterator_matrix_train.num_columns);
-
-                messages.push(
-                    this.get_messages_render_clip(coord_clip)
-                )
+                    messages.push(
+                        this.get_messages_render_clip(coord_clip)
+                    )
+                }
+            } else {
+                this.get_messages_render_clip([-1]);  // root
+                for (let coord of parse_matrix.get_history()) {
+                    messages.push(
+                        this.get_messages_render_clip(coord)
+                    )
+                }
             }
 
             return messages
         }
-
-        // render_clips(): void {
-        //     var messages = this.get_messages_render_clips();
-        //     for (var i=0; i < messages.length; i++) {
-        //         this.messenger.message(
-        //             messages[i]
-        //         )
-        //     }
-        // };
-
-        // TODO: return signature
-        // get_messages_render_clips(history_user_input: HistoryUserInput)  {
-        //     var messages = [];
-        //     // for (let index_clip in this.clips) {
-        //     //     messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
-        //     // }
-        //     for (let index_clip in this.clips) {
-        //         messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
-        //     }
-        //     return messages;
-        // };
-
-        // get_messages_render_notes(clip: Clip) {
-        //     let quadruplets = [];
-        //     for (let node of clip.get_notes_within_loop_brackets()) {
-        //         quadruplets.push(this.get_position_quadruplet(node, index_clip));
-        //     }
-        //     return quadruplets.map(function (tuplet) {
-        //         let message = <any>["paintrect"].concat(tuplet);
-        //         message = message.concat(black);
-        //         return message;
-        //     })
-        // };
 
         public get_message_render_region_past(interval_current) {
             let offset_left_start, offset_top_start, offset_left_end, offset_top_end;

@@ -44,7 +44,8 @@ var trainer;
         }
         Trainer.prototype.initialize_struct_parse = function () {
             var note_root = this.segments[0].get_note();
-            this.struct_parse.root = NoteRenderable.from_note(note_root, [-1]);
+            this.struct_parse.set_root(note_root);
+            // this.struct_parse.root = NoteRenderable.from_note(note_root, [-1]);
             // TODO: make the root the length of the entire song
             this.window.add_note_to_clip_root(note_root);
             // set first layer, which are the various key center estimates
@@ -53,9 +54,13 @@ var trainer;
                 var note_2 = segment_1.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
                 // TODO: can we make a function to simultaneous add to all 3 of struct parse, history user input, and window?
-                this.struct_parse.matrix_leaves[coord_current_virtual[0]][coord_current_virtual[1]] = [
-                    NoteRenderable.from_note(note_2, coord_current_virtual)
-                ];
+                // this.struct_parse.matrix_leaves[coord_current_virtual[0]][coord_current_virtual[1]] = [
+                //     NoteRenderable.from_note(note, coord_current_virtual)
+                // ];
+                // this.struct_parse.matrix_leaves[coord_current_virtual[0]][coord_current_virtual[1]] = [
+                //     NoteRenderable.from_note(note, coord_current_virtual)
+                // ];
+                this.struct_parse.set_notes([note_2], coord_current_virtual);
                 this.window.add_notes_to_clip(note_2, coord_current_virtual);
             }
             switch (this.algorithm.get_name()) {

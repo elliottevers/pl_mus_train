@@ -103,7 +103,13 @@ var window;
         //     this.matrix_clips[coord_matrix_clip[0]][coord_matrix_clip[1]] = clip_virtual;
         // }
         Window.prototype.get_messages_render_clip = function (coord) {
-            var index_clip = Window.coord_to_index_clip(coord);
+            var index_clip;
+            if (coord[0] === -1) {
+                index_clip = 0;
+            }
+            else {
+                index_clip = Window.coord_to_index_clip(coord);
+            }
             var clip_virtual = this.list_clips[index_clip];
             var quadruplets = [];
             for (var _i = 0, _a = clip_virtual.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
@@ -223,12 +229,6 @@ var window;
         return Window;
     }());
     window.Window = Window;
-    // export interface TreeRenderable extends Renderable {
-    //
-    //     render_regions(iterator_matrix_train)
-    //
-    //     render_trees(list_parse_tree: ParseTree[])
-    // }
     var MatrixWindow = /** @class */ (function (_super) {
         __extends(MatrixWindow, _super);
         function MatrixWindow(height, width, messenger) {
@@ -250,18 +250,18 @@ var window;
                 notes = parse_matrix.get_roots_at_coord(coord_segment);
             }
             this.render_regions(iterator_matrix_train, notes, algorithm);
-            this.render_clips(iterator_matrix_train);
-            if (!algorithm.b_targeted()) {
+            if (algorithm.b_targeted()) {
+                this.render_clips(iterator_matrix_train, null);
+            }
+            else {
                 this.render_trees(parse_matrix);
+                this.render_clips(iterator_matrix_train, parse_matrix);
             }
         };
         MatrixWindow.prototype.render_trees = function (parse_matrix) {
             var messages_render_trees = this.get_messages_render_trees(parse_matrix);
             for (var _i = 0, messages_render_trees_1 = messages_render_trees; _i < messages_render_trees_1.length; _i++) {
                 var message_tree = messages_render_trees_1[_i];
-                // for (let message of messages_tree) {
-                //     this.messenger.message(message);
-                // }
                 this.messenger.message(message_tree);
             }
         };
@@ -317,16 +317,8 @@ var window;
             ];
         };
         ;
-        // render_tree(): void {
-        //     var messages = this.get_messages_render_tree();
-        //     for (var i=0; i < messages.length; i++) {
-        //         this.messenger.message(
-        //             messages[i]
-        //         )
-        //     }
-        // };
-        MatrixWindow.prototype.render_clips = function (iterator_matrix_train) {
-            var messages_render_clips = this.get_messages_render_clips(iterator_matrix_train);
+        MatrixWindow.prototype.render_clips = function (iterator_matrix_train, parse_matrix) {
+            var messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, parse_matrix);
             for (var _i = 0, messages_render_clips_1 = messages_render_clips; _i < messages_render_clips_1.length; _i++) {
                 var messages_notes = messages_render_clips_1[_i];
                 for (var _a = 0, messages_notes_1 = messages_notes; _a < messages_notes_1.length; _a++) {
@@ -335,46 +327,24 @@ var window;
                 }
             }
         };
-        MatrixWindow.prototype.get_messages_render_clips = function (iterator_matrix_train) {
+        MatrixWindow.prototype.get_messages_render_clips = function (iterator_matrix_train, parse_matrix) {
             var messages = [];
-            for (var _i = 0, _a = iterator_matrix_train.get_history(); _i < _a.length; _i++) {
-                var i = _a[_i];
-                // let coord_clip: number[] = MatrixIterator.get_coord(i, this.matrix_clips[this.matrix_clips.length - 1].length);
-                var coord_clip = MatrixIterator.get_coord(i, iterator_matrix_train.num_columns);
-                messages.push(this.get_messages_render_clip(coord_clip));
+            if (parse_matrix === null) {
+                for (var _i = 0, _a = iterator_matrix_train.get_history(); _i < _a.length; _i++) {
+                    var i = _a[_i];
+                    var coord_clip = MatrixIterator.get_coord(i, iterator_matrix_train.num_columns);
+                    messages.push(this.get_messages_render_clip(coord_clip));
+                }
+            }
+            else {
+                this.get_messages_render_clip([-1]); // root
+                for (var _b = 0, _c = parse_matrix.get_history(); _b < _c.length; _b++) {
+                    var coord = _c[_b];
+                    messages.push(this.get_messages_render_clip(coord));
+                }
             }
             return messages;
         };
-        // render_clips(): void {
-        //     var messages = this.get_messages_render_clips();
-        //     for (var i=0; i < messages.length; i++) {
-        //         this.messenger.message(
-        //             messages[i]
-        //         )
-        //     }
-        // };
-        // TODO: return signature
-        // get_messages_render_clips(history_user_input: HistoryUserInput)  {
-        //     var messages = [];
-        //     // for (let index_clip in this.clips) {
-        //     //     messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
-        //     // }
-        //     for (let index_clip in this.clips) {
-        //         messages = messages.concat(this.get_messages_render_notes(Number(index_clip)))
-        //     }
-        //     return messages;
-        // };
-        // get_messages_render_notes(clip: Clip) {
-        //     let quadruplets = [];
-        //     for (let node of clip.get_notes_within_loop_brackets()) {
-        //         quadruplets.push(this.get_position_quadruplet(node, index_clip));
-        //     }
-        //     return quadruplets.map(function (tuplet) {
-        //         let message = <any>["paintrect"].concat(tuplet);
-        //         message = message.concat(black);
-        //         return message;
-        //     })
-        // };
         MatrixWindow.prototype.get_message_render_region_past = function (interval_current) {
             var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
             offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());

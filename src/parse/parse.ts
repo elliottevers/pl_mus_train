@@ -18,6 +18,7 @@ export namespace parse {
     import PARSE = algorithm.PARSE;
     import DERIVE = algorithm.DERIVE;
     import MatrixIterator = iterate.MatrixIterator;
+    import NoteRenderable = note.NoteRenderable;
     // import MatrixIterator = trainer.MatrixIterator;
 
     export interface Parsable {
@@ -47,10 +48,13 @@ export namespace parse {
 
         coords_roots: number[][]; // list of coordinates
 
+        history: number[][];
+
         constructor(matrix) {
             super();
             this.matrix_leaves = matrix;
             this.coords_roots = []
+            this.history = []
         }
 
         public get_roots_at_coord(coord: number[]) {
@@ -107,6 +111,23 @@ export namespace parse {
                     }
                 }
             }
+        }
+
+        public set_root(note) {
+            let coord_root = [-1];
+            this.history.push(coord_root);
+            this.root = NoteRenderable.from_note(note, coord_root)
+        }
+
+        public set_notes(notes, coord) {
+            this.history.push(coord);
+            this.matrix_leaves[coord[0]][coord[1]] = notes.map((note) => {
+                return NoteRenderable.from_note(note, coord)
+            });
+        }
+
+        public get_history(): number[][] {
+            return this.history
         }
 
         public add(notes_user_input, coord_notes_current, algorithm): void {

@@ -323,7 +323,7 @@ let user_input_handler_parse = new UserInputHandler(
 );
 
 let env_parse: string = 'node_for_max';
-// env_parse = 'node';
+env_parse = 'node';
 
 
 let messenger_parse = new Messenger(env_parse, 0, 'render_parse');

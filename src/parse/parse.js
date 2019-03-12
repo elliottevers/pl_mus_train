@@ -13,6 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var note_1 = require("../note/note");
 var algorithm_1 = require("../train/algorithm");
 var iterate_1 = require("../train/iterate");
 var _ = require("underscore");
@@ -21,6 +22,7 @@ var parse;
     var PARSE = algorithm_1.algorithm.PARSE;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
+    var NoteRenderable = note_1.note.NoteRenderable;
     var ParseTree = /** @class */ (function () {
         function ParseTree() {
         }
@@ -35,6 +37,7 @@ var parse;
             var _this = _super.call(this) || this;
             _this.matrix_leaves = matrix;
             _this.coords_roots = [];
+            _this.history = [];
             return _this;
         }
         StructParse.prototype.get_roots_at_coord = function (coord) {
@@ -80,11 +83,25 @@ var parse;
                     var notes = col_1[_b];
                     // @ts-ignore
                     for (var _c = 0, notes_1 = notes; _c < notes_1.length; _c++) {
-                        var note_1 = notes_1[_c];
-                        this.add_layer([this.root], note_1, -1);
+                        var note_2 = notes_1[_c];
+                        this.add_layer([this.root], note_2, -1);
                     }
                 }
             }
+        };
+        StructParse.prototype.set_root = function (note) {
+            var coord_root = [-1];
+            this.history.push(coord_root);
+            this.root = NoteRenderable.from_note(note, coord_root);
+        };
+        StructParse.prototype.set_notes = function (notes, coord) {
+            this.history.push(coord);
+            this.matrix_leaves[coord[0]][coord[1]] = notes.map(function (note) {
+                return NoteRenderable.from_note(note, coord);
+            });
+        };
+        StructParse.prototype.get_history = function () {
+            return this.history;
         };
         StructParse.prototype.add = function (notes_user_input, coord_notes_current, algorithm) {
             var coord_notes_previous;
