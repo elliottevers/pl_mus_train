@@ -130,7 +130,7 @@ var trainer;
             this.algorithm.post_init(this.song, this.clip_user_input);
         };
         Trainer.prototype.advance_segment = function () {
-            // TODO:
+            var coords_at_time = this.iterator_matrix_train.get_coord_current();
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
                 if (this.algorithm.get_name() === PARSE) {
@@ -139,7 +139,7 @@ var trainer;
                     for (var i_segment in this.segments) {
                         var segment_3 = this.segments[Number(i_segment)];
                         var coord_current_virtual = [0, Number(i_segment)];
-                        this.struct_parse.add([NoteRenderable.from_note(segment_3.get_note(), coord_current_virtual)], this.iterator_matrix_train.get_coord_current(), this.algorithm);
+                        this.struct_parse.add([NoteRenderable.from_note(segment_3.get_note(), coord_current_virtual)], coords_at_time, this.algorithm);
                     }
                     this.struct_parse.finish();
                 }

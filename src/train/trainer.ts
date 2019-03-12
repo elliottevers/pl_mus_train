@@ -229,7 +229,8 @@ export namespace trainer {
         }
 
         private advance_segment() {
-            // TODO:
+
+            let coords_at_time = this.iterator_matrix_train.get_coord_current();
             let obj_next_coord = this.iterator_matrix_train.next();
 
             if (obj_next_coord.done) {
@@ -241,13 +242,13 @@ export namespace trainer {
                         let coord_current_virtual = [0, Number(i_segment)];
                         this.struct_parse.add(
                             [NoteRenderable.from_note(segment.get_note(), coord_current_virtual)],
-                            this.iterator_matrix_train.get_coord_current(),
+                            coords_at_time,
                             this.algorithm
                         );
                     }
                     this.struct_parse.finish()
                 }
-                this.algorithm.pre_terminate(this.song, this.clip_user_input)
+                this.algorithm.pre_terminate(this.song, this.clip_user_input);
                 return
             }
 

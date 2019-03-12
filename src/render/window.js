@@ -236,17 +236,19 @@ var window;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
             this.clear();
-            var notes;
+            var notes, coord;
             if (algorithm.b_targeted()) {
-                var coord = iterator_matrix_train.get_coord_current();
+                coord = iterator_matrix_train.get_coord_current();
                 var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
                 notes = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
                     return subtarget.note;
                 });
             }
             else {
-                var coord = iterator_matrix_train.get_coord_current();
-                notes = parse_matrix.get_roots_at_coord(coord);
+                coord = iterator_matrix_train.get_coord_current();
+                // TODO: THESE HAVEN"T EVEN BEEN ADDED TO THE PARSE MATRIX YET
+                var coord_segment = [0, coord[1]];
+                notes = parse_matrix.get_roots_at_coord(coord_segment);
             }
             // TODO: 'notes' is undefined here, this is probably because the matrix iteration is wrong
             this.render_regions(iterator_matrix_train, notes, algorithm);

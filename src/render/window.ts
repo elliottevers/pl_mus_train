@@ -295,17 +295,19 @@ export namespace window {
         public render(iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
             this.clear();
 
-            let notes;
+            let notes, coord;
 
             if (algorithm.b_targeted()) {
-                let coord = iterator_matrix_train.get_coord_current();
+                coord = iterator_matrix_train.get_coord_current();
                 let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
                 notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
                     return subtarget.note
                 });
             } else {
-                let coord = iterator_matrix_train.get_coord_current();
-                notes = parse_matrix.get_roots_at_coord(coord)
+                coord = iterator_matrix_train.get_coord_current();
+                // TODO: THESE HAVEN"T EVEN BEEN ADDED TO THE PARSE MATRIX YET
+                let coord_segment = [0, coord[1]];
+                notes = parse_matrix.get_roots_at_coord(coord_segment);
             }
 
             // TODO: 'notes' is undefined here, this is probably because the matrix iteration is wrong

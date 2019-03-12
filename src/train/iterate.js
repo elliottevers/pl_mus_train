@@ -99,7 +99,7 @@ var iterate;
             };
         };
         MatrixIterator.prototype.get_coord_current = function () {
-            return MatrixIterator.get_coord(this.get_state_current() + 1, this.num_columns);
+            return MatrixIterator.get_coord(this.get_state_current(), this.num_columns);
         };
         MatrixIterator.prototype.get_state_current = function () {
             return this.i;

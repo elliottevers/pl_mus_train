@@ -125,7 +125,7 @@ export namespace iterate {
         }
 
         public get_coord_current(): number[] {
-            return MatrixIterator.get_coord(this.get_state_current() + 1, this.num_columns)
+            return MatrixIterator.get_coord(this.get_state_current(), this.num_columns)
         }
 
         public get_state_current(): number {
