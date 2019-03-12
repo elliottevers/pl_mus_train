@@ -44,7 +44,12 @@ var window;
         };
         // because it's a *list* of clips
         Window.coord_to_index_clip = function (coord) {
-            return coord[0] + 1; // we prepend the root to the list
+            if (coord[0] === -1) {
+                return 0;
+            }
+            else {
+                return coord[0] + 1;
+            }
         };
         Window.prototype.initialize_clips = function (algorithm, segments) {
             var list_clips = [];
@@ -73,19 +78,19 @@ var window;
         Window.prototype.add_note_to_clip_root = function (note) {
             this.list_clips[0].set_notes([note]);
         };
-        Window.prototype.get_messages_render_clip = function (coord) {
-            var index_clip;
-            if (coord[0] === -1) {
-                index_clip = 0;
-            }
-            else {
-                index_clip = Window.coord_to_index_clip(coord);
-            }
+        // get_messages_render_clip(coord: number[]) {
+        Window.prototype.get_messages_render_clip = function (index_clip) {
+            // let index_clip: number;
+            // if (coord[0] === -1) {
+            //     index_clip = 0
+            // } else {
+            //     index_clip = Window.coord_to_index_clip(coord);
+            // }
             var clip_virtual = this.list_clips[index_clip];
             var quadruplets = [];
             for (var _i = 0, _a = clip_virtual.get_notes_within_loop_brackets(); _i < _a.length; _i++) {
                 var node = _a[_i];
-                quadruplets.push(this.get_position_quadruplet(node, coord));
+                quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {
                 var message = ["paintrect"].concat(tuplet);
@@ -94,30 +99,23 @@ var window;
             });
         };
         ;
-        Window.prototype.get_position_quadruplet = function (node, coord_clip) {
+        Window.prototype.get_position_quadruplet = function (node, index_clip) {
             var dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom;
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, index_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, index_clip);
             return [dist_from_left_beat_start, dist_from_top_note_top, dist_from_left_beat_end, dist_from_top_note_bottom];
         };
         ;
-        Window.prototype.get_dist_from_top = function (pitch, coord) {
-            // var clip = this.clips[index_clip];
-            var index_clip = Window.coord_to_index_clip(coord);
+        Window.prototype.get_dist_from_top = function (pitch, index_clip) {
             var clip = this.list_clips[index_clip];
-            // let offset = index_clip;
-            // let offset = coord[0];
-            var offset = coord[0] + 1;
-            // let offset = coord_clip[1];
+            var offset = index_clip;
             // TODO: make this configurable
             if (false) {
-                // offset = this.clips.length - 1 - index_clip;
-                // offset = this.matrix_clips.get_num_rows() - 1 - coord_clip[0];
-                offset = this.list_clips.length - 1 - coord[0];
+                offset = this.list_clips.length - 1 - index_clip;
             }
-            var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(coord);
+            var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(index_clip);
             return dist + (this.get_height_clip() * offset);
         };
         ;
@@ -141,10 +139,8 @@ var window;
             return this.height / this.list_clips.length;
         };
         ;
-        Window.prototype.get_height_note = function (coord) {
-            var index_clip = Window.coord_to_index_clip(coord);
+        Window.prototype.get_height_note = function (index_clip) {
             var clip = this.list_clips[index_clip];
-            // let ambitus = this.get_ambitus(coord_clip);
             var ambitus = clip.get_ambitus();
             var dist_pitch = ambitus[1] - ambitus[0] + 1;
             return this.get_height_clip() / dist_pitch;
@@ -229,11 +225,12 @@ var window;
         MatrixWindow.prototype.get_centroid = function (node) {
             var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
             var coord_clip = node.model.note.get_coordinates_matrix();
+            var index_clip = Window.coord_to_index_clip(coord_clip);
             // TODO: determine how to get the index of the clip from just depth of the node
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
-            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, coord_clip);
-            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, coord_clip);
+            dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, index_clip);
+            dist_from_top_note_bottom = this.get_dist_from_top(node.model.note.pitch - 1, index_clip);
             return [
                 dist_from_left_beat_end - ((dist_from_left_beat_end - dist_from_left_beat_start) / 2),
                 dist_from_top_note_bottom - ((dist_from_top_note_bottom - dist_from_top_note_top) / 2)
@@ -255,15 +252,15 @@ var window;
             if (parse_matrix === null) {
                 for (var _i = 0, _a = iterator_matrix_train.get_history(); _i < _a.length; _i++) {
                     var i = _a[_i];
-                    var coord_clip = MatrixIterator.get_coord(i, iterator_matrix_train.num_columns);
-                    messages.push(this.get_messages_render_clip(coord_clip));
+                    var index_clip = Window.coord_to_index_clip(MatrixIterator.get_coord(i, iterator_matrix_train.num_columns));
+                    messages.push(this.get_messages_render_clip(index_clip));
                 }
             }
             else {
-                this.get_messages_render_clip([-1]); // root
+                this.get_messages_render_clip(0); // root
                 for (var _b = 0, _c = parse_matrix.get_history(); _b < _c.length; _b++) {
                     var coord = _c[_b];
-                    messages.push(this.get_messages_render_clip(coord));
+                    messages.push(this.get_messages_render_clip(Window.coord_to_index_clip(coord)));
                 }
             }
             return messages;
