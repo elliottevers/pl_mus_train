@@ -404,9 +404,9 @@ trainer_local_parse.accept_input(
     [note_melody_parsed_1, note_melody_parsed_2]
 );
 
-// trainer_local_parse.accept_input(
-//     [note_melody_parsed_3, note_melody_parsed_4]
-// );
+trainer_local_parse.accept_input(
+    [note_melody_parsed_3, note_melody_parsed_4]
+);
 
 trainer_local_parse.render_window(
 

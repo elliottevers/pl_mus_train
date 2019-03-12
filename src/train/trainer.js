@@ -20,6 +20,7 @@ var trainer;
     var StructParse = parse_1.parse.StructParse;
     var FactoryMatrixTargetIterator = iterate_1.iterate.FactoryMatrixTargetIterator;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
+    var Note = note_1.note.Note;
     var Trainer = /** @class */ (function () {
         function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_target, song, segments, messenger) {
             this.window = window;
@@ -45,13 +46,14 @@ var trainer;
         Trainer.prototype.initialize_struct_parse = function () {
             var note_segment_last = this.segments[this.segments.length - 1].get_note();
             var tree = new TreeModel();
-            this.struct_parse.set_root(tree.parse({
+            var note_length_full = tree.parse({
                 id: -1,
                 note: new note_1.note.Note(note_segment_last.model.note.pitch, this.segments[0].get_note().model.note.beat_start, (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - this.segments[0].get_note().model.note.beat_start, note_segment_last.model.note.velocity, note_segment_last.model.note.muted),
                 children: []
-            }));
+            });
+            this.struct_parse.set_root(note_length_full);
             // TODO: make the root the length of the entire song
-            this.window.add_note_to_clip_root(note_segment_last);
+            this.window.add_note_to_clip_root(note_length_full);
             // set first layer, which are the various key center estimates
             for (var i_segment in this.segments) {
                 var segment_1 = this.segments[Number(i_segment)];
@@ -131,12 +133,13 @@ var trainer;
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
                 if (this.algorithm.get_name() === PARSE) {
-                    // TODO: make the connections with the root
-                    for (var _i = 0, _a = this.segments; _i < _a.length; _i++) {
-                        var segment_3 = _a[_i];
-                        this.struct_parse.add([segment_3.get_note()], coords_at_time, this.algorithm);
+                    // TODO: better way to make the connections with the segments
+                    for (var i_segment in this.segments) {
+                        var segment_3 = this.segments[Number(i_segment)];
+                        this.struct_parse.add([segment_3.get_note()], [0, Number(i_segment)], this.algorithm);
                     }
-                    this.struct_parse.finish();
+                    // TODO: better way to make the connections with the root
+                    this.struct_parse.add([Note.from_note_renderable(this.struct_parse.get_root())], [-1], this.algorithm);
                 }
                 this.algorithm.pre_terminate(this.song, this.clip_user_input);
                 return;

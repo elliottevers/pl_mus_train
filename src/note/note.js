@@ -47,15 +47,14 @@ var note;
         Note.prototype.encode = function () {
             return this.to_array().join(' ');
         };
-        // to_json():any {
-        //     return {
-        //         pitch: this.pitch,
-        //         beat_start: this.beat_start,
-        //         beats_duration: this.beats_duration,
-        //         velocity: this.velocity,
-        //         muted: this.muted
-        //     }
-        // }
+        Note.from_note_renderable = function (note) {
+            var tree = new TreeModel();
+            return tree.parse({
+                id: -1,
+                note: new Note(note.model.note.pitch, note.model.note.beat_start, note.model.note.beats_duration, note.model.note.velocity, note.model.note.muted),
+                children: []
+            });
+        };
         Note.prototype.to_array = function () {
             return [this.pitch, this.beat_start, this.beats_duration, this.velocity, this.muted];
         };

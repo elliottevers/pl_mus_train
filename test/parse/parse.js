@@ -152,9 +152,7 @@ var trainer_local_parse = new Trainer(window_local_parse, user_input_handler_par
 // test case - 2 segments, 2 notes a piece
 trainer_local_parse.init();
 trainer_local_parse.accept_input([note_melody_parsed_1, note_melody_parsed_2]);
-// trainer_local_parse.accept_input(
-//     [note_melody_parsed_3, note_melody_parsed_4]
-// );
+trainer_local_parse.accept_input([note_melody_parsed_3, note_melody_parsed_4]);
 trainer_local_parse.render_window();
 //
 // trainer_local_parse.clear_window(

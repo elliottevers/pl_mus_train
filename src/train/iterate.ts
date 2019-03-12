@@ -151,17 +151,12 @@ export namespace iterate {
             return [pos_row, pos_column]
         }
 
-        public static get_coord_above(coord) {
-            // if (coord[0] === 1) {
-            //     // return [coord[0] - 1, 0]
-            //     return [0, 0]
-            // } else {
-            return [coord[0] - 1, coord[1]]
-            // }
+        public static get_coords_above(coord): number[][] {
+            return [[coord[0] - 1, coord[1]]]
         }
 
-        public static get_coord_below(coord): number[] {
-            return [coord[0] + 1, coord[1]]
+        public static get_coords_below(coord): number[][] {
+            return [[coord[0] + 1, coord[1]]]
         }
     }
 

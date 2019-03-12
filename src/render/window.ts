@@ -20,10 +20,12 @@ export namespace window {
     import StructParse = parse.StructParse;
 
     const red = [255, 0, 0];
+    const white = [255, 255, 255];
     const black = [0, 0, 0];
     const region_yellow = [254, 254, 10];
     const region_green = [33, 354, 6];
     const region_red = [251, 1, 6];
+    const blue = [10, 10, 251];
 
     interface Temporal {
         get_message_render_region_past(interval_current);
@@ -159,6 +161,11 @@ export namespace window {
             let clip = this.list_clips[index_clip];
             let ambitus = clip.get_ambitus();
             let dist_pitch = ambitus[1] - ambitus[0] + 1;
+
+            // TODO: fix this hack for getting a margin around the note
+            if (dist_pitch === 1) {
+                dist_pitch = 3;
+            }
             return this.get_height_clip() / dist_pitch;
         };
     }

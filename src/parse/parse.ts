@@ -96,20 +96,17 @@ export namespace parse {
             ];
         };
 
-        public finish() {
-            for (let col of this.matrix_leaves[0]) {
-                for (let notes of col) {
-                    // @ts-ignore
-                    for (let note of notes) {
-                        this.add_layer(
-                            [this.root],
-                            note,
-                            -1
-                        )
-                    }
-                }
-            }
-        }
+        // public finish_parse() {
+        //     for (let col of this.matrix_leaves[0]) {
+        //         for (let note of col) {
+        //             this.add_layer(
+        //                 [this.root],
+        //                 [note],
+        //                 -1
+        //             )
+        //         }
+        //     }
+        // }
 
         public set_root(note) {
             let coord_root = [-1];
@@ -128,39 +125,59 @@ export namespace parse {
             return this.history
         }
 
+        // TODO: holy fuck refactor
         public add(notes_user_input, coord_notes_current, algorithm): void {
 
-            let coord_notes_previous;
+            // let coord_notes_previous;
+            let coords_notes_previous: number[][] = [];
 
             let notes_user_input_renderable = notes_user_input.map((note) => {
                 return NoteRenderable.from_note(note, coord_notes_current)
             });
 
-            this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
+            if (coord_notes_current[0] === -1) {
+                this.root = notes_user_input_renderable[0]
+            } else {
+                this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
+            }
 
             this.history.push(coord_notes_current);
 
             switch (algorithm.get_name()) {
                 case PARSE: {
-                    coord_notes_previous = MatrixIterator.get_coord_below([coord_notes_current[0], coord_notes_current[1]]);
-                    let notes_below = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
-                    let notes_children = notes_below;
-                    this.add_layer(
-                        notes_user_input_renderable,
-                        notes_children,
-                        -1
-                    );
+                    if (coord_notes_current[0] === -1) {
+                        for (let i in this.matrix_leaves[0]) {
+                            coords_notes_previous.push([0, Number(i)])
+                        }
+                    } else {
+                        coords_notes_previous = MatrixIterator.get_coords_below([coord_notes_current[0], coord_notes_current[1]]);
+                    }
+
+                    for (let coord_to_grow of coords_notes_previous) {
+                        let notes_below = this.matrix_leaves[coord_to_grow[0]][coord_to_grow[1]];
+                        let notes_children = notes_below;
+                        this.add_layer(
+                            notes_user_input_renderable,
+                            notes_children,
+                            -1
+                        );
+                    }
                     break;
                 }
                 case DERIVE: {
-                    coord_notes_previous = MatrixIterator.get_coord_above([coord_notes_current[0], coord_notes_current[1]]);
-                    let notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
-                    let notes_parent = notes_above;
-                    this.add_layer(
-                        notes_parent,
-                        notes_user_input_renderable,
-                        -1
-                    );
+                    // if (coord_notes_current[0] === -1) {
+                    //     this.root = notes_user_input_renderable
+                    // } else {
+                    //     this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
+                    // }
+                    // coord_notes_previous = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
+                    // let notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
+                    // let notes_parent = notes_above;
+                    // this.add_layer(
+                    //     notes_parent,
+                    //     notes_user_input_renderable,
+                    //     -1
+                    // );
                     break;
                 }
                 default: {
@@ -169,9 +186,11 @@ export namespace parse {
             }
 
             // remove references to old leaves
-            this.coords_roots = this.coords_roots.filter((x) => {
-                return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1])
-            });
+            for (let coord_notes_previous of coords_notes_previous) {
+                this.coords_roots = this.coords_roots.filter((x) => {
+                    return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1])
+                });
+            }
 
             // add references to new leaves
             this.coords_roots.push(

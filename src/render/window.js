@@ -22,10 +22,12 @@ var window;
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var red = [255, 0, 0];
+    var white = [255, 255, 255];
     var black = [0, 0, 0];
     var region_yellow = [254, 254, 10];
     var region_green = [33, 354, 6];
     var region_red = [251, 1, 6];
+    var blue = [10, 10, 251];
     var Window = /** @class */ (function () {
         function Window(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
@@ -134,6 +136,10 @@ var window;
             var clip = this.list_clips[index_clip];
             var ambitus = clip.get_ambitus();
             var dist_pitch = ambitus[1] - ambitus[0] + 1;
+            // TODO: fix this hack for getting a margin around the note
+            if (dist_pitch === 1) {
+                dist_pitch = 3;
+            }
             return this.get_height_clip() / dist_pitch;
         };
         ;

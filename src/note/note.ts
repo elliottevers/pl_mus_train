@@ -57,15 +57,25 @@ export namespace note {
             return this.to_array().join(' ')
         }
 
-        // to_json():any {
-        //     return {
-        //         pitch: this.pitch,
-        //         beat_start: this.beat_start,
-        //         beats_duration: this.beats_duration,
-        //         velocity: this.velocity,
-        //         muted: this.muted
-        //     }
-        // }
+        public static from_note_renderable(note: TreeModel.Node<NoteRenderable>): TreeModel.Node<Note> {
+            let tree: TreeModel = new TreeModel();
+
+            return tree.parse(
+                {
+                    id: -1, // TODO: hashing scheme for clip id and beat start
+                    note: new Note(
+                        note.model.note.pitch,
+                        note.model.note.beat_start,
+                        note.model.note.beats_duration,
+                        note.model.note.velocity,
+                        note.model.note.muted
+                    ),
+                    children: [
+
+                    ]
+                }
+            )
+        }
 
         to_array():Array<number> {
             return [this.pitch, this.beat_start, this.beats_duration, this.velocity, this.muted]
@@ -174,8 +184,6 @@ export namespace note {
                 }
             )
         }
-
-
     }
 
     export class NoteIterator {

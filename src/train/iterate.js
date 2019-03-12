@@ -117,16 +117,11 @@ var iterate;
             var pos_column = remainder(i, num_columns);
             return [pos_row, pos_column];
         };
-        MatrixIterator.get_coord_above = function (coord) {
-            // if (coord[0] === 1) {
-            //     // return [coord[0] - 1, 0]
-            //     return [0, 0]
-            // } else {
-            return [coord[0] - 1, coord[1]];
-            // }
+        MatrixIterator.get_coords_above = function (coord) {
+            return [[coord[0] - 1, coord[1]]];
         };
-        MatrixIterator.get_coord_below = function (coord) {
-            return [coord[0] + 1, coord[1]];
+        MatrixIterator.get_coords_below = function (coord) {
+            return [[coord[0] + 1, coord[1]]];
         };
         return MatrixIterator;
     }());

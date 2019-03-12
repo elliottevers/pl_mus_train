@@ -76,19 +76,17 @@ var parse;
             ];
         };
         ;
-        StructParse.prototype.finish = function () {
-            for (var _i = 0, _a = this.matrix_leaves[0]; _i < _a.length; _i++) {
-                var col = _a[_i];
-                for (var _b = 0, col_1 = col; _b < col_1.length; _b++) {
-                    var notes = col_1[_b];
-                    // @ts-ignore
-                    for (var _c = 0, notes_1 = notes; _c < notes_1.length; _c++) {
-                        var note_2 = notes_1[_c];
-                        this.add_layer([this.root], note_2, -1);
-                    }
-                }
-            }
-        };
+        // public finish_parse() {
+        //     for (let col of this.matrix_leaves[0]) {
+        //         for (let note of col) {
+        //             this.add_layer(
+        //                 [this.root],
+        //                 [note],
+        //                 -1
+        //             )
+        //         }
+        //     }
+        // }
         StructParse.prototype.set_root = function (note) {
             var coord_root = [-1];
             this.history.push(coord_root);
@@ -103,36 +101,69 @@ var parse;
         StructParse.prototype.get_history = function () {
             return this.history;
         };
+        // TODO: holy fuck refactor
         StructParse.prototype.add = function (notes_user_input, coord_notes_current, algorithm) {
-            var coord_notes_previous;
+            // let coord_notes_previous;
+            var coords_notes_previous = [];
             var notes_user_input_renderable = notes_user_input.map(function (note) {
                 return NoteRenderable.from_note(note, coord_notes_current);
             });
-            this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
+            if (coord_notes_current[0] === -1) {
+                this.root = notes_user_input_renderable[0];
+            }
+            else {
+                this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
+            }
             this.history.push(coord_notes_current);
             switch (algorithm.get_name()) {
                 case PARSE: {
-                    coord_notes_previous = MatrixIterator.get_coord_below([coord_notes_current[0], coord_notes_current[1]]);
-                    var notes_below = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
-                    var notes_children = notes_below;
-                    this.add_layer(notes_user_input_renderable, notes_children, -1);
+                    if (coord_notes_current[0] === -1) {
+                        for (var i in this.matrix_leaves[0]) {
+                            coords_notes_previous.push([0, Number(i)]);
+                        }
+                    }
+                    else {
+                        coords_notes_previous = MatrixIterator.get_coords_below([coord_notes_current[0], coord_notes_current[1]]);
+                    }
+                    for (var _i = 0, coords_notes_previous_1 = coords_notes_previous; _i < coords_notes_previous_1.length; _i++) {
+                        var coord_to_grow = coords_notes_previous_1[_i];
+                        var notes_below = this.matrix_leaves[coord_to_grow[0]][coord_to_grow[1]];
+                        var notes_children = notes_below;
+                        this.add_layer(notes_user_input_renderable, notes_children, -1);
+                    }
                     break;
                 }
                 case DERIVE: {
-                    coord_notes_previous = MatrixIterator.get_coord_above([coord_notes_current[0], coord_notes_current[1]]);
-                    var notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
-                    var notes_parent = notes_above;
-                    this.add_layer(notes_parent, notes_user_input_renderable, -1);
+                    // if (coord_notes_current[0] === -1) {
+                    //     this.root = notes_user_input_renderable
+                    // } else {
+                    //     this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
+                    // }
+                    // coord_notes_previous = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
+                    // let notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
+                    // let notes_parent = notes_above;
+                    // this.add_layer(
+                    //     notes_parent,
+                    //     notes_user_input_renderable,
+                    //     -1
+                    // );
                     break;
                 }
                 default: {
                     throw 'adding notes to parse tree failed';
                 }
             }
+            var _loop_1 = function (coord_notes_previous) {
+                this_1.coords_roots = this_1.coords_roots.filter(function (x) {
+                    return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1]);
+                });
+            };
+            var this_1 = this;
             // remove references to old leaves
-            this.coords_roots = this.coords_roots.filter(function (x) {
-                return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1]);
-            });
+            for (var _a = 0, coords_notes_previous_2 = coords_notes_previous; _a < coords_notes_previous_2.length; _a++) {
+                var coord_notes_previous = coords_notes_previous_2[_a];
+                _loop_1(coord_notes_previous);
+            }
             // add references to new leaves
             this.coords_roots.push(coord_notes_current);
         };

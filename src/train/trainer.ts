@@ -31,6 +31,7 @@ export namespace trainer {
     import MatrixIterator = iterate.MatrixIterator;
     import FactoryMatrixTargetIterator = iterate.FactoryMatrixTargetIterator;
     import IteratorTrainFactory = iterate.IteratorTrainFactory;
+    import Note = note.Note;
 
     export class Trainer {
 
@@ -106,28 +107,30 @@ export namespace trainer {
 
             let tree: TreeModel = new TreeModel();
 
-            this.struct_parse.set_root(
-                tree.parse(
-                    {
-                        id: -1, // TODO: hashing scheme for clip id and beat start
-                        note: new n.Note(
-                            note_segment_last.model.note.pitch,
-                            this.segments[0].get_note().model.note.beat_start,
-                            (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - this.segments[0].get_note().model.note.beat_start,
-                            note_segment_last.model.note.velocity,
-                            note_segment_last.model.note.muted
-                        ),
-                        children: [
+            let note_length_full = tree.parse(
+                {
+                    id: -1, // TODO: hashing scheme for clip id and beat start
+                    note: new n.Note(
+                        note_segment_last.model.note.pitch,
+                        this.segments[0].get_note().model.note.beat_start,
+                        (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - this.segments[0].get_note().model.note.beat_start,
+                        note_segment_last.model.note.velocity,
+                        note_segment_last.model.note.muted
+                    ),
+                    children: [
 
-                        ]
-                    }
-                )
+                    ]
+                }
+            );
+
+            this.struct_parse.set_root(
+                note_length_full
             );
 
             // TODO: make the root the length of the entire song
 
             this.window.add_note_to_clip_root(
-                note_segment_last
+                note_length_full
             );
 
             // set first layer, which are the various key center estimates
@@ -265,15 +268,21 @@ export namespace trainer {
 
             if (obj_next_coord.done) {
                 if (this.algorithm.get_name() === PARSE) {
-                    // TODO: make the connections with the root
-                    for (let segment of this.segments) {
+                    // TODO: better way to make the connections with the segments
+                    for (let i_segment in this.segments) {
+                        let segment = this.segments[Number(i_segment)];
                         this.struct_parse.add(
                             [segment.get_note()],
-                            coords_at_time,
+                            [0, Number(i_segment)],
                             this.algorithm
                         );
                     }
-                    this.struct_parse.finish()
+                    // TODO: better way to make the connections with the root
+                    this.struct_parse.add(
+                        [Note.from_note_renderable(this.struct_parse.get_root())],
+                        [-1],
+                        this.algorithm
+                    );
                 }
                 this.algorithm.pre_terminate(this.song, this.clip_user_input);
                 return
