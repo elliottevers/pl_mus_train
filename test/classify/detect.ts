@@ -204,19 +204,20 @@ let user_input_handler = new UserInputHandler(
 );
 
 let env: string = 'node_for_max';
-env = 'node';
+// env = 'node';
 
 
-let messenger = new Messenger(env, 0, 'render');
+let messenger = new Messenger(env, 0, 'render_detect');
+
+let algorithm_train = new Detect(
+    user_input_handler
+);
 
 let window_local = new MatrixWindow(
     384,
     384,
-    messenger
-);
-
-let algorithm_train = new Detect(
-    user_input_handler
+    messenger,
+    algorithm_train
 );
 
 // stubs

@@ -25,6 +25,7 @@ export namespace iterate {
 
         private history: number[];
         public done: boolean;
+        public b_started: boolean;
 
         constructor(num_rows: number, num_columns: number, downward?: boolean, rightward?: boolean, start_at_row?: number, stop_at_row?: number) {
             this.num_rows = num_rows;
@@ -39,9 +40,10 @@ export namespace iterate {
             this.determine_index_start();
             this.determine_index_stop();
 
-            this.i = this.index_start;
+            this.i = this.index_start ? this.index_start : -1;
             this.history = [];
             this.done = false;
+            this.b_started = false;
         }
 
         private determine_index_start() {
@@ -49,7 +51,7 @@ export namespace iterate {
             let i_start;
 
             if (this.downward && this.rightward) {
-                i_start = -1 + (this.num_columns * this.index_row_start) - this.num_columns
+                i_start = -1 + (this.num_columns * this.index_row_start)
             } else if (!this.downward && this.rightward) {
                 i_start = (this.num_columns * (this.index_row_start + 2)) - 1 - this.num_columns
             } else if (this.downward && !this.rightward) {
@@ -119,6 +121,8 @@ export namespace iterate {
         }
 
         public next() {
+
+            this.b_started = true;
 
             let value: number[] = null;
 
@@ -198,7 +202,14 @@ export namespace iterate {
 
             switch (algorithm.get_name()) {
                 case algo.DETECT: {
-                    iterator = new MatrixIterator(1, segments.length);
+                    iterator = new MatrixIterator(
+                        1,
+                        segments.length,
+                        true,
+                        true,
+                        0,
+                        1
+                    );
                     break;
                 }
                 case algo.PREDICT: {

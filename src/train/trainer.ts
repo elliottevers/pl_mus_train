@@ -186,8 +186,6 @@ export namespace trainer {
             }
         }
 
-
-
         // now we can assume we have a list instead of a matrix
         private create_targets() {
 
@@ -211,9 +209,17 @@ export namespace trainer {
         }
 
         public render_window() {
+            let notes;
+            if (this.algorithm.b_targeted()) {
+                notes = this.target_current.iterator_subtarget.subtargets.map((subtarget)=> {
+                    return subtarget.note
+                })
+            } else {
+                notes = [this.segment_current.get_note()]
+            }
             this.window.render(
                 this.iterator_matrix_train,
-                this.matrix_focus,
+                notes,
                 this.algorithm,
                 this.struct_parse
             )
@@ -263,7 +269,6 @@ export namespace trainer {
 
         private advance_segment() {
 
-            let coords_at_time = this.iterator_matrix_train.get_coord_current();
             let obj_next_coord = this.iterator_matrix_train.next();
 
             if (obj_next_coord.done) {
@@ -295,7 +300,21 @@ export namespace trainer {
 
         private advance_subtarget() {
 
-            let possibly_history: Target[] = this.iterator_target_current.targets;
+            let have_not_begun: boolean = (!this.iterator_matrix_train.b_started);
+
+            if (have_not_begun) {
+                this.iterator_matrix_train.next();
+                this.iterator_target_current = this.matrix_focus[0][0];
+                this.iterator_target_current.next();
+                this.target_current = this.iterator_target_current.current();
+                this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+                this.iterator_subtarget_current.next();
+                this.subtarget_current = this.iterator_subtarget_current.current();
+                this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+                return
+            }
+
+            let target_at_time: Target[] = this.iterator_target_current.targets;
 
             let coord_at_time: number[] = this.iterator_matrix_train.get_coord_current();
 
@@ -309,14 +328,16 @@ export namespace trainer {
 
                     let obj_next_coord = this.iterator_matrix_train.next();
 
-                    this.history_user_input.add_sequence_target(
-                        possibly_history,
+                    // coord_at_time = [coord_at_time[0] - 1, coord_at_time[1]];
+
+                    this.history_user_input.add(
+                        target_at_time,
                         coord_at_time
                     );
 
                     if (obj_next_coord.done) {
-                        this.history_user_input.add_sequence_target(
-                            possibly_history,
+                        this.history_user_input.add(
+                            target_at_time,
                             coord_at_time
                         );
 
@@ -341,6 +362,8 @@ export namespace trainer {
 
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
+                    // this.iterator_matrix_train.next();
+
                     return
                 }
 
@@ -352,10 +375,16 @@ export namespace trainer {
 
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
+                // this.iterator_matrix_train.next();
+
+                // this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+
                 return
             }
 
             this.subtarget_current = obj_next_subtarget.value;
+
+            this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
         }
 
         // user input can be either 1) a pitch or 2) a sequence of notes

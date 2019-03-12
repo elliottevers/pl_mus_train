@@ -16,14 +16,15 @@ var iterate;
             this.index_row_stop = stop_at_row;
             this.determine_index_start();
             this.determine_index_stop();
-            this.i = this.index_start;
+            this.i = this.index_start ? this.index_start : -1;
             this.history = [];
             this.done = false;
+            this.b_started = false;
         }
         MatrixIterator.prototype.determine_index_start = function () {
             var i_start;
             if (this.downward && this.rightward) {
-                i_start = -1 + (this.num_columns * this.index_row_start) - this.num_columns;
+                i_start = -1 + (this.num_columns * this.index_row_start);
             }
             else if (!this.downward && this.rightward) {
                 i_start = (this.num_columns * (this.index_row_start + 2)) - 1 - this.num_columns;
@@ -93,6 +94,7 @@ var iterate;
             return this.history;
         };
         MatrixIterator.prototype.next = function () {
+            this.b_started = true;
             var value = null;
             this.next_column();
             this.add_history(this.i);
@@ -163,7 +165,7 @@ var iterate;
             var downward, rightward;
             switch (algorithm.get_name()) {
                 case algorithm_1.algorithm.DETECT: {
-                    iterator = new MatrixIterator(1, segments.length);
+                    iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
                     break;
                 }
                 case algorithm_1.algorithm.PREDICT: {

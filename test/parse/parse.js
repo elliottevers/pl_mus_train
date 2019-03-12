@@ -114,8 +114,8 @@ var user_input_handler_parse = new UserInputHandler(mode_texture_parse, mode_con
 var env_parse = 'node_for_max';
 // env_parse = 'node';
 var messenger_parse = new Messenger(env_parse, 0, 'render_parse');
-var window_local_parse = new MatrixWindow(384, 384, messenger_parse);
 var algorithm_train_parse = new Parse(user_input_handler_parse);
+var window_local_parse = new MatrixWindow(384, 384, messenger_parse, algorithm_train_parse);
 algorithm_train_parse.set_depth(3);
 // stubs
 var song_parse = {

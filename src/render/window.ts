@@ -39,11 +39,13 @@ export namespace window {
         width: number;
         messenger: Messenger;
         length_beats: number;
+        algorithm: Algorithm;
 
-        protected constructor(height, width, messenger) {
+        protected constructor(height, width, messenger, algorithm) {
             this.height = height;
             this.width = width;
             this.messenger = messenger;
+            this.algorithm = algorithm;
         }
 
         public clear() {
@@ -52,11 +54,15 @@ export namespace window {
         }
 
         // because it's a *list* of clips
-        public static coord_to_index_clip(coord): number {
-            if (coord[0] === -1) {
+        public coord_to_index_clip(coord): number {
+            if (this.algorithm.b_targeted()) {
                 return 0
             } else {
-                return coord[0] + 1
+                if (coord[0] === -1) {
+                    return 0
+                } else {
+                    return coord[0] + 1
+                }
             }
         }
 
@@ -65,13 +71,23 @@ export namespace window {
             let depth = algorithm.get_depth();
             let beat_start_song = segments[0].beat_start;
             let beat_end_song = segments[segments.length - 1].beat_end;
-            for (let i in _.range(0, depth + 1)) {
+
+            if (algorithm.b_targeted()) {
                 let clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
                 let clip_virtual = new c.Clip(clip_dao_virtual);
                 list_clips.push(clip_virtual)
+            } else {
+                for (let i in _.range(0, depth + 1)) {
+                    let clip_dao_virtual = new LiveClipVirtual([]);
+                    clip_dao_virtual.beat_start = beat_start_song;
+                    clip_dao_virtual.beat_end = beat_end_song;
+                    let clip_virtual = new c.Clip(clip_dao_virtual);
+                    list_clips.push(clip_virtual)
+                }
             }
+
             this.list_clips = list_clips;
         }
 
@@ -80,7 +96,7 @@ export namespace window {
         }
 
         public add_notes_to_clip(notes_to_add_to_clip, coord_current) {
-            let index_clip = Window.coord_to_index_clip(coord_current);
+            let index_clip = this.coord_to_index_clip(coord_current);
             for (let note of notes_to_add_to_clip) {
                 this.list_clips[index_clip].append(note);
             }
@@ -183,11 +199,11 @@ export namespace window {
 
     export class MatrixWindow extends Window implements Temporal {
 
-        constructor(height, width, messenger) {
-            super(height, width, messenger);
+        constructor(height, width, messenger, algorithm) {
+            super(height, width, messenger, algorithm);
         }
 
-        public render(iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
+        public render(iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
             this.clear();
 
             // let notes, coord;
@@ -206,7 +222,7 @@ export namespace window {
 
             this.render_regions(
                 iterator_matrix_train,
-                matrix_target_iterator,
+                notes_target_current,
                 algorithm,
                 parse_matrix
             );
@@ -284,7 +300,7 @@ export namespace window {
 
             let coord_clip = node.model.note.get_coordinates_matrix();
 
-            let index_clip = Window.coord_to_index_clip(coord_clip);
+            let index_clip = this.coord_to_index_clip(coord_clip);
 
             // TODO: determine how to get the index of the clip from just depth of the node
 
@@ -314,24 +330,24 @@ export namespace window {
             let b_targeted = (parse_matrix === null);
 
             if (b_targeted) {
-                for (let i of iterator_matrix_train.get_history()) {
-
-                    let index_clip: number = Window.coord_to_index_clip(
-                        MatrixIterator.get_coord(
-                            i,
-                            iterator_matrix_train.num_columns
-                        )
-                    );
-
-                    messages.push(
-                        this.get_messages_render_clip(index_clip)
-                    )
-                }
+                // for (let i of iterator_matrix_train.get_history()) {
+                //
+                //     let index_clip: number = this.coord_to_index_clip(
+                //         MatrixIterator.get_coord(
+                //             i,
+                //             iterator_matrix_train.num_columns
+                //         )
+                //     );
+                let index_clip = 0;
+                messages.push(
+                    this.get_messages_render_clip(index_clip)
+                )
+                // }
             } else {
                 for (let coord of parse_matrix.get_history()) {
                     messages.push(
                         this.get_messages_render_clip(
-                            Window.coord_to_index_clip(
+                            this.coord_to_index_clip(
                                 coord
                             )
                         )
@@ -376,20 +392,20 @@ export namespace window {
         }
 
         // public render_regions(iterator_matrix_train: MatrixIterator, notes, algorithm) {
-        public render_regions(iterator_matrix_train: MatrixIterator, matrix_target_iterator, algorithm, parse_matrix) {
+        public render_regions(iterator_matrix_train: MatrixIterator, notes_target_current, algorithm, parse_matrix) {
 
             let notes, coord;
 
             let interval_current;
 
             if (algorithm.b_targeted()) {
-                coord = iterator_matrix_train.get_coord_current();
-                let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-                notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
-                    return subtarget.note
-                });
+                // coord = iterator_matrix_train.get_coord_current();
+                // let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+                // notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
+                //     return subtarget.note
+                // });
                 interval_current = algorithm.determine_region_present(
-                    notes
+                    notes_target_current
                 );
             } else {
                 if (iterator_matrix_train.done) {

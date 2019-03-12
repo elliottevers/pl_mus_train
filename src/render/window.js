@@ -16,11 +16,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
-var iterate_1 = require("../train/iterate");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
-    var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var red = [255, 0, 0];
     var white = [255, 255, 255];
     var black = [0, 0, 0];
@@ -29,7 +27,7 @@ var window;
     var region_red = [251, 1, 6];
     var blue = [10, 10, 251];
     var Window = /** @class */ (function () {
-        function Window(height, width, messenger) {
+        function Window(height, width, messenger, algorithm) {
             this.beat_to_pixel = function (beat) {
                 var num_pixels_width = this.width;
                 return beat * (num_pixels_width / this.length_beats);
@@ -37,18 +35,24 @@ var window;
             this.height = height;
             this.width = width;
             this.messenger = messenger;
+            this.algorithm = algorithm;
         }
         Window.prototype.clear = function () {
             var msg_clear = ["clear"];
             this.messenger.message(msg_clear);
         };
         // because it's a *list* of clips
-        Window.coord_to_index_clip = function (coord) {
-            if (coord[0] === -1) {
+        Window.prototype.coord_to_index_clip = function (coord) {
+            if (this.algorithm.b_targeted()) {
                 return 0;
             }
             else {
-                return coord[0] + 1;
+                if (coord[0] === -1) {
+                    return 0;
+                }
+                else {
+                    return coord[0] + 1;
+                }
             }
         };
         Window.prototype.initialize_clips = function (algorithm, segments) {
@@ -56,12 +60,21 @@ var window;
             var depth = algorithm.get_depth();
             var beat_start_song = segments[0].beat_start;
             var beat_end_song = segments[segments.length - 1].beat_end;
-            for (var i in _.range(0, depth + 1)) {
+            if (algorithm.b_targeted()) {
                 var clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
                 var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
                 list_clips.push(clip_virtual);
+            }
+            else {
+                for (var i in _.range(0, depth + 1)) {
+                    var clip_dao_virtual = new LiveClipVirtual([]);
+                    clip_dao_virtual.beat_start = beat_start_song;
+                    clip_dao_virtual.beat_end = beat_end_song;
+                    var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
+                    list_clips.push(clip_virtual);
+                }
             }
             this.list_clips = list_clips;
         };
@@ -69,7 +82,7 @@ var window;
             this.length_beats = beats;
         };
         Window.prototype.add_notes_to_clip = function (notes_to_add_to_clip, coord_current) {
-            var index_clip = Window.coord_to_index_clip(coord_current);
+            var index_clip = this.coord_to_index_clip(coord_current);
             for (var _i = 0, notes_to_add_to_clip_1 = notes_to_add_to_clip; _i < notes_to_add_to_clip_1.length; _i++) {
                 var note = notes_to_add_to_clip_1[_i];
                 this.list_clips[index_clip].append(note);
@@ -148,10 +161,10 @@ var window;
     window.Window = Window;
     var MatrixWindow = /** @class */ (function (_super) {
         __extends(MatrixWindow, _super);
-        function MatrixWindow(height, width, messenger) {
-            return _super.call(this, height, width, messenger) || this;
+        function MatrixWindow(height, width, messenger, algorithm) {
+            return _super.call(this, height, width, messenger, algorithm) || this;
         }
-        MatrixWindow.prototype.render = function (iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
+        MatrixWindow.prototype.render = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
             this.clear();
             // let notes, coord;
             //
@@ -166,7 +179,7 @@ var window;
             //     let coord_segment = [0, coord[1]];
             //     notes = parse_matrix.get_roots_at_coord(coord_segment);
             // }
-            this.render_regions(iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix);
+            this.render_regions(iterator_matrix_train, notes_target_current, algorithm, parse_matrix);
             if (algorithm.b_targeted()) {
                 this.render_clips(iterator_matrix_train, null);
             }
@@ -222,7 +235,7 @@ var window;
         MatrixWindow.prototype.get_centroid = function (node) {
             var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
             var coord_clip = node.model.note.get_coordinates_matrix();
-            var index_clip = Window.coord_to_index_clip(coord_clip);
+            var index_clip = this.coord_to_index_clip(coord_clip);
             // TODO: determine how to get the index of the clip from just depth of the node
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
@@ -248,16 +261,22 @@ var window;
             var messages = [];
             var b_targeted = (parse_matrix === null);
             if (b_targeted) {
-                for (var _i = 0, _a = iterator_matrix_train.get_history(); _i < _a.length; _i++) {
-                    var i = _a[_i];
-                    var index_clip = Window.coord_to_index_clip(MatrixIterator.get_coord(i, iterator_matrix_train.num_columns));
-                    messages.push(this.get_messages_render_clip(index_clip));
-                }
+                // for (let i of iterator_matrix_train.get_history()) {
+                //
+                //     let index_clip: number = this.coord_to_index_clip(
+                //         MatrixIterator.get_coord(
+                //             i,
+                //             iterator_matrix_train.num_columns
+                //         )
+                //     );
+                var index_clip = 0;
+                messages.push(this.get_messages_render_clip(index_clip));
+                // }
             }
             else {
-                for (var _b = 0, _c = parse_matrix.get_history(); _b < _c.length; _b++) {
-                    var coord = _c[_b];
-                    messages.push(this.get_messages_render_clip(Window.coord_to_index_clip(coord)));
+                for (var _i = 0, _a = parse_matrix.get_history(); _i < _a.length; _i++) {
+                    var coord = _a[_i];
+                    messages.push(this.get_messages_render_clip(this.coord_to_index_clip(coord)));
                 }
             }
             return messages;
@@ -287,16 +306,16 @@ var window;
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
         // public render_regions(iterator_matrix_train: MatrixIterator, notes, algorithm) {
-        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, matrix_target_iterator, algorithm, parse_matrix) {
+        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
             var notes, coord;
             var interval_current;
             if (algorithm.b_targeted()) {
-                coord = iterator_matrix_train.get_coord_current();
-                var target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-                notes = target_iterator.current().iterator_subtarget.subtargets.map(function (subtarget) {
-                    return subtarget.note;
-                });
-                interval_current = algorithm.determine_region_present(notes);
+                // coord = iterator_matrix_train.get_coord_current();
+                // let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
+                // notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
+                //     return subtarget.note
+                // });
+                interval_current = algorithm.determine_region_present(notes_target_current);
             }
             else {
                 if (iterator_matrix_train.done) {

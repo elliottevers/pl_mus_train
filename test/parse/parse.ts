@@ -327,14 +327,15 @@ let env_parse: string = 'node_for_max';
 
 let messenger_parse = new Messenger(env_parse, 0, 'render_parse');
 
+let algorithm_train_parse = new Parse(
+    user_input_handler_parse
+);
+
 let window_local_parse = new MatrixWindow(
     384,
     384,
-    messenger_parse
-);
-
-let algorithm_train_parse = new Parse(
-    user_input_handler_parse
+    messenger_parse,
+    algorithm_train_parse
 );
 
 algorithm_train_parse.set_depth(
@@ -411,6 +412,7 @@ trainer_local_parse.accept_input(
 trainer_local_parse.render_window(
 
 );
+
 //
 // trainer_local_parse.clear_window(
 //

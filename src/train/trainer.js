@@ -94,7 +94,16 @@ var trainer;
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            this.window.render(this.iterator_matrix_train, this.matrix_focus, this.algorithm, this.struct_parse);
+            var notes;
+            if (this.algorithm.b_targeted()) {
+                notes = this.target_current.iterator_subtarget.subtargets.map(function (subtarget) {
+                    return subtarget.note;
+                });
+            }
+            else {
+                notes = [this.segment_current.get_note()];
+            }
+            this.window.render(this.iterator_matrix_train, notes, this.algorithm, this.struct_parse);
         };
         Trainer.prototype.reset_user_input = function () {
             if (_.contains([DETECT, PREDICT], this.algorithm.get_name())) {
@@ -129,7 +138,6 @@ var trainer;
             this.algorithm.post_init(this.song, this.clip_user_input);
         };
         Trainer.prototype.advance_segment = function () {
-            var coords_at_time = this.iterator_matrix_train.get_coord_current();
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
                 if (this.algorithm.get_name() === PARSE) {
@@ -148,16 +156,29 @@ var trainer;
             this.segment_current = this.segments[coord[1]];
         };
         Trainer.prototype.advance_subtarget = function () {
-            var possibly_history = this.iterator_target_current.targets;
+            var have_not_begun = (!this.iterator_matrix_train.b_started);
+            if (have_not_begun) {
+                this.iterator_matrix_train.next();
+                this.iterator_target_current = this.matrix_focus[0][0];
+                this.iterator_target_current.next();
+                this.target_current = this.iterator_target_current.current();
+                this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+                this.iterator_subtarget_current.next();
+                this.subtarget_current = this.iterator_subtarget_current.current();
+                this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+                return;
+            }
+            var target_at_time = this.iterator_target_current.targets;
             var coord_at_time = this.iterator_matrix_train.get_coord_current();
             var obj_next_subtarget = this.iterator_subtarget_current.next();
             if (obj_next_subtarget.done) {
                 var obj_next_target = this.iterator_target_current.next();
                 if (obj_next_target.done) {
                     var obj_next_coord = this.iterator_matrix_train.next();
-                    this.history_user_input.add_sequence_target(possibly_history, coord_at_time);
+                    // coord_at_time = [coord_at_time[0] - 1, coord_at_time[1]];
+                    this.history_user_input.add(target_at_time, coord_at_time);
                     if (obj_next_coord.done) {
-                        this.history_user_input.add_sequence_target(possibly_history, coord_at_time);
+                        this.history_user_input.add(target_at_time, coord_at_time);
                         this.algorithm.pre_terminate();
                         return;
                     }
@@ -169,15 +190,19 @@ var trainer;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
                     this.subtarget_current = obj_next_subtarget_twice_nested.value;
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+                    // this.iterator_matrix_train.next();
                     return;
                 }
                 this.target_current = obj_next_target.value;
                 var obj_next_subtarget_once_nested = this.target_current.iterator_subtarget.next();
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+                // this.iterator_matrix_train.next();
+                // this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
+            this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
         };
         // user input can be either 1) a pitch or 2) a sequence of notes
         Trainer.prototype.accept_input = function (notes_input_user) {

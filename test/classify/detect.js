@@ -79,10 +79,10 @@ var mode_texture = POLYPHONY;
 var mode_control = INSTRUMENTAL;
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
 var env = 'node_for_max';
-env = 'node';
-var messenger = new Messenger(env, 0, 'render');
-var window_local = new MatrixWindow(384, 384, messenger);
+// env = 'node';
+var messenger = new Messenger(env, 0, 'render_detect');
 var algorithm_train = new Detect(user_input_handler);
+var window_local = new MatrixWindow(384, 384, messenger, algorithm_train);
 // stubs
 var song = {
     set_overdub: function (int) { },

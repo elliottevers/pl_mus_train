@@ -217,7 +217,7 @@ var algorithm;
         Derive.prototype.accept = function (elaboration, i_depth, i_breadth) {
             // if (index_layer + 1 > this.clips.length) {
             //     let clip_dao_virtual = new LiveClipVirtual(elaboration);
-            //
+            //s
             //     clip_dao_virtual.beat_start = elaboration[0].model.note.beat_start;
             //     clip_dao_virtual.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
             //
