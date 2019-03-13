@@ -91,6 +91,7 @@ var freeze;
                     break;
                 }
                 case PREDICT: {
+                    // TODO
                     break;
                 }
                 case PARSE: {
@@ -102,6 +103,7 @@ var freeze;
                     break;
                 }
                 case DERIVE: {
+                    // TODO
                     break;
                 }
             }
@@ -127,9 +129,11 @@ var thaw;
         }
         TrainThawer.prototype.thaw = function (filepath, config) {
             var trainer;
+            var matrix_deserialized = from_json(filepath, config['env']);
+            trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_target_virtual'], config['song'], config['segments'], config['messenger']);
+            trainer.init(true);
             switch (config['algorithm'].get_name()) {
                 case DETECT: {
-                    var matrix_deserialized = from_json(filepath, config['env']);
                     var notes = [];
                     // TODO: this is only valid for forward iteration
                     for (var _i = 0, matrix_deserialized_1 = matrix_deserialized; _i < matrix_deserialized_1.length; _i++) {
@@ -149,8 +153,6 @@ var thaw;
                         }
                     }
                     var notes_parsed = notes.map(function (obj) { return JSON.parse(obj.note); });
-                    trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_target_virtual'], config['song'], config['segments'], config['messenger']);
-                    trainer.init(true);
                     var tree = new TreeModel();
                     for (var _e = 0, notes_parsed_1 = notes_parsed; _e < notes_parsed_1.length; _e++) {
                         var note_parsed = notes_parsed_1[_e];
@@ -168,9 +170,6 @@ var thaw;
                     break;
                 }
                 case PARSE: {
-                    var matrix_deserialized = from_json(filepath, config['env']);
-                    trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_target_virtual'], config['song'], config['segments'], config['messenger']);
-                    trainer.init(true);
                     var input_left = true;
                     while (input_left) {
                         var coord_current = trainer.iterator_matrix_train.get_coord_current();

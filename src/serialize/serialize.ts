@@ -109,6 +109,7 @@ export namespace freeze {
                     break;
                 }
                 case PREDICT: {
+                    // TODO
                     break;
                 }
                 case PARSE: {
@@ -122,6 +123,7 @@ export namespace freeze {
                     break;
                 }
                 case DERIVE: {
+                    // TODO
                     break;
                 }
             }
@@ -155,9 +157,25 @@ export namespace thaw {
 
             let trainer;
 
+            let matrix_deserialized = from_json(filepath, config['env']);
+
+            trainer =  new Trainer(
+                config['window'],
+                config['user_input_handler'],
+                config['algorithm'],
+                config['clip_user_input'],
+                config['clip_target_virtual'],
+                config['song'],
+                config['segments'],
+                config['messenger']
+            );
+
+            trainer.init(
+                true
+            );
+
             switch (config['algorithm'].get_name()) {
                 case DETECT: {
-                    let matrix_deserialized = from_json(filepath, config['env']);
                     let notes = [];
                     // TODO: this is only valid for forward iteration
                     for (let row of matrix_deserialized) {
@@ -173,21 +191,6 @@ export namespace thaw {
                         }
                     }
                     let notes_parsed = notes.map((obj)=>{return JSON.parse(obj.note)});
-
-                    trainer =  new Trainer(
-                        config['window'],
-                        config['user_input_handler'],
-                        config['algorithm'],
-                        config['clip_user_input'],
-                        config['clip_target_virtual'],
-                        config['song'],
-                        config['segments'],
-                        config['messenger']
-                    );
-
-                    trainer.init(
-                        true
-                    );
 
                     let tree: TreeModel = new TreeModel();
 
@@ -220,23 +223,6 @@ export namespace thaw {
                     break;
                 }
                 case PARSE: {
-                    let matrix_deserialized = from_json(filepath, config['env']);
-
-                    trainer =  new Trainer(
-                        config['window'],
-                        config['user_input_handler'],
-                        config['algorithm'],
-                        config['clip_user_input'],
-                        config['clip_target_virtual'],
-                        config['song'],
-                        config['segments'],
-                        config['messenger']
-                    );
-
-                    trainer.init(
-                        true
-                    );
-
                     let input_left = true;
 
                     while (input_left) {

@@ -275,24 +275,37 @@ export namespace trainer {
             let obj_next_coord = this.iterator_matrix_train.next();
 
             if (obj_next_coord.done) {
-                if (this.algorithm.get_name() === PARSE) {
-                    // TODO: better way to make the connections with the segments
-                    for (let i_segment in this.segments) {
-                        let segment = this.segments[Number(i_segment)];
+                switch(this.algorithm.get_name()) {
+                    case PARSE: {
+
+                        // make connections with segments
+                        for (let i_segment in this.segments) {
+                            let segment = this.segments[Number(i_segment)];
+                            this.struct_parse.add(
+                                [segment.get_note()],
+                                [0, Number(i_segment)],
+                                this.algorithm
+                            );
+                        }
+
+                        // make conncetions with root
                         this.struct_parse.add(
-                            [segment.get_note()],
-                            [0, Number(i_segment)],
+                            [Note.from_note_renderable(this.struct_parse.get_root())],
+                            [-1],
                             this.algorithm
                         );
+                        break;
                     }
-                    // TODO: better way to make the connections with the root
-                    this.struct_parse.add(
-                        [Note.from_note_renderable(this.struct_parse.get_root())],
-                        [-1],
-                        this.algorithm
-                    );
+                    case DERIVE: {
+                        break;
+                    }
+                    default: {
+                        throw 'error advancing segment'
+                    }
                 }
+
                 this.algorithm.pre_terminate(this.song, this.clip_user_input);
+
                 return
             }
 
@@ -307,13 +320,21 @@ export namespace trainer {
 
             if (have_not_begun) {
                 this.iterator_matrix_train.next();
+
                 this.iterator_target_current = this.matrix_focus[0][0];
+
                 this.iterator_target_current.next();
+
                 this.target_current = this.iterator_target_current.current();
+
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+
                 this.iterator_subtarget_current.next();
+
                 this.subtarget_current = this.iterator_subtarget_current.current();
+
                 this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+
                 return
             }
 
@@ -330,8 +351,6 @@ export namespace trainer {
                 if (obj_next_target.done) {
 
                     let obj_next_coord = this.iterator_matrix_train.next();
-
-                    // coord_at_time = [coord_at_time[0] - 1, coord_at_time[1]];
 
                     this.history_user_input.add(
                         target_at_time,
@@ -365,8 +384,6 @@ export namespace trainer {
 
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
-                    // this.iterator_matrix_train.next();
-
                     return
                 }
 
@@ -378,10 +395,6 @@ export namespace trainer {
 
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
-                // this.iterator_matrix_train.next();
-
-                // this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
-
                 return
             }
 
@@ -390,7 +403,6 @@ export namespace trainer {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
         }
 
-        // user input can be either 1) a pitch or 2) a sequence of notes
         accept_input(notes_input_user: TreeModel.Node<n.Note>[]) {
 
             this.counter_user_input++;
@@ -432,7 +444,6 @@ export namespace trainer {
             }
 
             // detect/predict logic
-            // NB: assumes we're only giving list of a single note as input
             if (notes_input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
 
                 this.window.add_notes_to_clip(

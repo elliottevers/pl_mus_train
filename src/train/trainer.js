@@ -142,14 +142,23 @@ var trainer;
         Trainer.prototype.advance_segment = function () {
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
-                if (this.algorithm.get_name() === PARSE) {
-                    // TODO: better way to make the connections with the segments
-                    for (var i_segment in this.segments) {
-                        var segment_3 = this.segments[Number(i_segment)];
-                        this.struct_parse.add([segment_3.get_note()], [0, Number(i_segment)], this.algorithm);
+                switch (this.algorithm.get_name()) {
+                    case PARSE: {
+                        // make connections with segments
+                        for (var i_segment in this.segments) {
+                            var segment_3 = this.segments[Number(i_segment)];
+                            this.struct_parse.add([segment_3.get_note()], [0, Number(i_segment)], this.algorithm);
+                        }
+                        // make conncetions with root
+                        this.struct_parse.add([Note.from_note_renderable(this.struct_parse.get_root())], [-1], this.algorithm);
+                        break;
                     }
-                    // TODO: better way to make the connections with the root
-                    this.struct_parse.add([Note.from_note_renderable(this.struct_parse.get_root())], [-1], this.algorithm);
+                    case DERIVE: {
+                        break;
+                    }
+                    default: {
+                        throw 'error advancing segment';
+                    }
                 }
                 this.algorithm.pre_terminate(this.song, this.clip_user_input);
                 return;
@@ -177,7 +186,6 @@ var trainer;
                 var obj_next_target = this.iterator_target_current.next();
                 if (obj_next_target.done) {
                     var obj_next_coord = this.iterator_matrix_train.next();
-                    // coord_at_time = [coord_at_time[0] - 1, coord_at_time[1]];
                     this.history_user_input.add(target_at_time, coord_at_time);
                     if (obj_next_coord.done) {
                         this.history_user_input.add(target_at_time, coord_at_time);
@@ -192,21 +200,17 @@ var trainer;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
                     this.subtarget_current = obj_next_subtarget_twice_nested.value;
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
-                    // this.iterator_matrix_train.next();
                     return;
                 }
                 this.target_current = obj_next_target.value;
                 var obj_next_subtarget_once_nested = this.target_current.iterator_subtarget.next();
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
-                // this.iterator_matrix_train.next();
-                // this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
         };
-        // user input can be either 1) a pitch or 2) a sequence of notes
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;
             if (this.counter_user_input >= this.limit_user_input) {
@@ -227,7 +231,6 @@ var trainer;
                 return;
             }
             // detect/predict logic
-            // NB: assumes we're only giving list of a single note as input
             if (notes_input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
                 this.window.add_notes_to_clip([this.subtarget_current.note], this.iterator_matrix_train.get_coord_current());
                 if (this.algorithm.b_targeted()) {

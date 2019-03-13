@@ -67,10 +67,9 @@ var algorithm;
             else if (this.user_input_handler.mode_texture === MONOPONY) {
                 var notes_grouped_trivial = [];
                 for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
-                    var note_1 = notes_segment_next_1[_a];
-                    notes_grouped_trivial.push(note_1);
+                    var note = notes_segment_next_1[_a];
+                    notes_grouped_trivial.push(note);
                 }
-                // Subtarget -> Subtarget Iterator -> Target -> Target Iterator
                 return notes_grouped_trivial;
             }
             else {
@@ -105,9 +104,6 @@ var algorithm;
         Predict.prototype.get_depth = function () {
             return 1;
         };
-        // TODO: put all calls to Clip in whatever class is a client to algorithms
-        // NB: there can be multiple targets per segment
-        // TODO: replace the notes in clip_target with these
         Predict.prototype.determine_targets = function (notes_segment_next) {
             if (this.user_input_handler.mode_texture === POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
@@ -121,8 +117,8 @@ var algorithm;
             else if (this.user_input_handler.mode_texture === MONOPONY) {
                 var notes_grouped_trivial = [];
                 for (var _a = 0, notes_segment_next_2 = notes_segment_next; _a < notes_segment_next_2.length; _a++) {
-                    var note_2 = notes_segment_next_2[_a];
-                    notes_grouped_trivial.push(note_2);
+                    var note = notes_segment_next_2[_a];
+                    notes_grouped_trivial.push(note);
                 }
                 return notes_grouped_trivial;
             }
@@ -207,40 +203,6 @@ var algorithm;
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
-        };
-        // // set right interval
-        // determine_region_past(notes_target_next): number {
-        //     return notes_target_next[0].model.note.beat_start
-        // }
-        //
-        // // set left interval
-        // determine_region_upcoming(notes_target_next): number {
-        //     return notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
-        // }
-        Derive.prototype.accept = function (elaboration, i_depth, i_breadth) {
-            // if (index_layer + 1 > this.clips.length) {
-            //     let clip_dao_virtual = new LiveClipVirtual(elaboration);
-            //s
-            //     clip_dao_virtual.beat_start = elaboration[0].model.note.beat_start;
-            //     clip_dao_virtual.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
-            //
-            //     let clip_virtual = new c.Clip(clip_dao_virtual);
-            //     this.add_clsip(clip_virtual);
-            // } else {
-            //     let clip_last = this.clips[this.clips.length - 1];
-            //     clip_last.clip_dao.beat_end = elaboration[elaboration.length - 1].model.note.get_beat_end();
-            //     clip_last.set_notes(elaboration);
-            // }
-            //
-            // let leaves_within_interval = this.get_leaves_within_interval(beat_start, beat_end);
-            //
-            // if (index_layer == 1) {
-            //     this.add_first_layer(elaboration, this.clips.length - 1)
-            // } else {
-            //     this.add_layer(leaves_within_interval, elaboration, this.clips.length - 1);
-            // }
-            //
-            // this.update_leaves(leaves_within_interval);
         };
         return Derive;
     }(Parsed));

@@ -53,7 +53,6 @@ export namespace window {
             this.messenger.message(msg_clear);
         }
 
-        // because it's a *list* of clips
         public coord_to_index_clip(coord): number {
             if (this.algorithm.b_targeted()) {
                 return 0
@@ -206,20 +205,6 @@ export namespace window {
         public render(iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
             this.clear();
 
-            // let notes, coord;
-            //
-            // if (algorithm.b_targeted()) {
-            //     coord = iterator_matrix_train.get_coord_current();
-            //     let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-            //     notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
-            //         return subtarget.note
-            //     });
-            // } else {
-            //     coord = iterator_matrix_train.get_coord_current();
-            //     let coord_segment = [0, coord[1]];
-            //     notes = parse_matrix.get_roots_at_coord(coord_segment);
-            // }
-
             this.render_regions(
                 iterator_matrix_train,
                 notes_target_current,
@@ -330,19 +315,13 @@ export namespace window {
             let b_targeted = (parse_matrix === null);
 
             if (b_targeted) {
-                // for (let i of iterator_matrix_train.get_history()) {
-                //
-                //     let index_clip: number = this.coord_to_index_clip(
-                //         MatrixIterator.get_coord(
-                //             i,
-                //             iterator_matrix_train.num_columns
-                //         )
-                //     );
+
                 let index_clip = 0;
+
                 messages.push(
                     this.get_messages_render_clip(index_clip)
                 )
-                // }
+
             } else {
                 for (let coord of parse_matrix.get_history()) {
                     messages.push(
@@ -391,7 +370,6 @@ export namespace window {
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end]
         }
 
-        // public render_regions(iterator_matrix_train: MatrixIterator, notes, algorithm) {
         public render_regions(iterator_matrix_train: MatrixIterator, notes_target_current, algorithm, parse_matrix) {
 
             let notes, coord;
@@ -399,11 +377,6 @@ export namespace window {
             let interval_current;
 
             if (algorithm.b_targeted()) {
-                // coord = iterator_matrix_train.get_coord_current();
-                // let target_iterator = matrix_target_iterator[coord[0]][coord[1]];
-                // notes = target_iterator.current().iterator_subtarget.subtargets.map((subtarget) => {
-                //     return subtarget.note
-                // });
                 interval_current = algorithm.determine_region_present(
                     notes_target_current
                 );
@@ -425,15 +398,6 @@ export namespace window {
                     );
                 }
             }
-
-            // let interval_current;
-            // if (iterator_matrix_train.done) {
-            //
-            // } else {
-            //     interval_current = algorithm.determine_region_present(
-            //         notes
-            //     );
-            // }
 
             let quadruplet_region_past = this.get_message_render_region_past(interval_current);
             let quadruplet_region_present = this.get_message_render_region_present(interval_current);
