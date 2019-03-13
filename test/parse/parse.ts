@@ -314,6 +314,7 @@ let note_summarized_root = tree.parse(
 
 
 let mode_texture_parse = MONOPONY;
+
 let mode_control_parse = VOCAL;
 
 let user_input_handler_parse = new UserInputHandler(

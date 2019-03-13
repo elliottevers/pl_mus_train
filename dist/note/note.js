@@ -13,8 +13,9 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var TreeModel = require("tree-model");
 var note;
-(function (note) {
+(function (note_1) {
     var Note = /** @class */ (function () {
         function Note(pitch, beat_start, beats_duration, velocity, muted) {
             this.pitch = Number(pitch);
@@ -46,15 +47,14 @@ var note;
         Note.prototype.encode = function () {
             return this.to_array().join(' ');
         };
-        // to_json():any {
-        //     return {
-        //         pitch: this.pitch,
-        //         beat_start: this.beat_start,
-        //         beats_duration: this.beats_duration,
-        //         velocity: this.velocity,
-        //         muted: this.muted
-        //     }
-        // }
+        Note.from_note_renderable = function (note) {
+            var tree = new TreeModel();
+            return tree.parse({
+                id: -1,
+                note: new Note(note.model.note.pitch, note.model.note.beat_start, note.model.note.beats_duration, note.model.note.velocity, note.model.note.muted),
+                children: []
+            });
+        };
         Note.prototype.to_array = function () {
             return [this.pitch, this.beat_start, this.beats_duration, this.velocity, this.muted];
         };
@@ -103,7 +103,7 @@ var note;
         };
         return Note;
     }());
-    note.Note = Note;
+    note_1.Note = Note;
     var NoteRenderable = /** @class */ (function (_super) {
         __extends(NoteRenderable, _super);
         function NoteRenderable(pitch, beat_start, beats_duration, velocity, muted, coordinates_matrix) {
@@ -114,9 +114,17 @@ var note;
         NoteRenderable.prototype.get_coordinates_matrix = function () {
             return this.coordinates_matrix;
         };
+        NoteRenderable.from_note = function (note, coord) {
+            var tree = new TreeModel();
+            return tree.parse({
+                id: -1,
+                note: new NoteRenderable(note.model.note.pitch, note.model.note.beat_start, note.model.note.beats_duration, note.model.note.velocity, note.model.note.muted, coord),
+                children: []
+            });
+        };
         return NoteRenderable;
     }(Note));
-    note.NoteRenderable = NoteRenderable;
+    note_1.NoteRenderable = NoteRenderable;
     var NoteIterator = /** @class */ (function () {
         function NoteIterator(notes, direction_forward) {
             this.notes = notes;
@@ -153,6 +161,6 @@ var note;
         };
         return NoteIterator;
     }());
-    note.NoteIterator = NoteIterator;
+    note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 //# sourceMappingURL=note.js.map

@@ -38,27 +38,21 @@ var set_algorithm_train = function () {
 var set_depth_tree = function (depth) {
     depth_tree = depth;
 };
-// let set_song = () => {
-//     // let song = {
-//     //     set_overdub: (int) => {},
-//     //     set_session_record: (int) => {}
-//     // };
-//     // TODO:
-// };
 var set_clip_user_input = function () {
-    // let clip_user_input = {
-    //     fire: () => {},
-    //     stop: () => {},
-    //     set_endpoints_loop: (former, latter) => {}
-    // };
     clip_user_input = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
 };
-var set_segments = function (path) {
+var set_segments = function () {
+    // @ts-ignore
+    var list_path_device = Array.prototype.slice.call(arguments);
+    list_path_device.shift();
+    list_path_device[list_path_device.length - 2] = 'clip_slots';
+    list_path_device.push('clip');
+    var path_clip = list_path_device.join(' ');
     var live_api;
-    live_api = new live_1.live.LiveApiJs(path);
+    live_api = new live_1.live.LiveApiJs(path_clip);
     var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
     // TODO: how do we get beat_start, beat_end?
-    var notes_segments = clip.get_notes(0, 0, 8, 128);
+    var notes_segments = clip.get_notes(0, 0, 17 * 4, 128);
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];

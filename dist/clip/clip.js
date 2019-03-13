@@ -66,11 +66,6 @@ var clip;
         // TODO: annotations
         Clip.prototype.get_pitch_min = function (interval) {
             var pitch_min = 128;
-            // for (let node of this.get_notes_within_loop_brackets()) {
-            //     if (node.model.note.pitch < pitch_min) {
-            //         pitch_min = node.model.note.pitch;
-            //     }
-            // }
             var interval_search = interval ? interval : [this.get_loop_bracket_lower(), this.get_loop_bracket_upper()];
             for (var _i = 0, _a = this.get_notes(interval_search[0], 0, interval_search[1], 128); _i < _a.length; _i++) {
                 var node = _a[_i];
@@ -111,16 +106,6 @@ var clip;
             if (!this.notes || !use_cache) {
                 this.load_notes_within_markers();
             }
-            // this.logger.log(
-            //     JSON.stringify(
-            //         this.get_notes(
-            //             0, // this.get_start_marker(),
-            //             0,
-            //             16 * 4, // this.get_end_marker(),
-            //             128
-            //         )
-            //     )
-            // );
             return this.notes;
         };
         Clip.prototype.get_notes_within_loop_brackets = function (use_cache) {
@@ -219,14 +204,12 @@ var clip;
             // if (notes_parsed.length !== num_expected_notes) {
             //     throw "notes retrieved from clip less than expected"
             // }
-            // l.log(notes_parsed);
             return notes_parsed;
         };
         return Clip;
     }());
     clip.Clip = Clip;
     var ClipDao = /** @class */ (function () {
-        // private logger: Logger;
         function ClipDao(clip_live, messenger, deferlow, key_route, env) {
             this.clip_live = clip_live;
             this.messenger = messenger;
@@ -236,7 +219,6 @@ var clip;
             this.deferlow = deferlow;
             this.key_route = key_route;
             this.env = env;
-            // this.logger = new Logger('max');
         }
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
@@ -244,20 +226,14 @@ var clip;
                 var word = _a[_i];
                 mess.push(word);
             }
-            // let logger = new Logger('max');
-            // logger.log(mess.toString());
             this.messenger.message(mess);
         };
         // TODO: check if these actually return arrays
         ClipDao.prototype.get_end_marker = function () {
-            // return this.clip_live.get('end_marker')[0];
-            // this.logger.log(JSON.stringify(this.clip_live.get('end_marker')));
             return this.clip_live.get('end_marker')[0];
         };
         // TODO: check if these actually return arrays
         ClipDao.prototype.get_start_marker = function () {
-            // return this.clip_live.get('start_marker')[0];
-            // this.logger.log(JSON.stringify(this.clip_live.get('start_marker')));
             return this.clip_live.get('start_marker')[0];
         };
         ClipDao.prototype.get_path = function () {

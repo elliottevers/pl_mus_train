@@ -23,6 +23,8 @@ import TrainFreezer = freeze.TrainFreezer;
 import {window as w} from "../render/window";
 import MatrixWindow = w.MatrixWindow;
 import LiveApiJs = live.LiveApiJs;
+import {log} from "../log/logger";
+import Logger = log.Logger;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -76,30 +78,28 @@ let set_depth_tree = (depth) => {
     depth_tree = depth
 };
 
-// let set_song = () => {
-//     // let song = {
-//     //     set_overdub: (int) => {},
-//     //     set_session_record: (int) => {}
-//     // };
-//     // TODO:
-// };
-
 let set_clip_user_input = () => {
-    // let clip_user_input = {
-    //     fire: () => {},
-    //     stop: () => {},
-    //     set_endpoints_loop: (former, latter) => {}
-    // };
     clip_user_input = new li.LiveApiJs(
         'live_set view highlighted_clip_slot clip'
     );
 };
 
-let set_segments = (path) => {
+let set_segments = () => {
+    // @ts-ignore
+    let list_path_device = Array.prototype.slice.call(arguments);
+
+    list_path_device.shift();
+
+    list_path_device[list_path_device.length - 2] = 'clip_slots';
+
+    list_path_device.push('clip');
+
+    let path_clip = list_path_device.join(' ');
+
     let live_api: LiveApiJs;
 
     live_api = new li.LiveApiJs(
-        path
+        path_clip
     );
 
     let clip = new c.Clip(
@@ -111,7 +111,7 @@ let set_segments = (path) => {
     );
 
     // TODO: how do we get beat_start, beat_end?
-    let notes_segments = clip.get_notes(0, 0, 8, 128);
+    let notes_segments = clip.get_notes(0, 0, 17 * 4, 128);
 
     let segments: Segment[] = [];
 

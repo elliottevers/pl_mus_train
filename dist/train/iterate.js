@@ -10,12 +10,16 @@ var iterate;
         function MatrixIterator(num_rows, num_columns, downward, rightward, start_at_row, stop_at_row) {
             this.num_rows = num_rows;
             this.num_columns = num_columns;
-            this.downward = downward ? downward : true;
-            this.rightward = rightward ? rightward : true;
+            this.downward = (downward == null) ? true : downward;
+            this.rightward = (rightward == null) ? true : rightward;
             this.index_row_start = start_at_row;
             this.index_row_stop = stop_at_row;
             this.determine_index_start();
             this.determine_index_stop();
+            this.i = this.index_start ? this.index_start : -1;
+            this.history = [];
+            this.done = false;
+            this.b_started = false;
         }
         MatrixIterator.prototype.determine_index_start = function () {
             var i_start;
@@ -23,7 +27,7 @@ var iterate;
                 i_start = -1 + (this.num_columns * this.index_row_start);
             }
             else if (!this.downward && this.rightward) {
-                i_start = (this.num_columns * (this.index_row_start + 2)) - 1;
+                i_start = (this.num_columns * (this.index_row_start + 2)) - 1 - this.num_columns;
             }
             else if (this.downward && !this.rightward) {
                 throw 'not yet supported';
@@ -42,7 +46,7 @@ var iterate;
                 i_stop = this.index_row_stop * this.num_columns;
             }
             else if (!this.downward && this.rightward) {
-                i_stop = this.index_row_stop * this.num_columns;
+                i_stop = (this.index_row_stop - 1) * this.num_columns;
             }
             else if (this.downward && !this.rightward) {
                 throw 'not yet supported';
@@ -60,7 +64,7 @@ var iterate;
                 this.i++;
             }
             else if (!this.downward && this.rightward) {
-                if (remainder(this.i + 1, this.num_rows) === 0) {
+                if (remainder(this.i + 1, this.num_columns) === 0) {
                     this.i = this.i - (this.num_columns - 1) - this.num_columns;
                 }
                 else {
@@ -83,13 +87,22 @@ var iterate;
                 throw 'not yet supported';
             }
         };
+        MatrixIterator.prototype.add_history = function (i) {
+            this.history.push(i);
+        };
+        MatrixIterator.prototype.get_history = function () {
+            return this.history;
+        };
         MatrixIterator.prototype.next = function () {
+            this.b_started = true;
             var value = null;
             this.next_column();
+            this.add_history(this.i);
             if (this.i === this.index_stop) {
+                this.done = true;
                 return {
                     value: value,
-                    done: true
+                    done: this.done
                 };
             }
             return {
@@ -98,7 +111,7 @@ var iterate;
             };
         };
         MatrixIterator.prototype.get_coord_current = function () {
-            return MatrixIterator.get_coord(this.get_state_current() + 1, this.num_columns);
+            return MatrixIterator.get_coord(this.get_state_current(), this.num_columns);
         };
         MatrixIterator.prototype.get_state_current = function () {
             return this.i;
@@ -108,16 +121,11 @@ var iterate;
             var pos_column = remainder(i, num_columns);
             return [pos_row, pos_column];
         };
-        MatrixIterator.get_coord_above = function (coord) {
-            // if (coord[0] === 1) {
-            //     // return [coord[0] - 1, 0]
-            //     return [0, 0]
-            // } else {
-            return [coord[0] - 1, coord[1]];
-            // }
+        MatrixIterator.get_coords_above = function (coord) {
+            return [[coord[0] - 1, coord[1]]];
         };
-        MatrixIterator.get_coord_below = function (coord) {
-            return [coord[0] + 1, coord[1]];
+        MatrixIterator.get_coords_below = function (coord) {
+            return [[coord[0] + 1, coord[1]]];
         };
         return MatrixIterator;
     }());
@@ -157,7 +165,7 @@ var iterate;
             var downward, rightward;
             switch (algorithm.get_name()) {
                 case algorithm_1.algorithm.DETECT: {
-                    iterator = new MatrixIterator(1, segments.length);
+                    iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
                     break;
                 }
                 case algorithm_1.algorithm.PREDICT: {
