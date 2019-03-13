@@ -193,6 +193,8 @@ export namespace trainer {
 
             this.clip_target.load_notes_within_markers();
 
+            // let logger = new Logger('max');
+
             for (let i_segment in this.segments) {
                 let sequence_targets = this.algorithm.determine_targets(
                     this.clip_target.get_notes(
@@ -202,7 +204,11 @@ export namespace trainer {
                         128
                     )
                 );
+                // logger.log(JSON.stringify(sequence_targets));
+                // logger.log(JSON.stringify(this.clip_target.get_end_marker()));
                 this.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
+                // let logger = new Logger('max');
+                // logger.log(JSON.stringify(sequence_targets));
             }
         }
 
@@ -213,6 +219,8 @@ export namespace trainer {
         public render_window() {
             let notes;
             if (this.algorithm.b_targeted()) {
+                // let logger = new Logger('max');
+                // logger.log(JSON.stringify(this.target_current));
                 notes = this.target_current.iterator_subtarget.subtargets.map((subtarget)=> {
                     return subtarget.note
                 })

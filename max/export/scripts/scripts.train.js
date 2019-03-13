@@ -1233,9 +1233,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
+var logger_1 = require("../log/logger");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
+    var Logger = logger_1.log.Logger;
     var red = [255, 0, 0];
     var white = [255, 255, 255];
     var black = [0, 0, 0];
@@ -1381,6 +1383,8 @@ var window;
             return _super.call(this, height, width, messenger, algorithm) || this;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(notes_target_current));
             this.clear();
             this.render_regions(iterator_matrix_train, notes_target_current, algorithm, parse_matrix);
             if (algorithm.b_targeted()) {
@@ -1538,11 +1542,11 @@ var window;
     window.MatrixWindow = MatrixWindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":1,"../live/live":6,"lodash":24}],13:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":6,"../log/logger":7,"lodash":24}],13:[function(require,module,exports){
 "use strict";
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
+var Messenger = messenger_1.message.Messenger;
 var trainer_1 = require("../train/trainer");
 var Trainer = trainer_1.trainer.Trainer;
 var serialize_1 = require("../serialize/serialize");
@@ -1587,7 +1591,8 @@ if (env === 'max') {
 //     messenger.message([FretMapper.get_interval(user_input ,ground_truth)])
 // };
 var logger = new Logger(env);
-var mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, messenger, clip_target, segments, trainer;
+var messenger_render = new Messenger(env, 0, 'render');
+var mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
 var set_mode_texture = function (option) {
     switch (option) {
         case POLYPHONY: {
@@ -1647,7 +1652,7 @@ var set_algorithm_train = function (option) {
             post('error setting algorithm');
         }
     }
-    window = new MatrixWindow(384, 384, messenger, algorithm_train);
+    window = new MatrixWindow(384, 384, messenger_render, algorithm_train);
 };
 var set_depth_tree = function (depth) {
     algorithm_train.set_depth(depth);
@@ -1683,9 +1688,10 @@ var set_clip_target = function () {
     clip_target = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
 };
 var begin = function () {
-    song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), _this.messenger, false));
-    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_target, song, segments, messenger);
+    song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
+    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_target, song, segments, messenger_render);
     trainer.init();
+    trainer.render_window();
 };
 var pause = function () {
     trainer.pause();
@@ -1721,10 +1727,10 @@ var save = function () {
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
         'clip_user_input': clip_user_input,
-        'clip_target_virtual': clip_target,
+        'clip_target': clip_target,
         'song': song,
         'segments': segments,
-        'messenger': messenger,
+        'messenger': messenger_render,
         'env': env
     };
     var thawer = new TrainThawer(env);
@@ -1964,7 +1970,7 @@ var thaw;
         TrainThawer.prototype.thaw = function (filepath, config) {
             var trainer;
             var matrix_deserialized = from_json(filepath, config['env']);
-            trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_target_virtual'], config['song'], config['segments'], config['messenger']);
+            trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_target'], config['song'], config['segments'], config['messenger']);
             trainer.init(true);
             switch (config['algorithm'].get_name()) {
                 case DETECT: {
@@ -2078,10 +2084,12 @@ var song;
 },{}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var logger_1 = require("../log/logger");
 // import {Segment} from "../segment/segment";
 // import {serialize_subtarget} from "../serialize/serialize";
 var target;
 (function (target_1) {
+    var Logger = logger_1.log.Logger;
     var Subtarget = /** @class */ (function () {
         function Subtarget(note) {
             this.note = note;
@@ -2150,7 +2158,6 @@ var target;
             this.targets = targets;
             this.i = -1;
         }
-        // need SegmentTargetable -> TargetIterator
         TargetIterator.from_sequence_target = function (sequence_target) {
             var targets = [];
             for (var _i = 0, sequence_target_1 = sequence_target; _i < sequence_target_1.length; _i++) {
@@ -2161,6 +2168,8 @@ var target;
                     subtargets.push(new Subtarget(note));
                 }
                 var iterator_subtarget = new SubtargetIterator(subtargets);
+                var logger = new Logger('max');
+                logger.log(JSON.stringify(notes));
                 targets.push(new Target(iterator_subtarget));
             }
             return new TargetIterator(targets);
@@ -2349,7 +2358,7 @@ var target;
     // }
 })(target = exports.target || (exports.target = {}));
 
-},{}],18:[function(require,module,exports){
+},{"../log/logger":7}],18:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2861,9 +2870,14 @@ var trainer;
         // now we can assume we have a list instead of a matrix
         Trainer.prototype.create_targets = function () {
             this.clip_target.load_notes_within_markers();
+            // let logger = new Logger('max');
             for (var i_segment in this.segments) {
                 var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(this.segments[Number(i_segment)].beat_start, 0, this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start, 128));
+                // logger.log(JSON.stringify(sequence_targets));
+                // logger.log(JSON.stringify(this.clip_target.get_end_marker()));
                 this.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
+                // let logger = new Logger('max');
+                // logger.log(JSON.stringify(sequence_targets));
             }
         };
         Trainer.prototype.clear_window = function () {
@@ -2872,6 +2886,8 @@ var trainer;
         Trainer.prototype.render_window = function () {
             var notes;
             if (this.algorithm.b_targeted()) {
+                // let logger = new Logger('max');
+                // logger.log(JSON.stringify(this.target_current));
                 notes = this.target_current.iterator_subtarget.subtargets.map(function (subtarget) {
                     return subtarget.note;
                 });

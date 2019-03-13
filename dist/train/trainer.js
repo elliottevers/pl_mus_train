@@ -87,9 +87,14 @@ var trainer;
         // now we can assume we have a list instead of a matrix
         Trainer.prototype.create_targets = function () {
             this.clip_target.load_notes_within_markers();
+            // let logger = new Logger('max');
             for (var i_segment in this.segments) {
                 var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(this.segments[Number(i_segment)].beat_start, 0, this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start, 128));
+                // logger.log(JSON.stringify(sequence_targets));
+                // logger.log(JSON.stringify(this.clip_target.get_end_marker()));
                 this.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
+                // let logger = new Logger('max');
+                // logger.log(JSON.stringify(sequence_targets));
             }
         };
         Trainer.prototype.clear_window = function () {
@@ -98,6 +103,8 @@ var trainer;
         Trainer.prototype.render_window = function () {
             var notes;
             if (this.algorithm.b_targeted()) {
+                // let logger = new Logger('max');
+                // logger.log(JSON.stringify(this.target_current));
                 notes = this.target_current.iterator_subtarget.subtargets.map(function (subtarget) {
                     return subtarget.note;
                 });

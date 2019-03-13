@@ -62,7 +62,8 @@ if (env === 'max') {
 //     messenger.message([FretMapper.get_interval(user_input ,ground_truth)])
 // };
 let logger = new Logger(env);
-let mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, messenger, clip_target, segments, trainer;
+let messenger_render = new Messenger(env, 0, 'render');
+let mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
 
 let set_mode_texture = (option) => {
     switch (option) {
@@ -142,7 +143,7 @@ let set_algorithm_train = (option) => {
     window = new MatrixWindow(
         384,
         384,
-        messenger,
+        messenger_render,
         algorithm_train
     );
 };
@@ -236,7 +237,7 @@ let begin = () => {
             new li.LiveApiJs(
                 'live_set',
             ),
-            this.messenger,
+            new Messenger(env, 0),
             false
         )
     );
@@ -249,10 +250,12 @@ let begin = () => {
         clip_target,
         song,
         segments,
-        messenger
+        messenger_render
     );
 
-    trainer.init()
+    trainer.init();
+
+    trainer.render_window();
 };
 
 let pause = () => {
@@ -310,10 +313,10 @@ let save = () => {
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
         'clip_user_input': clip_user_input,
-        'clip_target_virtual': clip_target,
+        'clip_target': clip_target,
         'song': song,
         'segments': segments,
-        'messenger': messenger,
+        'messenger': messenger_render,
         'env': env
     };
 

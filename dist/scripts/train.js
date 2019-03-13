@@ -1,7 +1,7 @@
 "use strict";
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
+var Messenger = messenger_1.message.Messenger;
 var trainer_1 = require("../train/trainer");
 var Trainer = trainer_1.trainer.Trainer;
 var serialize_1 = require("../serialize/serialize");
@@ -46,7 +46,8 @@ if (env === 'max') {
 //     messenger.message([FretMapper.get_interval(user_input ,ground_truth)])
 // };
 var logger = new Logger(env);
-var mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, messenger, clip_target, segments, trainer;
+var messenger_render = new Messenger(env, 0, 'render');
+var mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
 var set_mode_texture = function (option) {
     switch (option) {
         case POLYPHONY: {
@@ -106,7 +107,7 @@ var set_algorithm_train = function (option) {
             post('error setting algorithm');
         }
     }
-    window = new MatrixWindow(384, 384, messenger, algorithm_train);
+    window = new MatrixWindow(384, 384, messenger_render, algorithm_train);
 };
 var set_depth_tree = function (depth) {
     algorithm_train.set_depth(depth);
@@ -142,9 +143,10 @@ var set_clip_target = function () {
     clip_target = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
 };
 var begin = function () {
-    song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), _this.messenger, false));
-    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_target, song, segments, messenger);
+    song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
+    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_target, song, segments, messenger_render);
     trainer.init();
+    trainer.render_window();
 };
 var pause = function () {
     trainer.pause();
@@ -180,10 +182,10 @@ var save = function () {
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
         'clip_user_input': clip_user_input,
-        'clip_target_virtual': clip_target,
+        'clip_target': clip_target,
         'song': song,
         'segments': segments,
-        'messenger': messenger,
+        'messenger': messenger_render,
         'env': env
     };
     var thawer = new TrainThawer(env);

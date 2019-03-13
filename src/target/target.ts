@@ -3,6 +3,7 @@ import {note as n} from "../note/note"
 import {phrase as p} from "../phrase/phrase"
 import {trainer} from "../train/trainer";
 import {history} from "../history/history";
+import {log} from "../log/logger";
 // import {Segment} from "../segment/segment";
 // import {serialize_subtarget} from "../serialize/serialize";
 
@@ -12,6 +13,7 @@ export namespace target {
     import TypeTarget = history.TypeTarget;
     import TypeSequenceTarget = history.TypeSequenceTarget;
     import TypeSubtarget = history.TypeSubtarget;
+    import Logger = log.Logger;
 
     export class Subtarget {
         note: TreeModel.Node<n.Note>;
@@ -90,7 +92,6 @@ export namespace target {
     }
 
     export class TargetIterator {
-        // need SegmentTargetable -> TargetIterator
 
         public static from_sequence_target(sequence_target: TypeSequenceTarget): TargetIterator {
 
@@ -103,6 +104,8 @@ export namespace target {
                     )
                 }
                 let iterator_subtarget = new SubtargetIterator(subtargets);
+                let logger = new Logger('max');
+                logger.log(JSON.stringify(notes));
                 targets.push(
                     new Target(iterator_subtarget)
                 )

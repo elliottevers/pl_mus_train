@@ -8,6 +8,7 @@ import {segment} from "../segment/segment";
 import {algorithm} from "../train/algorithm";
 import {iterate} from "../train/iterate";
 import {parse} from "../parse/parse";
+import {log} from "../log/logger";
 
 export namespace window {
 
@@ -18,6 +19,7 @@ export namespace window {
     import Algorithm = algorithm.Algorithm;
     import MatrixIterator = iterate.MatrixIterator;
     import StructParse = parse.StructParse;
+    import Logger = log.Logger;
 
     const red = [255, 0, 0];
     const white = [255, 255, 255];
@@ -203,6 +205,8 @@ export namespace window {
         }
 
         public render(iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
+            let logger = new Logger('max');
+            logger.log(JSON.stringify(notes_target_current));
             this.clear();
 
             this.render_regions(
