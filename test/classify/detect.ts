@@ -223,7 +223,8 @@ let window_local = new MatrixWindow(
 // stubs
 let song = {
     set_overdub: (int) => {},
-    set_session_record: (int) => {}
+    set_session_record: (int) => {},
+    stop: () => {}
 };
 
 let clip_user_input = {
@@ -260,14 +261,14 @@ for (let note of notes_segments) {
 
 let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
 
-let clip_target_virtual = new Clip(clip_dao_virtual);
+let clip_target = new Clip(clip_dao_virtual);
 
 let trainer_local = new Trainer(
     window_local,
     user_input_handler,
     algorithm_train,
     clip_user_input,
-    clip_target_virtual,
+    clip_target,
     song,
     segments,
     messenger
@@ -325,7 +326,7 @@ let config = {
     'user_input_handler': user_input_handler,
     'algorithm': algorithm_train,
     'clip_user_input': clip_user_input,
-    'clip_target_virtual': clip_target_virtual,
+    'clip_target': clip_target,
     'song': song,
     'segments': segments,
     'messenger': messenger,

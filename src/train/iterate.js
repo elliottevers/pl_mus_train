@@ -136,13 +136,25 @@ var iterate;
         FactoryMatrixTargetIterator.create_matrix_focus = function (algorithm, segments) {
             var matrix_data = [];
             switch (algorithm.get_name()) {
-                case algorithm_1.algorithm.DETECT || algorithm_1.algorithm.PREDICT: {
+                case algorithm_1.algorithm.DETECT: {
                     for (var i = 0; i < 1; i++) {
                         matrix_data[i] = new Array(segments.length);
                     }
                     break;
                 }
-                case algorithm_1.algorithm.PARSE || algorithm_1.algorithm.DERIVE: {
+                case algorithm_1.algorithm.PREDICT: {
+                    for (var i = 0; i < 1; i++) {
+                        matrix_data[i] = new Array(segments.length);
+                    }
+                    break;
+                }
+                case algorithm_1.algorithm.PARSE: {
+                    for (var i = 0; i < algorithm.get_depth(); i++) {
+                        matrix_data[i] = new Array(segments.length);
+                    }
+                    break;
+                }
+                case algorithm_1.algorithm.DERIVE: {
                     for (var i = 0; i < algorithm.get_depth(); i++) {
                         matrix_data[i] = new Array(segments.length);
                     }

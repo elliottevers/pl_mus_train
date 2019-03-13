@@ -261,8 +261,8 @@ export namespace trainer {
         }
 
         public pause() {
-            let logger = new Logger('max');
-            logger.log(JSON.stringify(this.song));
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.song));
             this.algorithm.pre_terminate(this.song, this.clip_user_input)
         }
 

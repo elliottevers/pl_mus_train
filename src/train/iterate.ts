@@ -173,13 +173,25 @@ export namespace iterate {
             let matrix_data = [];
 
             switch(algorithm.get_name()) {
-                case algo.DETECT || algo.PREDICT: {
+                case algo.DETECT: {
                     for (let i=0; i < 1; i++) {
                         matrix_data[i] = new Array(segments.length);
                     }
                     break;
                 }
-                case algo.PARSE || algo.DERIVE: {
+                case algo.PREDICT: {
+                    for (let i=0; i < 1; i++) {
+                        matrix_data[i] = new Array(segments.length);
+                    }
+                    break;
+                }
+                case algo.PARSE: {
+                    for (let i=0; i < algorithm.get_depth(); i++) {
+                        matrix_data[i] = new Array(segments.length);
+                    }
+                    break;
+                }
+                case algo.DERIVE: {
                     for (let i=0; i < algorithm.get_depth(); i++) {
                         matrix_data[i] = new Array(segments.length);
                     }

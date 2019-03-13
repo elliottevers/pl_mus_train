@@ -84,7 +84,7 @@ var target;
                     subtargets.push(new Subtarget(note));
                 }
                 var iterator_subtarget = new SubtargetIterator(subtargets);
-                var logger = new Logger('max');
+                var logger = new Logger('node');
                 logger.log(JSON.stringify(notes));
                 targets.push(new Target(iterator_subtarget));
             }

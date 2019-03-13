@@ -104,7 +104,7 @@ export namespace target {
                     )
                 }
                 let iterator_subtarget = new SubtargetIterator(subtargets);
-                let logger = new Logger('max');
+                let logger = new Logger('node');
                 logger.log(JSON.stringify(notes));
                 targets.push(
                     new Target(iterator_subtarget)

@@ -86,7 +86,8 @@ var window_local = new MatrixWindow(384, 384, messenger, algorithm_train);
 // stubs
 var song = {
     set_overdub: function (int) { },
-    set_session_record: function (int) { }
+    set_session_record: function (int) { },
+    stop: function () { }
 };
 var clip_user_input = {
     fire: function () { },
@@ -113,8 +114,8 @@ for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length
     segments.push(new Segment(note));
 }
 var clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
-var clip_target_virtual = new Clip(clip_dao_virtual);
-var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, clip_user_input, clip_target_virtual, song, segments, messenger);
+var clip_target = new Clip(clip_dao_virtual);
+var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, clip_user_input, clip_target, song, segments, messenger);
 // test case - 2 segments, 2 notes a piece
 trainer_local.init();
 trainer_local.accept_input([note_target_1_subtarget_1]);
@@ -132,7 +133,7 @@ var config = {
     'user_input_handler': user_input_handler,
     'algorithm': algorithm_train,
     'clip_user_input': clip_user_input,
-    'clip_target_virtual': clip_target_virtual,
+    'clip_target': clip_target,
     'song': song,
     'segments': segments,
     'messenger': messenger,

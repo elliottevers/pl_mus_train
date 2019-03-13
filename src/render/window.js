@@ -16,11 +16,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
-var logger_1 = require("../log/logger");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
-    var Logger = logger_1.log.Logger;
     var red = [255, 0, 0];
     var white = [255, 255, 255];
     var black = [0, 0, 0];
@@ -166,8 +164,8 @@ var window;
             return _super.call(this, height, width, messenger, algorithm) || this;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(notes_target_current));
+            // let logger = new Logger('node');
+            // logger.log(JSON.stringify(notes_target_current));
             this.clear();
             this.render_regions(iterator_matrix_train, notes_target_current, algorithm, parse_matrix);
             if (algorithm.b_targeted()) {

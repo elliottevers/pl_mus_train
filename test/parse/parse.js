@@ -21,9 +21,9 @@ var MatrixWindow = window_1.window.MatrixWindow;
 var trainer_1 = require("../../src/train/trainer");
 var Trainer = trainer_1.trainer.Trainer;
 var constants_1 = require("../../src/constants/constants");
-var MONOPONY = constants_1.modes_texture.MONOPONY;
 var VOCAL = constants_1.modes_control.VOCAL;
 var Parse = algorithm_1.algorithm.Parse;
+var MONOPHONY = constants_1.modes_texture.MONOPHONY;
 var tree = new TreeModel();
 // let tree: TreeModel = new TreeModel();
 var segment_note_1_parse = tree.parse({
@@ -111,7 +111,7 @@ var note_summarized_root = tree.parse({
     note: new note_1.note.Note(51, 1, 8, 90, 0),
     children: []
 });
-var mode_texture_parse = MONOPONY;
+var mode_texture_parse = MONOPHONY;
 var mode_control_parse = VOCAL;
 var user_input_handler_parse = new UserInputHandler(mode_texture_parse, mode_control_parse);
 var env_parse = 'node_for_max';
@@ -123,7 +123,8 @@ algorithm_train_parse.set_depth(3);
 // stubs
 var song_parse = {
     set_overdub: function (int) { },
-    set_session_record: function (int) { }
+    set_session_record: function (int) { },
+    stop: function () { }
 };
 var clip_user_input_parse = {
     fire: function () { },
@@ -166,7 +167,7 @@ var config_parse = {
     'user_input_handler': user_input_handler_parse,
     'algorithm': algorithm_train_parse,
     'clip_user_input': clip_user_input_parse,
-    'clip_target_virtual': clip_target_virtual_parse,
+    'clip_target': clip_target_virtual_parse,
     'song': song_parse,
     'segments': segments_parse,
     'messenger': messenger_parse,

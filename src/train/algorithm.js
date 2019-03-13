@@ -126,7 +126,7 @@ var algorithm;
                 var notes_grouped_trivial = [];
                 for (var _a = 0, notes_segment_next_2 = notes_segment_next; _a < notes_segment_next_2.length; _a++) {
                     var note = notes_segment_next_2[_a];
-                    notes_grouped_trivial.push(note);
+                    notes_grouped_trivial.push([note]);
                 }
                 return notes_grouped_trivial;
             }
@@ -141,6 +141,8 @@ var algorithm;
             ];
         };
         Predict.prototype.pre_advance = function () {
+        };
+        Predict.prototype.post_init = function () {
         };
         return Predict;
     }(Targeted));

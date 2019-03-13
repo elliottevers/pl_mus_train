@@ -205,8 +205,8 @@ export namespace window {
         }
 
         public render(iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
-            let logger = new Logger('max');
-            logger.log(JSON.stringify(notes_target_current));
+            // let logger = new Logger('node');
+            // logger.log(JSON.stringify(notes_target_current));
             this.clear();
 
             this.render_regions(

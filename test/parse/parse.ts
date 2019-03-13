@@ -19,9 +19,9 @@ import MatrixWindow = window.MatrixWindow;
 import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
 import {modes_control, modes_texture} from "../../src/constants/constants";
-import MONOPONY = modes_texture.MONOPONY;
 import VOCAL = modes_control.VOCAL;
 import Parse = algorithm.Parse;
+import MONOPHONY = modes_texture.MONOPHONY;
 
 
 let tree: TreeModel = new TreeModel();
@@ -313,7 +313,7 @@ let note_summarized_root = tree.parse(
 );
 
 
-let mode_texture_parse = MONOPONY;
+let mode_texture_parse = MONOPHONY;
 
 let mode_control_parse = VOCAL;
 
@@ -346,7 +346,8 @@ algorithm_train_parse.set_depth(
 // stubs
 let song_parse = {
     set_overdub: (int) => {},
-    set_session_record: (int) => {}
+    set_session_record: (int) => {},
+    stop: () => {}
 };
 
 let clip_user_input_parse = {
@@ -437,7 +438,7 @@ let config_parse = {
     'user_input_handler': user_input_handler_parse,
     'algorithm': algorithm_train_parse,
     'clip_user_input': clip_user_input_parse,
-    'clip_target_virtual': clip_target_virtual_parse,
+    'clip_target': clip_target_virtual_parse,
     'song': song_parse,
     'segments': segments_parse,
     'messenger': messenger_parse,

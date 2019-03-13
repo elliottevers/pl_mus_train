@@ -166,7 +166,7 @@ export namespace algorithm {
                 let notes_grouped_trivial = [];
 
                 for (let note of notes_segment_next) {
-                    notes_grouped_trivial.push(note)
+                    notes_grouped_trivial.push([note])
                 }
 
                 return notes_grouped_trivial
@@ -185,6 +185,10 @@ export namespace algorithm {
         }
 
         pre_advance() {
+
+        }
+
+        post_init() {
 
         }
     }
