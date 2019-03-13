@@ -1,6 +1,6 @@
 export namespace modes_texture {
     export let POLYPHONY = 'polyphony';
-    export let MONOPONY = 'monophony';
+    export let MONOPHONY = 'monophony';
 }
 
 export namespace modes_control {

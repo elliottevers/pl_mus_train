@@ -1,4 +1,5 @@
 "use strict";
+var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var trainer_1 = require("../train/trainer");
@@ -8,12 +9,34 @@ var TrainThawer = serialize_1.thaw.TrainThawer;
 var algorithm_1 = require("../train/algorithm");
 var Detect = algorithm_1.algorithm.Detect;
 var live_1 = require("../live/live");
+var segment_1 = require("../segment/segment");
+var Segment = segment_1.segment.Segment;
+var constants_1 = require("../constants/constants");
+var INSTRUMENTAL = constants_1.modes_control.INSTRUMENTAL;
 var clip_1 = require("../clip/clip");
+var user_input_1 = require("../control/user_input");
+var UserInputHandler = user_input_1.user_input.UserInputHandler;
+var POLYPHONY = constants_1.modes_texture.POLYPHONY;
 var TrainFreezer = serialize_1.freeze.TrainFreezer;
 var window_1 = require("../render/window");
 var MatrixWindow = window_1.window.MatrixWindow;
 var logger_1 = require("../log/logger");
 var Logger = logger_1.log.Logger;
+var MONOPHONY = constants_1.modes_texture.MONOPHONY;
+var VOCAL = constants_1.modes_control.VOCAL;
+var utils_1 = require("../utils/utils");
+var path_clip_from_list_path_device = utils_1.utils.path_clip_from_list_path_device;
+var DETECT = algorithm_1.algorithm.DETECT;
+var PREDICT = algorithm_1.algorithm.PREDICT;
+var PARSE = algorithm_1.algorithm.PARSE;
+var DERIVE = algorithm_1.algorithm.DERIVE;
+var Predict = algorithm_1.algorithm.Predict;
+var Derive = algorithm_1.algorithm.Derive;
+var Parse = algorithm_1.algorithm.Parse;
+var FREESTYLE = algorithm_1.algorithm.FREESTYLE;
+var song_1 = require("../song/song");
+var Song = song_1.song.Song;
+var SongDao = song_1.song.SongDao;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -22,85 +45,104 @@ if (env === 'max') {
 // let accept = (user_input, ground_truth) => {
 //     messenger.message([FretMapper.get_interval(user_input ,ground_truth)])
 // };
+var logger = new Logger(env);
 var mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, messenger, clip_target, segments, trainer;
 var set_mode_texture = function (option) {
-    // let mode_texture = POLYPHONY;
-    mode_texture = option;
+    switch (option) {
+        case POLYPHONY: {
+            mode_texture = option;
+            break;
+        }
+        case MONOPHONY: {
+            mode_texture = option;
+            break;
+        }
+        default: {
+            post('error setting texture');
+        }
+    }
 };
 var set_mode_control = function (option) {
-    // let mode_control = INSTRUMENTAL;
-    mode_control = option;
+    switch (option) {
+        case VOCAL: {
+            mode_control = option;
+            break;
+        }
+        case INSTRUMENTAL: {
+            mode_control = option;
+            break;
+        }
+        default: {
+            post('error setting control');
+        }
+    }
 };
-var set_algorithm_train = function () {
-    algorithm_train = new Detect(user_input_handler);
+var set_algorithm_train = function (option) {
+    user_input_handler = new UserInputHandler(mode_texture, mode_control);
+    switch (option) {
+        case FREESTYLE: {
+            // algorithm_train = new Freestyle(
+            //     user_input_handler
+            // );
+            break;
+        }
+        case DETECT: {
+            algorithm_train = new Detect(user_input_handler);
+            break;
+        }
+        case PREDICT: {
+            algorithm_train = new Predict(user_input_handler);
+            break;
+        }
+        case PARSE: {
+            algorithm_train = new Parse(user_input_handler);
+            break;
+        }
+        case DERIVE: {
+            algorithm_train = new Derive(user_input_handler);
+            break;
+        }
+        default: {
+            post('error setting algorithm');
+        }
+    }
     window = new MatrixWindow(384, 384, messenger, algorithm_train);
 };
 var set_depth_tree = function (depth) {
-    depth_tree = depth;
+    algorithm_train.set_depth(depth);
 };
 var set_clip_user_input = function () {
-    clip_user_input = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
+    var live_api = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
+    clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), true, 'clip_user_input'));
+    clip_user_input.set_path_deferlow('set_path_clip_user_input');
 };
 var set_segments = function () {
     // @ts-ignore
     var list_path_device = Array.prototype.slice.call(arguments);
-    list_path_device.shift();
-    list_path_device[list_path_device.length - 2] = 'clip_slots';
-    list_path_device.push('clip');
-    var path_clip = list_path_device.join(' ');
     var live_api;
-    live_api = new live_1.live.LiveApiJs(path_clip);
+    live_api = new live_1.live.LiveApiJs(path_clip_from_list_path_device(list_path_device));
     var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
-    var notes = clip.get_notes(0, 0, 128, 128);
-    var logger = new Logger(env);
-    logger.log(JSON.stringify(notes));
-    logger.log(path_clip);
-    // logger.log(list_path_device)
-    // let live_api: LiveApiJs;
-    //
-    // live_api = new li.LiveApiJs(
-    //     path
-    // );
-    //
-    // let clip = new c.Clip(
-    //     new c.ClipDao(
-    //         live_api,
-    //         new m.Messenger(env, 0),
-    //         false
-    //     )
-    // );
-    //
-    // // TODO: how do we get beat_start, beat_end?
-    // let notes_segments = clip.get_notes(0, 0, 8, 128);
-    //
-    // let segments: Segment[] = [];
-    //
-    // for (let note of notes_segments) {
-    //     segments.push(
-    //         new Segment(
-    //             note
-    //         )
-    //     )
-    // }
+    // TODO: how do we get beat_start, beat_end?
+    var notes_segments = clip.get_notes(0, 0, 17 * 4, 128);
+    // let logger = new Logger(env);
+    // logger.log(JSON.stringify(notes_segments));
+    var segments_local = [];
+    for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
+        var note = notes_segments_1[_i];
+        segments_local.push(new Segment(note));
+    }
+    segments = segments_local;
 };
 // TODO: send this via bus based on options in radio
-var set_clip_target = function (path) {
-    // let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
-    //
-    // let clip_target_virtual = new Clip(clip_dao_virtual);
+var set_clip_target = function () {
+    // @ts-ignore
+    var list_path_device = Array.prototype.slice.call(arguments);
     var live_api;
-    live_api = new live_1.live.LiveApiJs(path);
-    var clip_target = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
+    live_api = new live_1.live.LiveApiJs(path_clip_from_list_path_device(list_path_device));
+    clip_target = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
 };
 var begin = function () {
-    // let clip_highlighted = new li.LiveApiJs(
-    //     'live_set view highlighted_clip_slot clip'
-    // );
-    //
-    // exporter.set_length(
-    //     clip_highlighted.get("length")
-    // );
-    song = new live_1.live.LiveApiJs('live_set');
+    song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), _this.messenger, false));
     trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_target, song, segments, messenger);
     trainer.init();
 };
@@ -155,6 +197,7 @@ if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load = load;
     Global.train.save = save;
+    Global.train.begin = begin;
     Global.train.pause = pause;
     Global.train.resume = resume;
     Global.train.erase = erase;

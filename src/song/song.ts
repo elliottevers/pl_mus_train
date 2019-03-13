@@ -20,6 +20,14 @@ export namespace song {
         set_overdub(int) {
             this.song_dao.set_overdub(int);
         }
+
+        start() {
+            this.song_dao.start()
+        }
+
+        stop() {
+            this.song_dao.stop()
+        }
     }
 
     export class SongDao {
@@ -40,6 +48,14 @@ export namespace song {
 
         set_overdub(int) {
             this.clip_live.set("overdub", int);
+        }
+
+        start() {
+            this.clip_live.set("is_playing", 1);
+        }
+
+        stop() {
+            this.clip_live.set("is_playing", 0);
         }
     }
 }

@@ -25,6 +25,21 @@ import MatrixWindow = w.MatrixWindow;
 import LiveApiJs = live.LiveApiJs;
 import {log} from "../log/logger";
 import Logger = log.Logger;
+import MONOPHONY = modes_texture.MONOPHONY;
+import VOCAL = modes_control.VOCAL;
+import {utils} from "../utils/utils";
+import path_clip_from_list_path_device = utils.path_clip_from_list_path_device;
+import DETECT = algorithm.DETECT;
+import PREDICT = algorithm.PREDICT;
+import PARSE = algorithm.PARSE;
+import DERIVE = algorithm.DERIVE;
+import Predict = algorithm.Predict;
+import Derive = algorithm.Derive;
+import Parse = algorithm.Parse;
+import FREESTYLE = algorithm.FREESTYLE;
+import {song as sng} from "../song/song";
+import Song = sng.Song;
+import SongDao = sng.SongDao;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -43,28 +58,86 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-
 // let accept = (user_input, ground_truth) => {
 //     messenger.message([FretMapper.get_interval(user_input ,ground_truth)])
 // };
-
+let logger = new Logger(env);
 let mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, messenger, clip_target, segments, trainer;
 
 let set_mode_texture = (option) => {
-    // let mode_texture = POLYPHONY;
-    mode_texture = option;
-
+    switch (option) {
+        case POLYPHONY: {
+            mode_texture = option;
+            break;
+        }
+        case MONOPHONY: {
+            mode_texture = option;
+            break;
+        }
+        default: {
+            post('error setting texture')
+        }
+    }
 };
 
 let set_mode_control = (option) => {
-    // let mode_control = INSTRUMENTAL;
-    mode_control = option;
+    switch (option) {
+        case VOCAL: {
+            mode_control = option;
+            break;
+        }
+        case INSTRUMENTAL: {
+            mode_control = option;
+            break;
+        }
+        default: {
+            post('error setting control')
+        }
+    }
 };
 
-let set_algorithm_train = () => {
-    algorithm_train = new Detect(
-        user_input_handler
+let set_algorithm_train = (option) => {
+
+    user_input_handler = new UserInputHandler(
+        mode_texture,
+        mode_control
     );
+
+    switch (option) {
+        case FREESTYLE: {
+            // algorithm_train = new Freestyle(
+            //     user_input_handler
+            // );
+            break;
+        }
+        case DETECT: {
+            algorithm_train = new Detect(
+                user_input_handler
+            );
+            break;
+        }
+        case PREDICT: {
+            algorithm_train = new Predict(
+                user_input_handler
+            );
+            break;
+        }
+        case PARSE: {
+            algorithm_train = new Parse(
+                user_input_handler
+            );
+            break;
+        }
+        case DERIVE: {
+            algorithm_train = new Derive(
+                user_input_handler
+            );
+            break;
+        }
+        default: {
+            post('error setting algorithm')
+        }
+    }
 
     window = new MatrixWindow(
         384,
@@ -75,31 +148,38 @@ let set_algorithm_train = () => {
 };
 
 let set_depth_tree = (depth) => {
-    depth_tree = depth
+    algorithm_train.set_depth(
+        depth
+    );
 };
 
 let set_clip_user_input = () => {
-    clip_user_input = new li.LiveApiJs(
+    let live_api = new li.LiveApiJs(
         'live_set view highlighted_clip_slot clip'
     );
+
+    clip_user_input = new c.Clip(
+        new c.ClipDao(
+            live_api,
+            new m.Messenger(env, 0),
+            true,
+            'clip_user_input'
+        )
+    );
+
+    clip_user_input.set_path_deferlow(
+        'set_path_clip_user_input'
+    )
 };
 
 let set_segments = () => {
     // @ts-ignore
     let list_path_device = Array.prototype.slice.call(arguments);
 
-    list_path_device.shift();
-
-    list_path_device[list_path_device.length - 2] = 'clip_slots';
-
-    list_path_device.push('clip');
-
-    let path_clip = list_path_device.join(' ');
-
     let live_api: LiveApiJs;
 
     live_api = new li.LiveApiJs(
-        path_clip
+        path_clip_from_list_path_device(list_path_device)
     );
 
     let clip = new c.Clip(
@@ -113,29 +193,35 @@ let set_segments = () => {
     // TODO: how do we get beat_start, beat_end?
     let notes_segments = clip.get_notes(0, 0, 17 * 4, 128);
 
-    let segments: Segment[] = [];
+    // let logger = new Logger(env);
+
+    // logger.log(JSON.stringify(notes_segments));
+
+    let segments_local: Segment[] = [];
 
     for (let note of notes_segments) {
-        segments.push(
+        segments_local.push(
             new Segment(
                 note
             )
         )
     }
+
+    segments = segments_local;
 };
 
 // TODO: send this via bus based on options in radio
-let set_clip_target = (path) => {
-    // let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
-    //
-    // let clip_target_virtual = new Clip(clip_dao_virtual);
+let set_clip_target = () => {
+    // @ts-ignore
+    let list_path_device = Array.prototype.slice.call(arguments);
+
     let live_api: LiveApiJs;
 
     live_api = new li.LiveApiJs(
-        path
+        path_clip_from_list_path_device(list_path_device)
     );
 
-    let clip_target = new c.Clip(
+    clip_target = new c.Clip(
         new c.ClipDao(
             live_api,
             new m.Messenger(env, 0),
@@ -145,16 +231,14 @@ let set_clip_target = (path) => {
 };
 
 let begin = () => {
-    // let clip_highlighted = new li.LiveApiJs(
-    //     'live_set view highlighted_clip_slot clip'
-    // );
-    //
-    // exporter.set_length(
-    //     clip_highlighted.get("length")
-    // );
-
-    song = new li.LiveApiJs(
-        'live_set'
+    song = new Song(
+        new SongDao(
+            new li.LiveApiJs(
+                'live_set',
+            ),
+            this.messenger,
+            false
+        )
     );
 
     trainer = new Trainer(
@@ -257,6 +341,7 @@ if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load = load;
     Global.train.save = save;
+    Global.train.begin = begin;
     Global.train.pause = pause;
     Global.train.resume = resume;
     Global.train.erase = erase;

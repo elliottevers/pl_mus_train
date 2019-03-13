@@ -7,6 +7,7 @@ var history_1 = require("../history/history");
 var target_1 = require("../target/target");
 var parse_1 = require("../parse/parse");
 var iterate_1 = require("./iterate");
+var logger_1 = require("../log/logger");
 var _ = require('underscore');
 var l = require('lodash');
 var trainer;
@@ -21,6 +22,7 @@ var trainer;
     var FactoryMatrixTargetIterator = iterate_1.iterate.FactoryMatrixTargetIterator;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var Note = note_1.note.Note;
+    var Logger = logger_1.log.Logger;
     var Trainer = /** @class */ (function () {
         function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_target, song, segments, messenger) {
             this.window = window;
@@ -123,6 +125,8 @@ var trainer;
             this.algorithm.post_init();
         };
         Trainer.prototype.pause = function () {
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(this.song));
             this.algorithm.pre_terminate(this.song, this.clip_user_input);
         };
         Trainer.prototype.terminate = function () {

@@ -36,5 +36,12 @@ var utils;
     utils.division_int = function (top, bottom) {
         return Math.floor(top / bottom);
     };
+    utils.path_clip_from_list_path_device = function (list_path_device) {
+        // list_path_device.shift();
+        list_path_device[list_path_device.length - 2] = 'clip_slots';
+        list_path_device.push('clip');
+        var path_clip = list_path_device.join(' ');
+        return path_clip;
+    };
 })(utils = exports.utils || (exports.utils = {}));
 //# sourceMappingURL=utils.js.map

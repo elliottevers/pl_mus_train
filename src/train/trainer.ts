@@ -9,6 +9,7 @@ import {message} from "../message/messenger";
 import {song} from "../song/song";
 import {clip} from "../clip/clip";
 import {iterate} from "./iterate";
+import {log} from "../log/logger";
 const _ = require('underscore');
 const l = require('lodash');
 
@@ -32,6 +33,7 @@ export namespace trainer {
     import FactoryMatrixTargetIterator = iterate.FactoryMatrixTargetIterator;
     import IteratorTrainFactory = iterate.IteratorTrainFactory;
     import Note = note.Note;
+    import Logger = log.Logger;
 
     export class Trainer {
 
@@ -251,6 +253,8 @@ export namespace trainer {
         }
 
         public pause() {
+            let logger = new Logger('max');
+            logger.log(JSON.stringify(this.song));
             this.algorithm.pre_terminate(this.song, this.clip_user_input)
         }
 

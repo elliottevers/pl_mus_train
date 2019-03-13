@@ -12,6 +12,12 @@ var song;
         Song.prototype.set_overdub = function (int) {
             this.song_dao.set_overdub(int);
         };
+        Song.prototype.start = function () {
+            this.song_dao.start();
+        };
+        Song.prototype.stop = function () {
+            this.song_dao.stop();
+        };
         return Song;
     }());
     song.Song = Song;
@@ -26,6 +32,12 @@ var song;
         };
         SongDao.prototype.set_overdub = function (int) {
             this.clip_live.set("overdub", int);
+        };
+        SongDao.prototype.start = function () {
+            this.clip_live.set("is_playing", 1);
+        };
+        SongDao.prototype.stop = function () {
+            this.clip_live.set("is_playing", 0);
         };
         return SongDao;
     }());

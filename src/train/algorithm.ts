@@ -11,9 +11,10 @@ export namespace algorithm {
     export let PREDICT = 'predict';
     export let PARSE = 'parse';
     export let DERIVE = 'derive';
+    export let FREESTYLE = 'freestyle';
     import Harmony = harmony.Harmony;
     import POLYPHONY = modes_texture.POLYPHONY;
-    import MONOPONY = modes_texture.MONOPONY;
+    import MONOPHONY = modes_texture.MONOPHONY;
     import TypeSequenceTarget = history.TypeSequenceTarget;
     import TypeTarget = history.TypeTarget;
 
@@ -70,37 +71,44 @@ export namespace algorithm {
         }
 
         determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
-            if (this.user_input_handler.mode_texture === POLYPHONY) {
+            let targets;
 
-                let chords_grouped: TypeTarget[] = Harmony.group(
-                    notes_segment_next
-                );
-
-                let chords_monophonified: TypeTarget[] = [];
-
-                for (let chord of chords_grouped) {
-                    let notes_monophonified: TypeTarget = Harmony.monophonify(
-                        chord
+            switch(this.user_input_handler.mode_texture) {
+                case POLYPHONY: {
+                    let chords_grouped: TypeTarget[] = Harmony.group(
+                        notes_segment_next
                     );
 
-                    chords_monophonified.push(notes_monophonified)
+                    let chords_monophonified: TypeTarget[] = [];
+
+                    for (let chord of chords_grouped) {
+                        let notes_monophonified: TypeTarget = Harmony.monophonify(
+                            chord
+                        );
+
+                        chords_monophonified.push(notes_monophonified)
+                    }
+
+                    targets = chords_monophonified;
+
+                    break;
                 }
+                case MONOPHONY: {
+                    let notes_grouped_trivial = [];
 
-                return chords_monophonified
+                    for (let note of notes_segment_next) {
+                        notes_grouped_trivial.push(note)
+                    }
 
-            } else if (this.user_input_handler.mode_texture === MONOPONY) {
+                    targets = notes_grouped_trivial;
 
-                let notes_grouped_trivial = [];
-
-                for (let note of notes_segment_next) {
-                    notes_grouped_trivial.push(note)
+                    break;
                 }
-
-                return notes_grouped_trivial
-
-            } else {
-                throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ')
+                default: {
+                    throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ')
+                }
             }
+            return targets;
         }
 
         public determine_region_present(notes_target_next): number[] {
@@ -119,6 +127,7 @@ export namespace algorithm {
         }
 
         pre_terminate(song, clip_user_input) {
+            song.stop();
             clip_user_input.stop();
         }
     }
@@ -152,7 +161,7 @@ export namespace algorithm {
 
                 return chords_monophonified
 
-            } else if (this.user_input_handler.mode_texture === MONOPONY) {
+            } else if (this.user_input_handler.mode_texture === MONOPHONY) {
 
                 let notes_grouped_trivial = [];
 

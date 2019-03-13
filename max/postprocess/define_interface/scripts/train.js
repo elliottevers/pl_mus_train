@@ -1,5 +1,6 @@
 var load = Global.train.load;
 var save = Global.train.save;
+var begin = Global.train.begin;
 var pause = Global.train.pause;
 var resume = Global.train.resume;
 var erase = Global.train.erase;

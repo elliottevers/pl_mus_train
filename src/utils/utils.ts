@@ -37,4 +37,15 @@ export namespace utils {
         return Math.floor(top/bottom)
     };
 
+    export let path_clip_from_list_path_device = (list_path_device) => {
+        // list_path_device.shift();
+
+        list_path_device[list_path_device.length - 2] = 'clip_slots';
+
+        list_path_device.push('clip');
+
+        let path_clip = list_path_device.join(' ');
+
+        return path_clip;
+    };
 }
