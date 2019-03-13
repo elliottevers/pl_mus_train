@@ -99,13 +99,14 @@ export namespace target {
             for (let notes of sequence_target) {
                 let subtargets: Subtarget[] = [];
                 for (let note of notes) {
+                    // let logger = new Logger('max');
+                    // logger.log(JSON.stringify(note));
                     subtargets.push(
                         new Subtarget(note)
                     )
                 }
                 let iterator_subtarget = new SubtargetIterator(subtargets);
-                let logger = new Logger('node');
-                logger.log(JSON.stringify(notes));
+
                 targets.push(
                     new Target(iterator_subtarget)
                 )

@@ -1,11 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var logger_1 = require("../log/logger");
 // import {Segment} from "../segment/segment";
 // import {serialize_subtarget} from "../serialize/serialize";
 var target;
 (function (target_1) {
-    var Logger = logger_1.log.Logger;
     var Subtarget = /** @class */ (function () {
         function Subtarget(note) {
             this.note = note;
@@ -81,11 +79,11 @@ var target;
                 var subtargets = [];
                 for (var _a = 0, notes_1 = notes; _a < notes_1.length; _a++) {
                     var note = notes_1[_a];
+                    // let logger = new Logger('max');
+                    // logger.log(JSON.stringify(note));
                     subtargets.push(new Subtarget(note));
                 }
                 var iterator_subtarget = new SubtargetIterator(subtargets);
-                var logger = new Logger('max');
-                logger.log(JSON.stringify(notes));
                 targets.push(new Target(iterator_subtarget));
             }
             return new TargetIterator(targets);

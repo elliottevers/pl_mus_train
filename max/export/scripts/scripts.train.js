@@ -1233,11 +1233,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
-var logger_1 = require("../log/logger");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
-    var Logger = logger_1.log.Logger;
     var red = [255, 0, 0];
     var white = [255, 255, 255];
     var black = [0, 0, 0];
@@ -1383,8 +1381,8 @@ var window;
             return _super.call(this, height, width, messenger, algorithm) || this;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(notes_target_current));
+            // let logger = new Logger('node');
+            // logger.log(JSON.stringify(notes_target_current));
             this.clear();
             this.render_regions(iterator_matrix_train, notes_target_current, algorithm, parse_matrix);
             if (algorithm.b_targeted()) {
@@ -1542,7 +1540,7 @@ var window;
     window.MatrixWindow = MatrixWindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":1,"../live/live":6,"../log/logger":7,"lodash":24}],13:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":6,"lodash":24}],13:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -1582,6 +1580,8 @@ var FREESTYLE = algorithm_1.algorithm.FREESTYLE;
 var song_1 = require("../song/song");
 var Song = song_1.song.Song;
 var SongDao = song_1.song.SongDao;
+var note_1 = require("../note/note");
+var TreeModel = require("tree-model");
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -1592,7 +1592,7 @@ if (env === 'max') {
 // };
 var logger = new Logger(env);
 var messenger_render = new Messenger(env, 0, 'render');
-var mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
+var mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
 var set_mode_texture = function (option) {
     switch (option) {
         case POLYPHONY: {
@@ -1659,6 +1659,7 @@ var set_depth_tree = function (depth) {
 };
 var set_clip_user_input = function () {
     var live_api = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
+    clip_user_input_synchronous = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), true, 'clip_user_input'));
     clip_user_input.set_path_deferlow('set_path_clip_user_input');
 };
@@ -1705,15 +1706,84 @@ var reset = function () {
 };
 var accept = function () {
 };
-var accept_input = function () {
-    var notes;
-    if (true) {
-        // midi values
+var user_input_command = function (command) {
+    // TODO: there is literally one character difference between the two algorithms - please abstract
+    switch (algorithm_train.get_name()) {
+        case PARSE: {
+            switch (command) {
+                case 'confirm': {
+                    var notes = clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    trainer.accept_input(notes);
+                    break;
+                }
+                case 'reset': {
+                    var coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] + 1, coords_current[1]]));
+                    break;
+                }
+                case 'erase': {
+                    clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    break;
+                }
+                default: {
+                    logger.log('command not recognized');
+                }
+            }
+            break;
+        }
+        case DERIVE: {
+            switch (command) {
+                case 'confirm': {
+                    var notes = clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    trainer.accept_input(notes);
+                    break;
+                }
+                case 'reset': {
+                    var coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]));
+                    break;
+                }
+                case 'erase': {
+                    clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    break;
+                }
+                default: {
+                    logger.log('command not recognized');
+                }
+            }
+            break;
+        }
+        default: {
+            logger.log('command not supported for this type of algorithm');
+        }
     }
-    else {
-        // signal to use user input clip
+};
+var user_input_midi = function (pitch, velocity) {
+    switch (algorithm_train.get_name()) {
+        case DETECT: {
+            var tree = new TreeModel();
+            var note = tree.parse({
+                id: -1,
+                note: new note_1.note.Note(pitch, -Infinity, Infinity, velocity, 0),
+                children: []
+            });
+            trainer.accept_input([note]);
+            break;
+        }
+        case PREDICT: {
+            var tree = new TreeModel();
+            var note = tree.parse({
+                id: -1,
+                note: new note_1.note.Note(pitch, -Infinity, Infinity, velocity, 0),
+                children: []
+            });
+            trainer.accept_input([note]);
+            break;
+        }
+        default: {
+            logger.log('command not supported for this type of algorithm');
+        }
     }
-    trainer.accept_input(notes);
 };
 var load = function () {
     // TODO: logic to determine, from project folder, name of file
@@ -1750,7 +1820,7 @@ if (typeof Global !== "undefined") {
     Global.train.erase = erase;
     Global.train.reset = reset;
     Global.train.accept = accept;
-    Global.train.accept_input = accept_input;
+    // Global.train.accept_input = accept_input;
     Global.train.set_segments = set_segments;
     Global.train.set_clip_user_input = set_clip_user_input;
     Global.train.set_clip_target = set_clip_target;
@@ -1760,7 +1830,7 @@ if (typeof Global !== "undefined") {
     Global.train.set_mode_texture = set_mode_texture;
 }
 
-},{"../clip/clip":1,"../constants/constants":2,"../control/user_input":3,"../live/live":6,"../log/logger":7,"../message/messenger":8,"../render/window":12,"../segment/segment":14,"../serialize/serialize":15,"../song/song":16,"../train/algorithm":18,"../train/trainer":20,"../utils/utils":21}],14:[function(require,module,exports){
+},{"../clip/clip":1,"../constants/constants":2,"../control/user_input":3,"../live/live":6,"../log/logger":7,"../message/messenger":8,"../note/note":10,"../render/window":12,"../segment/segment":14,"../serialize/serialize":15,"../song/song":16,"../train/algorithm":18,"../train/trainer":20,"../utils/utils":21,"tree-model":26}],14:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -2084,12 +2154,10 @@ var song;
 },{}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var logger_1 = require("../log/logger");
 // import {Segment} from "../segment/segment";
 // import {serialize_subtarget} from "../serialize/serialize";
 var target;
 (function (target_1) {
-    var Logger = logger_1.log.Logger;
     var Subtarget = /** @class */ (function () {
         function Subtarget(note) {
             this.note = note;
@@ -2165,11 +2233,11 @@ var target;
                 var subtargets = [];
                 for (var _a = 0, notes_1 = notes; _a < notes_1.length; _a++) {
                     var note = notes_1[_a];
+                    // let logger = new Logger('max');
+                    // logger.log(JSON.stringify(note));
                     subtargets.push(new Subtarget(note));
                 }
                 var iterator_subtarget = new SubtargetIterator(subtargets);
-                var logger = new Logger('max');
-                logger.log(JSON.stringify(notes));
                 targets.push(new Target(iterator_subtarget));
             }
             return new TargetIterator(targets);
@@ -2358,7 +2426,7 @@ var target;
     // }
 })(target = exports.target || (exports.target = {}));
 
-},{"../log/logger":7}],18:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2433,7 +2501,7 @@ var algorithm;
                     var notes_grouped_trivial = [];
                     for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
                         var note = notes_segment_next_1[_a];
-                        notes_grouped_trivial.push(note);
+                        notes_grouped_trivial.push([note]);
                     }
                     targets = notes_grouped_trivial;
                     break;
@@ -2487,7 +2555,7 @@ var algorithm;
                 var notes_grouped_trivial = [];
                 for (var _a = 0, notes_segment_next_2 = notes_segment_next; _a < notes_segment_next_2.length; _a++) {
                     var note = notes_segment_next_2[_a];
-                    notes_grouped_trivial.push(note);
+                    notes_grouped_trivial.push([note]);
                 }
                 return notes_grouped_trivial;
             }
@@ -2501,7 +2569,14 @@ var algorithm;
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
         };
-        Predict.prototype.pre_advance = function () {
+        Predict.prototype.pre_advance = function (clip_user_input) {
+        };
+        Predict.prototype.post_init = function (song, clip_user_input) {
+            clip_user_input.fire();
+        };
+        Predict.prototype.pre_terminate = function (song, clip_user_input) {
+            song.stop();
+            clip_user_input.stop();
         };
         return Predict;
     }(Targeted));
@@ -2717,13 +2792,25 @@ var iterate;
         FactoryMatrixTargetIterator.create_matrix_focus = function (algorithm, segments) {
             var matrix_data = [];
             switch (algorithm.get_name()) {
-                case algorithm_1.algorithm.DETECT || algorithm_1.algorithm.PREDICT: {
+                case algorithm_1.algorithm.DETECT: {
                     for (var i = 0; i < 1; i++) {
                         matrix_data[i] = new Array(segments.length);
                     }
                     break;
                 }
-                case algorithm_1.algorithm.PARSE || algorithm_1.algorithm.DERIVE: {
+                case algorithm_1.algorithm.PREDICT: {
+                    for (var i = 0; i < 1; i++) {
+                        matrix_data[i] = new Array(segments.length);
+                    }
+                    break;
+                }
+                case algorithm_1.algorithm.PARSE: {
+                    for (var i = 0; i < algorithm.get_depth(); i++) {
+                        matrix_data[i] = new Array(segments.length);
+                    }
+                    break;
+                }
+                case algorithm_1.algorithm.DERIVE: {
                     for (var i = 0; i < algorithm.get_depth(); i++) {
                         matrix_data[i] = new Array(segments.length);
                     }
@@ -2790,7 +2877,6 @@ var history_1 = require("../history/history");
 var target_1 = require("../target/target");
 var parse_1 = require("../parse/parse");
 var iterate_1 = require("./iterate");
-var logger_1 = require("../log/logger");
 var _ = require('underscore');
 var l = require('lodash');
 var trainer;
@@ -2805,7 +2891,6 @@ var trainer;
     var FactoryMatrixTargetIterator = iterate_1.iterate.FactoryMatrixTargetIterator;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var Note = note_1.note.Note;
-    var Logger = logger_1.log.Logger;
     var Trainer = /** @class */ (function () {
         function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_target, song, segments, messenger) {
             this.window = window;
@@ -2915,8 +3000,8 @@ var trainer;
             this.algorithm.post_init();
         };
         Trainer.prototype.pause = function () {
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(this.song));
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.song));
             this.algorithm.pre_terminate(this.song, this.clip_user_input);
         };
         Trainer.prototype.terminate = function () {
@@ -3040,7 +3125,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../history/history":4,"../log/logger":7,"../note/note":10,"../parse/parse":11,"../target/target":17,"./algorithm":18,"./iterate":19,"lodash":24,"tree-model":26,"underscore":27}],21:[function(require,module,exports){
+},{"../history/history":4,"../note/note":10,"../parse/parse":11,"../target/target":17,"./algorithm":18,"./iterate":19,"lodash":24,"tree-model":26,"underscore":27}],21:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;

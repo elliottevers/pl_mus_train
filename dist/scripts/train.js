@@ -37,6 +37,8 @@ var FREESTYLE = algorithm_1.algorithm.FREESTYLE;
 var song_1 = require("../song/song");
 var Song = song_1.song.Song;
 var SongDao = song_1.song.SongDao;
+var note_1 = require("../note/note");
+var TreeModel = require("tree-model");
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -47,7 +49,7 @@ if (env === 'max') {
 // };
 var logger = new Logger(env);
 var messenger_render = new Messenger(env, 0, 'render');
-var mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
+var mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
 var set_mode_texture = function (option) {
     switch (option) {
         case POLYPHONY: {
@@ -114,6 +116,7 @@ var set_depth_tree = function (depth) {
 };
 var set_clip_user_input = function () {
     var live_api = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
+    clip_user_input_synchronous = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), true, 'clip_user_input'));
     clip_user_input.set_path_deferlow('set_path_clip_user_input');
 };
@@ -160,15 +163,84 @@ var reset = function () {
 };
 var accept = function () {
 };
-var accept_input = function () {
-    var notes;
-    if (true) {
-        // midi values
+var user_input_command = function (command) {
+    // TODO: there is literally one character difference between the two algorithms - please abstract
+    switch (algorithm_train.get_name()) {
+        case PARSE: {
+            switch (command) {
+                case 'confirm': {
+                    var notes = clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    trainer.accept_input(notes);
+                    break;
+                }
+                case 'reset': {
+                    var coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] + 1, coords_current[1]]));
+                    break;
+                }
+                case 'erase': {
+                    clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    break;
+                }
+                default: {
+                    logger.log('command not recognized');
+                }
+            }
+            break;
+        }
+        case DERIVE: {
+            switch (command) {
+                case 'confirm': {
+                    var notes = clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    trainer.accept_input(notes);
+                    break;
+                }
+                case 'reset': {
+                    var coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]));
+                    break;
+                }
+                case 'erase': {
+                    clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    break;
+                }
+                default: {
+                    logger.log('command not recognized');
+                }
+            }
+            break;
+        }
+        default: {
+            logger.log('command not supported for this type of algorithm');
+        }
     }
-    else {
-        // signal to use user input clip
+};
+var user_input_midi = function (pitch, velocity) {
+    switch (algorithm_train.get_name()) {
+        case DETECT: {
+            var tree = new TreeModel();
+            var note = tree.parse({
+                id: -1,
+                note: new note_1.note.Note(pitch, -Infinity, Infinity, velocity, 0),
+                children: []
+            });
+            trainer.accept_input([note]);
+            break;
+        }
+        case PREDICT: {
+            var tree = new TreeModel();
+            var note = tree.parse({
+                id: -1,
+                note: new note_1.note.Note(pitch, -Infinity, Infinity, velocity, 0),
+                children: []
+            });
+            trainer.accept_input([note]);
+            break;
+        }
+        default: {
+            logger.log('command not supported for this type of algorithm');
+        }
     }
-    trainer.accept_input(notes);
 };
 var load = function () {
     // TODO: logic to determine, from project folder, name of file
@@ -205,7 +277,7 @@ if (typeof Global !== "undefined") {
     Global.train.erase = erase;
     Global.train.reset = reset;
     Global.train.accept = accept;
-    Global.train.accept_input = accept_input;
+    // Global.train.accept_input = accept_input;
     Global.train.set_segments = set_segments;
     Global.train.set_clip_user_input = set_clip_user_input;
     Global.train.set_clip_target = set_clip_target;

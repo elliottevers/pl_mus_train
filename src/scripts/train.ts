@@ -40,6 +40,8 @@ import FREESTYLE = algorithm.FREESTYLE;
 import {song as sng} from "../song/song";
 import Song = sng.Song;
 import SongDao = sng.SongDao;
+import {note as n} from "../note/note";
+import TreeModel = require("tree-model");
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -63,7 +65,7 @@ if (env === 'max') {
 // };
 let logger = new Logger(env);
 let messenger_render = new Messenger(env, 0, 'render');
-let mode_texture, mode_control, depth_tree, clip_user_input, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
+let mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
 
 let set_mode_texture = (option) => {
     switch (option) {
@@ -157,6 +159,14 @@ let set_depth_tree = (depth) => {
 let set_clip_user_input = () => {
     let live_api = new li.LiveApiJs(
         'live_set view highlighted_clip_slot clip'
+    );
+
+    clip_user_input_synchronous = new c.Clip(
+        new c.ClipDao(
+            live_api,
+            new m.Messenger(env, 0),
+            false
+        )
     );
 
     clip_user_input = new c.Clip(
@@ -278,16 +288,145 @@ let accept = () => {
 
 };
 
-let accept_input = () => {
-    let notes;
-    if (true) {
-        // midi values
-    } else {
-        // signal to use user input clip
+let user_input_command = (command: string) => {
+    // TODO: there is literally one character difference between the two algorithms - please abstract
+    switch(algorithm_train.get_name()) {
+        case PARSE: {
+            switch(command) {
+                case 'confirm': {
+                    let notes = clip_user_input_synchronous.get_notes(
+                        trainer.segment_current.beat_start,
+                        0,
+                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                        128
+                    );
+
+                    trainer.accept_input(notes);
+
+                    break;
+                }
+                case 'reset': {
+                    let coords_current = trainer.iterator_matrix_train.get_coord_current();
+
+                    clip_user_input.set_notes(
+                        trainer.history_user_input.get(
+                            [coords_current[0] + 1, coords_current[1]]
+                        )
+                    );
+
+                    break;
+                }
+                case 'erase': {
+                    clip_user_input.remove_notes(
+                        trainer.segment_current.beat_start,
+                        0,
+                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                        128
+                    );
+                    break;
+                }
+                default: {
+                    logger.log('command not recognized')
+                }
+            }
+            break;
+        }
+        case DERIVE: {
+            switch(command) {
+                case 'confirm': {
+                    let notes = clip_user_input_synchronous.get_notes(
+                        trainer.segment_current.beat_start,
+                        0,
+                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                        128
+                    );
+
+                    trainer.accept_input(notes);
+
+                    break;
+                }
+                case 'reset': {
+                    let coords_current = trainer.iterator_matrix_train.get_coord_current();
+
+                    clip_user_input.set_notes(
+                        trainer.history_user_input.get(
+                            [coords_current[0] - 1, coords_current[1]]
+                        )
+                    );
+
+                    break;
+                }
+                case 'erase': {
+                    clip_user_input.remove_notes(
+                        trainer.segment_current.beat_start,
+                        0,
+                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                        128
+                    );
+                    break;
+                }
+                default: {
+                    logger.log('command not recognized')
+                }
+            }
+            break;
+        }
+        default: {
+            logger.log('command not supported for this type of algorithm')
+        }
     }
-    trainer.accept_input(
-        notes
-    );
+};
+
+let user_input_midi = (pitch: number, velocity: number) => {
+    switch(algorithm_train.get_name()) {
+        case DETECT: {
+            let tree: TreeModel = new TreeModel();
+            let note = tree.parse(
+                {
+                    id: -1,
+                    note: new n.Note(
+                        pitch,
+                        -Infinity,
+                        Infinity,
+                        velocity,
+                        0
+                    ),
+                    children: [
+
+                    ]
+                }
+            );
+            trainer.accept_input(
+                [note]
+            );
+            break;
+        }
+        case PREDICT: {
+            let tree: TreeModel = new TreeModel();
+            let note = tree.parse(
+                {
+                    id: -1,
+                    note: new n.Note(
+                        pitch,
+                        -Infinity,
+                        Infinity,
+                        velocity,
+                        0
+                    ),
+                    children: [
+
+                    ]
+                }
+            );
+            trainer.accept_input(
+                [note]
+            );
+            break;
+        }
+        default: {
+            logger.log('command not supported for this type of algorithm')
+        }
+    }
 };
 
 let load = () => {
@@ -350,7 +489,7 @@ if (typeof Global !== "undefined") {
     Global.train.erase = erase;
     Global.train.reset = reset;
     Global.train.accept = accept;
-    Global.train.accept_input = accept_input;
+    // Global.train.accept_input = accept_input;
     Global.train.set_segments = set_segments;
     Global.train.set_clip_user_input = set_clip_user_input;
     Global.train.set_clip_target = set_clip_target;

@@ -97,7 +97,7 @@ export namespace algorithm {
                     let notes_grouped_trivial = [];
 
                     for (let note of notes_segment_next) {
-                        notes_grouped_trivial.push(note)
+                        notes_grouped_trivial.push([note])
                     }
 
                     targets = notes_grouped_trivial;
@@ -184,12 +184,17 @@ export namespace algorithm {
             ]
         }
 
-        pre_advance() {
+        pre_advance(clip_user_input) {
 
         }
 
-        post_init() {
+        post_init(song, clip_user_input) {
+            clip_user_input.fire();
+        }
 
+        pre_terminate(song, clip_user_input) {
+            song.stop();
+            clip_user_input.stop();
         }
     }
 

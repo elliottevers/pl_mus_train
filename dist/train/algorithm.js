@@ -72,7 +72,7 @@ var algorithm;
                     var notes_grouped_trivial = [];
                     for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
                         var note = notes_segment_next_1[_a];
-                        notes_grouped_trivial.push(note);
+                        notes_grouped_trivial.push([note]);
                     }
                     targets = notes_grouped_trivial;
                     break;
@@ -126,7 +126,7 @@ var algorithm;
                 var notes_grouped_trivial = [];
                 for (var _a = 0, notes_segment_next_2 = notes_segment_next; _a < notes_segment_next_2.length; _a++) {
                     var note = notes_segment_next_2[_a];
-                    notes_grouped_trivial.push(note);
+                    notes_grouped_trivial.push([note]);
                 }
                 return notes_grouped_trivial;
             }
@@ -140,7 +140,14 @@ var algorithm;
                 notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
             ];
         };
-        Predict.prototype.pre_advance = function () {
+        Predict.prototype.pre_advance = function (clip_user_input) {
+        };
+        Predict.prototype.post_init = function (song, clip_user_input) {
+            clip_user_input.fire();
+        };
+        Predict.prototype.pre_terminate = function (song, clip_user_input) {
+            song.stop();
+            clip_user_input.stop();
         };
         return Predict;
     }(Targeted));
