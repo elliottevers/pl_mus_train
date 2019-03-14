@@ -46,8 +46,12 @@ var message;
             console.log("\n");
         };
         Messenger.prototype.message_node_for_max = function (message) {
-            // const Max = require('max-api');
-            // Max.outlet(message);
+            var Max = require('max-api');
+            Max.outlet(message);
+            Max.post('sdkjflsdkjfl');
+            Max.addHandler("bang", function () {
+                Max.post("Who you think you bangin'?");
+            });
         };
         return Messenger;
     }());

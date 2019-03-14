@@ -167,7 +167,7 @@ export namespace cli {
         // args: Arg[];
         // messenger: Messenger;
 
-        constructor(path, flags, options, args, messenger, escape_paths?: boolean) {
+        constructor(path, flags, options, args, messenger?, escape_paths?: boolean) {
             super();
             this.path = path;
             this.flags = flags;
@@ -185,13 +185,17 @@ export namespace cli {
             }
         };
 
-        public run() {
+        public get_command_full = () => {
             let unset_params = this.get_unset_parameters();
             if (unset_params.length > 0) {
                 throw 'unset parameters: ' + unset_params
             }
             let command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
-            this.messenger.message(command_full);
+            return command_full
+        };
+
+        public run() {
+            this.messenger.message(this.get_command_full());
         }
 
         // // TODO: put counting logic here
@@ -287,6 +291,7 @@ export namespace cli {
 
     abstract class MaxShellParameter {
         needs_escaping_max: boolean;
+        needs_escaping_max_shell: boolean;
         needs_escaping_shell: boolean;
 
         _preprocess_max(val): string {
@@ -297,12 +302,8 @@ export namespace cli {
             }
         }
 
-        _preprocess_shell(val): string {
-            if (this.needs_escaping_shell) {
-                // val = val.split(' ').join('\\\\\\\\ ');
-                // post(val);
-                // return val;
-                // return val.split(' ').join('\\\\\\\\ ');
+        _preprocess_max_shell(val): string {
+            if (this.needs_escaping_max_shell) {
                 return val.split(' ').join('\\\\ ');
 
             } else {
@@ -310,16 +311,28 @@ export namespace cli {
             }
         }
 
+        _preprocess_shell(val): string {
+            if (this.needs_escaping_shell) {
+                return "\"" + val + "\"";
+
+            } else {
+                return val;
+            }
+        }
+
         _preprocess(val): string {
-            if (this.needs_escaping_max && this.needs_escaping_shell) {
+            if (this.needs_escaping_max && this.needs_escaping_max_shell) {
                 // TODO: take care of this
                 throw 'you better take care of this now'
             }
             if (this.needs_escaping_max) {
                 return this._preprocess_max(val)
             }
+            if (this.needs_escaping_max_shell) {
+                return this._preprocess_max_shell(val)
+            }
             if (this.needs_escaping_shell) {
-                return this._preprocess_shell(val)
+                return this._preprocess_shell(val);
             }
 
             return val;
@@ -330,11 +343,11 @@ export namespace cli {
         name: string;
         val: string;
 
-        constructor(name, needs_escaping_max?: boolean, needs_escaping_shell?: boolean) {
+        constructor(name, needs_escaping_max?: boolean, needs_escaping_max_shell?: boolean, needs_escaping_shell?: boolean) {
             super();
             this.name = name;
             this.needs_escaping_max = needs_escaping_max;
-            this.needs_escaping_shell = needs_escaping_shell;
+            this.needs_escaping_max_shell = needs_escaping_max_shell;
         }
 
         public set(val) {
@@ -381,10 +394,11 @@ export namespace cli {
         val: string;
         num_dashes: number;
 
-        constructor(name, needs_escaping_max?: boolean, needs_escaping_shell?: boolean, num_dashes?: number) {
+        constructor(name, needs_escaping_max?: boolean, needs_escaping_max_shell?: boolean, needs_escaping_shell?: boolean, num_dashes?: number) {
             super();
             this.name = name;
             this.needs_escaping_max = needs_escaping_max;
+            this.needs_escaping_max_shell = needs_escaping_max_shell;
             this.needs_escaping_shell = needs_escaping_shell;
             this.num_dashes = num_dashes
         }

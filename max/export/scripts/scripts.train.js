@@ -1700,12 +1700,17 @@ var pause = function () {
 var resume = function () {
     trainer.resume();
 };
-var erase = function () {
-};
-var reset = function () {
-};
-var accept = function () {
-};
+// let erase = () => {
+//
+// };
+//
+// let reset = () => {
+//
+// };
+//
+// let accept = () => {
+//
+// };
 var user_input_command = function (command) {
     // TODO: there is literally one character difference between the two algorithms - please abstract
     switch (algorithm_train.get_name()) {
@@ -1817,10 +1822,12 @@ if (typeof Global !== "undefined") {
     Global.train.begin = begin;
     Global.train.pause = pause;
     Global.train.resume = resume;
-    Global.train.erase = erase;
-    Global.train.reset = reset;
-    Global.train.accept = accept;
+    // Global.train.erase = erase;
+    // Global.train.reset = reset;
+    // Global.train.accept = accept;
     // Global.train.accept_input = accept_input;
+    Global.train.user_input_command = user_input_command;
+    Global.train.user_input_midi = user_input_midi;
     Global.train.set_segments = set_segments;
     Global.train.set_clip_user_input = set_clip_user_input;
     Global.train.set_clip_target = set_clip_target;
@@ -22358,10 +22365,12 @@ var save = Global.train.save;
 var begin = Global.train.begin;
 var pause = Global.train.pause;
 var resume = Global.train.resume;
-var erase = Global.train.erase;
-var reset = Global.train.reset;
-var accept = Global.train.accept;
-var accept_input = Global.train.accept_input;
+// var erase = Global.train.erase;
+// var reset = Global.train.reset;
+// var accept = Global.train.accept;
+// var accept_input = Global.train.accept_input;
+var user_input_command = Global.train.user_input_command;
+var user_input_midi = Global.train.user_input_midi;
 var set_segments = Global.train.set_segments;
 var set_clip_user_input = Global.train.set_clip_user_input;
 var set_clip_target = Global.train.set_clip_target;

@@ -276,17 +276,17 @@ let resume = () => {
     trainer.resume()
 };
 
-let erase = () => {
-
-};
-
-let reset = () => {
-
-};
-
-let accept = () => {
-
-};
+// let erase = () => {
+//
+// };
+//
+// let reset = () => {
+//
+// };
+//
+// let accept = () => {
+//
+// };
 
 let user_input_command = (command: string) => {
     // TODO: there is literally one character difference between the two algorithms - please abstract
@@ -486,10 +486,12 @@ if (typeof Global !== "undefined") {
     Global.train.begin = begin;
     Global.train.pause = pause;
     Global.train.resume = resume;
-    Global.train.erase = erase;
-    Global.train.reset = reset;
-    Global.train.accept = accept;
+    // Global.train.erase = erase;
+    // Global.train.reset = reset;
+    // Global.train.accept = accept;
     // Global.train.accept_input = accept_input;
+    Global.train.user_input_command = user_input_command;
+    Global.train.user_input_midi = user_input_midi;
     Global.train.set_segments = set_segments;
     Global.train.set_clip_user_input = set_clip_user_input;
     Global.train.set_clip_target = set_clip_target;
