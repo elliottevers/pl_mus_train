@@ -1,11 +1,12 @@
 import {cli} from "../cli/cli";
 let shell = require('shelljs');
-// const max_api = require('max-api');
+const max_api = require('max-api');
 
 let arg_url = new cli.Arg('url');
 let option_outfile = new cli.Option('o', false, false, true);
 let flag_audio_only = new cli.Flag('x');
 let option_format = new cli.Option('audio-format');
+let option_ffmpeg_location = new cli.Option('ffmpeg-location');
 
 let git_repo = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync';
 
@@ -13,28 +14,17 @@ option_format.set('wav');
 
 flag_audio_only.set(1);
 
+option_ffmpeg_location.set('/usr/local/bin/ffmpeg');
+
 let name_project;
 
-// TODO: set arg url
-// TODO: get project name from save dialog
+max_api.addHandler('set_url', (url) => {
+    arg_url.set(url);
+});
 
-// max_api.addHandler('set_url', (url) => {
-//     arg_url.set(url);
-// });
-//
-// max_api.addHandler('set_project_name', (name) => {
-//     name_project = name
-// });
-
-// max_api.addHandler('set_url', (url) => {
-//     arg_url.set(url);
-// });
-//
-// max_api.addHandler('set_project_name', (name) => {
-//     name_project = name
-// });
-
-arg_url.set('https://www.youtube.com/watch?v=Uybtn6ebG0I');
+max_api.addHandler('set_project_name', (name) => {
+    name_project = name.split('/').pop();
+});
 
 name_project = 'project_name';
 
@@ -62,13 +52,15 @@ let download = () => {
     let executable_youtube_dl_audio = new cli.Executable(
         '/usr/local/bin/youtube-dl',
         [flag_audio_only],
-        [option_outfile, option_format],
+        [option_outfile, option_format, option_ffmpeg_location],
         [arg_url]
     );
 
+    max_api.post(executable_youtube_dl_audio.get_command_full().join(' '));
+
     shell.exec(
         executable_youtube_dl_audio.get_command_full().join(' '),
-        {silent: true}
+        {async: false}
     );
 
     option_outfile.set(dir_downloads + '/' + name_project + '.%(ext)s');
@@ -76,27 +68,18 @@ let download = () => {
     let executable_youtube_dl_downloads = new cli.Executable(
         '/usr/local/bin/youtube-dl',
         [flag_audio_only],
-        [option_outfile, option_format],
+        [option_outfile, option_format, option_ffmpeg_location],
         [arg_url]
     );
 
     shell.exec(
         executable_youtube_dl_downloads.get_command_full().join(' '),
-        {silent: true},
-        (code, stdout, stderr) => {
-            if (code === 0) {
-                msg = 'done'
-            } else {
-                msg = 'error'
-            }
-        }
+        {async: false}
     );
 
-    // max_api.outlet(msg);
+    max_api.outlet(msg);
 };
 
-// max_api.addHandler("download", () => {
-//     download()
-// });
-
-download()
+max_api.addHandler("download", () => {
+    download()
+});
