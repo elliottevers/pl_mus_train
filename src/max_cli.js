@@ -47,7 +47,7 @@ var set_option = function (name_opt, val_opt, num_dashes) {
         opt_existing.set(val_opt);
     }
     else {
-        var opt = new cli_1.cli.Option(name_opt, true, false, num_dashes);
+        var opt = new cli_1.cli.Option(name_opt, true, false, false, num_dashes);
         opt.set(val_opt);
         options.push(opt);
     }

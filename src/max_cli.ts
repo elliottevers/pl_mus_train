@@ -69,7 +69,7 @@ let set_option = (name_opt, val_opt, num_dashes?: number) => {
         let opt_existing = options.filter(opt => opt.name === name_opt)[0];
         opt_existing.set(val_opt);
     } else {
-        let opt = new cli.Option(name_opt, true, false, num_dashes);
+        let opt = new cli.Option(name_opt, true, false, false, num_dashes);
         opt.set(val_opt);
         options.push(opt);
     }
