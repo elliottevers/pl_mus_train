@@ -47,9 +47,6 @@ var cli;
             }
             return unset_parameters;
         };
-        // public get_command_exec(): string {
-        //     return this.path;
-        // }
         Parameterized.prototype.get_arg = function (name_arg) {
             return this.args.filter(function (arg) {
                 return arg.name === name_arg;
@@ -101,10 +98,6 @@ var cli;
     }());
     var Script = /** @class */ (function (_super) {
         __extends(Script, _super);
-        // flags: Flag[];
-        // options: Option[];
-        // args: Arg[];
-        // messenger: Messenger;
         function Script(interpreter, script, flags, options, args, messenger, escape_paths) {
             var _this = _super.call(this) || this;
             _this.get_command_exec = function () {
@@ -114,6 +107,14 @@ var cli;
                 else {
                     return _this.interpreter + ' ' + _this.script;
                 }
+            };
+            _this.get_command_full = function () {
+                var unset_params = _this.get_unset_parameters();
+                if (unset_params.length > 0) {
+                    throw 'unset parameters: ' + unset_params;
+                }
+                var command_full = [_this.get_command_exec()].concat(_this.get_run_parameters().split(' '));
+                return command_full;
             };
             _this.interpreter = interpreter;
             _this.script = script;
@@ -126,22 +127,13 @@ var cli;
             return _this;
         }
         Script.prototype.run = function () {
-            var unset_params = this.get_unset_parameters();
-            if (unset_params.length > 0) {
-                throw 'unset parameters: ' + unset_params;
-            }
-            var command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
-            this.messenger.message(command_full);
+            this.messenger.message(this.get_command_full());
         };
         return Script;
     }(Parameterized));
     cli.Script = Script;
     var Executable = /** @class */ (function (_super) {
         __extends(Executable, _super);
-        // flags: Flag[];
-        // options: Option[];
-        // args: Arg[];
-        // messenger: Messenger;
         function Executable(path, flags, options, args, messenger, escape_paths) {
             var _this = _super.call(this) || this;
             _this.get_command_exec = function () {
@@ -234,9 +226,6 @@ var cli;
         Arg.prototype.get_name_exec = function () {
             return this._preprocess(this.val);
         };
-        // public get_name_exec() {
-        //     return '-' + this.name + ' ' + this._preprocess(this.val)
-        // }
         Arg.prototype.b_set = function () {
             return this.val !== null;
         };
