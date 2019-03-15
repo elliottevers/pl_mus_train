@@ -21,6 +21,10 @@ export namespace song {
             this.song_dao.set_overdub(int);
         }
 
+        set_tempo(int) {
+            this.song_dao.set_tempo(int);
+        }
+
         start() {
             this.song_dao.start()
         }
@@ -48,6 +52,10 @@ export namespace song {
 
         set_overdub(int) {
             this.clip_live.set("overdub", int);
+        }
+
+        set_tempo(int) {
+            this.clip_live.set("tempo", int);
         }
 
         start() {

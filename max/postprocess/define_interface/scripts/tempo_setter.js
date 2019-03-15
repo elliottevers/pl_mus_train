@@ -1,0 +1,1 @@
+var set_tempo = Global.tempo_setter.set_tempo;

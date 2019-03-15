@@ -47,9 +47,6 @@ var cli;
             }
             return unset_parameters;
         };
-        // public get_command_exec(): string {
-        //     return this.path;
-        // }
         Parameterized.prototype.get_arg = function (name_arg) {
             return this.args.filter(function (arg) {
                 return arg.name === name_arg;
@@ -101,10 +98,6 @@ var cli;
     }());
     var Script = /** @class */ (function (_super) {
         __extends(Script, _super);
-        // flags: Flag[];
-        // options: Option[];
-        // args: Arg[];
-        // messenger: Messenger;
         function Script(interpreter, script, flags, options, args, messenger, escape_paths) {
             var _this = _super.call(this) || this;
             _this.get_command_exec = function () {
@@ -114,6 +107,14 @@ var cli;
                 else {
                     return _this.interpreter + ' ' + _this.script;
                 }
+            };
+            _this.get_command_full = function () {
+                var unset_params = _this.get_unset_parameters();
+                if (unset_params.length > 0) {
+                    throw 'unset parameters: ' + unset_params;
+                }
+                var command_full = [_this.get_command_exec()].concat(_this.get_run_parameters().split(' '));
+                return command_full;
             };
             _this.interpreter = interpreter;
             _this.script = script;
@@ -126,22 +127,13 @@ var cli;
             return _this;
         }
         Script.prototype.run = function () {
-            var unset_params = this.get_unset_parameters();
-            if (unset_params.length > 0) {
-                throw 'unset parameters: ' + unset_params;
-            }
-            var command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
-            this.messenger.message(command_full);
+            this.messenger.message(this.get_command_full());
         };
         return Script;
     }(Parameterized));
     cli.Script = Script;
     var Executable = /** @class */ (function (_super) {
         __extends(Executable, _super);
-        // flags: Flag[];
-        // options: Option[];
-        // args: Arg[];
-        // messenger: Messenger;
         function Executable(path, flags, options, args, messenger, escape_paths) {
             var _this = _super.call(this) || this;
             _this.get_command_exec = function () {
@@ -152,6 +144,14 @@ var cli;
                     return _this.path;
                 }
             };
+            _this.get_command_full = function () {
+                var unset_params = _this.get_unset_parameters();
+                if (unset_params.length > 0) {
+                    throw 'unset parameters: ' + unset_params;
+                }
+                var command_full = [_this.get_command_exec()].concat(_this.get_run_parameters().split(' '));
+                return command_full;
+            };
             _this.path = path;
             _this.flags = flags;
             _this.options = options;
@@ -161,12 +161,7 @@ var cli;
             return _this;
         }
         Executable.prototype.run = function () {
-            var unset_params = this.get_unset_parameters();
-            if (unset_params.length > 0) {
-                throw 'unset parameters: ' + unset_params;
-            }
-            var command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
-            this.messenger.message(command_full);
+            this.messenger.message(this.get_command_full());
         };
         return Executable;
     }(Parameterized));
@@ -182,25 +177,32 @@ var cli;
                 return val;
             }
         };
-        MaxShellParameter.prototype._preprocess_shell = function (val) {
-            if (this.needs_escaping_shell) {
-                // val = val.split(' ').join('\\\\\\\\ ');
-                // post(val);
-                // return val;
-                // return val.split(' ').join('\\\\\\\\ ');
+        MaxShellParameter.prototype._preprocess_max_shell = function (val) {
+            if (this.needs_escaping_max_shell) {
                 return val.split(' ').join('\\\\ ');
             }
             else {
                 return val;
             }
         };
+        MaxShellParameter.prototype._preprocess_shell = function (val) {
+            if (this.needs_escaping_shell) {
+                return "\"" + val + "\"";
+            }
+            else {
+                return val;
+            }
+        };
         MaxShellParameter.prototype._preprocess = function (val) {
-            if (this.needs_escaping_max && this.needs_escaping_shell) {
+            if (this.needs_escaping_max && this.needs_escaping_max_shell) {
                 // TODO: take care of this
                 throw 'you better take care of this now';
             }
             if (this.needs_escaping_max) {
                 return this._preprocess_max(val);
+            }
+            if (this.needs_escaping_max_shell) {
+                return this._preprocess_max_shell(val);
             }
             if (this.needs_escaping_shell) {
                 return this._preprocess_shell(val);
@@ -211,11 +213,11 @@ var cli;
     }());
     var Arg = /** @class */ (function (_super) {
         __extends(Arg, _super);
-        function Arg(name, needs_escaping_max, needs_escaping_shell) {
+        function Arg(name, needs_escaping_max, needs_escaping_max_shell, needs_escaping_shell) {
             var _this = _super.call(this) || this;
             _this.name = name;
             _this.needs_escaping_max = needs_escaping_max;
-            _this.needs_escaping_shell = needs_escaping_shell;
+            _this.needs_escaping_max_shell = needs_escaping_max_shell;
             return _this;
         }
         Arg.prototype.set = function (val) {
@@ -224,9 +226,6 @@ var cli;
         Arg.prototype.get_name_exec = function () {
             return this._preprocess(this.val);
         };
-        // public get_name_exec() {
-        //     return '-' + this.name + ' ' + this._preprocess(this.val)
-        // }
         Arg.prototype.b_set = function () {
             return this.val !== null;
         };
@@ -254,10 +253,11 @@ var cli;
     cli.Flag = Flag;
     var Option = /** @class */ (function (_super) {
         __extends(Option, _super);
-        function Option(name, needs_escaping_max, needs_escaping_shell, num_dashes) {
+        function Option(name, needs_escaping_max, needs_escaping_max_shell, needs_escaping_shell, num_dashes) {
             var _this = _super.call(this) || this;
             _this.name = name;
             _this.needs_escaping_max = needs_escaping_max;
+            _this.needs_escaping_max_shell = needs_escaping_max_shell;
             _this.needs_escaping_shell = needs_escaping_shell;
             _this.num_dashes = num_dashes;
             return _this;

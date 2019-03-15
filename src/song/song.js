@@ -12,6 +12,9 @@ var song;
         Song.prototype.set_overdub = function (int) {
             this.song_dao.set_overdub(int);
         };
+        Song.prototype.set_tempo = function (int) {
+            this.song_dao.set_tempo(int);
+        };
         Song.prototype.start = function () {
             this.song_dao.start();
         };
@@ -32,6 +35,9 @@ var song;
         };
         SongDao.prototype.set_overdub = function (int) {
             this.clip_live.set("overdub", int);
+        };
+        SongDao.prototype.set_tempo = function (int) {
+            this.clip_live.set("tempo", int);
         };
         SongDao.prototype.start = function () {
             this.clip_live.set("is_playing", 1);

@@ -9,21 +9,24 @@ let flags: cli.Flag[] = [];
 
 let options_python_shell;
 
-let arg = new cli.Arg('name_argument', false, false, true);
+// let arg = new cli.Arg('name_argument', false, false, true);
+//
+// let option = new cli.Option('o', false, false, true);
+//
+// let flag = new cli.Flag('f');
 
-let option = new cli.Option('o', false, false, true);
+// arg.set('name_argument');
+//
+// option.set('name_option');
+//
+// flag.set(1);
 
-let flag = new cli.Flag('f');
-
-arg.set('name_argument');
-
-option.set('name_option');
-
-flag.set(1);
+let path_script;
 
 let path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/master_36/bin/python';
 
-let path_script = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/sandbox/max_comm.py';
+let dir_scripts_python = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/scripts/';
+
 
 max_api.addHandler("set_arg", (name_arg, val_arg) => {
     if (_.contains(args.map((arg) => {return arg.name}), name_arg)) {
@@ -62,8 +65,8 @@ max_api.addHandler("set_path_interpreter", (path) => {
     path_interpreter = path
 });
 
-max_api.addHandler("set_path_script", (path) => {
-    path_script = path
+max_api.addHandler("set_path_script", (filename_script) => {
+    path_script = dir_scripts_python + filename_script
 });
 
 
@@ -72,9 +75,9 @@ let run = () => {
     let script = new cli.Script(
         path_interpreter,
         path_script,
-        [flag],
-        [option],
-        [arg]
+        flags,
+        options,
+        args
     );
 
     let msg;
@@ -82,13 +85,13 @@ let run = () => {
     options_python_shell = {
         mode: 'text',
         pythonPath: path_interpreter,
-        args: ['argument', '-f', '--o', 'option_name']
+        // args: ['argument', '-f', '--o', 'option_name']
     };
 
     PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err) throw err;
         // results is an array consisting of messages collected during execution
-        max_api.post(results);
+        max_api.outlet(parseFloat(results.toString()));
         // console.log(results)
     });
 
@@ -98,10 +101,7 @@ let run = () => {
 
 };
 
-run();
 
-// max_api.addHandler("run", () => {
-//     run()
-// });
-
-max_api.post('made it');
+max_api.addHandler("run", () => {
+    run()
+});

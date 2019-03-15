@@ -8,28 +8,23 @@ var args = [];
 var options = [];
 var flags = [];
 var options_python_shell;
-// let arg = new cli.Arg('name_argument', false, false, true);
-//
-// let option = new cli.Option('o', false, false, true);
-//
-// let flag = new cli.Flag('f');
-// arg.set('name_argument');
-//
-// option.set('name_option');
-//
-// flag.set(1);
-var path_script;
+var arg = new cli_1.cli.Arg('name_argument', false, false, true);
+var option = new cli_1.cli.Option('o', false, false, true);
+var flag = new cli_1.cli.Flag('f');
+arg.set('name_argument');
+option.set('name_option');
+flag.set(1);
 var path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/master_36/bin/python';
-var dir_scripts_python = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/scripts/';
+var path_script = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/sandbox/max_comm.py';
 max_api.addHandler("set_arg", function (name_arg, val_arg) {
     if (_.contains(args.map(function (arg) { return arg.name; }), name_arg)) {
         var arg_existing = args.filter(function (arg) { return arg.name === name_arg; })[0];
         arg_existing.set(val_arg);
     }
     else {
-        var arg = new cli_1.cli.Arg(name_arg);
-        arg.set(val_arg);
-        args.push(arg);
+        var arg_1 = new cli_1.cli.Arg(name_arg);
+        arg_1.set(val_arg);
+        args.push(arg_1);
     }
 });
 max_api.addHandler("set_flag", function (name_flag, val_flag) {
@@ -38,9 +33,9 @@ max_api.addHandler("set_flag", function (name_flag, val_flag) {
         flag_existing.set(val_flag);
     }
     else {
-        var flag = new cli_1.cli.Flag(name_flag);
-        flag.set(val_flag);
-        flags.push(flag);
+        var flag_1 = new cli_1.cli.Flag(name_flag);
+        flag_1.set(val_flag);
+        flags.push(flag_1);
     }
 });
 max_api.addHandler("set_option", function (name_opt, val_opt) {
@@ -57,28 +52,31 @@ max_api.addHandler("set_option", function (name_opt, val_opt) {
 max_api.addHandler("set_path_interpreter", function (path) {
     path_interpreter = path;
 });
-max_api.addHandler("set_path_script", function (filename_script) {
-    path_script = dir_scripts_python + filename_script;
+max_api.addHandler("set_path_script", function (path) {
+    path_script = path;
 });
 var run = function () {
-    var script = new cli_1.cli.Script(path_interpreter, path_script, flags, options, args);
+    var script = new cli_1.cli.Script(path_interpreter, path_script, [flag], [option], [arg]);
     var msg;
     options_python_shell = {
         mode: 'text',
         pythonPath: path_interpreter,
+        args: ['argument', '-f', '--o', 'option_name']
     };
     python_shell_1.PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err)
             throw err;
         // results is an array consisting of messages collected during execution
-        max_api.outlet(parseFloat(results.toString()));
+        max_api.post(results);
         // console.log(results)
     });
     // max_api.post(
     //     script.get_command_full().join(' ')
     // );
 };
-max_api.addHandler("run", function () {
-    run();
-});
+run();
+// max_api.addHandler("run", () => {
+//     run()
+// });
+max_api.post('made it');
 //# sourceMappingURL=scripts.node.max_python_cli.js.map
