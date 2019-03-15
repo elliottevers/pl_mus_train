@@ -2,10 +2,12 @@ import {clip as c} from "../clip/clip";
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {message} from "../message/messenger";
+import {log} from "../log/logger";
 
 export namespace io {
 
     import Messenger = message.Messenger;
+    import Logger = log.Logger;
     declare let Dict: any;
 
     export class Exporter {
@@ -83,8 +85,11 @@ export namespace io {
 
         private dict: any;
 
+        private name_dict: string;
+
         constructor(filepath_import, name_dict?:string) {
             this.filepath_import = filepath_import;
+            this.name_dict = name_dict;
             this.dict = new Dict(name_dict);
         }
 
@@ -93,7 +98,9 @@ export namespace io {
         }
 
         public get_notes(name_part): TreeModel.Node<n.Note>[] {
-            let key = [name_part, 'notes'].join('::');
+            let key = [this.name_dict, name_part, 'notes'].join('::');
+            let logger = new Logger('max');
+            logger.log(key.toString());
             return c.Clip.parse_note_messages(
                 this.dict.get(key)
             )

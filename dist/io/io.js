@@ -2,9 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var messenger_1 = require("../message/messenger");
+var logger_1 = require("../log/logger");
 var io;
 (function (io) {
     var Messenger = messenger_1.message.Messenger;
+    var Logger = logger_1.log.Logger;
     var Exporter = /** @class */ (function () {
         function Exporter(filepath_export, name_dict) {
             this.filepath_export = filepath_export;
@@ -54,13 +56,16 @@ var io;
     var Importer = /** @class */ (function () {
         function Importer(filepath_import, name_dict) {
             this.filepath_import = filepath_import;
+            this.name_dict = name_dict;
             this.dict = new Dict(name_dict);
         }
         Importer.prototype.import = function () {
             this.dict.import_json(this.filepath_import);
         };
         Importer.prototype.get_notes = function (name_part) {
-            var key = [name_part, 'notes'].join('::');
+            var key = [this.name_dict, name_part, 'notes'].join('::');
+            var logger = new Logger('max');
+            logger.log(key.toString());
             return clip_1.clip.Clip.parse_note_messages(this.dict.get(key));
         };
         return Importer;

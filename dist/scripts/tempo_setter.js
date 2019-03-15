@@ -11,14 +11,10 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-// let test = () => {
-//
-// };
 var set_tempo = function (int) {
     var song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
     song.set_tempo(int);
 };
-// test();
 if (typeof Global !== "undefined") {
     Global.tempo_setter = {};
     Global.tempo_setter.set_tempo = set_tempo;

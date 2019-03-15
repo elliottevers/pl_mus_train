@@ -1,0 +1,1 @@
+var import_clip = Global.clip_importer.import_clip;
