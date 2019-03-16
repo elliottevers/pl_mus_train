@@ -110,10 +110,6 @@ let export_part = (name_part) => {
         128
     );
 
-    // let logger = new Logger(env);
-    //
-    // logger.log(JSON.stringify(notes));
-
     exporter.set_notes(
         name_part,
         notes
@@ -144,6 +140,8 @@ let export_clips = () => {
     );
 
     let messenger = new Messenger(env, 0);
+
+    messenger.message(['done'])
 };
 
 let test = () => {

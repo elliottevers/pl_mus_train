@@ -58,9 +58,6 @@ var export_part = function (name_part) {
     var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
     var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(clip_highlighted, new messenger_1.message.Messenger(env, 0), false));
     var notes = clip.get_notes(clip.get_loop_bracket_lower(), 0, clip.get_loop_bracket_upper() - clip.get_loop_bracket_lower(), 128);
-    // let logger = new Logger(env);
-    //
-    // logger.log(JSON.stringify(notes));
     exporter.set_notes(name_part, notes);
     part_names.addItem(name_part);
 };
@@ -76,6 +73,7 @@ var export_clips = function () {
     }
     exporter.export_clips(clips_to_export);
     var messenger = new Messenger(env, 0);
+    messenger.message(['done']);
 };
 var test = function () {
     // let song = new li.LiveApiJs(

@@ -849,91 +849,19 @@ if (env === 'max') {
 }
 var dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
 var file_json_comm = dir_projects + 'json_live.json';
-// let exporter = new Exporter(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/cache/json/live/from_live.json'
-// );
-// let set_length = () => {
-//     let clip_highlighted = new li.LiveApiJs(
-//         'live_set view highlighted_clip_slot clip'
-//     );
-//
-//     exporter.set_length(
-//         clip_highlighted.get("length")
-//     );
-//
-// };
-// let set_tempo = () => {
-//     let song = new li.LiveApiJs(
-//         'live_set'
-//     );
-//
-//     exporter.set_tempo(
-//         song.get('tempo')
-//     );
-// };
-// let add = (name_part) => {
-//
-//     let song = new li.LiveApiJs(
-//         'live_set'
-//     );
-//
-//     let clip_highlighted = new li.LiveApiJs(
-//         'live_set view highlighted_clip_slot clip'
-//     );
-//
-//     let clip = new c.Clip(
-//         new c.ClipDao(
-//             clip_highlighted,
-//             new m.Messenger(env, 0),
-//             false
-//         )
-//     );
-//
-//     let notes = clip.get_notes(
-//         0,
-//         0,
-//         clip_highlighted.get("length"),
-//         128
-//     );
-//
-//     exporter.set_notes(
-//         name_part,
-//         notes
-//     );
-// };
-// let remove = (name_part) => {
-//     exporter.unset_notes(
-//         name_part
-//     );
-// };
-//
-//
-// let export_clips = () => {
-//     exporter.export_clips(
-//         ['melody', 'chord', 'bass']
-//     )
-// };
-var import_clip = function (name_part) {
+var import_part = function (name_part) {
     var logger = new Logger(env);
-    // let dict = new Dict();
-    // let file_test = '/Users/elliottevers/Downloads/from_live.json';
-    // dict.import_json(file_json_comm);
-    // logger.log(JSON.stringify(dict.get()));
-    // logger.log(file_json_comm)
-    // let logger = new Logger(env);
-    //
-    // let importer = new Importer(file_json_comm, name_part);
-    //
-    // let notes = importer.get_notes(name_part);
-    var clipslot_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot');
-    clipslot_highlighted.call('create_clip', '297');
+    // TODO: this works when we want to create a clip from scratch - figure out how to work into workflow
+    // let clipslot_highlighted = new li.LiveApiJs(
+    //     'live_set view highlighted_clip_slot'
+    // );
+    // clipslot_highlighted.call('create_clip', '297');
     var dict = new Dict();
     dict.import_json(file_json_comm);
     var notes = clip_1.clip.Clip.parse_note_messages(dict.get([name_part, 'notes'].join('::')));
     var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
     var clip = new Clip(new ClipDao(clip_highlighted, new Messenger(env, 0)));
     clip.set_notes(notes);
-    // logger.log(JSON.stringify(clipslot_highlighted.get_children()));
 };
 var test = function () {
     // let song = new li.LiveApiJs(
@@ -954,12 +882,7 @@ var test = function () {
 };
 if (typeof Global !== "undefined") {
     Global.clip_importer = {};
-    Global.clip_importer.import_clip = import_clip;
-    // Global.export_clips.add = add;
-    // Global.export_clips.remove = remove;
-    // Global.export_clips.export_clips = export_clips;
-    // Global.export_clips.set_length = set_length;
-    // Global.export_clips.set_tempo = set_tempo;
+    Global.clip_importer.import_part = import_part;
 }
 
 },{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4}],7:[function(require,module,exports){
@@ -1008,6 +931,50 @@ var utils;
         var path_clip = list_path_device.join(' ');
         return path_clip;
     };
+    var Set = /** @class */ (function () {
+        function Set(items) {
+            this.addItem = function (value) {
+                this._data[value] = true;
+                return this;
+            };
+            this.removeItem = function (value) {
+                delete this._data[value];
+                return this;
+            };
+            this.addItems = function (values) {
+                for (var i = 0; i < values.length; i++) {
+                    this.addItem(values[i]);
+                }
+                return this;
+            };
+            this.removeItems = function (values) {
+                for (var i = 0; i < values.length; i++) {
+                    this.removeItem(values[i]);
+                }
+                return this;
+            };
+            this.contains = function (value) {
+                return !!this._data[value];
+            };
+            this.reset = function () {
+                this._data = {};
+                return this;
+            };
+            this.data = function () {
+                return Object.keys(this._data);
+            };
+            this.each = function (callback) {
+                var data = this.data();
+                for (var i = 0; i < data.length; i++) {
+                    callback(data[i]);
+                }
+            };
+            this._data = {};
+            this.addItems(items);
+        }
+        return Set;
+    }());
+    utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
 },{}],8:[function(require,module,exports){
@@ -1381,4 +1348,4 @@ module.exports = (function () {
 
 },{"find-insert-index":8,"mergesort":9}]},{},[6]);
 
-var import_clip = Global.clip_importer.import_clip;
+var import_part = Global.clip_importer.import_part;

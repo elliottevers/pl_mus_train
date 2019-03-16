@@ -37,11 +37,13 @@ let import_part = (name_part) => {
 
     let logger = new Logger(env);
 
-    let clipslot_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot'
-    );
+    // TODO: this works when we want to create a clip from scratch - figure out how to work into workflow
 
-    clipslot_highlighted.call('create_clip', '297');
+    // let clipslot_highlighted = new li.LiveApiJs(
+    //     'live_set view highlighted_clip_slot'
+    // );
+
+    // clipslot_highlighted.call('create_clip', '297');
 
     let dict = new Dict();
 
