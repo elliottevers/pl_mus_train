@@ -39,11 +39,34 @@ let import_part = (name_part) => {
 
     // TODO: this works when we want to create a clip from scratch - figure out how to work into workflow
 
-    // let clipslot_highlighted = new li.LiveApiJs(
-    //     'live_set view highlighted_clip_slot'
-    // );
+    let clipslot_highlighted = new li.LiveApiJs(
+        'live_set view highlighted_clip_slot'
+    );
 
-    // clipslot_highlighted.call('create_clip', '297');
+
+    let clip_highlighted = new li.LiveApiJs(
+        'live_set view highlighted_clip_slot clip'
+    );
+
+    let clip;
+
+    let clip_exists = Number(clip_highlighted.get_id()) !== 0;
+
+    if (!clip_exists) {
+        // TODO: get the beat of end of last note
+        clipslot_highlighted.call('create_clip', '297');
+
+        clip_highlighted = new li.LiveApiJs(
+            'live_set view highlighted_clip_slot clip'
+        );
+    }
+
+    clip = new Clip(
+        new ClipDao(
+            clip_highlighted,
+            new Messenger(env, 0)
+        )
+    );
 
     let dict = new Dict();
 
@@ -51,17 +74,6 @@ let import_part = (name_part) => {
 
     let notes = c.Clip.parse_note_messages(
         dict.get([name_part, 'notes'].join('::'))
-    );
-
-    let clip_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot clip'
-    );
-
-    let clip = new Clip(
-        new ClipDao(
-            clip_highlighted,
-            new Messenger(env, 0)
-        )
     );
 
     clip.set_notes(notes);
