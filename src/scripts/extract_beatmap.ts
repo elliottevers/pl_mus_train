@@ -1,15 +1,12 @@
 import {message as m, message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live, live as li} from "../live/live";
-import {clip, clip as c} from "../clip/clip";
+import {clip as c} from "../clip/clip";
 import LiveApiJs = live.LiveApiJs;
 import {log} from "../log/logger";
 import Logger = log.Logger;
 import {io} from "../io/io";
 import Exporter = io.Exporter;
-import Importer = io.Importer;
-import Clip = clip.Clip;
-import ClipDao = clip.ClipDao;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -29,40 +26,27 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
+let messenger_beat_start = new Messenger(env, 0, 'beat_start');
 
-let file_json_comm = dir_projects + 'json_live.json';
+let messenger_beat_end = new Messenger(env, 0, 'beat_end');
 
-let import_part = (name_part) => {
+let messenger_run = new Messenger(env, 0, 'run');
 
-    let logger = new Logger(env);
+let extract_beatmap_manual = () => {
 
-    let clipslot_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot'
-    );
-
-    clipslot_highlighted.call('create_clip', '297');
-
-    let dict = new Dict();
-
-    dict.import_json(file_json_comm);
-
-    let notes = c.Clip.parse_note_messages(
-        dict.get([name_part, 'notes'].join('::'))
-    );
-
-    let clip_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot clip'
-    );
-
-    let clip = new Clip(
-        new ClipDao(
-            clip_highlighted,
-            new Messenger(env, 0)
-        )
-    );
-
-    clip.set_notes(notes);
+    // // get highlighted clip
+    //
+    // let beat_start = clip_audio_warped.get_loop_bracket_lower();
+    //
+    // let beat_end = clip_audio_warped.get_loop_bracket_upper();
+    //
+    // // let messenger_beat_start = new Messenger(env, 0, 'beat_start');
+    //
+    // messenger_beat_start.message(beat_start);
+    //
+    // messenger_beat_end.message(beat_end);
+    //
+    // messenger_run.message(['bang']);
 };
 
 let test = () => {
@@ -86,6 +70,11 @@ let test = () => {
 
 
 if (typeof Global !== "undefined") {
-    Global.clip_importer = {};
-    Global.clip_importer.import_part = import_part;
+    Global.export_clips = {};
+    Global.export_clips.test = test;
+    // Global.export_clips.add = add;
+    // Global.export_clips.remove = remove;
+    // Global.export_clips.export_clips = export_clips;
+    // Global.export_clips.set_length = set_length;
+    // Global.export_clips.set_tempo = set_tempo;
 }

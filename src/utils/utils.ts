@@ -48,4 +48,57 @@ export namespace utils {
 
         return path_clip;
     };
+
+    export class Set {
+        _data;
+
+        constructor(items) {
+            this._data = {};
+            this.addItems(items);
+        }
+
+        addItem = function(value) {
+            this._data[value] = true;
+            return this;
+        };
+
+        removeItem = function(value) {
+            delete this._data[value];
+            return this;
+        };
+
+        addItems = function(values) {
+            for (var i = 0; i < values.length; i++) {
+                this.addItem(values[i]);
+            }
+            return this;
+        };
+
+        removeItems = function(values) {
+            for (var i = 0; i < values.length; i++) {
+                this.removeItem(values[i]);
+            }
+            return this;
+        };
+
+        contains = function(value) {
+            return !!this._data[value];
+        };
+
+        reset = function() {
+            this._data = {};
+            return this;
+        };
+
+        data = function() {
+            return Object.keys(this._data);
+        };
+
+        each = function(callback) {
+            var data = this.data();
+            for (var i = 0; i < data.length; i++) {
+                callback(data[i]);
+            }
+        }
+    }
 }

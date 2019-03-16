@@ -43,5 +43,49 @@ var utils;
         var path_clip = list_path_device.join(' ');
         return path_clip;
     };
+    var Set = /** @class */ (function () {
+        function Set(items) {
+            this.addItem = function (value) {
+                this._data[value] = true;
+                return this;
+            };
+            this.removeItem = function (value) {
+                delete this._data[value];
+                return this;
+            };
+            this.addItems = function (values) {
+                for (var i = 0; i < values.length; i++) {
+                    this.addItem(values[i]);
+                }
+                return this;
+            };
+            this.removeItems = function (values) {
+                for (var i = 0; i < values.length; i++) {
+                    this.removeItem(values[i]);
+                }
+                return this;
+            };
+            this.contains = function (value) {
+                return !!this._data[value];
+            };
+            this.reset = function () {
+                this._data = {};
+                return this;
+            };
+            this.data = function () {
+                return Object.keys(this._data);
+            };
+            this.each = function (callback) {
+                var data = this.data();
+                for (var i = 0; i < data.length; i++) {
+                    callback(data[i]);
+                }
+            };
+            this._data = {};
+            this.addItems(items);
+        }
+        return Set;
+    }());
+    utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 //# sourceMappingURL=utils.js.map
