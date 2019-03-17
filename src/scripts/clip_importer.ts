@@ -33,6 +33,12 @@ let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.n
 
 let file_json_comm = dir_projects + 'json_live.json';
 
+let length_beats: number;
+
+let set_length_beats = (beats) => {
+    length_beats = beats
+};
+
 let import_part = (name_part) => {
 
     let logger = new Logger(env);
@@ -54,7 +60,7 @@ let import_part = (name_part) => {
 
     if (!clip_exists) {
         // TODO: get the beat of end of last note
-        clipslot_highlighted.call('create_clip', '297');
+        clipslot_highlighted.call('create_clip', String(length_beats));
 
         clip_highlighted = new li.LiveApiJs(
             'live_set view highlighted_clip_slot clip'
@@ -102,4 +108,5 @@ let test = () => {
 if (typeof Global !== "undefined") {
     Global.clip_importer = {};
     Global.clip_importer.import_part = import_part;
+    Global.clip_importer.set_length_beats = set_length_beats;
 }

@@ -15,6 +15,10 @@ if (env === 'max') {
 }
 var dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
 var file_json_comm = dir_projects + 'json_live.json';
+var length_beats;
+var set_length_beats = function (beats) {
+    length_beats = beats;
+};
 var import_part = function (name_part) {
     var logger = new Logger(env);
     // TODO: this works when we want to create a clip from scratch - figure out how to work into workflow
@@ -24,7 +28,7 @@ var import_part = function (name_part) {
     var clip_exists = Number(clip_highlighted.get_id()) !== 0;
     if (!clip_exists) {
         // TODO: get the beat of end of last note
-        clipslot_highlighted.call('create_clip', '297');
+        clipslot_highlighted.call('create_clip', String(length_beats));
         clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
     }
     clip = new Clip(new ClipDao(clip_highlighted, new Messenger(env, 0)));
@@ -53,5 +57,6 @@ var test = function () {
 if (typeof Global !== "undefined") {
     Global.clip_importer = {};
     Global.clip_importer.import_part = import_part;
+    Global.clip_importer.set_length_beats = set_length_beats;
 }
 //# sourceMappingURL=clip_importer.js.map

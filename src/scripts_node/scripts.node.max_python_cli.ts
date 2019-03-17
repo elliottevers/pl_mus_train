@@ -84,17 +84,25 @@ let run = () => {
         args
     );
 
+    let parameters_exist = !!script.get_run_parameters().split(' ')[0];
+
     options_python_shell = {
         mode: 'text',
         pythonPath: path_interpreter,
-        args: script.get_run_parameters().split(' ')
     };
+
+    if (parameters_exist) {
+        options_python_shell['args'] = script.get_run_parameters().split(' ')
+    }
 
     PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err) throw err;
         // results is an array consisting of messages collected during execution
+        max_api.post(results);
         for (let result of results) {
-            max_api.outlet(result.toString().trim());
+            let message_trimmed = result.toString().trim();
+            let message_split = message_trimmed.split(' ');
+            max_api.outlet(message_split)
         }
         // console.log(results)
     });

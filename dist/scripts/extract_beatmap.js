@@ -11,19 +11,27 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-var messenger_beat_start = new Messenger(env, 0, 'beat_start');
-var messenger_beat_end = new Messenger(env, 0, 'beat_end');
-var messenger_length_beats = new Messenger(env, 0, 'length-beats');
-var messenger_run = new Messenger(env, 0, 'run');
+// let messenger_beat_start = new Messenger(env, 0, 'beat_start');
+//
+// let messenger_beat_end = new Messenger(env, 0, 'beat_end');
+//
+// let messenger_length_beats = new Messenger(env, 0, 'length-beats');
+//
+// let messenger_run = new Messenger(env, 0, 'run');
+var messenger = new Messenger(env, 0);
 var extract_beatmap_manual = function () {
     var clip_audio_warped = new Clip(new ClipDao(new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip'), new Messenger(env, 0)));
-    var beat_start = clip_audio_warped.get_loop_bracket_lower();
-    var beat_end = clip_audio_warped.get_loop_bracket_upper();
-    var length_beats = (clip_audio_warped.get_end_marker() - clip_audio_warped.get_start_marker()) / 4;
-    messenger_beat_start.message([Number(beat_start)]);
-    messenger_beat_end.message([Number(beat_end)]);
-    messenger_length_beats.message([Number(length_beats)]);
-    messenger_run.message([]);
+    var beat_start_marker = clip_audio_warped.get_start_marker();
+    var beat_end_marker = clip_audio_warped.get_end_marker();
+    var loop_bracket_lower = clip_audio_warped.get_loop_bracket_lower();
+    var loop_bracket_upper = clip_audio_warped.get_loop_bracket_upper();
+    var length_beats = (clip_audio_warped.get_end_marker() - clip_audio_warped.get_start_marker());
+    messenger.message(['beat_start_marker', beat_start_marker]);
+    messenger.message(['beat_end_marker', beat_end_marker]);
+    messenger.message(['loop_bracket_lower', loop_bracket_lower]);
+    messenger.message(['loop_bracket_upper', loop_bracket_upper]);
+    messenger.message(['length-beats', length_beats]);
+    messenger.message(['run']);
 };
 var test = function () {
 };

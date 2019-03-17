@@ -66,18 +66,24 @@ max_api.addHandler("set_path_script", function (filename_script) {
 // flags.push(flag);
 var run = function () {
     var script = new cli_1.cli.Script(path_interpreter, path_script, flags, options, args);
+    var parameters_exist = !!script.get_run_parameters().split(' ')[0];
     options_python_shell = {
         mode: 'text',
         pythonPath: path_interpreter,
-        args: script.get_run_parameters().split(' ')
     };
+    if (parameters_exist) {
+        options_python_shell['args'] = script.get_run_parameters().split(' ');
+    }
     python_shell_1.PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err)
             throw err;
         // results is an array consisting of messages collected during execution
+        max_api.post(results);
         for (var _i = 0, results_1 = results; _i < results_1.length; _i++) {
             var result = results_1[_i];
-            max_api.outlet(result.toString().trim());
+            var message_trimmed = result.toString().trim();
+            var message_split = message_trimmed.split(' ');
+            max_api.outlet(message_split);
         }
         // console.log(results)
     });

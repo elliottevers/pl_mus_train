@@ -23,13 +23,15 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let messenger_beat_start = new Messenger(env, 0, 'beat_start');
+// let messenger_beat_start = new Messenger(env, 0, 'beat_start');
+//
+// let messenger_beat_end = new Messenger(env, 0, 'beat_end');
+//
+// let messenger_length_beats = new Messenger(env, 0, 'length-beats');
+//
+// let messenger_run = new Messenger(env, 0, 'run');
 
-let messenger_beat_end = new Messenger(env, 0, 'beat_end');
-
-let messenger_length_beats = new Messenger(env, 0, 'length-beats');
-
-let messenger_run = new Messenger(env, 0, 'run');
+let messenger = new Messenger(env, 0);
 
 let extract_beatmap_manual = () => {
 
@@ -42,19 +44,27 @@ let extract_beatmap_manual = () => {
         )
     );
 
-    let beat_start = clip_audio_warped.get_loop_bracket_lower();
+    let beat_start_marker = clip_audio_warped.get_start_marker();
 
-    let beat_end = clip_audio_warped.get_loop_bracket_upper();
+    let beat_end_marker = clip_audio_warped.get_end_marker();
 
-    let length_beats = (clip_audio_warped.get_end_marker() - clip_audio_warped.get_start_marker())/4;
+    let loop_bracket_lower = clip_audio_warped.get_loop_bracket_lower();
 
-    messenger_beat_start.message([Number(beat_start)]);
+    let loop_bracket_upper = clip_audio_warped.get_loop_bracket_upper();
 
-    messenger_beat_end.message([Number(beat_end)]);
+    let length_beats = (clip_audio_warped.get_end_marker() - clip_audio_warped.get_start_marker());
 
-    messenger_length_beats.message([Number(length_beats)]);
+    messenger.message(['beat_start_marker', beat_start_marker]);
 
-    messenger_run.message([]);
+    messenger.message(['beat_end_marker', beat_end_marker]);
+
+    messenger.message(['loop_bracket_lower', loop_bracket_lower]);
+
+    messenger.message(['loop_bracket_upper', loop_bracket_upper]);
+
+    messenger.message(['length-beats', length_beats]);
+
+    messenger.message(['run']);
 };
 
 let test = () => {
