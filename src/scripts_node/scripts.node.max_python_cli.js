@@ -78,7 +78,6 @@ var run = function () {
         if (err)
             throw err;
         // results is an array consisting of messages collected during execution
-        max_api.post(results);
         for (var _i = 0, results_1 = results; _i < results_1.length; _i++) {
             var result = results_1[_i];
             var message_trimmed = result.toString().trim();

@@ -54,7 +54,7 @@ let import_part = (name_part) => {
         'live_set view highlighted_clip_slot clip'
     );
 
-    let clip;
+    let clip: Clip;
 
     let clip_exists = Number(clip_highlighted.get_id()) !== 0;
 
@@ -82,7 +82,18 @@ let import_part = (name_part) => {
         dict.get([name_part, 'notes'].join('::'))
     );
 
+    clip.remove_notes(
+        clip.get_start_marker(),
+        0,
+        clip.get_end_marker(),
+        128
+    );
+
     clip.set_notes(notes);
+
+    let messenger = new Messenger(env, 0);
+
+    messenger.message(['part_imported'])
 };
 
 let test = () => {

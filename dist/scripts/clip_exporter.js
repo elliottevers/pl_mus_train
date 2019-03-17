@@ -73,7 +73,7 @@ var export_clips = function () {
     }
     exporter.export_clips(clips_to_export);
     var messenger = new Messenger(env, 0);
-    messenger.message(['done']);
+    messenger.message(['clips_exported']);
 };
 var test = function () {
     // let song = new li.LiveApiJs(

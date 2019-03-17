@@ -35,7 +35,10 @@ var import_part = function (name_part) {
     var dict = new Dict();
     dict.import_json(file_json_comm);
     var notes = clip_1.clip.Clip.parse_note_messages(dict.get([name_part, 'notes'].join('::')));
+    clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
     clip.set_notes(notes);
+    var messenger = new Messenger(env, 0);
+    messenger.message(['part_imported']);
 };
 var test = function () {
     // let song = new li.LiveApiJs(

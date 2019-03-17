@@ -80,7 +80,9 @@ var run = function () {
         // results is an array consisting of messages collected during execution
         for (var _i = 0, results_1 = results; _i < results_1.length; _i++) {
             var result = results_1[_i];
-            max_api.outlet(result.toString().trim());
+            var message_trimmed = result.toString().trim();
+            var message_split = message_trimmed.split(' ');
+            max_api.outlet(message_split);
         }
         // console.log(results)
     });

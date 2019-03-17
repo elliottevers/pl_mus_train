@@ -98,7 +98,6 @@ let run = () => {
     PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err) throw err;
         // results is an array consisting of messages collected during execution
-        max_api.post(results);
         for (let result of results) {
             let message_trimmed = result.toString().trim();
             let message_split = message_trimmed.split(' ');
