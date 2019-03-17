@@ -1,12 +1,9 @@
-import {message as m, message} from "../message/messenger";
+import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live, live as li} from "../live/live";
-import {clip as c} from "../clip/clip";
-import LiveApiJs = live.LiveApiJs;
-import {log} from "../log/logger";
-import Logger = log.Logger;
-import {io} from "../io/io";
-import Exporter = io.Exporter;
+import {live as li} from "../live/live";
+import {clip} from "../clip/clip";
+import Clip = clip.Clip;
+import ClipDao = clip.ClipDao;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -30,51 +27,42 @@ let messenger_beat_start = new Messenger(env, 0, 'beat_start');
 
 let messenger_beat_end = new Messenger(env, 0, 'beat_end');
 
+let messenger_length_beats = new Messenger(env, 0, 'length-beats');
+
 let messenger_run = new Messenger(env, 0, 'run');
 
 let extract_beatmap_manual = () => {
 
-    // // get highlighted clip
-    //
-    // let beat_start = clip_audio_warped.get_loop_bracket_lower();
-    //
-    // let beat_end = clip_audio_warped.get_loop_bracket_upper();
-    //
-    // // let messenger_beat_start = new Messenger(env, 0, 'beat_start');
-    //
-    // messenger_beat_start.message(beat_start);
-    //
-    // messenger_beat_end.message(beat_end);
-    //
-    // messenger_run.message(['bang']);
+    let clip_audio_warped = new Clip(
+        new ClipDao(
+            new li.LiveApiJs(
+                'live_set view highlighted_clip_slot clip'
+            ),
+            new Messenger(env, 0)
+        )
+    );
+
+    let beat_start = clip_audio_warped.get_loop_bracket_lower();
+
+    let beat_end = clip_audio_warped.get_loop_bracket_upper();
+
+    let length_beats = (clip_audio_warped.get_end_marker() - clip_audio_warped.get_start_marker())/4;
+
+    messenger_beat_start.message([Number(beat_start)]);
+
+    messenger_beat_end.message([Number(beat_end)]);
+
+    messenger_length_beats.message([Number(length_beats)]);
+
+    messenger_run.message([]);
 };
 
 let test = () => {
 
-    // let song = new li.LiveApiJs(
-    //     'live_set'
-    // );
-    //
-    // let clip_highlighted = new li.LiveApiJs(
-    //     'live_set view highlighted_clip_slot clip'
-    // );
-    //
-    // let length_clip = clip_highlighted.get("length");
-    //
-    // let tempo = song.get("tempo");
-    //
-    // let logger = new Logger(env);
-    //
-    // logger.log(clip_highlighted.get_id())
 };
 
 
 if (typeof Global !== "undefined") {
-    Global.export_clips = {};
-    Global.export_clips.test = test;
-    // Global.export_clips.add = add;
-    // Global.export_clips.remove = remove;
-    // Global.export_clips.export_clips = export_clips;
-    // Global.export_clips.set_length = set_length;
-    // Global.export_clips.set_tempo = set_tempo;
+    Global.extract_beatmap = {};
+    Global.extract_beatmap.extract_beatmap_manual = extract_beatmap_manual;
 }

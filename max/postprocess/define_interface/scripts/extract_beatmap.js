@@ -1,0 +1,1 @@
+var extract_beatmap_manual = Global.extract_beatmap.extract_beatmap_manual;

@@ -9,18 +9,6 @@ let flags: cli.Flag[] = [];
 
 let options_python_shell;
 
-// let arg = new cli.Arg('name_argument', false, false, true);
-//
-// let option = new cli.Option('o', false, false, true);
-//
-// let flag = new cli.Flag('f');
-
-// arg.set('name_argument');
-//
-// option.set('name_option');
-//
-// flag.set(1);
-
 let path_script;
 
 let path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/master_36/bin/python';
@@ -70,6 +58,22 @@ max_api.addHandler("set_path_script", (filename_script) => {
 });
 
 
+// let opt = new cli.Option('s', false, false, false);
+// opt.set(0);
+// options.push(opt);
+//
+//
+// let opt2 = new cli.Option('e', false, false, false);
+// opt2.set(200);
+// options.push(opt2);
+//
+// path_script = dir_scripts_python + 'extract_beatmap.py';
+//
+// let flag = new cli.Flag('m');
+// flag.set(1);
+// flags.push(flag);
+
+
 let run = () => {
 
     let script = new cli.Script(
@@ -80,28 +84,25 @@ let run = () => {
         args
     );
 
-    let msg;
-
     options_python_shell = {
         mode: 'text',
         pythonPath: path_interpreter,
-        // args: ['argument', '-f', '--o', 'option_name']
+        args: script.get_run_parameters().split(' ')
     };
 
     PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err) throw err;
         // results is an array consisting of messages collected during execution
-        max_api.outlet(parseFloat(results.toString()));
+        for (let result of results) {
+            max_api.outlet(result.toString().trim());
+        }
         // console.log(results)
     });
-
-    // max_api.post(
-    //     script.get_command_full().join(' ')
-    // );
-
 };
 
 
 max_api.addHandler("run", () => {
     run()
 });
+
+// run();

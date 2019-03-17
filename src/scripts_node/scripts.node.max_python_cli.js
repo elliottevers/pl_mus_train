@@ -8,16 +8,6 @@ var args = [];
 var options = [];
 var flags = [];
 var options_python_shell;
-// let arg = new cli.Arg('name_argument', false, false, true);
-//
-// let option = new cli.Option('o', false, false, true);
-//
-// let flag = new cli.Flag('f');
-// arg.set('name_argument');
-//
-// option.set('name_option');
-//
-// flag.set(1);
 var path_script;
 var path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/master_36/bin/python';
 var dir_scripts_python = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/scripts/';
@@ -60,25 +50,40 @@ max_api.addHandler("set_path_interpreter", function (path) {
 max_api.addHandler("set_path_script", function (filename_script) {
     path_script = dir_scripts_python + filename_script;
 });
+// let opt = new cli.Option('s', false, false, false);
+// opt.set(0);
+// options.push(opt);
+//
+//
+// let opt2 = new cli.Option('e', false, false, false);
+// opt2.set(200);
+// options.push(opt2);
+//
+// path_script = dir_scripts_python + 'extract_beatmap.py';
+//
+// let flag = new cli.Flag('m');
+// flag.set(1);
+// flags.push(flag);
 var run = function () {
     var script = new cli_1.cli.Script(path_interpreter, path_script, flags, options, args);
-    var msg;
     options_python_shell = {
         mode: 'text',
         pythonPath: path_interpreter,
+        args: script.get_run_parameters().split(' ')
     };
     python_shell_1.PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err)
             throw err;
         // results is an array consisting of messages collected during execution
-        max_api.outlet(parseFloat(results.toString()));
+        for (var _i = 0, results_1 = results; _i < results_1.length; _i++) {
+            var result = results_1[_i];
+            max_api.outlet(result.toString().trim());
+        }
         // console.log(results)
     });
-    // max_api.post(
-    //     script.get_command_full().join(' ')
-    // );
 };
 max_api.addHandler("run", function () {
     run();
 });
+// run();
 //# sourceMappingURL=scripts.node.max_python_cli.js.map
