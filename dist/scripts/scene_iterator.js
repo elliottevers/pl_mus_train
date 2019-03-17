@@ -14,7 +14,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 var i;
-i = 0;
+i = -1;
 var direction_forward = true;
 // let test = () => {
 //     let path_scene = "live_set view selected_scene"

@@ -1,14 +1,15 @@
 import {cli} from "../cli/cli";
-let shell = require('shelljs');
+import {PythonShell} from "python-shell";
 const max_api = require('max-api');
 
 let arg_url = new cli.Arg('url');
-let option_outfile = new cli.Option('o', false, false, true);
+// let option_outfile = new cli.Option('o', false, false, true);
 let flag_audio_only = new cli.Flag('x');
 let option_format = new cli.Option('audio-format');
 let option_ffmpeg_location = new cli.Option('ffmpeg-location');
+let option_name_project = new cli.Option('name-project');
+let option_path_executable = new cli.Option('path-executable');
 
-let git_repo = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync';
 
 option_format.set('wav');
 
@@ -16,70 +17,53 @@ flag_audio_only.set(1);
 
 option_ffmpeg_location.set('/usr/local/bin/ffmpeg');
 
-let name_project;
+option_path_executable.set('/usr/local/bin/youtube-dl');
 
 max_api.addHandler('set_url', (url) => {
     arg_url.set(url);
 });
 
+// arg_url.set('https://www.youtube.com/watch?v=j6TmogXhOZ8');
 max_api.addHandler('set_project_name', (name) => {
-    name_project = name.split('/').pop();
+    let name_project = name.split('/').pop();
+    option_name_project.set(name_project)
 });
-
-name_project = 'project_name';
+// option_name_project.set('dream');
 
 let download = () => {
-    let dir_project = git_repo + '/tk_music_projects/projects/' + name_project;
 
-    let dir_audio = dir_project + '/audio';
+    let options_python_shell;
 
-    let dir_downloads = git_repo + '/tk_music_projects/downloads/';
+    let path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/master_36/bin/python';
 
-    // mkdir project name
+    let dir_scripts_python = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/scripts/';
 
-    shell.mkdir('-p', dir_project);
+    let path_script = dir_scripts_python + 'download_youtube.py';
 
-    // mkdir underneath project called audio
-
-    shell.mkdir('-p', dir_audio);
-
-    // download to 1) audio dir 2) downloads dir
-
-    let msg;
-
-    option_outfile.set(dir_audio + '/' + name_project + '.%(ext)s');
-
-    let executable_youtube_dl_audio = new cli.Executable(
-        '/usr/local/bin/youtube-dl',
+    let script = new cli.Script(
+        path_interpreter,
+        path_script,
         [flag_audio_only],
-        [option_outfile, option_format, option_ffmpeg_location],
+        [option_name_project, option_path_executable, option_format, option_ffmpeg_location],
         [arg_url]
     );
 
-    max_api.post(executable_youtube_dl_audio.get_command_full().join(' '));
+    options_python_shell = {
+        mode: 'text',
+        pythonPath: path_interpreter,
+        args: script.get_run_parameters().split(' ')
+    };
 
-    shell.exec(
-        executable_youtube_dl_audio.get_command_full().join(' '),
-        {async: false}
-    );
-
-    option_outfile.set(dir_downloads + '/' + name_project + '.%(ext)s');
-
-    let executable_youtube_dl_downloads = new cli.Executable(
-        '/usr/local/bin/youtube-dl',
-        [flag_audio_only],
-        [option_outfile, option_format, option_ffmpeg_location],
-        [arg_url]
-    );
-
-    shell.exec(
-        executable_youtube_dl_downloads.get_command_full().join(' '),
-        {async: false}
-    );
-
-    max_api.outlet(msg);
+    PythonShell.run(script.script, options_python_shell, function (err, results) {
+        if (err) throw err;
+        // results is an array consisting of messages collected during execution
+        max_api.outlet(results.toString().trim());
+        // console.log(results);
+    });
 };
 
 max_api.addHandler("download", () => {
     download()
 });
+
+// download()
