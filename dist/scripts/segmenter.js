@@ -21,6 +21,7 @@ var test = function () {
     var logger = new Logger(env);
     logger.log(index_track);
     // "live_set tracks 3 clip_slots 0"
+    // TODO: start/end markers of clip, loop endpoints, delete first one
     var beats_length_clip = 8;
     for (var _i = 0, _a = _.range(1, 5); _i < _a.length; _i++) {
         var i = _a[_i];

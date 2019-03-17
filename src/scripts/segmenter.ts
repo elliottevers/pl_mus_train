@@ -50,6 +50,8 @@ let test = () => {
 
     // "live_set tracks 3 clip_slots 0"
 
+    // TODO: start/end markers of clip, loop endpoints, delete first one
+
     let beats_length_clip = 8;
 
     for (let i of _.range(1, 5)) {
