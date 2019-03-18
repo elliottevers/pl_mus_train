@@ -370,7 +370,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../log/logger":3,"../note/note":5,"../utils/utils":8,"tree-model":11}],2:[function(require,module,exports){
+},{"../log/logger":3,"../note/note":5,"../utils/utils":9,"tree-model":12}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -831,15 +831,91 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":11}],6:[function(require,module,exports){
+},{"tree-model":12}],6:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var scene;
+(function (scene) {
+    var Scene = /** @class */ (function () {
+        function Scene(scene_dao) {
+            this.scene_dao = scene_dao;
+        }
+        Scene.prototype.fire = function (force_legato) {
+            this.scene_dao.fire(force_legato);
+        };
+        return Scene;
+    }());
+    scene.Scene = Scene;
+    var SceneDao = /** @class */ (function () {
+        function SceneDao(live_api) {
+            this.live_api = live_api;
+        }
+        SceneDao.prototype.fire = function (force_legato) {
+            this.live_api.call("fire", force_legato ? 1 : 0);
+        };
+        return SceneDao;
+    }());
+    scene.SceneDao = SceneDao;
+    var SceneIterator = /** @class */ (function () {
+        function SceneIterator(scenes, direction_forward) {
+            this.scenes = scenes;
+            this.direction_forward = direction_forward;
+            this.i = -1;
+        }
+        // TODO: type declarations
+        SceneIterator.prototype.next = function () {
+            var value_increment = (this.direction_forward) ? 1 : -1;
+            this.i += value_increment;
+            if (this.i < 0) {
+                throw 'segment iterator < 0';
+            }
+            if (this.i < this.scenes.length) {
+                return {
+                    value: this.scenes[this.i],
+                    done: false
+                };
+            }
+            else {
+                return {
+                    value: null,
+                    done: true
+                };
+            }
+        };
+        SceneIterator.prototype.current = function () {
+            if (this.i > -1) {
+                return this.scenes[this.i];
+            }
+            else {
+                return null;
+            }
+        };
+        SceneIterator.prototype.reset = function () {
+            this.i = -1;
+        };
+        SceneIterator.prototype.get_index_current = function () {
+            return this.i;
+        };
+        return SceneIterator;
+    }());
+    scene.SceneIterator = SceneIterator;
+})(scene = exports.scene || (exports.scene = {}));
+
+},{}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
+var logger_1 = require("../log/logger");
+var Logger = logger_1.log.Logger;
 var song_1 = require("../song/song");
 var Song = song_1.song.Song;
 var SongDao = song_1.song.SongDao;
+var scene_1 = require("../scene/scene");
+var Scene = scene_1.scene.Scene;
+var SceneIterator = scene_1.scene.SceneIterator;
+var SceneDao = scene_1.scene.SceneDao;
 // import {Segment} from "../segment/segment";
 var _ = require('underscore');
 var env = 'max';
@@ -847,101 +923,35 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-var i;
-i = 0;
-var direction_forward = true;
-// let test = () => {
-//     let path_scene = "live_set view selected_scene"
-// };
-var scenes = [];
 // initialize
-for (var _i = 0, _a = _.range(0, 5); _i < _a.length; _i++) {
-    var i_1 = _a[_i];
-    var path_scene = ['live_set', 'scenes', Number(i_1)].join(' ');
-    // let path_live = constituents_path.join(' ');
-    var scene = new live_1.live.LiveApiJs(path_scene);
-    scenes.push(scene);
-    // scenes.call('create_clip', String(beats_length_clip));
-}
 var song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
+var num_scenes = song.get_num_scenes();
+var scenes = [];
+for (var _i = 0, _a = _.range(0, num_scenes); _i < _a.length; _i++) {
+    var i = _a[_i];
+    var path_scene = ['live_set', 'scenes', Number(i)].join(' ');
+    var scene_2 = new Scene(new SceneDao(new live_1.live.LiveApiJs(path_scene)));
+    scenes.push(scene_2);
+}
+var scene_iterator = new SceneIterator(scenes, true);
+var scene_current;
 var next = function () {
-    var value_increment = (direction_forward) ? 1 : -1;
-    i += value_increment;
-    if (i < 0) {
-        throw 'scene iterator < 0';
-    }
-    if (i < scenes.length) {
-        // return {
-        //     value: this.segments[this.i],
-        //     done: false
-        // }
-        var force_legato = String(1);
-        scenes[i].call('fire', force_legato);
-    }
-    else {
-        // return {
-        //     value: null,
-        //     done: true
-        // }
+    var obj_next = scene_iterator.next();
+    var logger = new Logger(env);
+    logger.log(JSON.stringify(obj_next));
+    if (obj_next.done) {
         song.stop();
+        return;
     }
+    scene_current = obj_next.value;
+    scene_current.fire(true);
 };
 if (typeof Global !== "undefined") {
     Global.scene_iterator = {};
     Global.scene_iterator.next = next;
 }
-// export class SegmentIterator {
-//     private segments: Segment[];
-//     public direction_forward: boolean;
-//     private i: number;
-//
-//     constructor(segments: Segment[], direction_forward: boolean) {
-//         this.segments = segments;
-//         this.direction_forward = direction_forward;
-//         this.i = -1;
-//     }
-//
-//     // TODO: type declarations
-//     public next() {
-//         let value_increment = (this.direction_forward) ? 1 : -1;
-//
-//         this.i += value_increment;
-//
-//         if (this.i < 0) {
-//             throw 'segment iterator < 0'
-//         }
-//
-//         if (this.i < this.segments.length) {
-//             return {
-//                 value: this.segments[this.i],
-//                 done: false
-//             }
-//         } else {
-//             return {
-//                 value: null,
-//                 done: true
-//             }
-//         }
-//     }
-//
-//     public current() {
-//         if (this.i > -1) {
-//             return this.segments[this.i];
-//         } else {
-//             return null;
-//         }
-//     }
-//
-//     public reset() {
-//         this.i = -1;
-//     }
-//
-//     public get_index_current() {
-//         return this.i;
-//     }
-// }
 
-},{"../live/live":2,"../message/messenger":4,"../song/song":7,"underscore":12}],7:[function(require,module,exports){
+},{"../live/live":2,"../log/logger":3,"../message/messenger":4,"../scene/scene":6,"../song/song":8,"underscore":13}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var song;
@@ -964,6 +974,12 @@ var song;
         };
         Song.prototype.stop = function () {
             this.song_dao.stop();
+        };
+        Song.prototype.get_scenes = function () {
+            return this.song_dao.get_scenes();
+        };
+        Song.prototype.get_num_scenes = function () {
+            return this.get_scenes().length / 2;
         };
         return Song;
     }());
@@ -989,12 +1005,15 @@ var song;
         SongDao.prototype.stop = function () {
             this.clip_live.set("is_playing", 0);
         };
+        SongDao.prototype.get_scenes = function () {
+            return this.clip_live.get("scenes");
+        };
         return SongDao;
     }());
     song.SongDao = SongDao;
 })(song = exports.song || (exports.song = {}));
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
@@ -1086,7 +1105,7 @@ var utils;
     utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1110,7 +1129,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1162,7 +1181,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -1455,7 +1474,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":9,"mergesort":10}],12:[function(require,module,exports){
+},{"find-insert-index":10,"mergesort":11}],13:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -3151,6 +3170,6 @@ module.exports = (function () {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[6]);
+},{}]},{},[7]);
 
 var next = Global.scene_iterator.next;

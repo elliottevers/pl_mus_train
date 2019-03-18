@@ -32,6 +32,14 @@ export namespace song {
         stop() {
             this.song_dao.stop()
         }
+
+        get_scenes(): any[] {
+            return this.song_dao.get_scenes()
+        }
+
+        get_num_scenes(): number {
+            return this.get_scenes().length/2
+        }
     }
 
     export class SongDao {
@@ -64,6 +72,10 @@ export namespace song {
 
         stop() {
             this.clip_live.set("is_playing", 0);
+        }
+
+        get_scenes(): any[] {
+            return this.clip_live.get("scenes")
         }
     }
 }

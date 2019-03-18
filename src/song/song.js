@@ -21,6 +21,12 @@ var song;
         Song.prototype.stop = function () {
             this.song_dao.stop();
         };
+        Song.prototype.get_scenes = function () {
+            return this.song_dao.get_scenes();
+        };
+        Song.prototype.get_num_scenes = function () {
+            return this.get_scenes().length / 2;
+        };
         return Song;
     }());
     song.Song = Song;
@@ -44,6 +50,9 @@ var song;
         };
         SongDao.prototype.stop = function () {
             this.clip_live.set("is_playing", 0);
+        };
+        SongDao.prototype.get_scenes = function () {
+            return this.clip_live.get("scenes");
         };
         return SongDao;
     }());
