@@ -29,9 +29,9 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
-
-let file_json_comm = dir_projects + 'json_live.json';
+// let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
+//
+// let file_json_comm = dir_projects + 'json_live.json';
 
 let length_beats: number;
 
@@ -76,7 +76,7 @@ let import_part = (name_part) => {
 
     let dict = new Dict();
 
-    dict.import_json(file_json_comm);
+    dict.import_json(io.file_json_comm);
 
     let notes = c.Clip.parse_note_messages(
         dict.get([name_part, 'notes'].join('::'))

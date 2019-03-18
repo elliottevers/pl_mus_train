@@ -6,6 +6,7 @@ var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
 var logger_1 = require("../log/logger");
 var Logger = logger_1.log.Logger;
+var io_1 = require("../io/io");
 var Clip = clip_1.clip.Clip;
 var ClipDao = clip_1.clip.ClipDao;
 var env = 'max';
@@ -13,8 +14,9 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-var dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
-var file_json_comm = dir_projects + 'json_live.json';
+// let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
+//
+// let file_json_comm = dir_projects + 'json_live.json';
 var length_beats;
 var set_length_beats = function (beats) {
     length_beats = beats;
@@ -33,7 +35,7 @@ var import_part = function (name_part) {
     }
     clip = new Clip(new ClipDao(clip_highlighted, new Messenger(env, 0)));
     var dict = new Dict();
-    dict.import_json(file_json_comm);
+    dict.import_json(io_1.io.file_json_comm);
     var notes = clip_1.clip.Clip.parse_note_messages(dict.get([name_part, 'notes'].join('::')));
     clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
     clip.set_notes(notes);

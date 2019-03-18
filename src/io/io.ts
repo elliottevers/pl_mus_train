@@ -6,6 +6,10 @@ import {log} from "../log/logger";
 
 export namespace io {
 
+    let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
+
+    export let file_json_comm = dir_projects + 'json_live.json';
+
     import Messenger = message.Messenger;
     import Logger = log.Logger;
     declare let Dict: any;
@@ -91,6 +95,16 @@ export namespace io {
             this.filepath_import = filepath_import;
             this.name_dict = name_dict;
             this.dict = new Dict(name_dict);
+        }
+
+        public static import(name_part) {
+            let dict = new Dict();
+
+            dict.import_json(file_json_comm);
+
+            return c.Clip.parse_note_messages(
+                dict.get([name_part, 'notes'].join('::'))
+            );
         }
 
         public import() {

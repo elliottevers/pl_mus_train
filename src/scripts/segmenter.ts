@@ -4,6 +4,15 @@ import {live as li} from "../live/live";
 import {log} from "../log/logger";
 import Logger = log.Logger;
 import {utils} from "../utils/utils";
+import {clip} from "../clip/clip";
+import Clip = clip.Clip;
+import ClipDao = clip.ClipDao;
+import {io} from "../io/io";
+import {segment} from "../segment/segment";
+import Segment = segment.Segment;
+import {song} from "../song/song";
+import SongDao = song.SongDao;
+import Song = song.Song;
 const _ = require('underscore');
 
 declare let autowatch: any;
@@ -24,17 +33,14 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let test = () => {
+let length_beats: number;
 
-    // extract segments from sole clip
+let set_length_beats = (beats) => {
+    length_beats = beats
+};
 
-    // delete clip
 
-    // for each list of notes, create a clip, then set notes
-
-    // 1) create a bunch of empty clips below the currently selected one
-
-    // get track index of highlighted clip
+let segment_clip = () => {
 
     let clipslot_highlighted = new li.LiveApiJs(
         'live_set view highlighted_clip_slot'
@@ -44,33 +50,102 @@ let test = () => {
 
     let index_track = path_track.split(' ')[2];
 
-    let logger = new Logger(env);
+    let clip_highlighted = new Clip(
+        new ClipDao(
+            new li.LiveApiJs(
+                'live_set view highlighted_clip_slot clip'
+            ),
+            new Messenger(env, 0)
+        )
+    );
 
-    logger.log(index_track);
+    let notes_clip = clip_highlighted.get_notes(
+        clip_highlighted.get_loop_bracket_lower(),
+        0,
+        clip_highlighted.get_loop_bracket_upper(),
+        128
+    );
 
-    // "live_set tracks 3 clip_slots 0"
+    let notes_segments = io.Importer.import('segment');
 
-    // TODO: start/end markers of clip, loop endpoints, delete first one
+    let segments: Segment[] = [];
 
-    let beats_length_clip = 8;
+    for (let note of notes_segments) {
+        segments.push(
+            new Segment(
+                note
+            )
+        )
+    }
 
-    for (let i of _.range(1, 5)) {
-        let constituents_path = ['live_set', 'tracks', String(index_track), 'clip_slots', String(i)];
-        let path_live = constituents_path.join(' ');
+
+    // let logger = new Logger(env);
+
+    let song = new li.LiveApiJs(
+        'live_set'
+    );
+
+    // for (let i of _.range(0, segments.length + 1)) {
+    for (let i_segment in segments) {
+
+        let segment = segments[Number(i_segment)];
+
+        let path_clipslot = ['live_set', 'tracks', String(index_track), 'clip_slots', String(Number(i_segment))];
+
+        let path_live = path_clipslot.join(' ');
+
+        let scene = new li.LiveApiJs(
+            ['live_set', 'scenes', String(Number(i_segment))].join(' ')
+        );
+
+        let scene_exists = Number(scene.get_id()) !== 0;
+
+        // logger.log(scene.get_path());
+
+        if (!scene_exists) {
+            song.call('create_scene', String(Number(i_segment)))
+        }
+
         let clipslot = new li.LiveApiJs(
             path_live
         );
-        clipslot.call('create_clip', String(beats_length_clip));
-        // logger.log(i)
-    }
 
-    // logger.log(clipslot_highlighted.get_id());
-    //
-    // logger.log(clipslot_highlighted.get_path());
+        if (Number(i_segment) === 0) {
+            clipslot.call('delete_clip', String(length_beats));
+        }
+
+        clipslot.call('create_clip', String(length_beats));
+
+        let path_clip = path_clipslot.concat('clip').join(' ');
+
+        let clip = new Clip(
+            new ClipDao(
+                new li.LiveApiJs(
+                    path_clip
+                ),
+                new Messenger(env, 0)
+            )
+        );
+
+        clip.set_loop_bracket_lower(
+            segment.get_endpoints_loop()[0]
+        );
+
+        clip.set_loop_bracket_upper(
+            segment.get_endpoints_loop()[1]
+        );
+
+        let notes_within_segment = notes_clip.filter(
+            node => segment.get_endpoints_loop()[0] <= node.model.note.beat_start && node.model.note.beat_start < segment.get_endpoints_loop()[0] + segment.get_endpoints_loop()[1]
+        );
+
+        clip.set_notes(notes_within_segment)
+    }
 
 };
 
 if (typeof Global !== "undefined") {
     Global.segmenter = {};
-    Global.segmenter.test = test;
+    Global.segmenter.segment_clip = segment_clip;
+    Global.segmenter.set_length_beats = set_length_beats;
 }

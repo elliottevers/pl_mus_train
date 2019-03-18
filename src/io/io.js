@@ -5,6 +5,8 @@ var messenger_1 = require("../message/messenger");
 var logger_1 = require("../log/logger");
 var io;
 (function (io) {
+    var dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
+    io.file_json_comm = dir_projects + 'json_live.json';
     var Messenger = messenger_1.message.Messenger;
     var Logger = logger_1.log.Logger;
     var Exporter = /** @class */ (function () {
@@ -59,6 +61,11 @@ var io;
             this.name_dict = name_dict;
             this.dict = new Dict(name_dict);
         }
+        Importer.import = function (name_part) {
+            var dict = new Dict();
+            dict.import_json(io.file_json_comm);
+            return clip_1.clip.Clip.parse_note_messages(dict.get([name_part, 'notes'].join('::')));
+        };
         Importer.prototype.import = function () {
             this.dict.import_json(this.filepath_import);
         };
