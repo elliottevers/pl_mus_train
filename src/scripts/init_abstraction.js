@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var messenger_1 = require("./message/messenger");
+var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var env = 'max';
 if (env === 'max') {

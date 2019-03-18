@@ -1,4 +1,4 @@
-import {message} from "./message/messenger";
+import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 
 declare let autowatch: any;

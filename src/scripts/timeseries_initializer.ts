@@ -1,8 +1,8 @@
-import {log} from "./log/logger";
+import {log} from "../log/logger";
 import Logger = log.Logger;
-import {message} from "./message/messenger";
+import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {execute} from "./execute/executor";
+import {execute} from "../execute/executor";
 import SynchronousDagExecutor = execute.SynchronousDagExecutor;
 import CallableMax = execute.CallableMax;
 
@@ -102,7 +102,7 @@ let main = () => {
     };
 
     executor = new SynchronousDagExecutor(
-            [
+        [
             new CallableMax( // 0
                 Mode.Query,
                 null,

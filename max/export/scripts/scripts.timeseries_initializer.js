@@ -179,8 +179,6 @@ var log;
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
 (function (message_1) {
-    // TODO: the following
-    // type Env = 'max' | 'node';
     var Messenger = /** @class */ (function () {
         function Messenger(env, outlet, key_route) {
             this.env = env;
@@ -191,17 +189,28 @@ var message;
             return this.key_route;
         };
         Messenger.prototype.message = function (message) {
-            if (this.env === 'max') {
-                if (this.key_route) {
-                    message.unshift(this.key_route);
+            switch (this.env) {
+                case 'max': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_max(message);
+                    break;
                 }
-                this.message_max(message);
-            }
-            else if (this.env === 'node') {
-                if (this.key_route) {
-                    message.unshift(this.key_route);
+                case 'node': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node(message);
+                    break;
                 }
-                this.message_node(message);
+                case 'node_for_max': {
+                    if (this.key_route) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node_for_max(message);
+                    break;
+                }
             }
         };
         Messenger.prototype.message_max = function (message) {
@@ -213,6 +222,10 @@ var message;
             console.log(message);
             console.log("\n");
         };
+        Messenger.prototype.message_node_for_max = function (message) {
+            // const Max = require('max-api');
+            // Max.outlet(message);
+        };
         return Messenger;
     }());
     message_1.Messenger = Messenger;
@@ -221,11 +234,11 @@ var message;
 },{}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var logger_1 = require("./log/logger");
+var logger_1 = require("../log/logger");
 var Logger = logger_1.log.Logger;
-var messenger_1 = require("./message/messenger");
+var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
-var executor_1 = require("./execute/executor");
+var executor_1 = require("../execute/executor");
 var SynchronousDagExecutor = executor_1.execute.SynchronousDagExecutor;
 var CallableMax = executor_1.execute.CallableMax;
 var env = 'max';
@@ -327,8 +340,5 @@ if (typeof Global !== "undefined") {
     Global.test.test = test;
 }
 
-},{"./execute/executor":1,"./log/logger":2,"./message/messenger":3}]},{},[4]);
+},{"../execute/executor":1,"../log/logger":2,"../message/messenger":3}]},{},[4]);
 
-var main = Global.test.main;
-var returns = Global.test.returns;
-var test = Global.test.test;
