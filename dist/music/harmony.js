@@ -44,6 +44,16 @@ var harmony;
             }
             return notes_monophonic;
         };
+        Harmony.arpeggiate = function (notes) {
+            var chords_grouped = Harmony.group(notes);
+            var chords_monophonified = [];
+            for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
+                var chord = chords_grouped_1[_i];
+                var notes_monophonified = Harmony.monophonify(chord);
+                chords_monophonified.push(notes_monophonified);
+            }
+            return chords_monophonified;
+        };
         return Harmony;
     }());
     harmony.Harmony = Harmony;

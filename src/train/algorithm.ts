@@ -74,25 +74,25 @@ export namespace algorithm {
             let targets;
 
             switch(this.user_input_handler.mode_texture) {
-                case POLYPHONY: {
-                    let chords_grouped: TypeTarget[] = Harmony.group(
-                        notes_segment_next
-                    );
-
-                    let chords_monophonified: TypeTarget[] = [];
-
-                    for (let chord of chords_grouped) {
-                        let notes_monophonified: TypeTarget = Harmony.monophonify(
-                            chord
-                        );
-
-                        chords_monophonified.push(notes_monophonified)
-                    }
-
-                    targets = chords_monophonified;
-
-                    break;
-                }
+                // case POLYPHONY: {
+                //     let chords_grouped: TypeTarget[] = Harmony.group(
+                //         notes_segment_next
+                //     );
+                //
+                //     let chords_monophonified: TypeTarget[] = [];
+                //
+                //     for (let chord of chords_grouped) {
+                //         let notes_monophonified: TypeTarget = Harmony.monophonify(
+                //             chord
+                //         );
+                //
+                //         chords_monophonified.push(notes_monophonified)
+                //     }
+                //
+                //     targets = chords_monophonified;
+                //
+                //     break;
+                // }
                 case MONOPHONY: {
                     let notes_grouped_trivial = [];
 

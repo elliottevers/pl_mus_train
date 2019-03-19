@@ -5,7 +5,6 @@ import {history} from "../history/history";
 const _ = require('underscore');
 
 export namespace harmony {
-    import Target = target.Target;
     import TypeTarget = history.TypeTarget;
 
     export class Harmony {
@@ -69,6 +68,24 @@ export namespace harmony {
             }
 
             return notes_monophonic;
+        }
+
+        public static arpeggiate(notes) {
+            let chords_grouped: TypeTarget[] = Harmony.group(
+                notes
+            );
+
+            let chords_monophonified: TypeTarget[] = [];
+
+            for (let chord of chords_grouped) {
+                let notes_monophonified: TypeTarget = Harmony.monophonify(
+                    chord
+                );
+
+                chords_monophonified.push(notes_monophonified)
+            }
+
+            return chords_monophonified;
         }
     }
 }

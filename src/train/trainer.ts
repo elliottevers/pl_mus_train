@@ -433,6 +433,8 @@ export namespace trainer {
             this.advance_scene();
 
             this.stream_subtarget_bounds();
+
+            // TODO: should we send messages about subtargets into a coll via the busses?
         }
 
         accept_input(notes_input_user: TreeModel.Node<n.Note>[]) {
@@ -508,7 +510,7 @@ export namespace trainer {
             let ratio_bound_lower = (this.subtarget_current.note.model.note.beat_start - this.segment_current.get_endpoints_loop()[0])/(this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             let ratio_bound_upper = (this.subtarget_current.note.model.note.get_beat_end() - this.segment_current.get_endpoints_loop()[0])/(this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             // this.messenger.message([ratio_bound_lower/this.segments.length, ratio_bound_upper/this.segments.length])
-            this.messenger.message([ratio_bound_lower, ratio_bound_upper])
+            this.messenger.message(['bounds_subtarget', ratio_bound_lower, ratio_bound_upper])
         }
     }
 }
