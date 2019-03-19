@@ -123,14 +123,39 @@ var set_clip_user_input = function () {
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), true, 'clip_user_input'));
     clip_user_input.set_path_deferlow('set_path_clip_user_input');
 };
+// for (let i of _.range(0, num_scenes)) {
+//     let path_scene = ['live_set', 'scenes', Number(i)].join(' ');
+//     let scene = new Scene(
+//         new SceneDao(
+//             new li.LiveApiJs(
+//                 path_scene
+//             )
+//         )
+//     );
+//     scenes.push(scene)
+// }
+var _ = require('underscore');
 var set_segments = function () {
     // @ts-ignore
     var list_path_device = Array.prototype.slice.call(arguments);
-    var live_api;
-    live_api = new live_1.live.LiveApiJs(path_clip_from_list_path_device(list_path_device));
-    var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
-    // TODO: how do we get beat_start, beat_end?
-    var notes_segments = clip.get_notes(0, 0, 17 * 4, 128);
+    // get path of device
+    // path of track
+    // get path of all clips on track
+    // get all their notes and put into "notes_segments"
+    var this_device = new live_1.live.LiveApiJs('this_device');
+    var path_this_device = this_device.get_path();
+    var list_this_device = path_this_device.split(' ');
+    var index_track = Number(list_path_device[2]);
+    var this_track = new live_1.live.LiveApiJs(list_this_device.slice(0, 3).join(' '));
+    var num_clipslots = this_track.get("clip_slots").length / 2;
+    var notes_segments = [];
+    for (var _i = 0, _a = _.range(0, num_clipslots); _i < _a.length; _i++) {
+        var i_clipslot = _a[_i];
+        var path_clip = ['live_set', 'tracks', index_track, 'clipslots', Number(i_clipslot), 'clip'].join(' ');
+        var clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(new live_1.live.LiveApiJs(path_clip), new messenger_1.message.Messenger(env, 0), false));
+        notes_segments = notes_segments.concat(clip_segment.get_notes(clip_segment.get_loop_bracket_lower(), 0, clip_segment.get_loop_bracket_upper(), 128));
+    }
+    return;
     var segments_local = [];
     for (var i_note in notes_segments) {
         var note = notes_segments[Number(i_note)];
@@ -140,6 +165,8 @@ var set_segments = function () {
         segments_local.push(segment_local);
     }
     segments = segments_local;
+};
+var test = function () {
 };
 // TODO: send this via bus based on options in radio
 var set_clip_target = function () {
@@ -161,17 +188,6 @@ var pause = function () {
 var resume = function () {
     trainer.resume();
 };
-// let erase = () => {
-//
-// };
-//
-// let reset = () => {
-//
-// };
-//
-// let accept = () => {
-//
-// };
 var user_input_command = function (command) {
     // TODO: there is literally one character difference between the two algorithms - please abstract
     switch (algorithm_train.get_name()) {
@@ -273,9 +289,6 @@ var save = function () {
     var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', config);
     train_thawed.render_window();
 };
-// 1 "task" used as
-// 1 alg train 2 mode texture 3 mode control 4 clip user input (figure out if we have to highlight and click)  5 clip target (won't need to highlight) 6 segments
-// 1) dependencies 2) ground truth
 if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load = load;
@@ -283,10 +296,6 @@ if (typeof Global !== "undefined") {
     Global.train.begin = begin;
     Global.train.pause = pause;
     Global.train.resume = resume;
-    // Global.train.erase = erase;
-    // Global.train.reset = reset;
-    // Global.train.accept = accept;
-    // Global.train.accept_input = accept_input;
     Global.train.user_input_command = user_input_command;
     Global.train.user_input_midi = user_input_midi;
     Global.train.set_segments = set_segments;

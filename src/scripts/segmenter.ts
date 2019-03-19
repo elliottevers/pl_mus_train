@@ -1,10 +1,10 @@
-import {message} from "../message/messenger";
+import {message as m, message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live as li} from "../live/live";
 import {log} from "../log/logger";
 import Logger = log.Logger;
 import {utils} from "../utils/utils";
-import {clip} from "../clip/clip";
+import {clip as c, clip} from "../clip/clip";
 import Clip = clip.Clip;
 import ClipDao = clip.ClipDao;
 import {io} from "../io/io";
@@ -39,11 +39,140 @@ let set_length_beats = (beats) => {
     length_beats = beats
 };
 
+// NB: works without highlighting any tracks
+let contract_segments = () => {
 
-let segment_clip = () => {
+    let this_device = new li.LiveApiJs('this_device');
+
+    let path_this_device = this_device.get_path();
+
+    let list_this_device = path_this_device.split(' ');
+
+    let index_this_track = Number(list_this_device[2]);
+
+    let this_track = new li.LiveApiJs(list_this_device.slice(0, 3).join(' '));
+
+    let num_clipslots = this_track.get("clip_slots").length/2;
+
+    let notes_amassed = [];
+
+    // first, amass all notes of clips and delete all clips
+
+    for (let i_clipslot of _.range(0, num_clipslots)) {
+        let path_clipslot = ['live_set', 'tracks', index_this_track, 'clip_slots', Number(i_clipslot)].join(' ');
+
+        let api_clipslot_segment = new li.LiveApiJs(path_clipslot);
+
+        let clip_segment = new Clip(
+            new ClipDao(
+                new li.LiveApiJs(
+                    path_clipslot.split(' ').concat(['clip']).join(' ')
+                ),
+                new Messenger(env, 0)
+            )
+        );
+        notes_amassed = notes_amassed.concat(
+            clip_segment.get_notes(
+                clip_segment.get_loop_bracket_lower(),
+                0,
+                clip_segment.get_loop_bracket_upper(),
+                128
+            )
+        );
+
+        api_clipslot_segment.call('delete_clip')
+    }
+
+    // create one clip of length "length_beats"
+
+    let path_clipslot_contracted = ['live_set', 'tracks', String(index_this_track), 'clip_slots', String(0)];
+
+    let api_clipslot_contracted = new li.LiveApiJs(
+        path_clipslot_contracted.join(' ')
+    );
+
+    api_clipslot_contracted.call('create_clip', String(length_beats));
+
+    let clip_contracted = new Clip(
+        new ClipDao(
+            new li.LiveApiJs(
+                path_clipslot_contracted.concat(['clip']).join(' ')
+            ),
+            new Messenger(env, 0)
+        )
+    );
+
+    // add the amassed notes to it
+
+    clip_contracted.set_notes(
+        notes_amassed
+    )
+};
+
+let expand_segments = () => {
+    // let logger = new Logger(env);
+
+    let this_device = new li.LiveApiJs('this_device');
+
+    let path_this_device = this_device.get_path();
+
+    let list_this_device = path_this_device.split(' ');
+
+    let index_this_track = Number(list_this_device[2]);
+
+    expand_clip(['live_set', 'tracks', index_this_track, 'clip_slots', 0].join(' '))
+};
+
+let segment_highlighted_clip = () => (
+    expand_clip('live_set view highlighted_clip_slot')
+);
+
+let get_notes_segments = () => {
+    let this_device = new li.LiveApiJs('this_device');
+
+    let path_this_device = this_device.get_path();
+
+    let list_this_device = path_this_device.split(' ');
+
+    let index_this_track = Number(list_this_device[2]);
+
+    let this_track = new li.LiveApiJs(list_this_device.slice(0, 3).join(' '));
+
+    let num_clipslots = this_track.get("clip_slots").length/2;
+
+    let notes_amassed = [];
+
+    // first, amass all notes of clips and delete all clips
+
+    for (let i_clipslot of _.range(0, num_clipslots)) {
+        let path_clipslot = ['live_set', 'tracks', index_this_track, 'clip_slots', Number(i_clipslot)].join(' ');
+
+        let clip_segment = new Clip(
+            new ClipDao(
+                new li.LiveApiJs(
+                    path_clipslot.split(' ').concat(['clip']).join(' ')
+                ),
+                new Messenger(env, 0)
+            )
+        );
+
+        notes_amassed = notes_amassed.concat(
+            clip_segment.get_notes(
+                clip_segment.get_loop_bracket_lower(),
+                0,
+                clip_segment.get_loop_bracket_upper(),
+                128
+            )
+        );
+    }
+
+    return notes_amassed
+};
+
+let expand_clip = (path_clip_slot) => {
 
     let clipslot_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot'
+        path_clip_slot
     );
 
     let path_track = clipslot_highlighted.get_path();
@@ -53,7 +182,7 @@ let segment_clip = () => {
     let clip_highlighted = new Clip(
         new ClipDao(
             new li.LiveApiJs(
-                'live_set view highlighted_clip_slot clip'
+                [path_clip_slot, 'clip'].join(' ')
             ),
             new Messenger(env, 0)
         )
@@ -66,7 +195,8 @@ let segment_clip = () => {
         128
     );
 
-    let notes_segments = io.Importer.import('segment');
+    // let notes_segments = io.Importer.import('segment');
+    let notes_segments = get_notes_segments();
 
     let segments: Segment[] = [];
 
@@ -78,14 +208,12 @@ let segment_clip = () => {
         )
     }
 
-
-    // let logger = new Logger(env);
-
     let song = new li.LiveApiJs(
         'live_set'
     );
 
-    // for (let i of _.range(0, segments.length + 1)) {
+    let logger = new Logger(env);
+
     for (let i_segment in segments) {
 
         let segment = segments[Number(i_segment)];
@@ -100,8 +228,6 @@ let segment_clip = () => {
 
         let scene_exists = Number(scene.get_id()) !== 0;
 
-        // logger.log(scene.get_path());
-
         if (!scene_exists) {
             song.call('create_scene', String(Number(i_segment)))
         }
@@ -111,7 +237,7 @@ let segment_clip = () => {
         );
 
         if (Number(i_segment) === 0) {
-            clipslot.call('delete_clip', String(length_beats));
+            clipslot.call('delete_clip');
         }
 
         clipslot.call('create_clip', String(length_beats));
@@ -136,7 +262,7 @@ let segment_clip = () => {
         );
 
         let notes_within_segment = notes_clip.filter(
-            node => segment.get_endpoints_loop()[0] <= node.model.note.beat_start && node.model.note.beat_start < segment.get_endpoints_loop()[0] + segment.get_endpoints_loop()[1]
+            node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
         );
 
         clip.set_notes(notes_within_segment)
@@ -146,6 +272,8 @@ let segment_clip = () => {
 
 if (typeof Global !== "undefined") {
     Global.segmenter = {};
-    Global.segmenter.segment_clip = segment_clip;
+    Global.segmenter.segment_highlighted_clip = segment_highlighted_clip;
+    Global.segmenter.contract_segments = contract_segments;
+    Global.segmenter.expand_segments = expand_segments;
     Global.segmenter.set_length_beats = set_length_beats;
 }

@@ -186,26 +186,68 @@ let set_clip_user_input = () => {
     )
 };
 
+// for (let i of _.range(0, num_scenes)) {
+//     let path_scene = ['live_set', 'scenes', Number(i)].join(' ');
+//     let scene = new Scene(
+//         new SceneDao(
+//             new li.LiveApiJs(
+//                 path_scene
+//             )
+//         )
+//     );
+//     scenes.push(scene)
+// }
+
+const _ = require('underscore');
+
 let set_segments = () => {
     // @ts-ignore
     let list_path_device = Array.prototype.slice.call(arguments);
 
-    let live_api: LiveApiJs;
+    // get path of device
 
-    live_api = new li.LiveApiJs(
-        path_clip_from_list_path_device(list_path_device)
-    );
+    // path of track
 
-    let clip = new c.Clip(
-        new c.ClipDao(
-            live_api,
-            new m.Messenger(env, 0),
-            false
+    // get path of all clips on track
+
+    // get all their notes and put into "notes_segments"
+
+    let this_device = new li.LiveApiJs('this_device');
+
+    let path_this_device = this_device.get_path();
+
+    let list_this_device = path_this_device.split(' ');
+
+    let index_track = Number(list_path_device[2]);
+
+    let this_track = new li.LiveApiJs(list_this_device.slice(0, 3).join(' '));
+
+    let num_clipslots = this_track.get("clip_slots").length/2;
+
+    let notes_segments = [];
+
+    for (let i_clipslot of _.range(0, num_clipslots)) {
+        let path_clip = ['live_set', 'tracks', index_track, 'clipslots', Number(i_clipslot), 'clip'].join(' ');
+        let clip_segment = new c.Clip(
+            new c.ClipDao(
+                new li.LiveApiJs(
+                    path_clip
+                ),
+                new m.Messenger(env, 0),
+                false
+            )
+        );
+        notes_segments = notes_segments.concat(
+            clip_segment.get_notes(
+                clip_segment.get_loop_bracket_lower(),
+                0,
+                clip_segment.get_loop_bracket_upper(),
+                128
+            )
         )
-    );
+    }
 
-    // TODO: how do we get beat_start, beat_end?
-    let notes_segments = clip.get_notes(0, 0, 17 * 4, 128);
+    return
 
     let segments_local: Segment[] = [];
 
@@ -231,6 +273,10 @@ let set_segments = () => {
     }
 
     segments = segments_local;
+};
+
+let test = () => {
+
 };
 
 // TODO: send this via bus based on options in radio
@@ -287,18 +333,6 @@ let pause = () => {
 let resume = () => {
     trainer.resume()
 };
-
-// let erase = () => {
-//
-// };
-//
-// let reset = () => {
-//
-// };
-//
-// let accept = () => {
-//
-// };
 
 let user_input_command = (command: string) => {
     // TODO: there is literally one character difference between the two algorithms - please abstract
@@ -485,12 +519,6 @@ let save = () => {
     );
 };
 
-
-// 1 "task" used as
-// 1 alg train 2 mode texture 3 mode control 4 clip user input (figure out if we have to highlight and click)  5 clip target (won't need to highlight) 6 segments
-// 1) dependencies 2) ground truth
-
-
 if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load = load;
@@ -498,10 +526,6 @@ if (typeof Global !== "undefined") {
     Global.train.begin = begin;
     Global.train.pause = pause;
     Global.train.resume = resume;
-    // Global.train.erase = erase;
-    // Global.train.reset = reset;
-    // Global.train.accept = accept;
-    // Global.train.accept_input = accept_input;
     Global.train.user_input_command = user_input_command;
     Global.train.user_input_midi = user_input_midi;
     Global.train.set_segments = set_segments;
