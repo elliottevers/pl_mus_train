@@ -196,6 +196,10 @@ export namespace window {
         render_notes(
             history_user_input
         )
+
+        render(
+
+        )
     }
 
     export class MatrixWindow extends Window implements Temporal {

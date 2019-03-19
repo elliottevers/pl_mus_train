@@ -22,6 +22,16 @@ var clip;
                 this.clip_dao.set_loop_bracket_upper(beat_end);
             }
         };
+        Clip.prototype.set_endpoint_markers = function (beat_start, beat_end) {
+            if (beat_start >= this.clip_dao.get_end_marker()) {
+                this.clip_dao.set_clip_endpoint_upper(beat_end);
+                this.clip_dao.set_clip_endpoint_lower(beat_start);
+            }
+            else {
+                this.clip_dao.set_clip_endpoint_lower(beat_start);
+                this.clip_dao.set_clip_endpoint_upper(beat_end);
+            }
+        };
         Clip.prototype.get_beat_start = function () {
             return this.clip_dao.beat_start;
         };

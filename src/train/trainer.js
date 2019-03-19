@@ -7,6 +7,8 @@ var history_1 = require("../history/history");
 var target_1 = require("../target/target");
 var parse_1 = require("../parse/parse");
 var iterate_1 = require("./iterate");
+var logger_1 = require("../log/logger");
+var utils_1 = require("../utils/utils");
 var _ = require('underscore');
 var l = require('lodash');
 var trainer;
@@ -21,12 +23,13 @@ var trainer;
     var FactoryMatrixTargetIterator = iterate_1.iterate.FactoryMatrixTargetIterator;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var Note = note_1.note.Note;
+    var Logger = logger_1.log.Logger;
     var Trainer = /** @class */ (function () {
-        function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_target, song, segments, messenger) {
+        function Trainer(window, user_input_handler, algorithm, clip_user_input, notes_target, song, segments, messenger) {
             this.window = window;
             this.algorithm = algorithm;
             this.clip_user_input = clip_user_input;
-            this.clip_target = clip_target;
+            this.notes_target = notes_target;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
@@ -64,12 +67,26 @@ var trainer;
             }
             switch (this.algorithm.get_name()) {
                 case PARSE: {
+                    var _loop_1 = function (i_segment) {
+                        var segment_2 = this_1.segments[Number(i_segment)];
+                        // let notes = this.clip_target.get_notes(
+                        //     segment.beat_start,
+                        //     0,
+                        //     segment.beat_end - segment.beat_start,
+                        //     128
+                        // );
+                        var notes = this_1.notes_target.filter(function (node) { return node.model.note.beat_start >= segment_2.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_2.get_endpoints_loop()[1]; });
+                        var coord_current_virtual = [this_1.algorithm.get_depth() - 1, Number(i_segment)];
+                        this_1.struct_parse.set_notes(notes, coord_current_virtual);
+                        this_1.window.add_notes_to_clip(notes, coord_current_virtual);
+                    };
+                    var this_1 = this;
+                    // let notes_within_segment = notes_clip.filter(
+                    //     node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
+                    // );
+                    // TODO: use 'filter'
                     for (var i_segment in this.segments) {
-                        var segment_2 = this.segments[Number(i_segment)];
-                        var notes = this.clip_target.get_notes(segment_2.beat_start, 0, segment_2.beat_end - segment_2.beat_start, 128);
-                        var coord_current_virtual = [this.algorithm.get_depth() - 1, Number(i_segment)];
-                        this.struct_parse.set_notes(notes, coord_current_virtual);
-                        this.window.add_notes_to_clip(notes, coord_current_virtual);
+                        _loop_1(i_segment);
                     }
                     break;
                 }
@@ -84,10 +101,23 @@ var trainer;
         };
         // now we can assume we have a list instead of a matrix
         Trainer.prototype.create_targets = function () {
-            this.clip_target.load_notes_within_markers();
+            // TODO: use 'filter' here
+            // this.clip_target.load_notes_within_markers();
+            var _loop_2 = function (i_segment) {
+                var segment_3 = this_2.segments[Number(i_segment)];
+                var sequence_targets = this_2.algorithm.determine_targets(
+                // this.clip_target.get_notes(
+                //     this.segments[Number(i_segment)].beat_start,
+                //     0,
+                //     this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start,
+                //     128
+                // )
+                this_2.notes_target.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; }));
+                this_2.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
+            };
+            var this_2 = this;
             for (var i_segment in this.segments) {
-                var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(this.segments[Number(i_segment)].beat_start, 0, this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start, 128));
-                this.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
+                _loop_2(i_segment);
             }
         };
         Trainer.prototype.clear_window = function () {
@@ -153,8 +183,8 @@ var trainer;
                     case PARSE: {
                         // make connections with segments
                         for (var i_segment in this.segments) {
-                            var segment_3 = this.segments[Number(i_segment)];
-                            this.struct_parse.add([segment_3.get_note()], [0, Number(i_segment)], this.algorithm);
+                            var segment_4 = this.segments[Number(i_segment)];
+                            this.struct_parse.add([segment_4.get_note()], [0, Number(i_segment)], this.algorithm);
                         }
                         // make connections with root
                         this.struct_parse.add([Note.from_note_renderable(this.struct_parse.get_root())], [-1], this.algorithm);
@@ -183,9 +213,7 @@ var trainer;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
                 this.iterator_subtarget_current.next();
                 this.subtarget_current = this.iterator_subtarget_current.current();
-                // TODO: enforce with code that anytime we move on to next segment, we advance the scene
-                this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
-                this.advance_scene();
+                this.handle_boundary_change();
                 return;
             }
             var target_at_time = this.iterator_target_current.targets;
@@ -203,9 +231,7 @@ var trainer;
                     }
                     var coord_next = obj_next_coord.value;
                     this.iterator_target_current = this.matrix_focus[coord_next[0]][coord_next[1]];
-                    // TODO: enforce with code that anytime we move on to next segment, we advance the scene
-                    this.segment_current = this.segments[coord_next[1]];
-                    this.advance_scene();
+                    this.handle_boundary_change();
                     var obj_next_target_twice_nested = this.iterator_target_current.next();
                     this.target_current = obj_next_target_twice_nested.value;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
@@ -220,9 +246,11 @@ var trainer;
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
-            // TODO: enforce with code that anytime we move on to next segment, we advance the scene
+        };
+        Trainer.prototype.handle_boundary_change = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             this.advance_scene();
+            this.stream_subtarget_bounds();
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;
@@ -244,16 +272,26 @@ var trainer;
                 this.render_window();
                 return;
             }
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(notes_input_user[0].model.note.pitch));
+            logger.log(JSON.stringify(this.subtarget_current));
+            logger.log('------------');
             // detect/predict logic
-            if (notes_input_user[0].model.note.pitch === this.subtarget_current.note.model.note.pitch) {
+            if (utils_1.utils.remainder(notes_input_user[0].model.note.pitch, 12) === utils_1.utils.remainder(this.subtarget_current.note.model.note.pitch, 12)) {
                 this.window.add_notes_to_clip([this.subtarget_current.note], this.iterator_matrix_train.get_coord_current());
                 if (this.algorithm.b_targeted()) {
                     // set the targets and shit
                 }
                 this.advance_subtarget();
-                // this.set_loop();
+                this.stream_subtarget_bounds();
                 this.render_window();
             }
+        };
+        Trainer.prototype.stream_subtarget_bounds = function () {
+            var ratio_bound_lower = (this.subtarget_current.note.model.note.beat_start - this.segment_current.get_endpoints_loop()[0]) / (this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
+            var ratio_bound_upper = (this.subtarget_current.note.model.note.get_beat_end() - this.segment_current.get_endpoints_loop()[0]) / (this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
+            // this.messenger.message([ratio_bound_lower/this.segments.length, ratio_bound_upper/this.segments.length])
+            this.messenger.message([ratio_bound_lower, ratio_bound_upper]);
         };
         return Trainer;
     }());

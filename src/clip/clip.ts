@@ -33,6 +33,16 @@ export namespace clip {
             }
         }
 
+        public set_endpoint_markers(beat_start, beat_end) {
+            if (beat_start >= this.clip_dao.get_end_marker()) {
+                this.clip_dao.set_clip_endpoint_upper(beat_end);
+                this.clip_dao.set_clip_endpoint_lower(beat_start);
+            } else {
+                this.clip_dao.set_clip_endpoint_lower(beat_start);
+                this.clip_dao.set_clip_endpoint_upper(beat_end);
+            }
+        }
+
         get_beat_start(): number {
             return this.clip_dao.beat_start
         }

@@ -24,8 +24,6 @@ var logger_1 = require("../log/logger");
 var Logger = logger_1.log.Logger;
 var MONOPHONY = constants_1.modes_texture.MONOPHONY;
 var VOCAL = constants_1.modes_control.VOCAL;
-var utils_1 = require("../utils/utils");
-var path_clip_from_list_path_device = utils_1.utils.path_clip_from_list_path_device;
 var DETECT = algorithm_1.algorithm.DETECT;
 var PREDICT = algorithm_1.algorithm.PREDICT;
 var PARSE = algorithm_1.algorithm.PARSE;
@@ -42,6 +40,7 @@ var TreeModel = require("tree-model");
 var scene_1 = require("../scene/scene");
 var SceneDao = scene_1.scene.SceneDao;
 var Scene = scene_1.scene.Scene;
+var segmenter_1 = require("./segmenter");
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -52,7 +51,10 @@ if (env === 'max') {
 // };
 var logger = new Logger(env);
 var messenger_render = new Messenger(env, 0, 'render');
-var mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
+var messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
+var messenger_bounds_subtarget = new Messenger(env, 0, 'bounds_subtarget');
+var messenger_num_segments = new Messenger(env, 0, 'num_segments');
+var mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
 var set_mode_texture = function (option) {
     switch (option) {
         case POLYPHONY: {
@@ -123,39 +125,9 @@ var set_clip_user_input = function () {
     clip_user_input = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), true, 'clip_user_input'));
     clip_user_input.set_path_deferlow('set_path_clip_user_input');
 };
-// for (let i of _.range(0, num_scenes)) {
-//     let path_scene = ['live_set', 'scenes', Number(i)].join(' ');
-//     let scene = new Scene(
-//         new SceneDao(
-//             new li.LiveApiJs(
-//                 path_scene
-//             )
-//         )
-//     );
-//     scenes.push(scene)
-// }
-var _ = require('underscore');
 var set_segments = function () {
-    // @ts-ignore
-    var list_path_device = Array.prototype.slice.call(arguments);
-    // get path of device
-    // path of track
-    // get path of all clips on track
-    // get all their notes and put into "notes_segments"
-    var this_device = new live_1.live.LiveApiJs('this_device');
-    var path_this_device = this_device.get_path();
-    var list_this_device = path_this_device.split(' ');
-    var index_track = Number(list_path_device[2]);
-    var this_track = new live_1.live.LiveApiJs(list_this_device.slice(0, 3).join(' '));
-    var num_clipslots = this_track.get("clip_slots").length / 2;
-    var notes_segments = [];
-    for (var _i = 0, _a = _.range(0, num_clipslots); _i < _a.length; _i++) {
-        var i_clipslot = _a[_i];
-        var path_clip = ['live_set', 'tracks', index_track, 'clipslots', Number(i_clipslot), 'clip'].join(' ');
-        var clip_segment = new clip_1.clip.Clip(new clip_1.clip.ClipDao(new live_1.live.LiveApiJs(path_clip), new messenger_1.message.Messenger(env, 0), false));
-        notes_segments = notes_segments.concat(clip_segment.get_notes(clip_segment.get_loop_bracket_lower(), 0, clip_segment.get_loop_bracket_upper(), 128));
-    }
-    return;
+    // TODO: this assumes the trainer device is on the same track as the segmenter
+    var notes_segments = segmenter_1.get_notes('this_device');
     var segments_local = [];
     for (var i_note in notes_segments) {
         var note = notes_segments[Number(i_note)];
@@ -164,21 +136,21 @@ var set_segments = function () {
         segment_local.set_scene(new Scene(new SceneDao(new live_1.live.LiveApiJs(path_scene))));
         segments_local.push(segment_local);
     }
+    messenger_num_segments.message([segments_local.length]);
     segments = segments_local;
 };
 var test = function () {
 };
 // TODO: send this via bus based on options in radio
-var set_clip_target = function () {
+var set_target_notes = function () {
     // @ts-ignore
-    var list_path_device = Array.prototype.slice.call(arguments);
-    var live_api;
-    live_api = new live_1.live.LiveApiJs(path_clip_from_list_path_device(list_path_device));
-    clip_target = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
+    var list_path_device_target = Array.prototype.slice.call(arguments);
+    notes_target = segmenter_1.get_notes(list_path_device_target.join(' '));
+    messenger_monitor_target.message([list_path_device_target[2]]);
 };
 var begin = function () {
     song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
-    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_target, song, segments, messenger_render);
+    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, notes_target, song, segments, messenger_bounds_subtarget);
     trainer.init();
     trainer.render_window();
 };
@@ -279,7 +251,7 @@ var save = function () {
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
         'clip_user_input': clip_user_input,
-        'clip_target': clip_target,
+        'notes_target': notes_target,
         'song': song,
         'segments': segments,
         'messenger': messenger_render,
@@ -300,7 +272,7 @@ if (typeof Global !== "undefined") {
     Global.train.user_input_midi = user_input_midi;
     Global.train.set_segments = set_segments;
     Global.train.set_clip_user_input = set_clip_user_input;
-    Global.train.set_clip_target = set_clip_target;
+    Global.train.set_target_notes = set_target_notes;
     Global.train.set_depth_tree = set_depth_tree;
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;

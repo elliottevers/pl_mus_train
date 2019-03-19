@@ -45,6 +45,8 @@ import TreeModel = require("tree-model");
 import {scene} from "../scene/scene";
 import SceneDao = scene.SceneDao;
 import Scene = scene.Scene;
+import {get_notes} from "./segmenter";
+// const _ = require('underscore');
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -68,7 +70,10 @@ if (env === 'max') {
 // };
 let logger = new Logger(env);
 let messenger_render = new Messenger(env, 0, 'render');
-let mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, clip_target, segments, trainer;
+let messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
+let messenger_bounds_subtarget = new Messenger(env, 0, 'bounds_subtarget');
+let messenger_num_segments = new Messenger(env, 0, 'num_segments');
+let mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
 
 let set_mode_texture = (option) => {
     switch (option) {
@@ -186,68 +191,10 @@ let set_clip_user_input = () => {
     )
 };
 
-// for (let i of _.range(0, num_scenes)) {
-//     let path_scene = ['live_set', 'scenes', Number(i)].join(' ');
-//     let scene = new Scene(
-//         new SceneDao(
-//             new li.LiveApiJs(
-//                 path_scene
-//             )
-//         )
-//     );
-//     scenes.push(scene)
-// }
-
-const _ = require('underscore');
-
 let set_segments = () => {
-    // @ts-ignore
-    let list_path_device = Array.prototype.slice.call(arguments);
 
-    // get path of device
-
-    // path of track
-
-    // get path of all clips on track
-
-    // get all their notes and put into "notes_segments"
-
-    let this_device = new li.LiveApiJs('this_device');
-
-    let path_this_device = this_device.get_path();
-
-    let list_this_device = path_this_device.split(' ');
-
-    let index_track = Number(list_path_device[2]);
-
-    let this_track = new li.LiveApiJs(list_this_device.slice(0, 3).join(' '));
-
-    let num_clipslots = this_track.get("clip_slots").length/2;
-
-    let notes_segments = [];
-
-    for (let i_clipslot of _.range(0, num_clipslots)) {
-        let path_clip = ['live_set', 'tracks', index_track, 'clipslots', Number(i_clipslot), 'clip'].join(' ');
-        let clip_segment = new c.Clip(
-            new c.ClipDao(
-                new li.LiveApiJs(
-                    path_clip
-                ),
-                new m.Messenger(env, 0),
-                false
-            )
-        );
-        notes_segments = notes_segments.concat(
-            clip_segment.get_notes(
-                clip_segment.get_loop_bracket_lower(),
-                0,
-                clip_segment.get_loop_bracket_upper(),
-                128
-            )
-        )
-    }
-
-    return
+    // TODO: this assumes the trainer device is on the same track as the segmenter
+    let notes_segments = get_notes('this_device');
 
     let segments_local: Segment[] = [];
 
@@ -272,6 +219,8 @@ let set_segments = () => {
 
     }
 
+    messenger_num_segments.message([segments_local.length]);
+
     segments = segments_local;
 };
 
@@ -280,23 +229,13 @@ let test = () => {
 };
 
 // TODO: send this via bus based on options in radio
-let set_clip_target = () => {
+let set_target_notes = () => {
     // @ts-ignore
-    let list_path_device = Array.prototype.slice.call(arguments);
+    let list_path_device_target = Array.prototype.slice.call(arguments);
 
-    let live_api: LiveApiJs;
+    notes_target = get_notes(list_path_device_target.join(' '));
 
-    live_api = new li.LiveApiJs(
-        path_clip_from_list_path_device(list_path_device)
-    );
-
-    clip_target = new c.Clip(
-        new c.ClipDao(
-            live_api,
-            new m.Messenger(env, 0),
-            false
-        )
-    );
+    messenger_monitor_target.message([list_path_device_target[2]]);
 };
 
 let begin = () => {
@@ -315,10 +254,10 @@ let begin = () => {
         user_input_handler,
         algorithm_train,
         clip_user_input,
-        clip_target,
+        notes_target,
         song,
         segments,
-        messenger_render
+        messenger_bounds_subtarget
     );
 
     trainer.init();
@@ -498,7 +437,7 @@ let save = () => {
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
         'clip_user_input': clip_user_input,
-        'clip_target': clip_target,
+        'notes_target': notes_target,
         'song': song,
         'segments': segments,
         'messenger': messenger_render,
@@ -530,7 +469,7 @@ if (typeof Global !== "undefined") {
     Global.train.user_input_midi = user_input_midi;
     Global.train.set_segments = set_segments;
     Global.train.set_clip_user_input = set_clip_user_input;
-    Global.train.set_clip_target = set_clip_target;
+    Global.train.set_target_notes = set_target_notes;
     Global.train.set_depth_tree = set_depth_tree;
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
