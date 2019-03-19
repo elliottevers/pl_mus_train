@@ -42,6 +42,9 @@ import Song = sng.Song;
 import SongDao = sng.SongDao;
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
+import {scene} from "../scene/scene";
+import SceneDao = scene.SceneDao;
+import Scene = scene.Scene;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -204,18 +207,27 @@ let set_segments = () => {
     // TODO: how do we get beat_start, beat_end?
     let notes_segments = clip.get_notes(0, 0, 17 * 4, 128);
 
-    // let logger = new Logger(env);
-
-    // logger.log(JSON.stringify(notes_segments));
-
     let segments_local: Segment[] = [];
 
-    for (let note of notes_segments) {
-        segments_local.push(
-            new Segment(
-                note
+    for (let i_note in notes_segments) {
+        let note = notes_segments[Number(i_note)];
+        let path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
+        let segment_local = new Segment(
+            note
+        );
+        segment_local.set_scene(
+            new Scene(
+                new SceneDao(
+                    new li.LiveApiJs(
+                        path_scene
+                    )
+                )
             )
+        );
+        segments_local.push(
+            segment_local
         )
+
     }
 
     segments = segments_local;

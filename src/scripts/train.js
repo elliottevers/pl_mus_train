@@ -39,6 +39,9 @@ var Song = song_1.song.Song;
 var SongDao = song_1.song.SongDao;
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
+var scene_1 = require("../scene/scene");
+var SceneDao = scene_1.scene.SceneDao;
+var Scene = scene_1.scene.Scene;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -128,12 +131,13 @@ var set_segments = function () {
     var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
     // TODO: how do we get beat_start, beat_end?
     var notes_segments = clip.get_notes(0, 0, 17 * 4, 128);
-    // let logger = new Logger(env);
-    // logger.log(JSON.stringify(notes_segments));
     var segments_local = [];
-    for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
-        var note = notes_segments_1[_i];
-        segments_local.push(new Segment(note));
+    for (var i_note in notes_segments) {
+        var note = notes_segments[Number(i_note)];
+        var path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
+        var segment_local = new Segment(note);
+        segment_local.set_scene(new Scene(new SceneDao(new live_1.live.LiveApiJs(path_scene))));
+        segments_local.push(segment_local);
     }
     segments = segments_local;
 };

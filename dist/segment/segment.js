@@ -26,6 +26,9 @@ var segment;
             this.clip.set_loop_bracket_upper(beat_end);
             this.clip.set_loop_bracket_lower(beat_start);
         };
+        Segment.prototype.set_scene = function (scene) {
+            this.scene = scene;
+        };
         return Segment;
     }());
     segment.Segment = Segment;

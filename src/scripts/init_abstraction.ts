@@ -32,15 +32,12 @@ let init_call_receiver = (index) => {
     if (ran_init_call_receiver) {
         return;
     }
-// let init = (id, index) => {
+
     messenger = new Messenger(env, 0);
-    // let name = [id, index, '#0'];
-    // let name = [id, index];
+
     let name = ['call', index];
     let receiver = patcher.newdefault(100, 100, "receive", name.join('.'));
     let outlet = patcher.getnamed("outlet");
-    // patcher.connect(receiver, 0, outlet, 0);
-    // messenger.message(['script', 'newobject', 'newobj', '@text', name_object])
 
     let resetter = patcher.getnamed('reset');
     let one_pass_gate = patcher.newdefault(100, 157, "one_pass_gate");
@@ -58,9 +55,7 @@ let init_call_sender = (name_first, i_first, name_last, i_last) => {
     }
 
     messenger = new Messenger(env, 0);
-    // let name = [id, index, '#0'];
-    // let name = [id, index];
-    // let name = ['position', index];
+
     let indices = Array.apply(null, {length: i_last - i_first + 1}).map(Function.call, Number);
 
     let pixels_init_left = 100;
@@ -93,7 +88,6 @@ let init_return_sender = (index) => {
     let name = ['return', index];
     let sender = patcher.newdefault(469, 267, "send", name.join('.'));
     let inlet = patcher.getnamed("inlet");
-    // patcher.connect(inlet, 0, sender, 0);
 
     let resetter = patcher.getnamed('reset');
     let one_pass_gate = patcher.newdefault(469, 194, "one_pass_gate");
@@ -102,9 +96,6 @@ let init_return_sender = (index) => {
     patcher.connect(inlet, 0, one_pass_gate, 0);
     patcher.connect(resetter, 0, one_pass_gate, 1);
     patcher.connect(one_pass_gate, 0, sender, 0);
-    // patcher.connect(resetter, 0, one_pass_gate, 1);
-    // patcher.connect(receiver, 0, one_pass_gate, 0);
-    // patcher.connect(one_pass_gate, 0, inlet, 0);
     ran_init_return_sender = true;
 };
 
@@ -114,9 +105,7 @@ let init_return_receiver = (name_first, i_first, name_last, i_last) => {
     }
 
     messenger = new Messenger(env, 0);
-    // let name = [id, index, '#0'];
-    // let name = [id, index];
-    // let name = ['position', index];
+
     let indices = Array.apply(null, {length: i_last - i_first + 1}).map(Function.call, Number);
 
     let pixels_init_left = 100;
@@ -127,11 +116,7 @@ let init_return_receiver = (name_first, i_first, name_last, i_last) => {
 
     let outlet = patcher.getnamed('outlet');
 
-    // let receive_resetter = patcher.newdefault(1111, 8, "reset", "reset");
-
     let resetter = patcher.getnamed('reset');
-
-    // patcher.connect(receive_resetter, 0, resetter, 0);
 
     let receiver;
     let prepender;

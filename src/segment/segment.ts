@@ -2,17 +2,20 @@ import {clip} from "../clip/clip";
 import {note, note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {live} from "../live/live";
+import {scene} from "../scene/scene";
 
 export namespace segment {
 
     import Clip = clip.Clip;
     import Note = note.Note;
     import LiveClipVirtual = live.LiveClipVirtual;
+    import Scene = scene.Scene;
 
     export class Segment {
 
         beat_start: number;
         beat_end: number;
+        scene: Scene;
         clip: Clip;
 
         constructor(note: TreeModel.Node<n.Note>) {
@@ -47,6 +50,10 @@ export namespace segment {
         public set_endpoints_loop(beat_start, beat_end) {
             this.clip.set_loop_bracket_upper(beat_end);
             this.clip.set_loop_bracket_lower(beat_start);
+        }
+
+        public set_scene(scene: Scene) {
+            this.scene = scene;
         }
 
         // public get_beat_lower() {

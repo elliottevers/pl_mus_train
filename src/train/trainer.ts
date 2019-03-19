@@ -240,13 +240,17 @@ export namespace trainer {
             }
         }
 
-        private set_loop() {
-            let interval = this.segment_current.get_endpoints_loop();
+        // private set_loop() {
+        //     let interval = this.segment_current.get_endpoints_loop();
+        //
+        //     this.clip_user_input.set_endpoints_loop(
+        //         interval[0],
+        //         interval[1]
+        //     )
+        // }
 
-            this.clip_user_input.set_endpoints_loop(
-                interval[0],
-                interval[1]
-            )
+        private advance_scene() {
+            this.segment_current.scene.fire(true)
         }
 
         public resume() {
@@ -336,7 +340,11 @@ export namespace trainer {
 
                 this.subtarget_current = this.iterator_subtarget_current.current();
 
+                // TODO: enforce with code that anytime we move on to next segment, we advance the scene
+
                 this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+
+                this.advance_scene();
 
                 return
             }
@@ -375,7 +383,11 @@ export namespace trainer {
 
                     this.iterator_target_current = this.matrix_focus[coord_next[0]][coord_next[1]];
 
+                    // TODO: enforce with code that anytime we move on to next segment, we advance the scene
+
                     this.segment_current = this.segments[coord_next[1]];
+
+                    this.advance_scene();
 
                     let obj_next_target_twice_nested = this.iterator_target_current.next();
 
@@ -403,7 +415,11 @@ export namespace trainer {
 
             this.subtarget_current = obj_next_subtarget.value;
 
+            // TODO: enforce with code that anytime we move on to next segment, we advance the scene
+
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+
+            this.advance_scene();
         }
 
         accept_input(notes_input_user: TreeModel.Node<n.Note>[]) {
@@ -441,6 +457,8 @@ export namespace trainer {
 
                 this.advance_segment();
 
+                this.advance_scene();
+
                 this.render_window();
 
                 return
@@ -460,7 +478,7 @@ export namespace trainer {
 
                 this.advance_subtarget();
 
-                this.set_loop();
+                // this.set_loop();
 
                 this.render_window();
             }

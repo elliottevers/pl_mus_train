@@ -115,9 +115,16 @@ var trainer;
                 return;
             }
         };
-        Trainer.prototype.set_loop = function () {
-            var interval = this.segment_current.get_endpoints_loop();
-            this.clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+        // private set_loop() {
+        //     let interval = this.segment_current.get_endpoints_loop();
+        //
+        //     this.clip_user_input.set_endpoints_loop(
+        //         interval[0],
+        //         interval[1]
+        //     )
+        // }
+        Trainer.prototype.advance_scene = function () {
+            this.segment_current.scene.fire(true);
         };
         Trainer.prototype.resume = function () {
             this.algorithm.post_init();
@@ -176,7 +183,9 @@ var trainer;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
                 this.iterator_subtarget_current.next();
                 this.subtarget_current = this.iterator_subtarget_current.current();
+                // TODO: enforce with code that anytime we move on to next segment, we advance the scene
                 this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+                this.advance_scene();
                 return;
             }
             var target_at_time = this.iterator_target_current.targets;
@@ -194,7 +203,9 @@ var trainer;
                     }
                     var coord_next = obj_next_coord.value;
                     this.iterator_target_current = this.matrix_focus[coord_next[0]][coord_next[1]];
+                    // TODO: enforce with code that anytime we move on to next segment, we advance the scene
                     this.segment_current = this.segments[coord_next[1]];
+                    this.advance_scene();
                     var obj_next_target_twice_nested = this.iterator_target_current.next();
                     this.target_current = obj_next_target_twice_nested.value;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
@@ -209,7 +220,9 @@ var trainer;
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
+            // TODO: enforce with code that anytime we move on to next segment, we advance the scene
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+            this.advance_scene();
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;
@@ -227,6 +240,7 @@ var trainer;
                 // TODO: implement
                 this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
+                this.advance_scene();
                 this.render_window();
                 return;
             }
@@ -237,7 +251,7 @@ var trainer;
                     // set the targets and shit
                 }
                 this.advance_subtarget();
-                this.set_loop();
+                // this.set_loop();
                 this.render_window();
             }
         };

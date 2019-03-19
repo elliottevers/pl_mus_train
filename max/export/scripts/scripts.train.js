@@ -370,7 +370,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../log/logger":7,"../note/note":10,"../utils/utils":21,"tree-model":26}],2:[function(require,module,exports){
+},{"../log/logger":7,"../note/note":10,"../utils/utils":22,"tree-model":27}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var modes_texture;
@@ -513,7 +513,7 @@ var file;
     };
 })(file = exports.file || (exports.file = {}));
 
-},{"fs":22}],6:[function(require,module,exports){
+},{"fs":23}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -859,7 +859,7 @@ var harmony;
     harmony.Harmony = Harmony;
 })(harmony = exports.harmony || (exports.harmony = {}));
 
-},{"../note/note":10,"tree-model":26,"underscore":27}],10:[function(require,module,exports){
+},{"../note/note":10,"tree-model":27,"underscore":28}],10:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -1026,7 +1026,7 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":26}],11:[function(require,module,exports){
+},{"tree-model":27}],11:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -1214,7 +1214,7 @@ var parse;
     parse.StructParse = StructParse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../note/note":10,"../train/algorithm":18,"../train/iterate":19,"underscore":27}],12:[function(require,module,exports){
+},{"../note/note":10,"../train/algorithm":19,"../train/iterate":20,"underscore":28}],12:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -1540,7 +1540,77 @@ var window;
     window.MatrixWindow = MatrixWindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":1,"../live/live":6,"lodash":24}],13:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":6,"lodash":25}],13:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var scene;
+(function (scene) {
+    var Scene = /** @class */ (function () {
+        function Scene(scene_dao) {
+            this.scene_dao = scene_dao;
+        }
+        Scene.prototype.fire = function (force_legato) {
+            this.scene_dao.fire(force_legato);
+        };
+        return Scene;
+    }());
+    scene.Scene = Scene;
+    var SceneDao = /** @class */ (function () {
+        function SceneDao(live_api) {
+            this.live_api = live_api;
+        }
+        SceneDao.prototype.fire = function (force_legato) {
+            this.live_api.call("fire", force_legato ? 1 : 0);
+        };
+        return SceneDao;
+    }());
+    scene.SceneDao = SceneDao;
+    var SceneIterator = /** @class */ (function () {
+        function SceneIterator(scenes, direction_forward) {
+            this.scenes = scenes;
+            this.direction_forward = direction_forward;
+            this.i = -1;
+        }
+        // TODO: type declarations
+        SceneIterator.prototype.next = function () {
+            var value_increment = (this.direction_forward) ? 1 : -1;
+            this.i += value_increment;
+            if (this.i < 0) {
+                throw 'segment iterator < 0';
+            }
+            if (this.i < this.scenes.length) {
+                return {
+                    value: this.scenes[this.i],
+                    done: false
+                };
+            }
+            else {
+                return {
+                    value: null,
+                    done: true
+                };
+            }
+        };
+        SceneIterator.prototype.current = function () {
+            if (this.i > -1) {
+                return this.scenes[this.i];
+            }
+            else {
+                return null;
+            }
+        };
+        SceneIterator.prototype.reset = function () {
+            this.i = -1;
+        };
+        SceneIterator.prototype.get_index_current = function () {
+            return this.i;
+        };
+        return SceneIterator;
+    }());
+    scene.SceneIterator = SceneIterator;
+})(scene = exports.scene || (exports.scene = {}));
+
+},{}],14:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -1582,6 +1652,9 @@ var Song = song_1.song.Song;
 var SongDao = song_1.song.SongDao;
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
+var scene_1 = require("../scene/scene");
+var SceneDao = scene_1.scene.SceneDao;
+var Scene = scene_1.scene.Scene;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -1671,12 +1744,13 @@ var set_segments = function () {
     var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(live_api, new messenger_1.message.Messenger(env, 0), false));
     // TODO: how do we get beat_start, beat_end?
     var notes_segments = clip.get_notes(0, 0, 17 * 4, 128);
-    // let logger = new Logger(env);
-    // logger.log(JSON.stringify(notes_segments));
     var segments_local = [];
-    for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
-        var note = notes_segments_1[_i];
-        segments_local.push(new Segment(note));
+    for (var i_note in notes_segments) {
+        var note = notes_segments[Number(i_note)];
+        var path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
+        var segment_local = new Segment(note);
+        segment_local.set_scene(new Scene(new SceneDao(new live_1.live.LiveApiJs(path_scene))));
+        segments_local.push(segment_local);
     }
     segments = segments_local;
 };
@@ -1837,7 +1911,7 @@ if (typeof Global !== "undefined") {
     Global.train.set_mode_texture = set_mode_texture;
 }
 
-},{"../clip/clip":1,"../constants/constants":2,"../control/user_input":3,"../live/live":6,"../log/logger":7,"../message/messenger":8,"../note/note":10,"../render/window":12,"../segment/segment":14,"../serialize/serialize":15,"../song/song":16,"../train/algorithm":18,"../train/trainer":20,"../utils/utils":21,"tree-model":26}],14:[function(require,module,exports){
+},{"../clip/clip":1,"../constants/constants":2,"../control/user_input":3,"../live/live":6,"../log/logger":7,"../message/messenger":8,"../note/note":10,"../render/window":12,"../scene/scene":13,"../segment/segment":15,"../serialize/serialize":16,"../song/song":17,"../train/algorithm":19,"../train/trainer":21,"../utils/utils":22,"tree-model":27}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -1865,6 +1939,9 @@ var segment;
         Segment.prototype.set_endpoints_loop = function (beat_start, beat_end) {
             this.clip.set_loop_bracket_upper(beat_end);
             this.clip.set_loop_bracket_lower(beat_start);
+        };
+        Segment.prototype.set_scene = function (scene) {
+            this.scene = scene;
         };
         return Segment;
     }());
@@ -1914,7 +1991,7 @@ var segment;
     segment.SegmentIterator = SegmentIterator;
 })(segment = exports.segment || (exports.segment = {}));
 
-},{"../clip/clip":1,"../live/live":6}],15:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":6}],16:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
@@ -2111,7 +2188,7 @@ var thaw;
     thaw.TrainThawer = TrainThawer;
 })(thaw = exports.thaw || (exports.thaw = {}));
 
-},{"../io/file":5,"../note/note":10,"../train/algorithm":18,"../train/trainer":20,"tree-model":26}],16:[function(require,module,exports){
+},{"../io/file":5,"../note/note":10,"../train/algorithm":19,"../train/trainer":21,"tree-model":27}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var song;
@@ -2126,11 +2203,20 @@ var song;
         Song.prototype.set_overdub = function (int) {
             this.song_dao.set_overdub(int);
         };
+        Song.prototype.set_tempo = function (int) {
+            this.song_dao.set_tempo(int);
+        };
         Song.prototype.start = function () {
             this.song_dao.start();
         };
         Song.prototype.stop = function () {
             this.song_dao.stop();
+        };
+        Song.prototype.get_scenes = function () {
+            return this.song_dao.get_scenes();
+        };
+        Song.prototype.get_num_scenes = function () {
+            return this.get_scenes().length / 2;
         };
         return Song;
     }());
@@ -2147,18 +2233,24 @@ var song;
         SongDao.prototype.set_overdub = function (int) {
             this.clip_live.set("overdub", int);
         };
+        SongDao.prototype.set_tempo = function (int) {
+            this.clip_live.set("tempo", int);
+        };
         SongDao.prototype.start = function () {
             this.clip_live.set("is_playing", 1);
         };
         SongDao.prototype.stop = function () {
             this.clip_live.set("is_playing", 0);
         };
+        SongDao.prototype.get_scenes = function () {
+            return this.clip_live.get("scenes");
+        };
         return SongDao;
     }());
     song.SongDao = SongDao;
 })(song = exports.song || (exports.song = {}));
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {Segment} from "../segment/segment";
@@ -2433,7 +2525,7 @@ var target;
     // }
 })(target = exports.target || (exports.target = {}));
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2660,7 +2752,7 @@ var algorithm;
     algorithm.Derive = Derive;
 })(algorithm = exports.algorithm || (exports.algorithm = {}));
 
-},{"../constants/constants":2,"../music/harmony":9}],19:[function(require,module,exports){
+},{"../constants/constants":2,"../music/harmony":9}],20:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var algorithm_1 = require("./algorithm");
@@ -2874,7 +2966,7 @@ var iterate;
     iterate.IteratorTrainFactory = IteratorTrainFactory;
 })(iterate = exports.iterate || (exports.iterate = {}));
 
-},{"../utils/utils":21,"./algorithm":18}],20:[function(require,module,exports){
+},{"../utils/utils":22,"./algorithm":19}],21:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
@@ -2962,14 +3054,9 @@ var trainer;
         // now we can assume we have a list instead of a matrix
         Trainer.prototype.create_targets = function () {
             this.clip_target.load_notes_within_markers();
-            // let logger = new Logger('max');
             for (var i_segment in this.segments) {
                 var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(this.segments[Number(i_segment)].beat_start, 0, this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start, 128));
-                // logger.log(JSON.stringify(sequence_targets));
-                // logger.log(JSON.stringify(this.clip_target.get_end_marker()));
                 this.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
-                // let logger = new Logger('max');
-                // logger.log(JSON.stringify(sequence_targets));
             }
         };
         Trainer.prototype.clear_window = function () {
@@ -2978,8 +3065,6 @@ var trainer;
         Trainer.prototype.render_window = function () {
             var notes;
             if (this.algorithm.b_targeted()) {
-                // let logger = new Logger('max');
-                // logger.log(JSON.stringify(this.target_current));
                 notes = this.target_current.iterator_subtarget.subtargets.map(function (subtarget) {
                     return subtarget.note;
                 });
@@ -2999,16 +3084,21 @@ var trainer;
                 return;
             }
         };
-        Trainer.prototype.set_loop = function () {
-            var interval = this.segment_current.get_endpoints_loop();
-            this.clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+        // private set_loop() {
+        //     let interval = this.segment_current.get_endpoints_loop();
+        //
+        //     this.clip_user_input.set_endpoints_loop(
+        //         interval[0],
+        //         interval[1]
+        //     )
+        // }
+        Trainer.prototype.advance_scene = function () {
+            this.segment_current.scene.fire(true);
         };
         Trainer.prototype.resume = function () {
             this.algorithm.post_init();
         };
         Trainer.prototype.pause = function () {
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.song));
             this.algorithm.pre_terminate(this.song, this.clip_user_input);
         };
         Trainer.prototype.terminate = function () {
@@ -3035,7 +3125,7 @@ var trainer;
                             var segment_3 = this.segments[Number(i_segment)];
                             this.struct_parse.add([segment_3.get_note()], [0, Number(i_segment)], this.algorithm);
                         }
-                        // make conncetions with root
+                        // make connections with root
                         this.struct_parse.add([Note.from_note_renderable(this.struct_parse.get_root())], [-1], this.algorithm);
                         break;
                     }
@@ -3062,7 +3152,9 @@ var trainer;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
                 this.iterator_subtarget_current.next();
                 this.subtarget_current = this.iterator_subtarget_current.current();
+                // TODO: enforce with code that anytime we move on to next segment, we advance the scene
                 this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+                this.advance_scene();
                 return;
             }
             var target_at_time = this.iterator_target_current.targets;
@@ -3080,7 +3172,9 @@ var trainer;
                     }
                     var coord_next = obj_next_coord.value;
                     this.iterator_target_current = this.matrix_focus[coord_next[0]][coord_next[1]];
+                    // TODO: enforce with code that anytime we move on to next segment, we advance the scene
                     this.segment_current = this.segments[coord_next[1]];
+                    this.advance_scene();
                     var obj_next_target_twice_nested = this.iterator_target_current.next();
                     this.target_current = obj_next_target_twice_nested.value;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
@@ -3095,7 +3189,9 @@ var trainer;
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
+            // TODO: enforce with code that anytime we move on to next segment, we advance the scene
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+            this.advance_scene();
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;
@@ -3113,6 +3209,7 @@ var trainer;
                 // TODO: implement
                 this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
+                this.advance_scene();
                 this.render_window();
                 return;
             }
@@ -3123,7 +3220,7 @@ var trainer;
                     // set the targets and shit
                 }
                 this.advance_subtarget();
-                this.set_loop();
+                // this.set_loop();
                 this.render_window();
             }
         };
@@ -3132,7 +3229,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../history/history":4,"../note/note":10,"../parse/parse":11,"../target/target":17,"./algorithm":18,"./iterate":19,"lodash":24,"tree-model":26,"underscore":27}],21:[function(require,module,exports){
+},{"../history/history":4,"../note/note":10,"../parse/parse":11,"../target/target":18,"./algorithm":19,"./iterate":20,"lodash":25,"tree-model":27,"underscore":28}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
@@ -3178,11 +3275,55 @@ var utils;
         var path_clip = list_path_device.join(' ');
         return path_clip;
     };
+    var Set = /** @class */ (function () {
+        function Set(items) {
+            this.addItem = function (value) {
+                this._data[value] = true;
+                return this;
+            };
+            this.removeItem = function (value) {
+                delete this._data[value];
+                return this;
+            };
+            this.addItems = function (values) {
+                for (var i = 0; i < values.length; i++) {
+                    this.addItem(values[i]);
+                }
+                return this;
+            };
+            this.removeItems = function (values) {
+                for (var i = 0; i < values.length; i++) {
+                    this.removeItem(values[i]);
+                }
+                return this;
+            };
+            this.contains = function (value) {
+                return !!this._data[value];
+            };
+            this.reset = function () {
+                this._data = {};
+                return this;
+            };
+            this.data = function () {
+                return Object.keys(this._data);
+            };
+            this.each = function (callback) {
+                var data = this.data();
+                for (var i = 0; i < data.length; i++) {
+                    callback(data[i]);
+                }
+            };
+            this._data = {};
+            this.addItems(items);
+        }
+        return Set;
+    }());
+    utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],22:[function(require,module,exports){
-
 },{}],23:[function(require,module,exports){
+
+},{}],24:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -3206,7 +3347,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -20317,7 +20458,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -20369,7 +20510,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -20662,7 +20803,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":23,"mergesort":25}],27:[function(require,module,exports){
+},{"find-insert-index":24,"mergesort":26}],28:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -22358,7 +22499,7 @@ module.exports = (function () {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[13]);
+},{}]},{},[14]);
 
 var load = Global.train.load;
 var save = Global.train.save;

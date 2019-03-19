@@ -85,14 +85,9 @@ var trainer;
         // now we can assume we have a list instead of a matrix
         Trainer.prototype.create_targets = function () {
             this.clip_target.load_notes_within_markers();
-            // let logger = new Logger('max');
             for (var i_segment in this.segments) {
                 var sequence_targets = this.algorithm.determine_targets(this.clip_target.get_notes(this.segments[Number(i_segment)].beat_start, 0, this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start, 128));
-                // logger.log(JSON.stringify(sequence_targets));
-                // logger.log(JSON.stringify(this.clip_target.get_end_marker()));
                 this.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
-                // let logger = new Logger('max');
-                // logger.log(JSON.stringify(sequence_targets));
             }
         };
         Trainer.prototype.clear_window = function () {
@@ -101,8 +96,6 @@ var trainer;
         Trainer.prototype.render_window = function () {
             var notes;
             if (this.algorithm.b_targeted()) {
-                // let logger = new Logger('max');
-                // logger.log(JSON.stringify(this.target_current));
                 notes = this.target_current.iterator_subtarget.subtargets.map(function (subtarget) {
                     return subtarget.note;
                 });
@@ -122,16 +115,21 @@ var trainer;
                 return;
             }
         };
-        Trainer.prototype.set_loop = function () {
-            var interval = this.segment_current.get_endpoints_loop();
-            this.clip_user_input.set_endpoints_loop(interval[0], interval[1]);
+        // private set_loop() {
+        //     let interval = this.segment_current.get_endpoints_loop();
+        //
+        //     this.clip_user_input.set_endpoints_loop(
+        //         interval[0],
+        //         interval[1]
+        //     )
+        // }
+        Trainer.prototype.advance_scene = function () {
+            this.segment_current.scene.fire(true);
         };
         Trainer.prototype.resume = function () {
             this.algorithm.post_init();
         };
         Trainer.prototype.pause = function () {
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.song));
             this.algorithm.pre_terminate(this.song, this.clip_user_input);
         };
         Trainer.prototype.terminate = function () {
@@ -158,7 +156,7 @@ var trainer;
                             var segment_3 = this.segments[Number(i_segment)];
                             this.struct_parse.add([segment_3.get_note()], [0, Number(i_segment)], this.algorithm);
                         }
-                        // make conncetions with root
+                        // make connections with root
                         this.struct_parse.add([Note.from_note_renderable(this.struct_parse.get_root())], [-1], this.algorithm);
                         break;
                     }
@@ -185,7 +183,9 @@ var trainer;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
                 this.iterator_subtarget_current.next();
                 this.subtarget_current = this.iterator_subtarget_current.current();
+                // TODO: enforce with code that anytime we move on to next segment, we advance the scene
                 this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+                this.advance_scene();
                 return;
             }
             var target_at_time = this.iterator_target_current.targets;
@@ -203,7 +203,9 @@ var trainer;
                     }
                     var coord_next = obj_next_coord.value;
                     this.iterator_target_current = this.matrix_focus[coord_next[0]][coord_next[1]];
+                    // TODO: enforce with code that anytime we move on to next segment, we advance the scene
                     this.segment_current = this.segments[coord_next[1]];
+                    this.advance_scene();
                     var obj_next_target_twice_nested = this.iterator_target_current.next();
                     this.target_current = obj_next_target_twice_nested.value;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
@@ -218,7 +220,9 @@ var trainer;
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
+            // TODO: enforce with code that anytime we move on to next segment, we advance the scene
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+            this.advance_scene();
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;
@@ -236,6 +240,7 @@ var trainer;
                 // TODO: implement
                 this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
+                this.advance_scene();
                 this.render_window();
                 return;
             }
@@ -246,7 +251,7 @@ var trainer;
                     // set the targets and shit
                 }
                 this.advance_subtarget();
-                this.set_loop();
+                // this.set_loop();
                 this.render_window();
             }
         };
