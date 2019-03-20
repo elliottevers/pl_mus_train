@@ -116,9 +116,6 @@ export namespace parse {
         }
 
         public set_notes(notes: TreeModel.Node<n.Note>[], coord) {
-            let logger = new Logger('max');
-            logger.log('----------set notes------------');
-            logger.log(JSON.stringify(coord));
             this.history.push(coord);
             this.matrix_leaves[coord[0]][coord[1]] = notes.map((note) => {
                 return NoteRenderable.from_note(note, coord)
@@ -158,30 +155,43 @@ export namespace parse {
                     }
 
                     for (let coord_to_grow of coords_notes_previous) {
-                        let notes_below = this.matrix_leaves[coord_to_grow[0]][coord_to_grow[1]];
-                        let notes_children = notes_below;
+
+                        let notes_children = this.matrix_leaves[coord_to_grow[0]][coord_to_grow[1]];
+
                         this.add_layer(
                             notes_user_input_renderable,
                             notes_children,
                             -1
                         );
                     }
+
+                    // remove references to old leaves
+                    for (let coord_notes_previous of coords_notes_previous) {
+                        this.coords_roots = this.coords_roots.filter((x) => {
+                            return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1])
+                        });
+                    }
+
+                    // add references to new leaves
+                    this.coords_roots.push(
+                        coord_notes_current
+                    );
                     break;
                 }
                 case DERIVE: {
-                    // if (coord_notes_current[0] === -1) {
-                    //     this.root = notes_user_input_renderable
-                    // } else {
-                    //     this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
-                    // }
-                    // coord_notes_previous = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
-                    // let notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
-                    // let notes_parent = notes_above;
-                    // this.add_layer(
-                    //     notes_parent,
-                    //     notes_user_input_renderable,
-                    //     -1
-                    // );
+                    let coords_notes_previous = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
+
+                    let notes_parent;
+
+                    for (let coord of coords_notes_previous) {
+                        notes_parent = this.matrix_leaves[coord[0]][coord[1]];
+                    }
+
+                    this.add_layer(
+                        notes_parent,
+                        notes_user_input_renderable,
+                        -1
+                    );
                     break;
                 }
                 default: {
@@ -189,17 +199,20 @@ export namespace parse {
                 }
             }
 
-            // remove references to old leaves
-            for (let coord_notes_previous of coords_notes_previous) {
-                this.coords_roots = this.coords_roots.filter((x) => {
-                    return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1])
-                });
-            }
 
-            // add references to new leaves
-            this.coords_roots.push(
-                coord_notes_current
-            )
+            let logger = new Logger('max');
+            logger.log(JSON.stringify(this.coords_roots));
+            // // remove references to old leaves
+            // for (let coord_notes_previous of coords_notes_previous) {
+            //     this.coords_roots = this.coords_roots.filter((x) => {
+            //         return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1])
+            //     });
+            // }
+            //
+            // // add references to new leaves
+            // this.coords_roots.push(
+            //     coord_notes_current
+            // )
         }
 
         private add_layer(notes_parent: TreeModel.Node<n.NoteRenderable>[], notes_child: TreeModel.Node<n.NoteRenderable>[], index_new_layer: number): void {

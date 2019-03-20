@@ -164,8 +164,6 @@ var window;
             return _super.call(this, height, width, messenger, algorithm) || this;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
-            // let logger = new Logger('node');
-            // logger.log(JSON.stringify(notes_target_current));
             this.clear();
             this.render_regions(iterator_matrix_train, notes_target_current, algorithm, parse_matrix);
             if (algorithm.b_targeted()) {
@@ -188,6 +186,8 @@ var window;
             var color;
             var messages = [];
             var message;
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(parse_matrix));
             for (var _i = 0, _a = parse_matrix.coords_roots; _i < _a.length; _i++) {
                 var coord = _a[_i];
                 var roots_parse_tree = void 0;

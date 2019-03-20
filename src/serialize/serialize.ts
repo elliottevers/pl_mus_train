@@ -164,6 +164,7 @@ export namespace thaw {
                 config['user_input_handler'],
                 config['algorithm'],
                 config['clip_user_input'],
+                config['clip_user_input_synchronous'],
                 config['clip_target'],
                 config['song'],
                 config['segments'],

@@ -127,6 +127,9 @@ var set_clip_user_input = function () {
 var set_segments = function () {
     // TODO: this assumes the trainer device is on the same track as the segmenter
     var notes_segments = segmenter_1.get_notes('this_device');
+    // let logger = new Logger('max');
+    //
+    // logger.log(JSON.stringify(notes_segments));
     var segments_local = [];
     for (var i_note in notes_segments) {
         var note = notes_segments[Number(i_note)];
@@ -149,7 +152,7 @@ var set_target_notes = function () {
 };
 var begin = function () {
     song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
-    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, notes_target, song, segments, new Messenger(env, 0));
+    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, new Messenger(env, 0));
     trainer.init();
     trainer.render_window();
 };
@@ -160,22 +163,24 @@ var resume = function () {
     trainer.resume();
 };
 var user_input_command = function (command) {
+    var logger = new Logger(env);
+    logger.log('user input command....');
     // TODO: there is literally one character difference between the two algorithms - please abstract
     switch (algorithm_train.get_name()) {
         case PARSE: {
             switch (command) {
                 case 'confirm': {
-                    var notes = clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var notes = trainer.clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     trainer.accept_input(notes);
                     break;
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] + 1, coords_current[1]]));
+                    trainer.clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] + 1, coords_current[1]]));
                     break;
                 }
                 case 'erase': {
-                    clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     break;
                 }
                 default: {
@@ -187,19 +192,32 @@ var user_input_command = function (command) {
         case DERIVE: {
             switch (command) {
                 case 'confirm': {
-                    var notes = clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var notes = trainer.clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     trainer.accept_input(notes);
                     break;
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    var logger_2 = new Logger('max');
-                    logger_2.log(JSON.stringify(trainer.history_user_input));
-                    clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]));
+                    var logger_2 = new Logger(env);
+                    logger_2.log(JSON.stringify(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]])));
+                    // logger.log(JSON.stringify(trainer.history_user_input));
+                    var notes = trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]);
+                    // for (let note of notes) {
+                    //     note.model.note.beat_start = 0
+                    // }
+                    trainer.clip_user_input.set_notes(notes);
                     break;
                 }
                 case 'erase': {
-                    clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var logger_3 = new Logger(env);
+                    logger_3.log(JSON.stringify(trainer.segment_current));
+                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    // clip_user_input.remove_notes(
+                    //     0,
+                    //     0,
+                    //     trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                    //     128
+                    // );
                     break;
                 }
                 default: {
@@ -251,7 +269,7 @@ var save = function () {
         'window': window,
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
-        'clip_user_input': clip_user_input,
+        'clip_user_input': trainer.clip_user_input,
         'notes_target': notes_target,
         'song': song,
         'segments': segments,

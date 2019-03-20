@@ -95,9 +95,6 @@ var parse;
             this.root = NoteRenderable.from_note(note, coord_root);
         };
         StructParse.prototype.set_notes = function (notes, coord) {
-            var logger = new Logger('max');
-            logger.log('----------set notes------------');
-            logger.log(JSON.stringify(coord));
             this.history.push(coord);
             this.matrix_leaves[coord[0]][coord[1]] = notes.map(function (note) {
                 return NoteRenderable.from_note(note, coord);
@@ -132,45 +129,51 @@ var parse;
                     }
                     for (var _i = 0, coords_notes_previous_1 = coords_notes_previous; _i < coords_notes_previous_1.length; _i++) {
                         var coord_to_grow = coords_notes_previous_1[_i];
-                        var notes_below = this.matrix_leaves[coord_to_grow[0]][coord_to_grow[1]];
-                        var notes_children = notes_below;
+                        var notes_children = this.matrix_leaves[coord_to_grow[0]][coord_to_grow[1]];
                         this.add_layer(notes_user_input_renderable, notes_children, -1);
                     }
+                    var _loop_1 = function (coord_notes_previous) {
+                        this_1.coords_roots = this_1.coords_roots.filter(function (x) {
+                            return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1]);
+                        });
+                    };
+                    var this_1 = this;
+                    // remove references to old leaves
+                    for (var _a = 0, coords_notes_previous_2 = coords_notes_previous; _a < coords_notes_previous_2.length; _a++) {
+                        var coord_notes_previous = coords_notes_previous_2[_a];
+                        _loop_1(coord_notes_previous);
+                    }
+                    // add references to new leaves
+                    this.coords_roots.push(coord_notes_current);
                     break;
                 }
                 case DERIVE: {
-                    // if (coord_notes_current[0] === -1) {
-                    //     this.root = notes_user_input_renderable
-                    // } else {
-                    //     this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
-                    // }
-                    // coord_notes_previous = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
-                    // let notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
-                    // let notes_parent = notes_above;
-                    // this.add_layer(
-                    //     notes_parent,
-                    //     notes_user_input_renderable,
-                    //     -1
-                    // );
+                    var coords_notes_previous_4 = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
+                    var notes_parent = void 0;
+                    for (var _b = 0, coords_notes_previous_3 = coords_notes_previous_4; _b < coords_notes_previous_3.length; _b++) {
+                        var coord = coords_notes_previous_3[_b];
+                        notes_parent = this.matrix_leaves[coord[0]][coord[1]];
+                    }
+                    this.add_layer(notes_parent, notes_user_input_renderable, -1);
                     break;
                 }
                 default: {
                     throw 'adding notes to parse tree failed';
                 }
             }
-            var _loop_1 = function (coord_notes_previous) {
-                this_1.coords_roots = this_1.coords_roots.filter(function (x) {
-                    return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1]);
-                });
-            };
-            var this_1 = this;
-            // remove references to old leaves
-            for (var _a = 0, coords_notes_previous_2 = coords_notes_previous; _a < coords_notes_previous_2.length; _a++) {
-                var coord_notes_previous = coords_notes_previous_2[_a];
-                _loop_1(coord_notes_previous);
-            }
-            // add references to new leaves
-            this.coords_roots.push(coord_notes_current);
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(this.coords_roots));
+            // // remove references to old leaves
+            // for (let coord_notes_previous of coords_notes_previous) {
+            //     this.coords_roots = this.coords_roots.filter((x) => {
+            //         return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1])
+            //     });
+            // }
+            //
+            // // add references to new leaves
+            // this.coords_roots.push(
+            //     coord_notes_current
+            // )
         };
         StructParse.prototype.add_layer = function (notes_parent, notes_child, index_new_layer) {
             var note_parent_best, b_successful;

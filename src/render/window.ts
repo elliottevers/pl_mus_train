@@ -209,8 +209,7 @@ export namespace window {
         }
 
         public render(iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
-            // let logger = new Logger('node');
-            // logger.log(JSON.stringify(notes_target_current));
+
             this.clear();
 
             this.render_regions(
@@ -226,6 +225,7 @@ export namespace window {
                     null
                 );
             } else {
+
                 this.render_trees(
                     parse_matrix
                 );
@@ -248,6 +248,9 @@ export namespace window {
             let color: number[];
             let messages: any[] = [];
             let message: any[];
+
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(parse_matrix));
 
             for (let coord of parse_matrix.coords_roots) {
                 let roots_parse_tree;

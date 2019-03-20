@@ -1144,9 +1144,6 @@ var parse;
             this.root = NoteRenderable.from_note(note, coord_root);
         };
         StructParse.prototype.set_notes = function (notes, coord) {
-            var logger = new Logger('max');
-            logger.log('----------set notes------------');
-            logger.log(JSON.stringify(coord));
             this.history.push(coord);
             this.matrix_leaves[coord[0]][coord[1]] = notes.map(function (note) {
                 return NoteRenderable.from_note(note, coord);
@@ -1181,45 +1178,51 @@ var parse;
                     }
                     for (var _i = 0, coords_notes_previous_1 = coords_notes_previous; _i < coords_notes_previous_1.length; _i++) {
                         var coord_to_grow = coords_notes_previous_1[_i];
-                        var notes_below = this.matrix_leaves[coord_to_grow[0]][coord_to_grow[1]];
-                        var notes_children = notes_below;
+                        var notes_children = this.matrix_leaves[coord_to_grow[0]][coord_to_grow[1]];
                         this.add_layer(notes_user_input_renderable, notes_children, -1);
                     }
+                    var _loop_1 = function (coord_notes_previous) {
+                        this_1.coords_roots = this_1.coords_roots.filter(function (x) {
+                            return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1]);
+                        });
+                    };
+                    var this_1 = this;
+                    // remove references to old leaves
+                    for (var _a = 0, coords_notes_previous_2 = coords_notes_previous; _a < coords_notes_previous_2.length; _a++) {
+                        var coord_notes_previous = coords_notes_previous_2[_a];
+                        _loop_1(coord_notes_previous);
+                    }
+                    // add references to new leaves
+                    this.coords_roots.push(coord_notes_current);
                     break;
                 }
                 case DERIVE: {
-                    // if (coord_notes_current[0] === -1) {
-                    //     this.root = notes_user_input_renderable
-                    // } else {
-                    //     this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
-                    // }
-                    // coord_notes_previous = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
-                    // let notes_above = this.matrix_leaves[coord_notes_previous[0]][coord_notes_previous[1]];
-                    // let notes_parent = notes_above;
-                    // this.add_layer(
-                    //     notes_parent,
-                    //     notes_user_input_renderable,
-                    //     -1
-                    // );
+                    var coords_notes_previous_4 = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
+                    var notes_parent = void 0;
+                    for (var _b = 0, coords_notes_previous_3 = coords_notes_previous_4; _b < coords_notes_previous_3.length; _b++) {
+                        var coord = coords_notes_previous_3[_b];
+                        notes_parent = this.matrix_leaves[coord[0]][coord[1]];
+                    }
+                    this.add_layer(notes_parent, notes_user_input_renderable, -1);
                     break;
                 }
                 default: {
                     throw 'adding notes to parse tree failed';
                 }
             }
-            var _loop_1 = function (coord_notes_previous) {
-                this_1.coords_roots = this_1.coords_roots.filter(function (x) {
-                    return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1]);
-                });
-            };
-            var this_1 = this;
-            // remove references to old leaves
-            for (var _a = 0, coords_notes_previous_2 = coords_notes_previous; _a < coords_notes_previous_2.length; _a++) {
-                var coord_notes_previous = coords_notes_previous_2[_a];
-                _loop_1(coord_notes_previous);
-            }
-            // add references to new leaves
-            this.coords_roots.push(coord_notes_current);
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(this.coords_roots));
+            // // remove references to old leaves
+            // for (let coord_notes_previous of coords_notes_previous) {
+            //     this.coords_roots = this.coords_roots.filter((x) => {
+            //         return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1])
+            //     });
+            // }
+            //
+            // // add references to new leaves
+            // this.coords_roots.push(
+            //     coord_notes_current
+            // )
         };
         StructParse.prototype.add_layer = function (notes_parent, notes_child, index_new_layer) {
             var note_parent_best, b_successful;
@@ -1406,8 +1409,6 @@ var window;
             return _super.call(this, height, width, messenger, algorithm) || this;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
-            // let logger = new Logger('node');
-            // logger.log(JSON.stringify(notes_target_current));
             this.clear();
             this.render_regions(iterator_matrix_train, notes_target_current, algorithm, parse_matrix);
             if (algorithm.b_targeted()) {
@@ -1430,6 +1431,8 @@ var window;
             var color;
             var messages = [];
             var message;
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(parse_matrix));
             for (var _i = 0, _a = parse_matrix.coords_roots; _i < _a.length; _i++) {
                 var coord = _a[_i];
                 var roots_parse_tree = void 0;
@@ -1907,6 +1910,9 @@ var set_clip_user_input = function () {
 var set_segments = function () {
     // TODO: this assumes the trainer device is on the same track as the segmenter
     var notes_segments = segmenter_1.get_notes('this_device');
+    // let logger = new Logger('max');
+    //
+    // logger.log(JSON.stringify(notes_segments));
     var segments_local = [];
     for (var i_note in notes_segments) {
         var note = notes_segments[Number(i_note)];
@@ -1929,7 +1935,7 @@ var set_target_notes = function () {
 };
 var begin = function () {
     song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
-    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, notes_target, song, segments, new Messenger(env, 0));
+    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, new Messenger(env, 0));
     trainer.init();
     trainer.render_window();
 };
@@ -1940,22 +1946,24 @@ var resume = function () {
     trainer.resume();
 };
 var user_input_command = function (command) {
+    var logger = new Logger(env);
+    logger.log('user input command....');
     // TODO: there is literally one character difference between the two algorithms - please abstract
     switch (algorithm_train.get_name()) {
         case PARSE: {
             switch (command) {
                 case 'confirm': {
-                    var notes = clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var notes = trainer.clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     trainer.accept_input(notes);
                     break;
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] + 1, coords_current[1]]));
+                    trainer.clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] + 1, coords_current[1]]));
                     break;
                 }
                 case 'erase': {
-                    clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     break;
                 }
                 default: {
@@ -1967,19 +1975,32 @@ var user_input_command = function (command) {
         case DERIVE: {
             switch (command) {
                 case 'confirm': {
-                    var notes = clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var notes = trainer.clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     trainer.accept_input(notes);
                     break;
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    var logger_2 = new Logger('max');
-                    logger_2.log(JSON.stringify(trainer.history_user_input));
-                    clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]));
+                    var logger_2 = new Logger(env);
+                    logger_2.log(JSON.stringify(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]])));
+                    // logger.log(JSON.stringify(trainer.history_user_input));
+                    var notes = trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]);
+                    // for (let note of notes) {
+                    //     note.model.note.beat_start = 0
+                    // }
+                    trainer.clip_user_input.set_notes(notes);
                     break;
                 }
                 case 'erase': {
-                    clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var logger_3 = new Logger(env);
+                    logger_3.log(JSON.stringify(trainer.segment_current));
+                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    // clip_user_input.remove_notes(
+                    //     0,
+                    //     0,
+                    //     trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                    //     128
+                    // );
                     break;
                 }
                 default: {
@@ -2031,7 +2052,7 @@ var save = function () {
         'window': window,
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
-        'clip_user_input': clip_user_input,
+        'clip_user_input': trainer.clip_user_input,
         'notes_target': notes_target,
         'song': song,
         'segments': segments,
@@ -2273,7 +2294,7 @@ var thaw;
         TrainThawer.prototype.thaw = function (filepath, config) {
             var trainer;
             var matrix_deserialized = from_json(filepath, config['env']);
-            trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_target'], config['song'], config['segments'], config['messenger']);
+            trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_user_input_synchronous'], config['clip_target'], config['song'], config['segments'], config['messenger']);
             trainer.init(true);
             switch (config['algorithm'].get_name()) {
                 case DETECT: {
@@ -3132,9 +3153,11 @@ var algorithm_1 = require("./algorithm");
 var history_1 = require("../history/history");
 var target_1 = require("../target/target");
 var parse_1 = require("../parse/parse");
+var messenger_1 = require("../message/messenger");
+var clip_1 = require("../clip/clip");
 var iterate_1 = require("./iterate");
-var logger_1 = require("../log/logger");
 var utils_1 = require("../utils/utils");
+var live_1 = require("../live/live");
 var _ = require('underscore');
 var l = require('lodash');
 var trainer;
@@ -3145,16 +3168,20 @@ var trainer;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var DETECT = algorithm_1.algorithm.DETECT;
     var PREDICT = algorithm_1.algorithm.PREDICT;
+    var Messenger = messenger_1.message.Messenger;
+    var Clip = clip_1.clip.Clip;
     var StructParse = parse_1.parse.StructParse;
     var FactoryMatrixTargetIterator = iterate_1.iterate.FactoryMatrixTargetIterator;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var Note = note_1.note.Note;
-    var Logger = logger_1.log.Logger;
+    var ClipDao = clip_1.clip.ClipDao;
+    var LiveApiJs = live_1.live.LiveApiJs;
     var Trainer = /** @class */ (function () {
-        function Trainer(window, user_input_handler, algorithm, clip_user_input, notes_target, song, segments, messenger) {
+        function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, messenger) {
             this.window = window;
             this.algorithm = algorithm;
             this.clip_user_input = clip_user_input;
+            this.clip_user_input_synchronous = clip_user_input_synchronous;
             this.notes_target = notes_target;
             this.song = song;
             this.segments = segments;
@@ -3180,14 +3207,18 @@ var trainer;
                 note: new note_1.note.Note(note_segment_last.model.note.pitch, this.segments[0].get_note().model.note.beat_start, (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - this.segments[0].get_note().model.note.beat_start, note_segment_last.model.note.velocity, note_segment_last.model.note.muted),
                 children: []
             });
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(note_length_full));
             this.struct_parse.set_root(note_length_full);
+            if (this.algorithm.get_name() === DERIVE) {
+                this.struct_parse.coords_roots = [[-1]];
+            }
             // TODO: make the root the length of the entire song
             this.window.add_note_to_clip_root(note_length_full);
             // set first layer, which are the various key center estimates
             for (var i_segment in this.segments) {
                 var segment_1 = this.segments[Number(i_segment)];
+                // let logger = new Logger('max');
+                //
+                // logger.log(JSON.stringify(segment));
                 var note_2 = segment_1.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
                 this.struct_parse.set_notes([note_2], coord_current_virtual);
@@ -3283,8 +3314,26 @@ var trainer;
         //         interval[1]
         //     )
         // }
-        Trainer.prototype.advance_scene = function () {
+        Trainer.prototype.advance_scene = function (first_time) {
             this.segment_current.scene.fire(true);
+            if (first_time) {
+                return;
+            }
+            // clip user input synchronous
+            var list_path_current_s = this.clip_user_input_synchronous.get_path().split(' ');
+            var index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
+            var list_path_next_s = list_path_current_s;
+            list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
+            var clip_user_input_s_next = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
+            this.clip_user_input_synchronous = clip_user_input_s_next;
+            // clip user input deferred
+            var list_path_current = this.clip_user_input.get_path().split(' ');
+            var index_clipslot_current = list_path_current[list_path_current.length - 2];
+            var list_path_next = list_path_current;
+            list_path_next[list_path_next.length - 2] = index_clipslot_current + 1;
+            var clip_user_input_next = new Clip(new ClipDao(new LiveApiJs(list_path_next.join(' ')), new Messenger('max', 0), true, 'clip_user_input'));
+            clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
+            this.clip_user_input = clip_user_input_next;
         };
         Trainer.prototype.resume = function () {
             this.algorithm.post_init();
@@ -3300,13 +3349,13 @@ var trainer;
                 this.advance_subtarget();
             }
             else {
-                this.advance_segment();
+                this.advance_segment(true);
             }
             if (!virtual) {
                 this.algorithm.post_init(this.song, this.clip_user_input);
             }
         };
-        Trainer.prototype.advance_segment = function () {
+        Trainer.prototype.advance_segment = function (first_time) {
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
                 switch (this.algorithm.get_name()) {
@@ -3332,6 +3381,7 @@ var trainer;
             }
             var coord = obj_next_coord.value;
             this.segment_current = this.segments[coord[1]];
+            this.advance_scene(first_time);
         };
         Trainer.prototype.advance_subtarget = function () {
             var have_not_begun = (!this.iterator_matrix_train.b_started);
@@ -3403,7 +3453,7 @@ var trainer;
                 this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
                 this.stream_segment_bounds();
-                this.advance_scene();
+                // this.advance_scene();
                 this.render_window();
                 return;
             }
@@ -3426,7 +3476,6 @@ var trainer;
         Trainer.prototype.stream_subtarget_bounds = function () {
             var ratio_bound_lower = (this.subtarget_current.note.model.note.beat_start - this.segment_current.get_endpoints_loop()[0]) / (this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             var ratio_bound_upper = (this.subtarget_current.note.model.note.get_beat_end() - this.segment_current.get_endpoints_loop()[0]) / (this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
-            // this.messenger.message([ratio_bound_lower/this.segments.length, ratio_bound_upper/this.segments.length])
             this.messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper]);
         };
         Trainer.prototype.stream_segment_bounds = function () {
@@ -3437,7 +3486,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../history/history":4,"../log/logger":7,"../note/note":10,"../parse/parse":11,"../target/target":19,"../utils/utils":23,"./algorithm":20,"./iterate":21,"lodash":26,"tree-model":28,"underscore":29}],23:[function(require,module,exports){
+},{"../clip/clip":1,"../history/history":4,"../live/live":6,"../message/messenger":8,"../note/note":10,"../parse/parse":11,"../target/target":19,"../utils/utils":23,"./algorithm":20,"./iterate":21,"lodash":26,"tree-model":28,"underscore":29}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;

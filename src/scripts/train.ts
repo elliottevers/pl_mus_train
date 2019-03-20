@@ -195,6 +195,10 @@ let set_segments = () => {
     // TODO: this assumes the trainer device is on the same track as the segmenter
     let notes_segments = get_notes('this_device');
 
+    // let logger = new Logger('max');
+    //
+    // logger.log(JSON.stringify(notes_segments));
+
     let segments_local: Segment[] = [];
 
     for (let i_note in notes_segments) {
@@ -253,6 +257,7 @@ let begin = () => {
         user_input_handler,
         algorithm_train,
         clip_user_input,
+        clip_user_input_synchronous,
         notes_target,
         song,
         segments,
@@ -273,12 +278,15 @@ let resume = () => {
 };
 
 let user_input_command = (command: string) => {
+    let logger = new Logger(env);
+
+    logger.log('user input command....');
     // TODO: there is literally one character difference between the two algorithms - please abstract
     switch(algorithm_train.get_name()) {
         case PARSE: {
             switch(command) {
                 case 'confirm': {
-                    let notes = clip_user_input_synchronous.get_notes(
+                    let notes = trainer.clip_user_input_synchronous.get_notes(
                         trainer.segment_current.beat_start,
                         0,
                         trainer.segment_current.beat_end - trainer.segment_current.beat_start,
@@ -292,7 +300,7 @@ let user_input_command = (command: string) => {
                 case 'reset': {
                     let coords_current = trainer.iterator_matrix_train.get_coord_current();
 
-                    clip_user_input.set_notes(
+                    trainer.clip_user_input.set_notes(
                         trainer.history_user_input.get(
                             [coords_current[0] + 1, coords_current[1]]
                         )
@@ -301,7 +309,7 @@ let user_input_command = (command: string) => {
                     break;
                 }
                 case 'erase': {
-                    clip_user_input.remove_notes(
+                    trainer.clip_user_input.remove_notes(
                         trainer.segment_current.beat_start,
                         0,
                         trainer.segment_current.beat_end - trainer.segment_current.beat_start,
@@ -318,7 +326,7 @@ let user_input_command = (command: string) => {
         case DERIVE: {
             switch(command) {
                 case 'confirm': {
-                    let notes = clip_user_input_synchronous.get_notes(
+                    let notes = trainer.clip_user_input_synchronous.get_notes(
                         trainer.segment_current.beat_start,
                         0,
                         trainer.segment_current.beat_end - trainer.segment_current.beat_start,
@@ -332,23 +340,53 @@ let user_input_command = (command: string) => {
                 case 'reset': {
                     let coords_current = trainer.iterator_matrix_train.get_coord_current();
 
-                    let logger = new Logger('max');
-                    logger.log(JSON.stringify(trainer.history_user_input));
-                    clip_user_input.set_notes(
-                        trainer.history_user_input.get(
-                            [coords_current[0] - 1, coords_current[1]]
+                    let logger = new Logger(env);
+
+                    logger.log(
+                        JSON.stringify(
+                            trainer.history_user_input.get(
+                                [coords_current[0] - 1, coords_current[1]]
+                            )
                         )
+                    );
+
+                    // logger.log(JSON.stringify(trainer.history_user_input));
+
+                    let notes = trainer.history_user_input.get(
+                        [coords_current[0] - 1, coords_current[1]]
+                    );
+
+                    // for (let note of notes) {
+                    //     note.model.note.beat_start = 0
+                    // }
+
+                    trainer.clip_user_input.set_notes(
+                        notes
                     );
 
                     break;
                 }
                 case 'erase': {
-                    clip_user_input.remove_notes(
+                    let logger = new Logger(env);
+
+                    logger.log(
+                        JSON.stringify(
+                            trainer.segment_current
+                        )
+                    );
+
+                    trainer.clip_user_input.remove_notes(
                         trainer.segment_current.beat_start,
                         0,
                         trainer.segment_current.beat_end - trainer.segment_current.beat_start,
                         128
                     );
+                    // clip_user_input.remove_notes(
+                    //     0,
+                    //     0,
+                    //     trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                    //     128
+                    // );
                     break;
                 }
                 default: {
@@ -437,7 +475,7 @@ let save = () => {
         'window': window,
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
-        'clip_user_input': clip_user_input,
+        'clip_user_input': trainer.clip_user_input,
         'notes_target': notes_target,
         'song': song,
         'segments': segments,

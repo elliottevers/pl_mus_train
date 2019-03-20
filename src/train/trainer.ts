@@ -12,6 +12,7 @@ import {iterate} from "./iterate";
 import {log} from "../log/logger";
 import {window} from "../render/window";
 import {utils} from "../utils/utils";
+import {live} from "../live/live";
 const _ = require('underscore');
 const l = require('lodash');
 
@@ -36,12 +37,15 @@ export namespace trainer {
     import IteratorTrainFactory = iterate.IteratorTrainFactory;
     import Note = note.Note;
     import Logger = log.Logger;
+    import ClipDao = clip.ClipDao;
+    import LiveApiJs = live.LiveApiJs;
 
     export class Trainer {
 
         private window;
         public algorithm; // TODO: type
-        private clip_user_input: Clip;
+        public clip_user_input: Clip;
+        public clip_user_input_synchronous: Clip;
         // private clip_target: Clip;
         private notes_target: TreeModel.Node<Note>[];
         private song: Song;
@@ -64,10 +68,11 @@ export namespace trainer {
         private iterator_target_current: TargetIterator;
         private iterator_subtarget_current: SubtargetIterator;
 
-        constructor(window, user_input_handler, algorithm, clip_user_input, notes_target, song, segments, messenger) {
+        constructor(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, messenger) {
             this.window = window;
             this.algorithm = algorithm;
             this.clip_user_input = clip_user_input;
+            this.clip_user_input_synchronous = clip_user_input_synchronous;
             this.notes_target = notes_target;
             this.song = song;
             this.segments = segments;
@@ -128,13 +133,13 @@ export namespace trainer {
                 }
             );
 
-            let logger = new Logger('max');
-
-            logger.log(JSON.stringify(note_length_full));
-
             this.struct_parse.set_root(
                 note_length_full
             );
+
+            if (this.algorithm.get_name() === DERIVE) {
+                this.struct_parse.coords_roots = [[-1]];
+            }
 
             // TODO: make the root the length of the entire song
 
@@ -147,6 +152,10 @@ export namespace trainer {
             for (let i_segment in this.segments) {
 
                 let segment = this.segments[Number(i_segment)];
+
+                // let logger = new Logger('max');
+                //
+                // logger.log(JSON.stringify(segment));
 
                 let note = segment.get_note();
 
@@ -279,8 +288,46 @@ export namespace trainer {
         //     )
         // }
 
-        private advance_scene() {
-            this.segment_current.scene.fire(true)
+        private advance_scene(first_time?: boolean) {
+            this.segment_current.scene.fire(true);
+
+            if (first_time) {
+                return
+            }
+
+            // clip user input synchronous
+            let list_path_current_s = this.clip_user_input_synchronous.get_path().split(' ');
+            let index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
+            let list_path_next_s = list_path_current_s;
+            list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
+
+            this.clip_user_input_synchronous = new Clip(
+                new ClipDao(
+                    new LiveApiJs(
+                        list_path_next_s.join(' ')
+                    ),
+                    new Messenger('max', 0)
+                )
+            );
+
+            // clip user input deferred
+            let list_path_current = this.clip_user_input.get_path().split(' ');
+            let index_clipslot_current = list_path_current[list_path_current.length - 2];
+            let list_path_next = list_path_current;
+            list_path_next[list_path_next.length - 2] = index_clipslot_current + 1;
+            let clip_user_input_next = new Clip(
+                new ClipDao(
+                    new LiveApiJs(
+                        list_path_next.join(' ')
+                    ),
+                    new Messenger('max', 0),
+                    true,
+                    'clip_user_input'
+                )
+            );
+            clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
+
+            this.clip_user_input = clip_user_input_next;
         }
 
         public resume() {
@@ -299,7 +346,7 @@ export namespace trainer {
             if (this.algorithm.b_targeted()) {
                 this.advance_subtarget();
             } else {
-                this.advance_segment();
+                this.advance_segment(true);
             }
             if (!virtual) {
                 this.algorithm.post_init(this.song, this.clip_user_input)
@@ -307,7 +354,7 @@ export namespace trainer {
             }
         }
 
-        private advance_segment() {
+        private advance_segment(first_time?: boolean) {
 
             let obj_next_coord = this.iterator_matrix_train.next();
 
@@ -349,6 +396,8 @@ export namespace trainer {
             let coord = obj_next_coord.value;
 
             this.segment_current = this.segments[coord[1]];
+
+            this.advance_scene(first_time);
         }
 
         private advance_subtarget() {
@@ -487,7 +536,7 @@ export namespace trainer {
 
                 this.stream_segment_bounds();
 
-                this.advance_scene();
+                // this.advance_scene();
 
                 this.render_window();
 
@@ -524,7 +573,6 @@ export namespace trainer {
         stream_subtarget_bounds() {
             let ratio_bound_lower = (this.subtarget_current.note.model.note.beat_start - this.segment_current.get_endpoints_loop()[0])/(this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             let ratio_bound_upper = (this.subtarget_current.note.model.note.get_beat_end() - this.segment_current.get_endpoints_loop()[0])/(this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
-            // this.messenger.message([ratio_bound_lower/this.segments.length, ratio_bound_upper/this.segments.length])
             this.messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper])
         }
 
