@@ -137,7 +137,7 @@ export namespace algorithm {
 
         pre_terminate(song, clip_user_input) {
             song.stop();
-            clip_user_input.stop();
+            // clip_user_input.stop();
         }
     }
 
@@ -219,7 +219,7 @@ export namespace algorithm {
 
         pre_terminate(song, clip_user_input) {
             song.stop();
-            clip_user_input.stop();
+            // clip_user_input.stop();
         }
     }
 
@@ -258,7 +258,9 @@ export namespace algorithm {
 
             song.set_session_record(0);
 
-            clip_user_input.stop();
+            song.stop()
+
+            // clip_user_input.stop();
         }
 
         determine_region_present(notes_target_next): number[] {
@@ -300,7 +302,8 @@ export namespace algorithm {
 
             song.set_session_record(0);
 
-            clip_user_input.stop();
+            // clip_user_input.stop();
+            song.stop()
         }
 
         determine_region_present(notes_target_next): number[] {

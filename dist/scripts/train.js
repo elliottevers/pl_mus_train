@@ -32,9 +32,6 @@ var Predict = algorithm_1.algorithm.Predict;
 var Derive = algorithm_1.algorithm.Derive;
 var Parse = algorithm_1.algorithm.Parse;
 var FREESTYLE = algorithm_1.algorithm.FREESTYLE;
-var song_1 = require("../song/song");
-var Song = song_1.song.Song;
-var SongDao = song_1.song.SongDao;
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
 var scene_1 = require("../scene/scene");
@@ -147,11 +144,50 @@ var test = function () {
 var set_target_notes = function () {
     // @ts-ignore
     var list_path_device_target = Array.prototype.slice.call(arguments);
+    var logger = new Logger(env);
+    logger.log(JSON.stringify(list_path_device_target));
+    // let track_target = new li.LiveApiJs(
+    //     list_path_device_target.join(' ')
+    // );
+    // let device_target = new li.LiveApiJs(list_path_device_target);
+    //
+    // let path_device_target = device_target.get_path();
+    //
+    // let list_device_target = path_device_target.split(' ');
+    // let index_track_target = Number(list_this_device[2]);
+    var track_target = new live_1.live.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
+    switch (algorithm_train.get_name()) {
+        case PARSE: {
+            track_target.set("solo", 0);
+            break;
+        }
+        case DERIVE: {
+            track_target.set("solo", 0);
+            break;
+        }
+        default: {
+        }
+    }
     notes_target = segmenter_1.get_notes(list_path_device_target.join(' '));
     messenger_monitor_target.message([list_path_device_target[2]]);
 };
 var begin = function () {
-    song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
+    // song = new Song(
+    //     new SongDao(
+    //         new li.LiveApiJs(
+    //             'live_set',
+    //         ),
+    //         new Messenger(env, 0),
+    //         false
+    //     )
+    // );
+    var messenger_song = new Messenger(env, 0);
+    messenger_song.message(['set_path_song', 'live_set']);
+    var song = {
+        set_overdub: function (int) { messenger_song.message(['song', 'set', 'overdub', String(int)]); },
+        set_session_record: function (int) { messenger_song.message(['song', 'set', 'session_record', String(int)]); },
+        stop: function () { messenger_song.message(['song', 'set', 'is_playing', String(0)]); }
+    };
     trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, new Messenger(env, 0));
     trainer.init();
     trainer.render_window();

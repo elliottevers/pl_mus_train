@@ -254,7 +254,7 @@ var trainer;
             var coord = obj_next_coord.value;
             this.segment_current = this.segments[coord[1]];
             // TODO: PLEASE put back in
-            // this.advance_scene(first_time);
+            this.advance_scene(first_time);
         };
         Trainer.prototype.advance_subtarget = function () {
             var _this = this;
@@ -314,7 +314,7 @@ var trainer;
         Trainer.prototype.handle_boundary_change = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             // TODO: PLEASE put back in
-            // this.advance_scene(first_time);
+            this.advance_scene();
             // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
             // } else {

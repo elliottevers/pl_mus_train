@@ -32,9 +32,6 @@ var Predict = algorithm_1.algorithm.Predict;
 var Derive = algorithm_1.algorithm.Derive;
 var Parse = algorithm_1.algorithm.Parse;
 var FREESTYLE = algorithm_1.algorithm.FREESTYLE;
-var song_1 = require("../song/song");
-var Song = song_1.song.Song;
-var SongDao = song_1.song.SongDao;
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
 var scene_1 = require("../scene/scene");
@@ -46,9 +43,6 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-// let accept = (user_input, ground_truth) => {
-//     messenger.message([FretMapper.get_interval(user_input ,ground_truth)])
-// };
 var logger = new Logger(env);
 var messenger_render = new Messenger(env, 0, 'render');
 var messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
@@ -127,9 +121,6 @@ var set_clip_user_input = function () {
 var set_segments = function () {
     // TODO: this assumes the trainer device is on the same track as the segmenter
     var notes_segments = segmenter_1.get_notes('this_device');
-    // let logger = new Logger('max');
-    //
-    // logger.log(JSON.stringify(notes_segments));
     var segments_local = [];
     for (var i_note in notes_segments) {
         var note = notes_segments[Number(i_note)];
@@ -147,14 +138,14 @@ var test = function () {
 var set_target_notes = function () {
     // @ts-ignore
     var list_path_device_target = Array.prototype.slice.call(arguments);
-    var track_target = new live_1.live.LiveApiJs(list_path_device_target.join(' '));
+    var track_target = new live_1.live.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
     switch (algorithm_train.get_name()) {
         case PARSE: {
-            track_target.set("mute", "1");
+            track_target.set("solo", 0);
             break;
         }
         case DERIVE: {
-            track_target.set("mute", "1");
+            track_target.set("solo", 0);
             break;
         }
         default: {
@@ -164,7 +155,22 @@ var set_target_notes = function () {
     messenger_monitor_target.message([list_path_device_target[2]]);
 };
 var begin = function () {
-    song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
+    // song = new Song(
+    //     new SongDao(
+    //         new li.LiveApiJs(
+    //             'live_set',
+    //         ),
+    //         new Messenger(env, 0),
+    //         false
+    //     )
+    // );
+    var messenger_song = new Messenger(env, 0);
+    messenger_song.message(['set_path_song', 'live_set']);
+    var song = {
+        set_overdub: function (int) { messenger_song.message(['song', 'set', 'overdub', String(int)]); },
+        set_session_record: function (int) { messenger_song.message(['song', 'set', 'session_record', String(int)]); },
+        stop: function () { messenger_song.message(['song', 'set', 'is_playing', String(0)]); }
+    };
     trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, new Messenger(env, 0));
     trainer.init();
     trainer.render_window();
@@ -177,7 +183,7 @@ var resume = function () {
 };
 var user_input_command = function (command) {
     var logger = new Logger(env);
-    logger.log('user input command....');
+    // logger.log('user input command....');
     // TODO: there is literally one character difference between the two algorithms - please abstract
     switch (algorithm_train.get_name()) {
         case PARSE: {
@@ -211,26 +217,14 @@ var user_input_command = function (command) {
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    var logger_2 = new Logger(env);
-                    logger_2.log(JSON.stringify(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]])));
-                    // logger.log(JSON.stringify(trainer.history_user_input));
                     var notes = trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]);
-                    // for (let note of notes) {
-                    //     note.model.note.beat_start = 0
-                    // }
                     trainer.clip_user_input.set_notes(notes);
                     break;
                 }
                 case 'erase': {
-                    var logger_3 = new Logger(env);
-                    logger_3.log(JSON.stringify(trainer.segment_current));
+                    var logger_2 = new Logger(env);
+                    logger_2.log(JSON.stringify(trainer.segment_current));
                     trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
-                    // clip_user_input.remove_notes(
-                    //     0,
-                    //     0,
-                    //     trainer.segment_current.beat_end - trainer.segment_current.beat_start,
-                    //     128
-                    // );
                     break;
                 }
                 default: {

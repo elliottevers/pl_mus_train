@@ -380,7 +380,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../log/logger":7,"../note/note":10,"../utils/utils":23,"tree-model":28}],2:[function(require,module,exports){
+},{"../log/logger":7,"../note/note":10,"../utils/utils":22,"tree-model":27}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var modes_texture;
@@ -418,6 +418,7 @@ var history;
         function HistoryUserInput(matrix) {
             this.matrix_data = matrix;
         }
+        // TODO: does this only work for parsing/deriving?
         HistoryUserInput.prototype.add = function (struct, coord) {
             this.matrix_data[coord[0]][coord[1]] = struct;
         };
@@ -523,7 +524,7 @@ var file;
     };
 })(file = exports.file || (exports.file = {}));
 
-},{"fs":24}],6:[function(require,module,exports){
+},{"fs":23}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -879,7 +880,7 @@ var harmony;
     harmony.Harmony = Harmony;
 })(harmony = exports.harmony || (exports.harmony = {}));
 
-},{"../note/note":10,"tree-model":28,"underscore":29}],10:[function(require,module,exports){
+},{"../note/note":10,"tree-model":27,"underscore":28}],10:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -1046,7 +1047,7 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":28}],11:[function(require,module,exports){
+},{"tree-model":27}],11:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -1063,7 +1064,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
-var logger_1 = require("../log/logger");
 var algorithm_1 = require("../train/algorithm");
 var iterate_1 = require("../train/iterate");
 var _ = require("underscore");
@@ -1073,7 +1073,6 @@ var parse;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var NoteRenderable = note_1.note.NoteRenderable;
-    var Logger = logger_1.log.Logger;
     var ParseTree = /** @class */ (function () {
         function ParseTree() {
         }
@@ -1197,11 +1196,23 @@ var parse;
                     break;
                 }
                 case DERIVE: {
-                    var coords_notes_previous_4 = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
+                    // if (coord_notes_current[0] === -1) {
+                    //     for (let i in this.matrix_leaves[0]) {
+                    //         coords_notes_previous.push([0, Number(i)])
+                    //     }
+                    // } else {
+                    //     coords_notes_previous = MatrixIterator.get_coords_below([coord_notes_current[0], coord_notes_current[1]]);
+                    // }
+                    coords_notes_previous = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
                     var notes_parent = void 0;
-                    for (var _b = 0, coords_notes_previous_3 = coords_notes_previous_4; _b < coords_notes_previous_3.length; _b++) {
+                    for (var _b = 0, coords_notes_previous_3 = coords_notes_previous; _b < coords_notes_previous_3.length; _b++) {
                         var coord = coords_notes_previous_3[_b];
-                        notes_parent = this.matrix_leaves[coord[0]][coord[1]];
+                        if (coord[0] === -1) {
+                            notes_parent = [this.root];
+                        }
+                        else {
+                            notes_parent = this.matrix_leaves[coord[0]][coord[1]];
+                        }
                     }
                     this.add_layer(notes_parent, notes_user_input_renderable, -1);
                     break;
@@ -1210,8 +1221,8 @@ var parse;
                     throw 'adding notes to parse tree failed';
                 }
             }
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(this.coords_roots));
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.coords_roots));
             // // remove references to old leaves
             // for (let coord_notes_previous of coords_notes_previous) {
             //     this.coords_roots = this.coords_roots.filter((x) => {
@@ -1242,7 +1253,7 @@ var parse;
     parse.StructParse = StructParse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../log/logger":7,"../note/note":10,"../train/algorithm":20,"../train/iterate":21,"underscore":29}],12:[function(require,module,exports){
+},{"../note/note":10,"../train/algorithm":19,"../train/iterate":20,"underscore":28}],12:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -1568,7 +1579,7 @@ var window;
     window.MatrixWindow = MatrixWindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":1,"../live/live":6,"lodash":26}],13:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":6,"lodash":25}],13:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var scene;
@@ -1780,7 +1791,7 @@ if (typeof Global !== "undefined") {
     Global.segmenter.set_length_beats = set_length_beats;
 }
 
-},{"../clip/clip":1,"../live/live":6,"../log/logger":7,"../message/messenger":8,"../segment/segment":16,"underscore":29}],15:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":6,"../log/logger":7,"../message/messenger":8,"../segment/segment":16,"underscore":28}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -1815,9 +1826,6 @@ var Predict = algorithm_1.algorithm.Predict;
 var Derive = algorithm_1.algorithm.Derive;
 var Parse = algorithm_1.algorithm.Parse;
 var FREESTYLE = algorithm_1.algorithm.FREESTYLE;
-var song_1 = require("../song/song");
-var Song = song_1.song.Song;
-var SongDao = song_1.song.SongDao;
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
 var scene_1 = require("../scene/scene");
@@ -1930,11 +1938,50 @@ var test = function () {
 var set_target_notes = function () {
     // @ts-ignore
     var list_path_device_target = Array.prototype.slice.call(arguments);
+    var logger = new Logger(env);
+    logger.log(JSON.stringify(list_path_device_target));
+    // let track_target = new li.LiveApiJs(
+    //     list_path_device_target.join(' ')
+    // );
+    // let device_target = new li.LiveApiJs(list_path_device_target);
+    //
+    // let path_device_target = device_target.get_path();
+    //
+    // let list_device_target = path_device_target.split(' ');
+    // let index_track_target = Number(list_this_device[2]);
+    var track_target = new live_1.live.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
+    switch (algorithm_train.get_name()) {
+        case PARSE: {
+            track_target.set("solo", 0);
+            break;
+        }
+        case DERIVE: {
+            track_target.set("solo", 0);
+            break;
+        }
+        default: {
+        }
+    }
     notes_target = segmenter_1.get_notes(list_path_device_target.join(' '));
     messenger_monitor_target.message([list_path_device_target[2]]);
 };
 var begin = function () {
-    song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
+    // song = new Song(
+    //     new SongDao(
+    //         new li.LiveApiJs(
+    //             'live_set',
+    //         ),
+    //         new Messenger(env, 0),
+    //         false
+    //     )
+    // );
+    var messenger_song = new Messenger(env, 0);
+    messenger_song.message(['set_path_song', 'live_set']);
+    var song = {
+        set_overdub: function (int) { messenger_song.message(['song', 'set', 'overdub', String(int)]); },
+        set_session_record: function (int) { messenger_song.message(['song', 'set', 'session_record', String(int)]); },
+        stop: function () { messenger_song.message(['song', 'set', 'is_playing', String(0)]); }
+    };
     trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, new Messenger(env, 0));
     trainer.init();
     trainer.render_window();
@@ -2081,7 +2128,7 @@ if (typeof Global !== "undefined") {
     Global.train.set_mode_texture = set_mode_texture;
 }
 
-},{"../clip/clip":1,"../constants/constants":2,"../control/user_input":3,"../live/live":6,"../log/logger":7,"../message/messenger":8,"../note/note":10,"../render/window":12,"../scene/scene":13,"../segment/segment":16,"../serialize/serialize":17,"../song/song":18,"../train/algorithm":20,"../train/trainer":22,"./segmenter":14,"tree-model":28}],16:[function(require,module,exports){
+},{"../clip/clip":1,"../constants/constants":2,"../control/user_input":3,"../live/live":6,"../log/logger":7,"../message/messenger":8,"../note/note":10,"../render/window":12,"../scene/scene":13,"../segment/segment":16,"../serialize/serialize":17,"../train/algorithm":19,"../train/trainer":21,"./segmenter":14,"tree-model":27}],16:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -2358,69 +2405,7 @@ var thaw;
     thaw.TrainThawer = TrainThawer;
 })(thaw = exports.thaw || (exports.thaw = {}));
 
-},{"../io/file":5,"../note/note":10,"../train/algorithm":20,"../train/trainer":22,"tree-model":28}],18:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var song;
-(function (song) {
-    var Song = /** @class */ (function () {
-        function Song(song_dao) {
-            this.song_dao = song_dao;
-        }
-        Song.prototype.set_session_record = function (int) {
-            this.song_dao.set_session_record(int);
-        };
-        Song.prototype.set_overdub = function (int) {
-            this.song_dao.set_overdub(int);
-        };
-        Song.prototype.set_tempo = function (int) {
-            this.song_dao.set_tempo(int);
-        };
-        Song.prototype.start = function () {
-            this.song_dao.start();
-        };
-        Song.prototype.stop = function () {
-            this.song_dao.stop();
-        };
-        Song.prototype.get_scenes = function () {
-            return this.song_dao.get_scenes();
-        };
-        Song.prototype.get_num_scenes = function () {
-            return this.get_scenes().length / 2;
-        };
-        return Song;
-    }());
-    song.Song = Song;
-    var SongDao = /** @class */ (function () {
-        function SongDao(clip_live, messenger, deferlow) {
-            this.clip_live = clip_live;
-            this.messenger = messenger;
-            this.deferlow = deferlow;
-        }
-        SongDao.prototype.set_session_record = function (int) {
-            this.clip_live.set("session_record", int);
-        };
-        SongDao.prototype.set_overdub = function (int) {
-            this.clip_live.set("overdub", int);
-        };
-        SongDao.prototype.set_tempo = function (int) {
-            this.clip_live.set("tempo", int);
-        };
-        SongDao.prototype.start = function () {
-            this.clip_live.set("is_playing", 1);
-        };
-        SongDao.prototype.stop = function () {
-            this.clip_live.set("is_playing", 0);
-        };
-        SongDao.prototype.get_scenes = function () {
-            return this.clip_live.get("scenes");
-        };
-        return SongDao;
-    }());
-    song.SongDao = SongDao;
-})(song = exports.song || (exports.song = {}));
-
-},{}],19:[function(require,module,exports){
+},{"../io/file":5,"../note/note":10,"../train/algorithm":19,"../train/trainer":21,"tree-model":27}],18:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {Segment} from "../segment/segment";
@@ -2695,7 +2680,7 @@ var target;
     // }
 })(target = exports.target || (exports.target = {}));
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2752,32 +2737,28 @@ var algorithm;
         Detect.prototype.get_name = function () {
             return algorithm.DETECT;
         };
+        Detect.prototype.postprocess_subtarget = function (note_subtarget) {
+            return note_subtarget;
+        };
         Detect.prototype.determine_targets = function (notes_segment_next) {
             var targets;
             switch (this.user_input_handler.mode_texture) {
-                // case POLYPHONY: {
-                //     let chords_grouped: TypeTarget[] = Harmony.group(
-                //         notes_segment_next
-                //     );
-                //
-                //     let chords_monophonified: TypeTarget[] = [];
-                //
-                //     for (let chord of chords_grouped) {
-                //         let notes_monophonified: TypeTarget = Harmony.monophonify(
-                //             chord
-                //         );
-                //
-                //         chords_monophonified.push(notes_monophonified)
-                //     }
-                //
-                //     targets = chords_monophonified;
-                //
-                //     break;
-                // }
+                // TODO: we should never have to use this, but I'm keeping it for the original test cases
+                case POLYPHONY: {
+                    var chords_grouped = Harmony.group(notes_segment_next);
+                    var chords_monophonified = [];
+                    for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
+                        var chord = chords_grouped_1[_i];
+                        var notes_monophonified = Harmony.monophonify(chord);
+                        chords_monophonified.push(notes_monophonified);
+                    }
+                    targets = chords_monophonified;
+                    break;
+                }
                 case MONOPHONY: {
                     var notes_grouped_trivial = [];
-                    for (var _i = 0, notes_segment_next_1 = notes_segment_next; _i < notes_segment_next_1.length; _i++) {
-                        var note = notes_segment_next_1[_i];
+                    for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
+                        var note = notes_segment_next_1[_a];
                         notes_grouped_trivial.push([note]);
                     }
                     targets = notes_grouped_trivial;
@@ -2802,7 +2783,7 @@ var algorithm;
         };
         Detect.prototype.pre_terminate = function (song, clip_user_input) {
             song.stop();
-            clip_user_input.stop();
+            // clip_user_input.stop();
         };
         return Detect;
     }(Targeted));
@@ -2818,15 +2799,27 @@ var algorithm;
         Predict.prototype.get_depth = function () {
             return 1;
         };
+        Predict.prototype.postprocess_subtarget = function (note_subtarget) {
+            // return notes_segment.map((note) => {
+            //     let note_processed = note;
+            //     if (note_processed.model.note.beat_start === note_subtarget.model.note.beat_start && note_processed.model.note.get_beat_end() === note_subtarget.model.note.get_beat_end()) {
+            //         note_processed.model.note.muted = 1
+            //     }
+            //     return note_processed
+            // });
+            note_subtarget.model.note.muted = 1;
+            return note_subtarget;
+        };
         Predict.prototype.determine_targets = function (notes_segment_next) {
             if (this.user_input_handler.mode_texture === POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
                 var chords_monophonified = [];
-                for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
-                    var note_group = chords_grouped_1[_i];
+                for (var _i = 0, chords_grouped_2 = chords_grouped; _i < chords_grouped_2.length; _i++) {
+                    var note_group = chords_grouped_2[_i];
                     chords_monophonified.push(Harmony.monophonify(note_group));
                 }
-                return chords_monophonified;
+                // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
+                return [chords_monophonified[chords_monophonified.length / 2]];
             }
             else if (this.user_input_handler.mode_texture === MONOPHONY) {
                 var notes_grouped_trivial = [];
@@ -2834,7 +2827,10 @@ var algorithm;
                     var note = notes_segment_next_2[_a];
                     notes_grouped_trivial.push([note]);
                 }
-                return notes_grouped_trivial;
+                // return notes_grouped_trivial
+                // TODO: let's put more weight towards the center of the measure
+                // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
+                return [notes_grouped_trivial[notes_grouped_trivial.length / 2]];
             }
             else {
                 throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
@@ -2853,7 +2849,7 @@ var algorithm;
         };
         Predict.prototype.pre_terminate = function (song, clip_user_input) {
             song.stop();
-            clip_user_input.stop();
+            // clip_user_input.stop();
         };
         return Predict;
     }(Targeted));
@@ -2882,7 +2878,8 @@ var algorithm;
         Parse.prototype.pre_terminate = function (song, clip_user_input) {
             song.set_overdub(0);
             song.set_session_record(0);
-            clip_user_input.stop();
+            song.stop();
+            // clip_user_input.stop();
         };
         Parse.prototype.determine_region_present = function (notes_target_next) {
             return [
@@ -2917,7 +2914,8 @@ var algorithm;
         Derive.prototype.pre_terminate = function (song, clip_user_input) {
             song.set_overdub(0);
             song.set_session_record(0);
-            clip_user_input.stop();
+            // clip_user_input.stop();
+            song.stop();
         };
         Derive.prototype.determine_region_present = function (notes_target_next) {
             return [
@@ -2930,7 +2928,7 @@ var algorithm;
     algorithm.Derive = Derive;
 })(algorithm = exports.algorithm || (exports.algorithm = {}));
 
-},{"../constants/constants":2,"../music/harmony":9}],21:[function(require,module,exports){
+},{"../constants/constants":2,"../music/harmony":9}],20:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var algorithm_1 = require("./algorithm");
@@ -3055,7 +3053,13 @@ var iterate;
             return [pos_row, pos_column];
         };
         MatrixIterator.get_coords_above = function (coord) {
-            return [[coord[0] - 1, coord[1]]];
+            if (coord[0] === 0) {
+                return [[-1]];
+            }
+            else {
+                return [[coord[0] - 1, coord[1]]];
+            }
+            // return [[coord[0] - 1, coord[1]]]
         };
         MatrixIterator.get_coords_below = function (coord) {
             return [[coord[0] + 1, coord[1]]];
@@ -3144,7 +3148,7 @@ var iterate;
     iterate.IteratorTrainFactory = IteratorTrainFactory;
 })(iterate = exports.iterate || (exports.iterate = {}));
 
-},{"../utils/utils":23,"./algorithm":20}],22:[function(require,module,exports){
+},{"../utils/utils":22,"./algorithm":19}],21:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
@@ -3221,7 +3225,16 @@ var trainer;
                 // logger.log(JSON.stringify(segment));
                 var note_2 = segment_1.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
-                this.struct_parse.set_notes([note_2], coord_current_virtual);
+                switch (this.algorithm.get_name()) {
+                    case DERIVE: {
+                        this.struct_parse.add([note_2], coord_current_virtual, this.algorithm);
+                        break;
+                    }
+                    case PARSE: {
+                        this.struct_parse.set_notes([note_2], coord_current_virtual);
+                        break;
+                    }
+                }
                 this.window.add_notes_to_clip([note_2], coord_current_virtual);
                 this.history_user_input.add([note_2], coord_current_virtual);
                 this.stream_segment_bounds();
@@ -3266,6 +3279,7 @@ var trainer;
             // this.clip_target.load_notes_within_markers();
             var _loop_2 = function (i_segment) {
                 var segment_3 = this_2.segments[Number(i_segment)];
+                var notes_in_segment = this_2.notes_target.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
                 var sequence_targets = this_2.algorithm.determine_targets(
                 // this.clip_target.get_notes(
                 //     this.segments[Number(i_segment)].beat_start,
@@ -3273,7 +3287,16 @@ var trainer;
                 //     this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start,
                 //     128
                 // )
-                this_2.notes_target.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; }));
+                notes_in_segment);
+                for (var _i = 0, sequence_targets_1 = sequence_targets; _i < sequence_targets_1.length; _i++) {
+                    var target_3 = sequence_targets_1[_i];
+                    for (var _a = 0, target_2 = target_3; _a < target_2.length; _a++) {
+                        var subtarget = target_2[_a];
+                        var subtarget_processed = this_2.algorithm.postprocess_subtarget(subtarget);
+                        this_2.clip_user_input.remove_notes(subtarget_processed.model.note.beat_start, 0, subtarget_processed.model.note.get_beat_end(), 128);
+                        this_2.clip_user_input.set_notes([subtarget_processed]);
+                    }
+                }
                 this_2.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             };
             var this_2 = this;
@@ -3285,15 +3308,16 @@ var trainer;
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            var notes;
+            var notes = [];
             if (this.algorithm.b_targeted()) {
                 notes = this.target_current.iterator_subtarget.subtargets.map(function (subtarget) {
                     return subtarget.note;
                 });
             }
-            else {
-                notes = [this.segment_current.get_note()];
-            }
+            // } else {
+            //     // notes = [this.segment_current.get_note()]
+            //     notes = []
+            // }
             this.window.render(this.iterator_matrix_train, notes, this.algorithm, this.struct_parse);
         };
         Trainer.prototype.reset_user_input = function () {
@@ -3324,8 +3348,7 @@ var trainer;
             var index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
             var list_path_next_s = list_path_current_s;
             list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
-            var clip_user_input_s_next = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
-            this.clip_user_input_synchronous = clip_user_input_s_next;
+            this.clip_user_input_synchronous = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
             // clip user input deferred
             var list_path_current = this.clip_user_input.get_path().split(' ');
             var index_clipslot_current = list_path_current[list_path_current.length - 2];
@@ -3381,9 +3404,11 @@ var trainer;
             }
             var coord = obj_next_coord.value;
             this.segment_current = this.segments[coord[1]];
+            // TODO: PLEASE put back in
             this.advance_scene(first_time);
         };
         Trainer.prototype.advance_subtarget = function () {
+            var _this = this;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {
                 this.iterator_matrix_train.next();
@@ -3396,16 +3421,26 @@ var trainer;
                 this.handle_boundary_change();
                 return;
             }
-            var target_at_time = this.iterator_target_current.targets;
+            var notes_in_segment_at_time = this.notes_target.filter(function (node) { return node.model.note.beat_start >= _this.segment_current.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= _this.segment_current.get_endpoints_loop()[1]; });
+            var targets_at_time = this.iterator_target_current.targets;
             var coord_at_time = this.iterator_matrix_train.get_coord_current();
             var obj_next_subtarget = this.iterator_subtarget_current.next();
             if (obj_next_subtarget.done) {
                 var obj_next_target = this.iterator_target_current.next();
                 if (obj_next_target.done) {
                     var obj_next_coord = this.iterator_matrix_train.next();
-                    this.history_user_input.add(target_at_time, coord_at_time);
+                    // TODO: can we add all notes in segment for predict here?
+                    var notes_to_add_to_history = [];
+                    if (this.algorithm.get_name() === PREDICT) {
+                        notes_to_add_to_history = notes_in_segment_at_time;
+                    }
+                    else {
+                        notes_to_add_to_history = targets_at_time;
+                    }
+                    this.history_user_input.add(notes_to_add_to_history, coord_at_time);
                     if (obj_next_coord.done) {
-                        this.history_user_input.add(target_at_time, coord_at_time);
+                        // TODO: can we add all notes in segment for predict here?
+                        this.history_user_input.add(notes_to_add_to_history, coord_at_time);
                         this.algorithm.pre_terminate();
                         return;
                     }
@@ -3429,6 +3464,7 @@ var trainer;
         };
         Trainer.prototype.handle_boundary_change = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+            // TODO: PLEASE put back in
             this.advance_scene();
             // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
@@ -3453,7 +3489,6 @@ var trainer;
                 this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
                 this.stream_segment_bounds();
-                // this.advance_scene();
                 this.render_window();
                 return;
             }
@@ -3486,7 +3521,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../clip/clip":1,"../history/history":4,"../live/live":6,"../message/messenger":8,"../note/note":10,"../parse/parse":11,"../target/target":19,"../utils/utils":23,"./algorithm":20,"./iterate":21,"lodash":26,"tree-model":28,"underscore":29}],23:[function(require,module,exports){
+},{"../clip/clip":1,"../history/history":4,"../live/live":6,"../message/messenger":8,"../note/note":10,"../parse/parse":11,"../target/target":18,"../utils/utils":22,"./algorithm":19,"./iterate":20,"lodash":25,"tree-model":27,"underscore":28}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
@@ -3578,9 +3613,9 @@ var utils;
     utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 
-},{}],25:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -3604,7 +3639,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -20715,7 +20750,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -20767,7 +20802,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -21060,7 +21095,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":25,"mergesort":27}],29:[function(require,module,exports){
+},{"find-insert-index":24,"mergesort":26}],28:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org

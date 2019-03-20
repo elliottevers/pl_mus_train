@@ -65,9 +65,6 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-// let accept = (user_input, ground_truth) => {
-//     messenger.message([FretMapper.get_interval(user_input ,ground_truth)])
-// };
 let logger = new Logger(env);
 let messenger_render = new Messenger(env, 0, 'render');
 let messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
@@ -195,10 +192,6 @@ let set_segments = () => {
     // TODO: this assumes the trainer device is on the same track as the segmenter
     let notes_segments = get_notes('this_device');
 
-    // let logger = new Logger('max');
-    //
-    // logger.log(JSON.stringify(notes_segments));
-
     let segments_local: Segment[] = [];
 
     for (let i_note in notes_segments) {
@@ -236,17 +229,15 @@ let set_target_notes = () => {
     // @ts-ignore
     let list_path_device_target = Array.prototype.slice.call(arguments);
 
-    let track_target = new li.LiveApiJs(
-        list_path_device_target.join(' ')
-    );
+    let track_target = new li.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
 
     switch(algorithm_train.get_name()) {
         case PARSE: {
-            track_target.set("mute", "1");
+            track_target.set("solo", 0);
             break;
         }
         case DERIVE: {
-            track_target.set("mute", "1");
+            track_target.set("solo", 0);
             break
         }
         default: {
@@ -260,15 +251,25 @@ let set_target_notes = () => {
 };
 
 let begin = () => {
-    song = new Song(
-        new SongDao(
-            new li.LiveApiJs(
-                'live_set',
-            ),
-            new Messenger(env, 0),
-            false
-        )
-    );
+    // song = new Song(
+    //     new SongDao(
+    //         new li.LiveApiJs(
+    //             'live_set',
+    //         ),
+    //         new Messenger(env, 0),
+    //         false
+    //     )
+    // );
+
+    let messenger_song = new Messenger(env, 0);
+
+    messenger_song.message(['set_path_song', 'live_set']);
+
+    let song = {
+        set_overdub: (int) => {messenger_song.message(['song', 'set', 'overdub', String(int)])},
+        set_session_record: (int) => {messenger_song.message(['song', 'set', 'session_record', String(int)])},
+        stop: () => {messenger_song.message(['song', 'set', 'is_playing', String(0)])}
+    };
 
     trainer = new Trainer(
         window,
@@ -298,7 +299,7 @@ let resume = () => {
 let user_input_command = (command: string) => {
     let logger = new Logger(env);
 
-    logger.log('user input command....');
+    // logger.log('user input command....');
     // TODO: there is literally one character difference between the two algorithms - please abstract
     switch(algorithm_train.get_name()) {
         case PARSE: {
@@ -358,25 +359,9 @@ let user_input_command = (command: string) => {
                 case 'reset': {
                     let coords_current = trainer.iterator_matrix_train.get_coord_current();
 
-                    let logger = new Logger(env);
-
-                    logger.log(
-                        JSON.stringify(
-                            trainer.history_user_input.get(
-                                [coords_current[0] - 1, coords_current[1]]
-                            )
-                        )
-                    );
-
-                    // logger.log(JSON.stringify(trainer.history_user_input));
-
                     let notes = trainer.history_user_input.get(
                         [coords_current[0] - 1, coords_current[1]]
                     );
-
-                    // for (let note of notes) {
-                    //     note.model.note.beat_start = 0
-                    // }
 
                     trainer.clip_user_input.set_notes(
                         notes
@@ -399,12 +384,6 @@ let user_input_command = (command: string) => {
                         trainer.segment_current.beat_end - trainer.segment_current.beat_start,
                         128
                     );
-                    // clip_user_input.remove_notes(
-                    //     0,
-                    //     0,
-                    //     trainer.segment_current.beat_end - trainer.segment_current.beat_start,
-                    //     128
-                    // );
                     break;
                 }
                 default: {

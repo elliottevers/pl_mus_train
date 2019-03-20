@@ -48,7 +48,7 @@ export namespace trainer {
         public clip_user_input_synchronous: Clip;
         // private clip_target: Clip;
         private notes_target: TreeModel.Node<Note>[];
-        private song: Song;
+        private song;
         private segments: Segment[];
         private messenger: Messenger;
 
@@ -439,7 +439,7 @@ export namespace trainer {
             this.segment_current = this.segments[coord[1]];
 
             // TODO: PLEASE put back in
-            // this.advance_scene(first_time);
+            this.advance_scene(first_time);
         }
 
         private advance_subtarget() {
@@ -548,7 +548,7 @@ export namespace trainer {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
 
             // TODO: PLEASE put back in
-            // this.advance_scene(first_time);
+            this.advance_scene();
 
             // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();

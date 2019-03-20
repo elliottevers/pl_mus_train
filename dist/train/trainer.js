@@ -74,7 +74,16 @@ var trainer;
                 // logger.log(JSON.stringify(segment));
                 var note_2 = segment_1.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
-                this.struct_parse.set_notes([note_2], coord_current_virtual);
+                switch (this.algorithm.get_name()) {
+                    case DERIVE: {
+                        this.struct_parse.add([note_2], coord_current_virtual, this.algorithm);
+                        break;
+                    }
+                    case PARSE: {
+                        this.struct_parse.set_notes([note_2], coord_current_virtual);
+                        break;
+                    }
+                }
                 this.window.add_notes_to_clip([note_2], coord_current_virtual);
                 this.history_user_input.add([note_2], coord_current_virtual);
                 this.stream_segment_bounds();
@@ -119,6 +128,7 @@ var trainer;
             // this.clip_target.load_notes_within_markers();
             var _loop_2 = function (i_segment) {
                 var segment_3 = this_2.segments[Number(i_segment)];
+                var notes_in_segment = this_2.notes_target.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
                 var sequence_targets = this_2.algorithm.determine_targets(
                 // this.clip_target.get_notes(
                 //     this.segments[Number(i_segment)].beat_start,
@@ -126,7 +136,16 @@ var trainer;
                 //     this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start,
                 //     128
                 // )
-                this_2.notes_target.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; }));
+                notes_in_segment);
+                for (var _i = 0, sequence_targets_1 = sequence_targets; _i < sequence_targets_1.length; _i++) {
+                    var target_3 = sequence_targets_1[_i];
+                    for (var _a = 0, target_2 = target_3; _a < target_2.length; _a++) {
+                        var subtarget = target_2[_a];
+                        var subtarget_processed = this_2.algorithm.postprocess_subtarget(subtarget);
+                        this_2.clip_user_input.remove_notes(subtarget_processed.model.note.beat_start, 0, subtarget_processed.model.note.get_beat_end(), 128);
+                        this_2.clip_user_input.set_notes([subtarget_processed]);
+                    }
+                }
                 this_2.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             };
             var this_2 = this;
@@ -138,15 +157,16 @@ var trainer;
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            var notes;
+            var notes = [];
             if (this.algorithm.b_targeted()) {
                 notes = this.target_current.iterator_subtarget.subtargets.map(function (subtarget) {
                     return subtarget.note;
                 });
             }
-            else {
-                notes = [this.segment_current.get_note()];
-            }
+            // } else {
+            //     // notes = [this.segment_current.get_note()]
+            //     notes = []
+            // }
             this.window.render(this.iterator_matrix_train, notes, this.algorithm, this.struct_parse);
         };
         Trainer.prototype.reset_user_input = function () {
@@ -177,8 +197,7 @@ var trainer;
             var index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
             var list_path_next_s = list_path_current_s;
             list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
-            var clip_user_input_s_next = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
-            this.clip_user_input_synchronous = clip_user_input_s_next;
+            this.clip_user_input_synchronous = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
             // clip user input deferred
             var list_path_current = this.clip_user_input.get_path().split(' ');
             var index_clipslot_current = list_path_current[list_path_current.length - 2];
@@ -234,9 +253,11 @@ var trainer;
             }
             var coord = obj_next_coord.value;
             this.segment_current = this.segments[coord[1]];
+            // TODO: PLEASE put back in
             this.advance_scene(first_time);
         };
         Trainer.prototype.advance_subtarget = function () {
+            var _this = this;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {
                 this.iterator_matrix_train.next();
@@ -249,16 +270,26 @@ var trainer;
                 this.handle_boundary_change();
                 return;
             }
-            var target_at_time = this.iterator_target_current.targets;
+            var notes_in_segment_at_time = this.notes_target.filter(function (node) { return node.model.note.beat_start >= _this.segment_current.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= _this.segment_current.get_endpoints_loop()[1]; });
+            var targets_at_time = this.iterator_target_current.targets;
             var coord_at_time = this.iterator_matrix_train.get_coord_current();
             var obj_next_subtarget = this.iterator_subtarget_current.next();
             if (obj_next_subtarget.done) {
                 var obj_next_target = this.iterator_target_current.next();
                 if (obj_next_target.done) {
                     var obj_next_coord = this.iterator_matrix_train.next();
-                    this.history_user_input.add(target_at_time, coord_at_time);
+                    // TODO: can we add all notes in segment for predict here?
+                    var notes_to_add_to_history = [];
+                    if (this.algorithm.get_name() === PREDICT) {
+                        notes_to_add_to_history = notes_in_segment_at_time;
+                    }
+                    else {
+                        notes_to_add_to_history = targets_at_time;
+                    }
+                    this.history_user_input.add(notes_to_add_to_history, coord_at_time);
                     if (obj_next_coord.done) {
-                        this.history_user_input.add(target_at_time, coord_at_time);
+                        // TODO: can we add all notes in segment for predict here?
+                        this.history_user_input.add(notes_to_add_to_history, coord_at_time);
                         this.algorithm.pre_terminate();
                         return;
                     }
@@ -282,6 +313,7 @@ var trainer;
         };
         Trainer.prototype.handle_boundary_change = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+            // TODO: PLEASE put back in
             this.advance_scene();
             // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
@@ -306,7 +338,6 @@ var trainer;
                 this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
                 this.stream_segment_bounds();
-                // this.advance_scene();
                 this.render_window();
                 return;
             }

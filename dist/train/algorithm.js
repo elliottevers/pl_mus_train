@@ -54,32 +54,28 @@ var algorithm;
         Detect.prototype.get_name = function () {
             return algorithm.DETECT;
         };
+        Detect.prototype.postprocess_subtarget = function (note_subtarget) {
+            return note_subtarget;
+        };
         Detect.prototype.determine_targets = function (notes_segment_next) {
             var targets;
             switch (this.user_input_handler.mode_texture) {
-                // case POLYPHONY: {
-                //     let chords_grouped: TypeTarget[] = Harmony.group(
-                //         notes_segment_next
-                //     );
-                //
-                //     let chords_monophonified: TypeTarget[] = [];
-                //
-                //     for (let chord of chords_grouped) {
-                //         let notes_monophonified: TypeTarget = Harmony.monophonify(
-                //             chord
-                //         );
-                //
-                //         chords_monophonified.push(notes_monophonified)
-                //     }
-                //
-                //     targets = chords_monophonified;
-                //
-                //     break;
-                // }
+                // TODO: we should never have to use this, but I'm keeping it for the original test cases
+                case POLYPHONY: {
+                    var chords_grouped = Harmony.group(notes_segment_next);
+                    var chords_monophonified = [];
+                    for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
+                        var chord = chords_grouped_1[_i];
+                        var notes_monophonified = Harmony.monophonify(chord);
+                        chords_monophonified.push(notes_monophonified);
+                    }
+                    targets = chords_monophonified;
+                    break;
+                }
                 case MONOPHONY: {
                     var notes_grouped_trivial = [];
-                    for (var _i = 0, notes_segment_next_1 = notes_segment_next; _i < notes_segment_next_1.length; _i++) {
-                        var note = notes_segment_next_1[_i];
+                    for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
+                        var note = notes_segment_next_1[_a];
                         notes_grouped_trivial.push([note]);
                     }
                     targets = notes_grouped_trivial;
@@ -104,7 +100,7 @@ var algorithm;
         };
         Detect.prototype.pre_terminate = function (song, clip_user_input) {
             song.stop();
-            clip_user_input.stop();
+            // clip_user_input.stop();
         };
         return Detect;
     }(Targeted));
@@ -120,15 +116,27 @@ var algorithm;
         Predict.prototype.get_depth = function () {
             return 1;
         };
+        Predict.prototype.postprocess_subtarget = function (note_subtarget) {
+            // return notes_segment.map((note) => {
+            //     let note_processed = note;
+            //     if (note_processed.model.note.beat_start === note_subtarget.model.note.beat_start && note_processed.model.note.get_beat_end() === note_subtarget.model.note.get_beat_end()) {
+            //         note_processed.model.note.muted = 1
+            //     }
+            //     return note_processed
+            // });
+            note_subtarget.model.note.muted = 1;
+            return note_subtarget;
+        };
         Predict.prototype.determine_targets = function (notes_segment_next) {
             if (this.user_input_handler.mode_texture === POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
                 var chords_monophonified = [];
-                for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
-                    var note_group = chords_grouped_1[_i];
+                for (var _i = 0, chords_grouped_2 = chords_grouped; _i < chords_grouped_2.length; _i++) {
+                    var note_group = chords_grouped_2[_i];
                     chords_monophonified.push(Harmony.monophonify(note_group));
                 }
-                return chords_monophonified;
+                // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
+                return [chords_monophonified[chords_monophonified.length / 2]];
             }
             else if (this.user_input_handler.mode_texture === MONOPHONY) {
                 var notes_grouped_trivial = [];
@@ -136,7 +144,10 @@ var algorithm;
                     var note = notes_segment_next_2[_a];
                     notes_grouped_trivial.push([note]);
                 }
-                return notes_grouped_trivial;
+                // return notes_grouped_trivial
+                // TODO: let's put more weight towards the center of the measure
+                // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
+                return [notes_grouped_trivial[notes_grouped_trivial.length / 2]];
             }
             else {
                 throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');
@@ -155,7 +166,7 @@ var algorithm;
         };
         Predict.prototype.pre_terminate = function (song, clip_user_input) {
             song.stop();
-            clip_user_input.stop();
+            // clip_user_input.stop();
         };
         return Predict;
     }(Targeted));
@@ -184,7 +195,8 @@ var algorithm;
         Parse.prototype.pre_terminate = function (song, clip_user_input) {
             song.set_overdub(0);
             song.set_session_record(0);
-            clip_user_input.stop();
+            song.stop();
+            // clip_user_input.stop();
         };
         Parse.prototype.determine_region_present = function (notes_target_next) {
             return [
@@ -219,7 +231,8 @@ var algorithm;
         Derive.prototype.pre_terminate = function (song, clip_user_input) {
             song.set_overdub(0);
             song.set_session_record(0);
-            clip_user_input.stop();
+            // clip_user_input.stop();
+            song.stop();
         };
         Derive.prototype.determine_region_present = function (notes_target_next) {
             return [

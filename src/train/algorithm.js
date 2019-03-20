@@ -100,7 +100,7 @@ var algorithm;
         };
         Detect.prototype.pre_terminate = function (song, clip_user_input) {
             song.stop();
-            clip_user_input.stop();
+            // clip_user_input.stop();
         };
         return Detect;
     }(Targeted));
@@ -166,7 +166,7 @@ var algorithm;
         };
         Predict.prototype.pre_terminate = function (song, clip_user_input) {
             song.stop();
-            clip_user_input.stop();
+            // clip_user_input.stop();
         };
         return Predict;
     }(Targeted));
@@ -195,7 +195,8 @@ var algorithm;
         Parse.prototype.pre_terminate = function (song, clip_user_input) {
             song.set_overdub(0);
             song.set_session_record(0);
-            clip_user_input.stop();
+            song.stop();
+            // clip_user_input.stop();
         };
         Parse.prototype.determine_region_present = function (notes_target_next) {
             return [
@@ -230,7 +231,8 @@ var algorithm;
         Derive.prototype.pre_terminate = function (song, clip_user_input) {
             song.set_overdub(0);
             song.set_session_record(0);
-            clip_user_input.stop();
+            // clip_user_input.stop();
+            song.stop();
         };
         Derive.prototype.determine_region_present = function (notes_target_next) {
             return [
