@@ -141,25 +141,23 @@ let contract_highlighted_clip = () => {
     contract_clip('live_set view highlighted_clip_slot')
 };
 
-export let get_notes = (path_track) => {
-    let this_device = new li.LiveApiJs(path_track);
+export let get_notes_on_track = (path_track) => {
+    // let obj = new li.LiveApiJs(path_device);
+    //
+    // let path_obj = obj.get_path();
 
-    let path_this_device = this_device.get_path();
+    let index_track = Number(path_track.split(' ')[2]);
 
-    let list_this_device = path_this_device.split(' ');
+    let track = new li.LiveApiJs(path_track);
 
-    let index_this_track = Number(list_this_device[2]);
-
-    let this_track = new li.LiveApiJs(list_this_device.slice(0, 3).join(' '));
-
-    let num_clipslots = this_track.get("clip_slots").length/2;
+    let num_clipslots = track.get("clip_slots").length/2;
 
     let notes_amassed = [];
 
     for (let i_clipslot of _.range(0, num_clipslots)) {
-        let path_clipslot = ['live_set', 'tracks', index_this_track, 'clip_slots', Number(i_clipslot)].join(' ');
+        let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
 
-        let clip_segment = new Clip(
+        let clip = new Clip(
             new ClipDao(
                 new li.LiveApiJs(
                     path_clipslot.split(' ').concat(['clip']).join(' ')
@@ -169,20 +167,27 @@ export let get_notes = (path_track) => {
         );
 
         notes_amassed = notes_amassed.concat(
-            clip_segment.get_notes(
-                clip_segment.get_loop_bracket_lower(),
+            clip.get_notes(
+                clip.get_loop_bracket_lower(),
                 0,
-                clip_segment.get_loop_bracket_upper(),
+                clip.get_loop_bracket_upper(),
                 128
             )
         );
+
+        // let logger = new Logger('max');
+        // logger.log(JSON.stringify(notes_amassed))
     }
 
     return notes_amassed
 };
 
-let get_notes_segments = () => {
-    return get_notes('this_device')
+export let get_notes_segments = () => {
+    let this_device = new li.LiveApiJs('this_device');
+    let path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
+    // let logger = new Logger('max');
+    // logger.log(path_this_track);
+    return get_notes_on_track(path_this_track)
 };
 
 // let notes_segments = io.Importer.import('segment');

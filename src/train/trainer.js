@@ -11,6 +11,7 @@ var clip_1 = require("../clip/clip");
 var iterate_1 = require("./iterate");
 var utils_1 = require("../utils/utils");
 var live_1 = require("../live/live");
+var segmenter_1 = require("../scripts/segmenter");
 var _ = require('underscore');
 var l = require('lodash');
 var trainer;
@@ -30,15 +31,17 @@ var trainer;
     var ClipDao = clip_1.clip.ClipDao;
     var LiveApiJs = live_1.live.LiveApiJs;
     var Trainer = /** @class */ (function () {
-        function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, messenger) {
+        function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, index_track_target, song, segments, messenger) {
             this.window = window;
             this.algorithm = algorithm;
             this.clip_user_input = clip_user_input;
             this.clip_user_input_synchronous = clip_user_input_synchronous;
-            this.notes_target = notes_target;
+            // this.notes_target = notes_target;
+            this.index_track_target = index_track_target;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
+            this.notes_target = segmenter_1.get_notes_on_track(['live_set', 'tracks', this.index_track_target].join(' '));
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
             this.matrix_focus = FactoryMatrixTargetIterator.create_matrix_focus(this.algorithm, this.segments);
             this.history_user_input = new HistoryUserInput(l.cloneDeep(this.matrix_focus));
@@ -92,21 +95,15 @@ var trainer;
                 case PARSE: {
                     var _loop_1 = function (i_segment) {
                         var segment_2 = this_1.segments[Number(i_segment)];
-                        // let notes = this.clip_target.get_notes(
-                        //     segment.beat_start,
-                        //     0,
-                        //     segment.beat_end - segment.beat_start,
-                        //     128
-                        // );
                         var notes = this_1.notes_target.filter(function (node) { return node.model.note.beat_start >= segment_2.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_2.get_endpoints_loop()[1]; });
+                        // this.clip_user_input.set_notes(
+                        //     notes
+                        // );
                         var coord_current_virtual = [this_1.algorithm.get_depth() - 1, Number(i_segment)];
                         this_1.struct_parse.set_notes(notes, coord_current_virtual);
                         this_1.window.add_notes_to_clip(notes, coord_current_virtual);
                     };
                     var this_1 = this;
-                    // let notes_within_segment = notes_clip.filter(
-                    //     node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
-                    // );
                     // TODO: use 'filter'
                     for (var i_segment in this.segments) {
                         _loop_1(i_segment);
@@ -179,33 +176,35 @@ var trainer;
                 return;
             }
         };
-        // private set_loop() {
-        //     let interval = this.segment_current.get_endpoints_loop();
-        //
-        //     this.clip_user_input.set_endpoints_loop(
-        //         interval[0],
-        //         interval[1]
-        //     )
-        // }
         Trainer.prototype.advance_scene = function (first_time) {
             this.segment_current.scene.fire(true);
-            if (first_time) {
+            if (this.algorithm.get_name() !== PARSE) {
                 return;
             }
-            // clip user input synchronous
+            // TODO: put this logic somewhere else, preferably where we define the algorithm
             var list_path_current_s = this.clip_user_input_synchronous.get_path().split(' ');
             var index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
             var list_path_next_s = list_path_current_s;
-            list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
-            this.clip_user_input_synchronous = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
-            // clip user input deferred
             var list_path_current = this.clip_user_input.get_path().split(' ');
             var index_clipslot_current = list_path_current[list_path_current.length - 2];
             var list_path_next = list_path_current;
-            list_path_next[list_path_next.length - 2] = index_clipslot_current + 1;
-            var clip_user_input_next = new Clip(new ClipDao(new LiveApiJs(list_path_next.join(' ')), new Messenger('max', 0), true, 'clip_user_input'));
-            clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
-            this.clip_user_input = clip_user_input_next;
+            // since the user input clip has already been initialized
+            if (!first_time) {
+                index_clipslot_current = index_clipslot_current + 1;
+                list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s;
+                this.clip_user_input_synchronous = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
+                list_path_next[list_path_next.length - 2] = index_clipslot_current;
+                var clip_user_input_next = new Clip(new ClipDao(new LiveApiJs(list_path_next.join(' ')), new Messenger('max', 0), true, 'clip_user_input'));
+                clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
+                this.clip_user_input = clip_user_input_next;
+            }
+            if (this.iterator_matrix_train.get_coord_current()[0] === this.algorithm.get_depth() - 2) {
+                var api_clip_target_synchronous = new LiveApiJs(['live_set', 'tracks', this.index_track_target, 'clip_slots', index_clipslot_current, 'clip'].join(' '));
+                var clip_target = new Clip(new ClipDao(api_clip_target_synchronous, new Messenger('max', 0)));
+                var notes = clip_target.get_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
+                this.clip_user_input.remove_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
+                this.clip_user_input.set_notes(notes);
+            }
         };
         Trainer.prototype.resume = function () {
             this.algorithm.post_init();
@@ -314,7 +313,7 @@ var trainer;
         Trainer.prototype.handle_boundary_change = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             // TODO: PLEASE put back in
-            this.advance_scene();
+            this.advance_scene(false);
             // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
             // } else {

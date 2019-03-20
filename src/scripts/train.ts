@@ -45,7 +45,8 @@ import TreeModel = require("tree-model");
 import {scene} from "../scene/scene";
 import SceneDao = scene.SceneDao;
 import Scene = scene.Scene;
-import {get_notes} from "./segmenter";
+import ClipDao = clip.ClipDao;
+import {get_notes_segments} from "./segmenter";
 // const _ = require('underscore');
 
 declare let autowatch: any;
@@ -69,7 +70,8 @@ let logger = new Logger(env);
 let messenger_render = new Messenger(env, 0, 'render');
 let messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
 let messenger_num_segments = new Messenger(env, 0, 'num_segments');
-let mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
+let mode_texture, mode_control, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
+let index_track_target;
 
 let set_mode_texture = (option) => {
     switch (option) {
@@ -190,7 +192,7 @@ let set_clip_user_input = () => {
 let set_segments = () => {
 
     // TODO: this assumes the trainer device is on the same track as the segmenter
-    let notes_segments = get_notes('this_device');
+    let notes_segments = get_notes_segments();
 
     let segments_local: Segment[] = [];
 
@@ -224,15 +226,88 @@ let test = () => {
 
 };
 
+// const _ = require('underscore');
+
 // TODO: send this via bus based on options in radio
 let set_target_notes = () => {
     // @ts-ignore
     let list_path_device_target = Array.prototype.slice.call(arguments);
 
+    // track_target = new li.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
+
+    // let logger = new Logger(env);
+    //
+    // logger.log(JSON.stringify(list_path_device_target.slice(0, 3).join(' ')));
+
     let track_target = new li.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
+    index_track_target = list_path_device_target[2];
+
+    // notes_target = get_notes(list_path_device_target.join(' '));
+
+    // let index_track_target = Number(list_path_device_target[2]);
 
     switch(algorithm_train.get_name()) {
         case PARSE: {
+            // let this_device = new li.LiveApiJs('this_device');
+            //
+            // let path_this_device = this_device.get_path();
+            //
+            // let list_this_device = path_this_device.split(' ');
+            //
+            // let this_track = new li.LiveApiJs(list_this_device.slice(0, 3).join(' '));
+            //
+            // let num_clipslots = this_track.get("clip_slots").length/2;
+            //
+            // let logger = new Logger(env);
+            //
+            // for (let i of _.range(0, num_clipslots)) {
+            // // for (let i of _.range(1, 2)) {
+            //
+            //     let path_clip_user = [list_this_device.slice(0, 3).join(' '), 'clip_slots', Number(i), 'clip'].join(' ');
+            //
+            //     // let messenger = new Messenger(env, 0);
+            //     logger.log(path_clip_user);
+            //
+            //     let clip_user = new Clip(
+            //         new ClipDao(
+            //             new li.LiveApiJs(
+            //                 path_clip_user
+            //             ),
+            //             new Messenger(env, 0),
+            //             true,
+            //             'clip_user'
+            //         )
+            //     );
+            //
+            //     clip_user.set_path_deferlow('set_path_clip_user');
+            //
+            //     let path_clip_target = ['live_set', 'tracks', index_track_target, 'clip_slots', Number(i), 'clip'].join(' ');
+            //
+            //     logger.log(path_clip_target);
+            //
+            //     let clip_target = new Clip(
+            //         new ClipDao(
+            //             new LiveApiJs(
+            //                 path_clip_target
+            //             ),
+            //             new Messenger(env, 0)
+            //         )
+            //     );
+            //
+            //     clip_user.remove_notes(
+            //         clip_target.get_loop_bracket_lower(),
+            //         0,
+            //         clip_target.get_loop_bracket_upper(),
+            //         128
+            //     );
+            //
+            //     clip_user.set_notes(
+            //         notes_target.filter(
+            //             node => node.model.note.beat_start >= clip_target.get_loop_bracket_lower() && node.model.note.get_beat_end() <= clip_target.get_loop_bracket_upper()
+            //         )
+            //     )
+            // }
+
             track_target.set("solo", 0);
             break;
         }
@@ -244,8 +319,6 @@ let set_target_notes = () => {
 
         }
     }
-
-    notes_target = get_notes(list_path_device_target.join(' '));
 
     messenger_monitor_target.message([list_path_device_target[2]]);
 };
@@ -277,7 +350,7 @@ let begin = () => {
         algorithm_train,
         clip_user_input,
         clip_user_input_synchronous,
-        notes_target,
+        index_track_target,
         song,
         segments,
         new Messenger(env, 0)
@@ -473,7 +546,8 @@ let save = () => {
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
         'clip_user_input': trainer.clip_user_input,
-        'notes_target': notes_target,
+        'clip_user_input_synchronous': trainer.clip_user_input_synchronous,
+        'index_track_target': index_track_target,
         'song': song,
         'segments': segments,
         'messenger': messenger_render,

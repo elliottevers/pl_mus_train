@@ -13,6 +13,7 @@ import {log} from "../log/logger";
 import {window} from "../render/window";
 import {utils} from "../utils/utils";
 import {live} from "../live/live";
+import {get_notes_on_track} from "../scripts/segmenter";
 const _ = require('underscore');
 const l = require('lodash');
 
@@ -48,6 +49,7 @@ export namespace trainer {
         public clip_user_input_synchronous: Clip;
         // private clip_target: Clip;
         private notes_target: TreeModel.Node<Note>[];
+        private index_track_target;
         private song;
         private segments: Segment[];
         private messenger: Messenger;
@@ -68,15 +70,20 @@ export namespace trainer {
         private iterator_target_current: TargetIterator;
         private iterator_subtarget_current: SubtargetIterator;
 
-        constructor(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, messenger) {
+        constructor(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, index_track_target, song, segments, messenger) {
             this.window = window;
             this.algorithm = algorithm;
             this.clip_user_input = clip_user_input;
             this.clip_user_input_synchronous = clip_user_input_synchronous;
-            this.notes_target = notes_target;
+            // this.notes_target = notes_target;
+            this.index_track_target = index_track_target;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
+
+            this.notes_target = get_notes_on_track(
+                ['live_set', 'tracks', this.index_track_target].join(' ')
+            );
 
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
                 this.algorithm,
@@ -195,23 +202,17 @@ export namespace trainer {
             switch (this.algorithm.get_name()) {
                 case PARSE: {
 
-                    // let notes_within_segment = notes_clip.filter(
-                    //     node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
-                    // );
-
                     // TODO: use 'filter'
                     for (let i_segment in this.segments) {
                         let segment = this.segments[Number(i_segment)];
-                        // let notes = this.clip_target.get_notes(
-                        //     segment.beat_start,
-                        //     0,
-                        //     segment.beat_end - segment.beat_start,
-                        //     128
-                        // );
 
                         let notes = this.notes_target.filter(
                             node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
                         );
+
+                        // this.clip_user_input.set_notes(
+                        //     notes
+                        // );
 
                         let coord_current_virtual = [this.algorithm.get_depth() - 1, Number(i_segment)];
 
@@ -320,55 +321,86 @@ export namespace trainer {
             }
         }
 
-        // private set_loop() {
-        //     let interval = this.segment_current.get_endpoints_loop();
-        //
-        //     this.clip_user_input.set_endpoints_loop(
-        //         interval[0],
-        //         interval[1]
-        //     )
-        // }
-
         private advance_scene(first_time?: boolean) {
             this.segment_current.scene.fire(true);
 
-            if (first_time) {
+            if (this.algorithm.get_name() !== PARSE) {
                 return
             }
 
-            // clip user input synchronous
+            // TODO: put this logic somewhere else, preferably where we define the algorithm
+
             let list_path_current_s = this.clip_user_input_synchronous.get_path().split(' ');
             let index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
             let list_path_next_s = list_path_current_s;
-            list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
 
-            this.clip_user_input_synchronous = new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        list_path_next_s.join(' ')
-                    ),
-                    new Messenger('max', 0)
-                )
-            );
-
-            // clip user input deferred
             let list_path_current = this.clip_user_input.get_path().split(' ');
             let index_clipslot_current = list_path_current[list_path_current.length - 2];
             let list_path_next = list_path_current;
-            list_path_next[list_path_next.length - 2] = index_clipslot_current + 1;
-            let clip_user_input_next = new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        list_path_next.join(' ')
-                    ),
-                    new Messenger('max', 0),
-                    true,
-                    'clip_user_input'
-                )
-            );
-            clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
 
-            this.clip_user_input = clip_user_input_next;
+            // since the user input clip has already been initialized
+            if (!first_time) {
+                index_clipslot_current = index_clipslot_current + 1;
+
+                list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s;
+
+                this.clip_user_input_synchronous = new Clip(
+                    new ClipDao(
+                        new LiveApiJs(
+                            list_path_next_s.join(' ')
+                        ),
+                        new Messenger('max', 0)
+                    )
+                );
+
+                list_path_next[list_path_next.length - 2] = index_clipslot_current;
+
+                let clip_user_input_next = new Clip(
+                    new ClipDao(
+                        new LiveApiJs(
+                            list_path_next.join(' ')
+                        ),
+                        new Messenger('max', 0),
+                        true,
+                        'clip_user_input'
+                    )
+                );
+
+                clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
+
+                this.clip_user_input = clip_user_input_next;
+            }
+
+            if (this.iterator_matrix_train.get_coord_current()[0] === this.algorithm.get_depth() - 2) {
+                let api_clip_target_synchronous = new LiveApiJs(
+                    ['live_set', 'tracks', this.index_track_target, 'clip_slots', index_clipslot_current, 'clip'].join(' ')
+                );
+
+                let clip_target = new Clip(
+                    new ClipDao(
+                        api_clip_target_synchronous,
+                        new Messenger('max', 0)
+                    )
+                );
+
+                let notes = clip_target.get_notes(
+                    clip_target.get_loop_bracket_lower(),
+                    0,
+                    clip_target.get_loop_bracket_upper(),
+                    128
+                );
+
+                this.clip_user_input.remove_notes(
+                    clip_target.get_loop_bracket_lower(),
+                    0,
+                    clip_target.get_loop_bracket_upper(),
+                    128
+                );
+
+                this.clip_user_input.set_notes(
+                    notes
+                )
+            }
         }
 
         public resume() {
@@ -548,7 +580,7 @@ export namespace trainer {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
 
             // TODO: PLEASE put back in
-            this.advance_scene();
+            this.advance_scene(false);
 
             // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();

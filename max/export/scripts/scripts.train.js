@@ -33,6 +33,9 @@ var clip;
                 this.clip_dao.set_clip_endpoint_upper(beat_end);
             }
         };
+        Clip.prototype.get_index_track = function () {
+            return this.clip_dao.get_path().split(' ')[2];
+        };
         Clip.prototype.get_beat_start = function () {
             return this.clip_dao.beat_start;
         };
@@ -1718,24 +1721,30 @@ var expand_highlighted_clip = function () {
 var contract_highlighted_clip = function () {
     contract_clip('live_set view highlighted_clip_slot');
 };
-exports.get_notes = function (path_track) {
-    var this_device = new live_1.live.LiveApiJs(path_track);
-    var path_this_device = this_device.get_path();
-    var list_this_device = path_this_device.split(' ');
-    var index_this_track = Number(list_this_device[2]);
-    var this_track = new live_1.live.LiveApiJs(list_this_device.slice(0, 3).join(' '));
-    var num_clipslots = this_track.get("clip_slots").length / 2;
+exports.get_notes_on_track = function (path_track) {
+    // let obj = new li.LiveApiJs(path_device);
+    //
+    // let path_obj = obj.get_path();
+    var index_track = Number(path_track.split(' ')[2]);
+    var track = new live_1.live.LiveApiJs(path_track);
+    var num_clipslots = track.get("clip_slots").length / 2;
     var notes_amassed = [];
     for (var _i = 0, _a = _.range(0, num_clipslots); _i < _a.length; _i++) {
         var i_clipslot = _a[_i];
-        var path_clipslot = ['live_set', 'tracks', index_this_track, 'clip_slots', Number(i_clipslot)].join(' ');
-        var clip_segment = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
-        notes_amassed = notes_amassed.concat(clip_segment.get_notes(clip_segment.get_loop_bracket_lower(), 0, clip_segment.get_loop_bracket_upper(), 128));
+        var path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+        var clip_2 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
+        notes_amassed = notes_amassed.concat(clip_2.get_notes(clip_2.get_loop_bracket_lower(), 0, clip_2.get_loop_bracket_upper(), 128));
+        // let logger = new Logger('max');
+        // logger.log(JSON.stringify(notes_amassed))
     }
     return notes_amassed;
 };
-var get_notes_segments = function () {
-    return exports.get_notes('this_device');
+exports.get_notes_segments = function () {
+    var this_device = new live_1.live.LiveApiJs('this_device');
+    var path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
+    // let logger = new Logger('max');
+    // logger.log(path_this_track);
+    return exports.get_notes_on_track(path_this_track);
 };
 // let notes_segments = io.Importer.import('segment');
 var expand_clip = function (path_clip_slot) {
@@ -1744,7 +1753,7 @@ var expand_clip = function (path_clip_slot) {
     var index_track = path_track.split(' ')[2];
     var clip_highlighted = new Clip(new ClipDao(new live_1.live.LiveApiJs([path_clip_slot, 'clip'].join(' ')), new Messenger(env, 0)));
     var notes_clip = clip_highlighted.get_notes(clip_highlighted.get_loop_bracket_lower(), 0, clip_highlighted.get_loop_bracket_upper(), 128);
-    var notes_segments = get_notes_segments();
+    var notes_segments = exports.get_notes_segments();
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
@@ -1772,11 +1781,11 @@ var expand_clip = function (path_clip_slot) {
         logger_2.log('---------');
         clipslot.call('create_clip', String(segment_2.get_endpoints_loop()[1] - segment_2.get_endpoints_loop()[0]));
         var path_clip = path_clipslot.concat('clip').join(' ');
-        var clip_2 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clip), new Messenger(env, 0)));
-        clip_2.set_endpoints_loop(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
-        clip_2.set_endpoint_markers(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
+        var clip_3 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clip), new Messenger(env, 0)));
+        clip_3.set_endpoints_loop(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
+        clip_3.set_endpoint_markers(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
         var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_2.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_2.get_endpoints_loop()[1]; });
-        clip_2.set_notes(notes_within_segment);
+        clip_3.set_notes(notes_within_segment);
     };
     for (var i_segment in segments) {
         _loop_1(i_segment);
@@ -1837,14 +1846,12 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-// let accept = (user_input, ground_truth) => {
-//     messenger.message([FretMapper.get_interval(user_input ,ground_truth)])
-// };
 var logger = new Logger(env);
 var messenger_render = new Messenger(env, 0, 'render');
 var messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
 var messenger_num_segments = new Messenger(env, 0, 'num_segments');
-var mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
+var mode_texture, mode_control, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
+var index_track_target;
 var set_mode_texture = function (option) {
     switch (option) {
         case POLYPHONY: {
@@ -1917,10 +1924,7 @@ var set_clip_user_input = function () {
 };
 var set_segments = function () {
     // TODO: this assumes the trainer device is on the same track as the segmenter
-    var notes_segments = segmenter_1.get_notes('this_device');
-    // let logger = new Logger('max');
-    //
-    // logger.log(JSON.stringify(notes_segments));
+    var notes_segments = segmenter_1.get_notes_segments();
     var segments_local = [];
     for (var i_note in notes_segments) {
         var note = notes_segments[Number(i_note)];
@@ -1934,24 +1938,80 @@ var set_segments = function () {
 };
 var test = function () {
 };
+// const _ = require('underscore');
 // TODO: send this via bus based on options in radio
 var set_target_notes = function () {
     // @ts-ignore
     var list_path_device_target = Array.prototype.slice.call(arguments);
-    var logger = new Logger(env);
-    logger.log(JSON.stringify(list_path_device_target));
-    // let track_target = new li.LiveApiJs(
-    //     list_path_device_target.join(' ')
-    // );
-    // let device_target = new li.LiveApiJs(list_path_device_target);
+    // track_target = new li.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
+    // let logger = new Logger(env);
     //
-    // let path_device_target = device_target.get_path();
-    //
-    // let list_device_target = path_device_target.split(' ');
-    // let index_track_target = Number(list_this_device[2]);
+    // logger.log(JSON.stringify(list_path_device_target.slice(0, 3).join(' ')));
     var track_target = new live_1.live.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
+    index_track_target = list_path_device_target[2];
+    // notes_target = get_notes(list_path_device_target.join(' '));
+    // let index_track_target = Number(list_path_device_target[2]);
     switch (algorithm_train.get_name()) {
         case PARSE: {
+            // let this_device = new li.LiveApiJs('this_device');
+            //
+            // let path_this_device = this_device.get_path();
+            //
+            // let list_this_device = path_this_device.split(' ');
+            //
+            // let this_track = new li.LiveApiJs(list_this_device.slice(0, 3).join(' '));
+            //
+            // let num_clipslots = this_track.get("clip_slots").length/2;
+            //
+            // let logger = new Logger(env);
+            //
+            // for (let i of _.range(0, num_clipslots)) {
+            // // for (let i of _.range(1, 2)) {
+            //
+            //     let path_clip_user = [list_this_device.slice(0, 3).join(' '), 'clip_slots', Number(i), 'clip'].join(' ');
+            //
+            //     // let messenger = new Messenger(env, 0);
+            //     logger.log(path_clip_user);
+            //
+            //     let clip_user = new Clip(
+            //         new ClipDao(
+            //             new li.LiveApiJs(
+            //                 path_clip_user
+            //             ),
+            //             new Messenger(env, 0),
+            //             true,
+            //             'clip_user'
+            //         )
+            //     );
+            //
+            //     clip_user.set_path_deferlow('set_path_clip_user');
+            //
+            //     let path_clip_target = ['live_set', 'tracks', index_track_target, 'clip_slots', Number(i), 'clip'].join(' ');
+            //
+            //     logger.log(path_clip_target);
+            //
+            //     let clip_target = new Clip(
+            //         new ClipDao(
+            //             new LiveApiJs(
+            //                 path_clip_target
+            //             ),
+            //             new Messenger(env, 0)
+            //         )
+            //     );
+            //
+            //     clip_user.remove_notes(
+            //         clip_target.get_loop_bracket_lower(),
+            //         0,
+            //         clip_target.get_loop_bracket_upper(),
+            //         128
+            //     );
+            //
+            //     clip_user.set_notes(
+            //         notes_target.filter(
+            //             node => node.model.note.beat_start >= clip_target.get_loop_bracket_lower() && node.model.note.get_beat_end() <= clip_target.get_loop_bracket_upper()
+            //         )
+            //     )
+            // }
             track_target.set("solo", 0);
             break;
         }
@@ -1962,7 +2022,6 @@ var set_target_notes = function () {
         default: {
         }
     }
-    notes_target = segmenter_1.get_notes(list_path_device_target.join(' '));
     messenger_monitor_target.message([list_path_device_target[2]]);
 };
 var begin = function () {
@@ -1982,7 +2041,7 @@ var begin = function () {
         set_session_record: function (int) { messenger_song.message(['song', 'set', 'session_record', String(int)]); },
         stop: function () { messenger_song.message(['song', 'set', 'is_playing', String(0)]); }
     };
-    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, new Messenger(env, 0));
+    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, index_track_target, song, segments, new Messenger(env, 0));
     trainer.init();
     trainer.render_window();
 };
@@ -1994,7 +2053,7 @@ var resume = function () {
 };
 var user_input_command = function (command) {
     var logger = new Logger(env);
-    logger.log('user input command....');
+    // logger.log('user input command....');
     // TODO: there is literally one character difference between the two algorithms - please abstract
     switch (algorithm_train.get_name()) {
         case PARSE: {
@@ -2028,26 +2087,14 @@ var user_input_command = function (command) {
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    var logger_2 = new Logger(env);
-                    logger_2.log(JSON.stringify(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]])));
-                    // logger.log(JSON.stringify(trainer.history_user_input));
                     var notes = trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]);
-                    // for (let note of notes) {
-                    //     note.model.note.beat_start = 0
-                    // }
                     trainer.clip_user_input.set_notes(notes);
                     break;
                 }
                 case 'erase': {
-                    var logger_3 = new Logger(env);
-                    logger_3.log(JSON.stringify(trainer.segment_current));
+                    var logger_2 = new Logger(env);
+                    logger_2.log(JSON.stringify(trainer.segment_current));
                     trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
-                    // clip_user_input.remove_notes(
-                    //     0,
-                    //     0,
-                    //     trainer.segment_current.beat_end - trainer.segment_current.beat_start,
-                    //     128
-                    // );
                     break;
                 }
                 default: {
@@ -2100,7 +2147,8 @@ var save = function () {
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
         'clip_user_input': trainer.clip_user_input,
-        'notes_target': notes_target,
+        'clip_user_input_synchronous': trainer.clip_user_input_synchronous,
+        'index_track_target': index_track_target,
         'song': song,
         'segments': segments,
         'messenger': messenger_render,
@@ -2341,7 +2389,7 @@ var thaw;
         TrainThawer.prototype.thaw = function (filepath, config) {
             var trainer;
             var matrix_deserialized = from_json(filepath, config['env']);
-            trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_user_input_synchronous'], config['clip_target'], config['song'], config['segments'], config['messenger']);
+            trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_user_input_synchronous'], config['track_target'], config['song'], config['segments'], config['messenger']);
             trainer.init(true);
             switch (config['algorithm'].get_name()) {
                 case DETECT: {
@@ -3160,8 +3208,10 @@ var parse_1 = require("../parse/parse");
 var messenger_1 = require("../message/messenger");
 var clip_1 = require("../clip/clip");
 var iterate_1 = require("./iterate");
+var logger_1 = require("../log/logger");
 var utils_1 = require("../utils/utils");
 var live_1 = require("../live/live");
+var segmenter_1 = require("../scripts/segmenter");
 var _ = require('underscore');
 var l = require('lodash');
 var trainer;
@@ -3178,18 +3228,31 @@ var trainer;
     var FactoryMatrixTargetIterator = iterate_1.iterate.FactoryMatrixTargetIterator;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var Note = note_1.note.Note;
+    var Logger = logger_1.log.Logger;
     var ClipDao = clip_1.clip.ClipDao;
     var LiveApiJs = live_1.live.LiveApiJs;
     var Trainer = /** @class */ (function () {
-        function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, messenger) {
+        function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, index_track_target, song, segments, messenger) {
             this.window = window;
             this.algorithm = algorithm;
             this.clip_user_input = clip_user_input;
             this.clip_user_input_synchronous = clip_user_input_synchronous;
-            this.notes_target = notes_target;
+            // this.notes_target = notes_target;
+            this.index_track_target = index_track_target;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
+            var logger = new Logger('max');
+            // logger.log(JSON.stringify(track_target.get_path() === 'live_set tracks 3'));
+            // logger.log(JSON.stringify(typeof track_target.get_path()));
+            // logger.log(JSON.stringify(typeof 'live_set tracks 3'));
+            // this.notes_target = get_notes_on_track(
+            //     track_target.get_path()
+            //     // 'live_set tracks 3'
+            // );
+            //
+            this.notes_target = segmenter_1.get_notes_on_track(['live_set', 'tracks', this.index_track_target].join(' '));
+            // logger.log(JSON.stringify(this.notes_target));
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
             this.matrix_focus = FactoryMatrixTargetIterator.create_matrix_focus(this.algorithm, this.segments);
             this.history_user_input = new HistoryUserInput(l.cloneDeep(this.matrix_focus));
@@ -3243,21 +3306,15 @@ var trainer;
                 case PARSE: {
                     var _loop_1 = function (i_segment) {
                         var segment_2 = this_1.segments[Number(i_segment)];
-                        // let notes = this.clip_target.get_notes(
-                        //     segment.beat_start,
-                        //     0,
-                        //     segment.beat_end - segment.beat_start,
-                        //     128
-                        // );
                         var notes = this_1.notes_target.filter(function (node) { return node.model.note.beat_start >= segment_2.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_2.get_endpoints_loop()[1]; });
+                        // this.clip_user_input.set_notes(
+                        //     notes
+                        // );
                         var coord_current_virtual = [this_1.algorithm.get_depth() - 1, Number(i_segment)];
                         this_1.struct_parse.set_notes(notes, coord_current_virtual);
                         this_1.window.add_notes_to_clip(notes, coord_current_virtual);
                     };
                     var this_1 = this;
-                    // let notes_within_segment = notes_clip.filter(
-                    //     node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
-                    // );
                     // TODO: use 'filter'
                     for (var i_segment in this.segments) {
                         _loop_1(i_segment);
@@ -3340,23 +3397,40 @@ var trainer;
         // }
         Trainer.prototype.advance_scene = function (first_time) {
             this.segment_current.scene.fire(true);
-            if (first_time) {
+            if (this.algorithm.get_name() === DETECT || this.algorithm.get_name() === PREDICT) {
                 return;
             }
-            // clip user input synchronous
             var list_path_current_s = this.clip_user_input_synchronous.get_path().split(' ');
             var index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
             var list_path_next_s = list_path_current_s;
-            list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
-            this.clip_user_input_synchronous = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
-            // clip user input deferred
             var list_path_current = this.clip_user_input.get_path().split(' ');
             var index_clipslot_current = list_path_current[list_path_current.length - 2];
             var list_path_next = list_path_current;
-            list_path_next[list_path_next.length - 2] = index_clipslot_current + 1;
-            var clip_user_input_next = new Clip(new ClipDao(new LiveApiJs(list_path_next.join(' ')), new Messenger('max', 0), true, 'clip_user_input'));
-            clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
-            this.clip_user_input = clip_user_input_next;
+            // since the user input clip has already been initialized
+            if (!first_time) {
+                index_clipslot_current = index_clipslot_current + 1;
+                list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s;
+                this.clip_user_input_synchronous = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
+                list_path_next[list_path_next.length - 2] = index_clipslot_current;
+                // let logger = new Logger('max');
+                // logger.log(list_path_next.join(' '));
+                var clip_user_input_next = new Clip(new ClipDao(new LiveApiJs(list_path_next.join(' ')), new Messenger('max', 0), true, 'clip_user_input'));
+                clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
+                this.clip_user_input = clip_user_input_next;
+            }
+            var logger = new Logger('max');
+            logger.log(this.clip_user_input.get_path());
+            if (this.iterator_matrix_train.get_coord_current()[0] === this.algorithm.get_depth() - 2) {
+                var api_clip_target_synchronous = new LiveApiJs(['live_set', 'tracks', this.index_track_target, 'clip_slots', index_clipslot_current, 'clip'].join(' '));
+                var clip_target = new Clip(new ClipDao(api_clip_target_synchronous, new Messenger('max', 0)));
+                var logger_2 = new Logger('max');
+                logger_2.log(clip_target.get_path());
+                var notes = clip_target.get_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
+                // let logger = new Logger('max');
+                // logger.log(JSON.stringify(notes));
+                this.clip_user_input.remove_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
+                this.clip_user_input.set_notes(notes);
+            }
         };
         Trainer.prototype.resume = function () {
             this.algorithm.post_init();
@@ -3465,7 +3539,7 @@ var trainer;
         Trainer.prototype.handle_boundary_change = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             // TODO: PLEASE put back in
-            this.advance_scene();
+            this.advance_scene(false);
             // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
             // } else {
@@ -3521,7 +3595,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../clip/clip":1,"../history/history":4,"../live/live":6,"../message/messenger":8,"../note/note":10,"../parse/parse":11,"../target/target":18,"../utils/utils":22,"./algorithm":19,"./iterate":20,"lodash":25,"tree-model":27,"underscore":28}],22:[function(require,module,exports){
+},{"../clip/clip":1,"../history/history":4,"../live/live":6,"../log/logger":7,"../message/messenger":8,"../note/note":10,"../parse/parse":11,"../scripts/segmenter":14,"../target/target":18,"../utils/utils":22,"./algorithm":19,"./iterate":20,"lodash":25,"tree-model":27,"underscore":28}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;

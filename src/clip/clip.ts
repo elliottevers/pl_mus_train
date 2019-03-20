@@ -43,6 +43,10 @@ export namespace clip {
             }
         }
 
+        get_index_track(): number {
+            return this.clip_dao.get_path().split(' ')[2]
+        }
+
         get_beat_start(): number {
             return this.clip_dao.beat_start
         }

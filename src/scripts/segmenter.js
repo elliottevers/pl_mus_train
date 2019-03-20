@@ -66,24 +66,30 @@ var expand_highlighted_clip = function () {
 var contract_highlighted_clip = function () {
     contract_clip('live_set view highlighted_clip_slot');
 };
-exports.get_notes = function (path_track) {
-    var this_device = new live_1.live.LiveApiJs(path_track);
-    var path_this_device = this_device.get_path();
-    var list_this_device = path_this_device.split(' ');
-    var index_this_track = Number(list_this_device[2]);
-    var this_track = new live_1.live.LiveApiJs(list_this_device.slice(0, 3).join(' '));
-    var num_clipslots = this_track.get("clip_slots").length / 2;
+exports.get_notes_on_track = function (path_track) {
+    // let obj = new li.LiveApiJs(path_device);
+    //
+    // let path_obj = obj.get_path();
+    var index_track = Number(path_track.split(' ')[2]);
+    var track = new live_1.live.LiveApiJs(path_track);
+    var num_clipslots = track.get("clip_slots").length / 2;
     var notes_amassed = [];
     for (var _i = 0, _a = _.range(0, num_clipslots); _i < _a.length; _i++) {
         var i_clipslot = _a[_i];
-        var path_clipslot = ['live_set', 'tracks', index_this_track, 'clip_slots', Number(i_clipslot)].join(' ');
-        var clip_segment = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
-        notes_amassed = notes_amassed.concat(clip_segment.get_notes(clip_segment.get_loop_bracket_lower(), 0, clip_segment.get_loop_bracket_upper(), 128));
+        var path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+        var clip_2 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
+        notes_amassed = notes_amassed.concat(clip_2.get_notes(clip_2.get_loop_bracket_lower(), 0, clip_2.get_loop_bracket_upper(), 128));
+        // let logger = new Logger('max');
+        // logger.log(JSON.stringify(notes_amassed))
     }
     return notes_amassed;
 };
-var get_notes_segments = function () {
-    return exports.get_notes('this_device');
+exports.get_notes_segments = function () {
+    var this_device = new live_1.live.LiveApiJs('this_device');
+    var path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
+    // let logger = new Logger('max');
+    // logger.log(path_this_track);
+    return exports.get_notes_on_track(path_this_track);
 };
 // let notes_segments = io.Importer.import('segment');
 var expand_clip = function (path_clip_slot) {
@@ -92,7 +98,7 @@ var expand_clip = function (path_clip_slot) {
     var index_track = path_track.split(' ')[2];
     var clip_highlighted = new Clip(new ClipDao(new live_1.live.LiveApiJs([path_clip_slot, 'clip'].join(' ')), new Messenger(env, 0)));
     var notes_clip = clip_highlighted.get_notes(clip_highlighted.get_loop_bracket_lower(), 0, clip_highlighted.get_loop_bracket_upper(), 128);
-    var notes_segments = get_notes_segments();
+    var notes_segments = exports.get_notes_segments();
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
@@ -120,11 +126,11 @@ var expand_clip = function (path_clip_slot) {
         logger_2.log('---------');
         clipslot.call('create_clip', String(segment_2.get_endpoints_loop()[1] - segment_2.get_endpoints_loop()[0]));
         var path_clip = path_clipslot.concat('clip').join(' ');
-        var clip_2 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clip), new Messenger(env, 0)));
-        clip_2.set_endpoints_loop(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
-        clip_2.set_endpoint_markers(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
+        var clip_3 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clip), new Messenger(env, 0)));
+        clip_3.set_endpoints_loop(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
+        clip_3.set_endpoint_markers(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
         var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_2.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_2.get_endpoints_loop()[1]; });
-        clip_2.set_notes(notes_within_segment);
+        clip_3.set_notes(notes_within_segment);
     };
     for (var i_segment in segments) {
         _loop_1(i_segment);

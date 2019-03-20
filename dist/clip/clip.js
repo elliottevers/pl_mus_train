@@ -32,6 +32,9 @@ var clip;
                 this.clip_dao.set_clip_endpoint_upper(beat_end);
             }
         };
+        Clip.prototype.get_index_track = function () {
+            return this.clip_dao.get_path().split(' ')[2];
+        };
         Clip.prototype.get_beat_start = function () {
             return this.clip_dao.beat_start;
         };

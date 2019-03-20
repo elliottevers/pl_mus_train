@@ -43,14 +43,12 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-// let accept = (user_input, ground_truth) => {
-//     messenger.message([FretMapper.get_interval(user_input ,ground_truth)])
-// };
 var logger = new Logger(env);
 var messenger_render = new Messenger(env, 0, 'render');
 var messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
 var messenger_num_segments = new Messenger(env, 0, 'num_segments');
-var mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
+var mode_texture, mode_control, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
+var index_track_target;
 var set_mode_texture = function (option) {
     switch (option) {
         case POLYPHONY: {
@@ -123,10 +121,7 @@ var set_clip_user_input = function () {
 };
 var set_segments = function () {
     // TODO: this assumes the trainer device is on the same track as the segmenter
-    var notes_segments = segmenter_1.get_notes('this_device');
-    // let logger = new Logger('max');
-    //
-    // logger.log(JSON.stringify(notes_segments));
+    var notes_segments = segmenter_1.get_notes_segments();
     var segments_local = [];
     for (var i_note in notes_segments) {
         var note = notes_segments[Number(i_note)];
@@ -140,24 +135,80 @@ var set_segments = function () {
 };
 var test = function () {
 };
+// const _ = require('underscore');
 // TODO: send this via bus based on options in radio
 var set_target_notes = function () {
     // @ts-ignore
     var list_path_device_target = Array.prototype.slice.call(arguments);
-    var logger = new Logger(env);
-    logger.log(JSON.stringify(list_path_device_target));
-    // let track_target = new li.LiveApiJs(
-    //     list_path_device_target.join(' ')
-    // );
-    // let device_target = new li.LiveApiJs(list_path_device_target);
+    // track_target = new li.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
+    // let logger = new Logger(env);
     //
-    // let path_device_target = device_target.get_path();
-    //
-    // let list_device_target = path_device_target.split(' ');
-    // let index_track_target = Number(list_this_device[2]);
+    // logger.log(JSON.stringify(list_path_device_target.slice(0, 3).join(' ')));
     var track_target = new live_1.live.LiveApiJs(list_path_device_target.slice(0, 3).join(' '));
+    index_track_target = list_path_device_target[2];
+    // notes_target = get_notes(list_path_device_target.join(' '));
+    // let index_track_target = Number(list_path_device_target[2]);
     switch (algorithm_train.get_name()) {
         case PARSE: {
+            // let this_device = new li.LiveApiJs('this_device');
+            //
+            // let path_this_device = this_device.get_path();
+            //
+            // let list_this_device = path_this_device.split(' ');
+            //
+            // let this_track = new li.LiveApiJs(list_this_device.slice(0, 3).join(' '));
+            //
+            // let num_clipslots = this_track.get("clip_slots").length/2;
+            //
+            // let logger = new Logger(env);
+            //
+            // for (let i of _.range(0, num_clipslots)) {
+            // // for (let i of _.range(1, 2)) {
+            //
+            //     let path_clip_user = [list_this_device.slice(0, 3).join(' '), 'clip_slots', Number(i), 'clip'].join(' ');
+            //
+            //     // let messenger = new Messenger(env, 0);
+            //     logger.log(path_clip_user);
+            //
+            //     let clip_user = new Clip(
+            //         new ClipDao(
+            //             new li.LiveApiJs(
+            //                 path_clip_user
+            //             ),
+            //             new Messenger(env, 0),
+            //             true,
+            //             'clip_user'
+            //         )
+            //     );
+            //
+            //     clip_user.set_path_deferlow('set_path_clip_user');
+            //
+            //     let path_clip_target = ['live_set', 'tracks', index_track_target, 'clip_slots', Number(i), 'clip'].join(' ');
+            //
+            //     logger.log(path_clip_target);
+            //
+            //     let clip_target = new Clip(
+            //         new ClipDao(
+            //             new LiveApiJs(
+            //                 path_clip_target
+            //             ),
+            //             new Messenger(env, 0)
+            //         )
+            //     );
+            //
+            //     clip_user.remove_notes(
+            //         clip_target.get_loop_bracket_lower(),
+            //         0,
+            //         clip_target.get_loop_bracket_upper(),
+            //         128
+            //     );
+            //
+            //     clip_user.set_notes(
+            //         notes_target.filter(
+            //             node => node.model.note.beat_start >= clip_target.get_loop_bracket_lower() && node.model.note.get_beat_end() <= clip_target.get_loop_bracket_upper()
+            //         )
+            //     )
+            // }
             track_target.set("solo", 0);
             break;
         }
@@ -168,7 +219,6 @@ var set_target_notes = function () {
         default: {
         }
     }
-    notes_target = segmenter_1.get_notes(list_path_device_target.join(' '));
     messenger_monitor_target.message([list_path_device_target[2]]);
 };
 var begin = function () {
@@ -188,7 +238,7 @@ var begin = function () {
         set_session_record: function (int) { messenger_song.message(['song', 'set', 'session_record', String(int)]); },
         stop: function () { messenger_song.message(['song', 'set', 'is_playing', String(0)]); }
     };
-    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, notes_target, song, segments, new Messenger(env, 0));
+    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, index_track_target, song, segments, new Messenger(env, 0));
     trainer.init();
     trainer.render_window();
 };
@@ -200,7 +250,7 @@ var resume = function () {
 };
 var user_input_command = function (command) {
     var logger = new Logger(env);
-    logger.log('user input command....');
+    // logger.log('user input command....');
     // TODO: there is literally one character difference between the two algorithms - please abstract
     switch (algorithm_train.get_name()) {
         case PARSE: {
@@ -234,26 +284,14 @@ var user_input_command = function (command) {
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    var logger_2 = new Logger(env);
-                    logger_2.log(JSON.stringify(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]])));
-                    // logger.log(JSON.stringify(trainer.history_user_input));
                     var notes = trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]);
-                    // for (let note of notes) {
-                    //     note.model.note.beat_start = 0
-                    // }
                     trainer.clip_user_input.set_notes(notes);
                     break;
                 }
                 case 'erase': {
-                    var logger_3 = new Logger(env);
-                    logger_3.log(JSON.stringify(trainer.segment_current));
+                    var logger_2 = new Logger(env);
+                    logger_2.log(JSON.stringify(trainer.segment_current));
                     trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
-                    // clip_user_input.remove_notes(
-                    //     0,
-                    //     0,
-                    //     trainer.segment_current.beat_end - trainer.segment_current.beat_start,
-                    //     128
-                    // );
                     break;
                 }
                 default: {
@@ -306,7 +344,8 @@ var save = function () {
         'user_input_handler': user_input_handler,
         'algorithm': algorithm_train,
         'clip_user_input': trainer.clip_user_input,
-        'notes_target': notes_target,
+        'clip_user_input_synchronous': trainer.clip_user_input_synchronous,
+        'index_track_target': index_track_target,
         'song': song,
         'segments': segments,
         'messenger': messenger_render,
