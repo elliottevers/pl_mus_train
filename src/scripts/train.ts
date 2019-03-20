@@ -236,6 +236,24 @@ let set_target_notes = () => {
     // @ts-ignore
     let list_path_device_target = Array.prototype.slice.call(arguments);
 
+    let track_target = new li.LiveApiJs(
+        list_path_device_target.join(' ')
+    );
+
+    switch(algorithm_train.get_name()) {
+        case PARSE: {
+            track_target.set("mute", "1");
+            break;
+        }
+        case DERIVE: {
+            track_target.set("mute", "1");
+            break
+        }
+        default: {
+
+        }
+    }
+
     notes_target = get_notes(list_path_device_target.join(' '));
 
     messenger_monitor_target.message([list_path_device_target[2]]);

@@ -125,7 +125,9 @@ var song = {
 var clip_user_input = {
     fire: function () { },
     stop: function () { },
-    set_endpoints_loop: function (former, latter) { }
+    set_endpoints_loop: function (former, latter) { },
+    set_notes: function () { },
+    remove_notes: function () { }
 };
 var clip_user_input_synchronous = {
     fire: function () { },

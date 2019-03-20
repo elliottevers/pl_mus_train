@@ -54,6 +54,9 @@ var algorithm;
         Detect.prototype.get_name = function () {
             return algorithm.DETECT;
         };
+        Detect.prototype.postprocess_subtarget = function (note_subtarget) {
+            return note_subtarget;
+        };
         Detect.prototype.determine_targets = function (notes_segment_next) {
             var targets;
             switch (this.user_input_handler.mode_texture) {
@@ -113,6 +116,17 @@ var algorithm;
         Predict.prototype.get_depth = function () {
             return 1;
         };
+        Predict.prototype.postprocess_subtarget = function (note_subtarget) {
+            // return notes_segment.map((note) => {
+            //     let note_processed = note;
+            //     if (note_processed.model.note.beat_start === note_subtarget.model.note.beat_start && note_processed.model.note.get_beat_end() === note_subtarget.model.note.get_beat_end()) {
+            //         note_processed.model.note.muted = 1
+            //     }
+            //     return note_processed
+            // });
+            note_subtarget.model.note.muted = 1;
+            return note_subtarget;
+        };
         Predict.prototype.determine_targets = function (notes_segment_next) {
             if (this.user_input_handler.mode_texture === POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
@@ -121,7 +135,8 @@ var algorithm;
                     var note_group = chords_grouped_2[_i];
                     chords_monophonified.push(Harmony.monophonify(note_group));
                 }
-                return chords_monophonified;
+                // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
+                return [chords_monophonified[chords_monophonified.length / 2]];
             }
             else if (this.user_input_handler.mode_texture === MONOPHONY) {
                 var notes_grouped_trivial = [];
@@ -129,7 +144,10 @@ var algorithm;
                     var note = notes_segment_next_2[_a];
                     notes_grouped_trivial.push([note]);
                 }
-                return notes_grouped_trivial;
+                // return notes_grouped_trivial
+                // TODO: let's put more weight towards the center of the measure
+                // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
+                return [notes_grouped_trivial[notes_grouped_trivial.length / 2]];
             }
             else {
                 throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ');

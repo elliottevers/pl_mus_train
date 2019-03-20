@@ -232,7 +232,9 @@ let song = {
 let clip_user_input = {
     fire: () => {},
     stop: () => {},
-    set_endpoints_loop: (former, latter) => {}
+    set_endpoints_loop: (former, latter) => {},
+    set_notes: () => {},
+    remove_notes: () => {}
 };
 
 let clip_user_input_synchronous = {

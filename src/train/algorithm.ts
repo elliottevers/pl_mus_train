@@ -4,6 +4,7 @@ import {harmony} from "../music/harmony";
 import {modes_texture} from "../constants/constants";
 import {user_input} from "../control/user_input";
 import {history} from "../history/history";
+import {clip} from "../clip/clip";
 
 export namespace algorithm {
     import UserInputHandler = user_input.UserInputHandler;
@@ -17,6 +18,7 @@ export namespace algorithm {
     import MONOPHONY = modes_texture.MONOPHONY;
     import TypeSequenceTarget = history.TypeSequenceTarget;
     import TypeTarget = history.TypeTarget;
+    import Clip = clip.Clip;
 
     export interface Temporal {
         determine_region_present
@@ -24,6 +26,8 @@ export namespace algorithm {
 
     export interface Targetable {
         determine_targets
+
+        postprocess_subtarget
     }
 
     export interface Algorithm {
@@ -68,6 +72,10 @@ export namespace algorithm {
 
         public get_name(): string {
             return DETECT
+        }
+
+        postprocess_subtarget(note_subtarget) {
+            return note_subtarget
         }
 
         determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
@@ -143,6 +151,18 @@ export namespace algorithm {
             return 1
         }
 
+        postprocess_subtarget(note_subtarget) {
+            // return notes_segment.map((note) => {
+            //     let note_processed = note;
+            //     if (note_processed.model.note.beat_start === note_subtarget.model.note.beat_start && note_processed.model.note.get_beat_end() === note_subtarget.model.note.get_beat_end()) {
+            //         note_processed.model.note.muted = 1
+            //     }
+            //     return note_processed
+            // });
+            note_subtarget.model.note.muted = 1;
+            return note_subtarget;
+        }
+
         determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
             if (this.user_input_handler.mode_texture === POLYPHONY) {
 
@@ -150,7 +170,7 @@ export namespace algorithm {
                     notes_segment_next
                 );
 
-                let chords_monophonified: TreeModel.Node<n.Note>[][] = [];
+                let chords_monophonified: TypeSequenceTarget = [];
 
                 for (let note_group of chords_grouped) {
                     chords_monophonified.push(
@@ -160,17 +180,21 @@ export namespace algorithm {
                     );
                 }
 
-                return chords_monophonified
+                // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
+                return [chords_monophonified[chords_monophonified.length/2]]
 
             } else if (this.user_input_handler.mode_texture === MONOPHONY) {
 
-                let notes_grouped_trivial = [];
+                let notes_grouped_trivial: TypeSequenceTarget = [];
 
                 for (let note of notes_segment_next) {
                     notes_grouped_trivial.push([note])
                 }
 
-                return notes_grouped_trivial
+                // return notes_grouped_trivial
+                // TODO: let's put more weight towards the center of the measure
+                // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
+                return [notes_grouped_trivial[notes_grouped_trivial.length/2]]
 
             } else {
                 throw ['texture mode', this.user_input_handler.mode_texture, 'not supported'].join(' ')

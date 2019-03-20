@@ -6,6 +6,7 @@ var history;
         function HistoryUserInput(matrix) {
             this.matrix_data = matrix;
         }
+        // TODO: does this only work for parsing/deriving?
         HistoryUserInput.prototype.add = function (struct, coord) {
             this.matrix_data[coord[0]][coord[1]] = struct;
         };

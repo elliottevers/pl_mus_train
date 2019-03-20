@@ -17,6 +17,7 @@ export namespace history {
             this.matrix_data = matrix;
         }
 
+        // TODO: does this only work for parsing/deriving?
         add(struct: any, coord: number[]) {
             this.matrix_data[coord[0]][coord[1]] = struct;
         }

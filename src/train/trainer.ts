@@ -244,6 +244,11 @@ export namespace trainer {
 
             for (let i_segment in this.segments) {
                 let segment = this.segments[Number(i_segment)];
+
+                let notes_in_segment = this.notes_target.filter(
+                    node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
+                );
+
                 let sequence_targets = this.algorithm.determine_targets(
                     // this.clip_target.get_notes(
                     //     this.segments[Number(i_segment)].beat_start,
@@ -251,13 +256,33 @@ export namespace trainer {
                     //     this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start,
                     //     128
                     // )
-                    this.notes_target.filter(
-                        node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
-                    )
+                    notes_in_segment
                 );
+
+                for (let target of sequence_targets) {
+                    for (let subtarget of target) {
+
+                        let subtarget_processed = this.algorithm.postprocess_subtarget(
+                            subtarget
+                        );
+
+                        this.clip_user_input.remove_notes(
+                            subtarget_processed.model.note.beat_start,
+                            0,
+                            subtarget_processed.model.note.get_beat_end(),
+                            128
+                        );
+
+                        this.clip_user_input.set_notes(
+                            [subtarget_processed]
+                        )
+                    }
+                }
 
                 this.matrix_focus[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             }
+
+
         }
 
         public clear_window() {
@@ -441,7 +466,11 @@ export namespace trainer {
                 return
             }
 
-            let target_at_time: Target[] = this.iterator_target_current.targets;
+            let notes_in_segment_at_time = this.notes_target.filter(
+                node => node.model.note.beat_start >= this.segment_current.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= this.segment_current.get_endpoints_loop()[1]
+            );
+
+            let targets_at_time: Target[] = this.iterator_target_current.targets;
 
             let coord_at_time: number[] = this.iterator_matrix_train.get_coord_current();
 
@@ -455,14 +484,25 @@ export namespace trainer {
 
                     let obj_next_coord = this.iterator_matrix_train.next();
 
+                    // TODO: can we add all notes in segment for predict here?
+
+                    let notes_to_add_to_history = [];
+
+                    if (this.algorithm.get_name() === PREDICT) {
+                        notes_to_add_to_history = notes_in_segment_at_time
+                    } else {
+                        notes_to_add_to_history = targets_at_time
+                    }
+
                     this.history_user_input.add(
-                        target_at_time,
+                        notes_to_add_to_history,
                         coord_at_time
                     );
 
                     if (obj_next_coord.done) {
+                        // TODO: can we add all notes in segment for predict here?
                         this.history_user_input.add(
-                            target_at_time,
+                            notes_to_add_to_history,
                             coord_at_time
                         );
 

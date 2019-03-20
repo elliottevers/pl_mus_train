@@ -147,6 +147,19 @@ var test = function () {
 var set_target_notes = function () {
     // @ts-ignore
     var list_path_device_target = Array.prototype.slice.call(arguments);
+    var track_target = new live_1.live.LiveApiJs(list_path_device_target.join(' '));
+    switch (algorithm_train.get_name()) {
+        case PARSE: {
+            track_target.set("mute", "1");
+            break;
+        }
+        case DERIVE: {
+            track_target.set("mute", "1");
+            break;
+        }
+        default: {
+        }
+    }
     notes_target = segmenter_1.get_notes(list_path_device_target.join(' '));
     messenger_monitor_target.message([list_path_device_target[2]]);
 };
