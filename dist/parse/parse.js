@@ -14,6 +14,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
+var logger_1 = require("../log/logger");
 var algorithm_1 = require("../train/algorithm");
 var iterate_1 = require("../train/iterate");
 var _ = require("underscore");
@@ -23,6 +24,7 @@ var parse;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var NoteRenderable = note_1.note.NoteRenderable;
+    var Logger = logger_1.log.Logger;
     var ParseTree = /** @class */ (function () {
         function ParseTree() {
         }
@@ -93,6 +95,9 @@ var parse;
             this.root = NoteRenderable.from_note(note, coord_root);
         };
         StructParse.prototype.set_notes = function (notes, coord) {
+            var logger = new Logger('max');
+            logger.log('----------set notes------------');
+            logger.log(JSON.stringify(coord));
             this.history.push(coord);
             this.matrix_leaves[coord[0]][coord[1]] = notes.map(function (note) {
                 return NoteRenderable.from_note(note, coord);

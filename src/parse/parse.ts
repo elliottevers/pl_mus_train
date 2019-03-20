@@ -18,6 +18,7 @@ export namespace parse {
     import DERIVE = algorithm.DERIVE;
     import MatrixIterator = iterate.MatrixIterator;
     import NoteRenderable = note.NoteRenderable;
+    import Logger = log.Logger;
 
     export interface Parsable {
         choose(): boolean;
@@ -115,6 +116,9 @@ export namespace parse {
         }
 
         public set_notes(notes: TreeModel.Node<n.Note>[], coord) {
+            let logger = new Logger('max');
+            logger.log('----------set notes------------');
+            logger.log(JSON.stringify(coord));
             this.history.push(coord);
             this.matrix_leaves[coord[0]][coord[1]] = notes.map((note) => {
                 return NoteRenderable.from_note(note, coord)

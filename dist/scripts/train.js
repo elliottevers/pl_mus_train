@@ -52,7 +52,6 @@ if (env === 'max') {
 var logger = new Logger(env);
 var messenger_render = new Messenger(env, 0, 'render');
 var messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
-// let messenger_bounds_subtarget = new Messenger(env, 0, 'bounds_subtarget');
 var messenger_num_segments = new Messenger(env, 0, 'num_segments');
 var mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
 var set_mode_texture = function (option) {
@@ -194,6 +193,8 @@ var user_input_command = function (command) {
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    var logger_2 = new Logger('max');
+                    logger_2.log(JSON.stringify(trainer.history_user_input));
                     clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]));
                     break;
                 }

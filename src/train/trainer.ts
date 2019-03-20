@@ -49,7 +49,7 @@ export namespace trainer {
         private messenger: Messenger;
 
         private struct_parse: StructParse;
-        public history_user_input;
+        public history_user_input: HistoryUserInput;
 
         private counter_user_input: number;
         private limit_user_input: number;
@@ -128,6 +128,10 @@ export namespace trainer {
                 }
             );
 
+            let logger = new Logger('max');
+
+            logger.log(JSON.stringify(note_length_full));
+
             this.struct_parse.set_root(
                 note_length_full
             );
@@ -155,7 +159,14 @@ export namespace trainer {
                 this.window.add_notes_to_clip(
                     [note],
                     coord_current_virtual
-                )
+                );
+
+                this.history_user_input.add(
+                    [note],
+                    coord_current_virtual
+                );
+
+                this.stream_segment_bounds();
             }
 
             switch (this.algorithm.get_name()) {
@@ -432,9 +443,11 @@ export namespace trainer {
 
             this.advance_scene();
 
+            // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
-
-            // TODO: should we send messages about subtargets into a coll via the busses?
+            // } else {
+            //     this.stream_segment_bounds();
+            // }
         }
 
         accept_input(notes_input_user: TreeModel.Node<n.Note>[]) {
@@ -472,6 +485,8 @@ export namespace trainer {
 
                 this.advance_segment();
 
+                this.stream_segment_bounds();
+
                 this.advance_scene();
 
                 this.render_window();
@@ -479,11 +494,11 @@ export namespace trainer {
                 return
             }
 
-            let logger = new Logger('max');
-
-            logger.log(JSON.stringify(notes_input_user[0].model.note.pitch));
-            logger.log(JSON.stringify(this.subtarget_current));
-            logger.log('------------');
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(notes_input_user[0].model.note.pitch));
+            // logger.log(JSON.stringify(this.subtarget_current));
+            // logger.log('------------');
 
 
             // detect/predict logic
@@ -510,7 +525,11 @@ export namespace trainer {
             let ratio_bound_lower = (this.subtarget_current.note.model.note.beat_start - this.segment_current.get_endpoints_loop()[0])/(this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             let ratio_bound_upper = (this.subtarget_current.note.model.note.get_beat_end() - this.segment_current.get_endpoints_loop()[0])/(this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             // this.messenger.message([ratio_bound_lower/this.segments.length, ratio_bound_upper/this.segments.length])
-            this.messenger.message(['bounds_subtarget', ratio_bound_lower, ratio_bound_upper])
+            this.messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper])
+        }
+
+        stream_segment_bounds() {
+            this.messenger.message(['bounds', 0, 1])
         }
     }
 }

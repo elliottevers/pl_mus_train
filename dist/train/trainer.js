@@ -54,6 +54,8 @@ var trainer;
                 note: new note_1.note.Note(note_segment_last.model.note.pitch, this.segments[0].get_note().model.note.beat_start, (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - this.segments[0].get_note().model.note.beat_start, note_segment_last.model.note.velocity, note_segment_last.model.note.muted),
                 children: []
             });
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(note_length_full));
             this.struct_parse.set_root(note_length_full);
             // TODO: make the root the length of the entire song
             this.window.add_note_to_clip_root(note_length_full);
@@ -64,6 +66,8 @@ var trainer;
                 var coord_current_virtual = [0, Number(i_segment)];
                 this.struct_parse.set_notes([note_2], coord_current_virtual);
                 this.window.add_notes_to_clip([note_2], coord_current_virtual);
+                this.history_user_input.add([note_2], coord_current_virtual);
+                this.stream_segment_bounds();
             }
             switch (this.algorithm.get_name()) {
                 case PARSE: {
@@ -250,8 +254,11 @@ var trainer;
         Trainer.prototype.handle_boundary_change = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             this.advance_scene();
+            // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
-            // TODO: should we send messages about subtargets into a coll via the busses?
+            // } else {
+            //     this.stream_segment_bounds();
+            // }
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;
@@ -269,14 +276,16 @@ var trainer;
                 // TODO: implement
                 this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
+                this.stream_segment_bounds();
                 this.advance_scene();
                 this.render_window();
                 return;
             }
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(notes_input_user[0].model.note.pitch));
-            logger.log(JSON.stringify(this.subtarget_current));
-            logger.log('------------');
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(notes_input_user[0].model.note.pitch));
+            // logger.log(JSON.stringify(this.subtarget_current));
+            // logger.log('------------');
             // detect/predict logic
             if (utils_1.utils.remainder(notes_input_user[0].model.note.pitch, 12) === utils_1.utils.remainder(this.subtarget_current.note.model.note.pitch, 12)) {
                 this.window.add_notes_to_clip([this.subtarget_current.note], this.iterator_matrix_train.get_coord_current());
@@ -292,7 +301,10 @@ var trainer;
             var ratio_bound_lower = (this.subtarget_current.note.model.note.beat_start - this.segment_current.get_endpoints_loop()[0]) / (this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             var ratio_bound_upper = (this.subtarget_current.note.model.note.get_beat_end() - this.segment_current.get_endpoints_loop()[0]) / (this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             // this.messenger.message([ratio_bound_lower/this.segments.length, ratio_bound_upper/this.segments.length])
-            this.messenger.message(['bounds_subtarget', ratio_bound_lower, ratio_bound_upper]);
+            this.messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper]);
+        };
+        Trainer.prototype.stream_segment_bounds = function () {
+            this.messenger.message(['bounds', 0, 1]);
         };
         return Trainer;
     }());

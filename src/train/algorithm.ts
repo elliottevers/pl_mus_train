@@ -16,7 +16,6 @@ export namespace algorithm {
     import POLYPHONY = modes_texture.POLYPHONY;
     import MONOPHONY = modes_texture.MONOPHONY;
     import TypeSequenceTarget = history.TypeSequenceTarget;
-    import TypeTarget = history.TypeTarget;
 
     export interface Temporal {
         determine_region_present

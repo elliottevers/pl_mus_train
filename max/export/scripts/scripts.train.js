@@ -864,6 +864,16 @@ var harmony;
             }
             return notes_monophonic;
         };
+        Harmony.arpeggiate = function (notes) {
+            var chords_grouped = Harmony.group(notes);
+            var chords_monophonified = [];
+            for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
+                var chord = chords_grouped_1[_i];
+                var notes_monophonified = Harmony.monophonify(chord);
+                chords_monophonified.push(notes_monophonified);
+            }
+            return chords_monophonified;
+        };
         return Harmony;
     }());
     harmony.Harmony = Harmony;
@@ -1053,6 +1063,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
+var logger_1 = require("../log/logger");
 var algorithm_1 = require("../train/algorithm");
 var iterate_1 = require("../train/iterate");
 var _ = require("underscore");
@@ -1062,6 +1073,7 @@ var parse;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var NoteRenderable = note_1.note.NoteRenderable;
+    var Logger = logger_1.log.Logger;
     var ParseTree = /** @class */ (function () {
         function ParseTree() {
         }
@@ -1132,6 +1144,9 @@ var parse;
             this.root = NoteRenderable.from_note(note, coord_root);
         };
         StructParse.prototype.set_notes = function (notes, coord) {
+            var logger = new Logger('max');
+            logger.log('----------set notes------------');
+            logger.log(JSON.stringify(coord));
             this.history.push(coord);
             this.matrix_leaves[coord[0]][coord[1]] = notes.map(function (note) {
                 return NoteRenderable.from_note(note, coord);
@@ -1224,7 +1239,7 @@ var parse;
     parse.StructParse = StructParse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../note/note":10,"../train/algorithm":20,"../train/iterate":21,"underscore":29}],12:[function(require,module,exports){
+},{"../log/logger":7,"../note/note":10,"../train/algorithm":20,"../train/iterate":21,"underscore":29}],12:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -1817,7 +1832,6 @@ if (env === 'max') {
 var logger = new Logger(env);
 var messenger_render = new Messenger(env, 0, 'render');
 var messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
-var messenger_bounds_subtarget = new Messenger(env, 0, 'bounds_subtarget');
 var messenger_num_segments = new Messenger(env, 0, 'num_segments');
 var mode_texture, mode_control, depth_tree, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
 var set_mode_texture = function (option) {
@@ -1915,7 +1929,7 @@ var set_target_notes = function () {
 };
 var begin = function () {
     song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
-    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, notes_target, song, segments, messenger_bounds_subtarget);
+    trainer = new Trainer(window, user_input_handler, algorithm_train, clip_user_input, notes_target, song, segments, new Messenger(env, 0));
     trainer.init();
     trainer.render_window();
 };
@@ -1959,6 +1973,8 @@ var user_input_command = function (command) {
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    var logger_2 = new Logger('max');
+                    logger_2.log(JSON.stringify(trainer.history_user_input));
                     clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]));
                     break;
                 }
@@ -2718,21 +2734,29 @@ var algorithm;
         Detect.prototype.determine_targets = function (notes_segment_next) {
             var targets;
             switch (this.user_input_handler.mode_texture) {
-                case POLYPHONY: {
-                    var chords_grouped = Harmony.group(notes_segment_next);
-                    var chords_monophonified = [];
-                    for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
-                        var chord = chords_grouped_1[_i];
-                        var notes_monophonified = Harmony.monophonify(chord);
-                        chords_monophonified.push(notes_monophonified);
-                    }
-                    targets = chords_monophonified;
-                    break;
-                }
+                // case POLYPHONY: {
+                //     let chords_grouped: TypeTarget[] = Harmony.group(
+                //         notes_segment_next
+                //     );
+                //
+                //     let chords_monophonified: TypeTarget[] = [];
+                //
+                //     for (let chord of chords_grouped) {
+                //         let notes_monophonified: TypeTarget = Harmony.monophonify(
+                //             chord
+                //         );
+                //
+                //         chords_monophonified.push(notes_monophonified)
+                //     }
+                //
+                //     targets = chords_monophonified;
+                //
+                //     break;
+                // }
                 case MONOPHONY: {
                     var notes_grouped_trivial = [];
-                    for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
-                        var note = notes_segment_next_1[_a];
+                    for (var _i = 0, notes_segment_next_1 = notes_segment_next; _i < notes_segment_next_1.length; _i++) {
+                        var note = notes_segment_next_1[_i];
                         notes_grouped_trivial.push([note]);
                     }
                     targets = notes_grouped_trivial;
@@ -2777,8 +2801,8 @@ var algorithm;
             if (this.user_input_handler.mode_texture === POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
                 var chords_monophonified = [];
-                for (var _i = 0, chords_grouped_2 = chords_grouped; _i < chords_grouped_2.length; _i++) {
-                    var note_group = chords_grouped_2[_i];
+                for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
+                    var note_group = chords_grouped_1[_i];
                     chords_monophonified.push(Harmony.monophonify(note_group));
                 }
                 return chords_monophonified;
@@ -3156,6 +3180,8 @@ var trainer;
                 note: new note_1.note.Note(note_segment_last.model.note.pitch, this.segments[0].get_note().model.note.beat_start, (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - this.segments[0].get_note().model.note.beat_start, note_segment_last.model.note.velocity, note_segment_last.model.note.muted),
                 children: []
             });
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(note_length_full));
             this.struct_parse.set_root(note_length_full);
             // TODO: make the root the length of the entire song
             this.window.add_note_to_clip_root(note_length_full);
@@ -3166,6 +3192,8 @@ var trainer;
                 var coord_current_virtual = [0, Number(i_segment)];
                 this.struct_parse.set_notes([note_2], coord_current_virtual);
                 this.window.add_notes_to_clip([note_2], coord_current_virtual);
+                this.history_user_input.add([note_2], coord_current_virtual);
+                this.stream_segment_bounds();
             }
             switch (this.algorithm.get_name()) {
                 case PARSE: {
@@ -3352,7 +3380,11 @@ var trainer;
         Trainer.prototype.handle_boundary_change = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             this.advance_scene();
+            // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
+            // } else {
+            //     this.stream_segment_bounds();
+            // }
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;
@@ -3370,14 +3402,16 @@ var trainer;
                 // TODO: implement
                 this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
+                this.stream_segment_bounds();
                 this.advance_scene();
                 this.render_window();
                 return;
             }
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(notes_input_user[0].model.note.pitch));
-            logger.log(JSON.stringify(this.subtarget_current));
-            logger.log('------------');
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(notes_input_user[0].model.note.pitch));
+            // logger.log(JSON.stringify(this.subtarget_current));
+            // logger.log('------------');
             // detect/predict logic
             if (utils_1.utils.remainder(notes_input_user[0].model.note.pitch, 12) === utils_1.utils.remainder(this.subtarget_current.note.model.note.pitch, 12)) {
                 this.window.add_notes_to_clip([this.subtarget_current.note], this.iterator_matrix_train.get_coord_current());
@@ -3393,7 +3427,10 @@ var trainer;
             var ratio_bound_lower = (this.subtarget_current.note.model.note.beat_start - this.segment_current.get_endpoints_loop()[0]) / (this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             var ratio_bound_upper = (this.subtarget_current.note.model.note.get_beat_end() - this.segment_current.get_endpoints_loop()[0]) / (this.segment_current.get_endpoints_loop()[1] - this.segment_current.get_endpoints_loop()[0]);
             // this.messenger.message([ratio_bound_lower/this.segments.length, ratio_bound_upper/this.segments.length])
-            this.messenger.message([ratio_bound_lower, ratio_bound_upper]);
+            this.messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper]);
+        };
+        Trainer.prototype.stream_segment_bounds = function () {
+            this.messenger.message(['bounds', 0, 1]);
         };
         return Trainer;
     }());
