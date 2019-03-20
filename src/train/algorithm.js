@@ -57,29 +57,22 @@ var algorithm;
         Detect.prototype.determine_targets = function (notes_segment_next) {
             var targets;
             switch (this.user_input_handler.mode_texture) {
-                // case POLYPHONY: {
-                //     let chords_grouped: TypeTarget[] = Harmony.group(
-                //         notes_segment_next
-                //     );
-                //
-                //     let chords_monophonified: TypeTarget[] = [];
-                //
-                //     for (let chord of chords_grouped) {
-                //         let notes_monophonified: TypeTarget = Harmony.monophonify(
-                //             chord
-                //         );
-                //
-                //         chords_monophonified.push(notes_monophonified)
-                //     }
-                //
-                //     targets = chords_monophonified;
-                //
-                //     break;
-                // }
+                // TODO: we should never have to use this, but I'm keeping it for the original test cases
+                case POLYPHONY: {
+                    var chords_grouped = Harmony.group(notes_segment_next);
+                    var chords_monophonified = [];
+                    for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
+                        var chord = chords_grouped_1[_i];
+                        var notes_monophonified = Harmony.monophonify(chord);
+                        chords_monophonified.push(notes_monophonified);
+                    }
+                    targets = chords_monophonified;
+                    break;
+                }
                 case MONOPHONY: {
                     var notes_grouped_trivial = [];
-                    for (var _i = 0, notes_segment_next_1 = notes_segment_next; _i < notes_segment_next_1.length; _i++) {
-                        var note = notes_segment_next_1[_i];
+                    for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
+                        var note = notes_segment_next_1[_a];
                         notes_grouped_trivial.push([note]);
                     }
                     targets = notes_grouped_trivial;
@@ -124,8 +117,8 @@ var algorithm;
             if (this.user_input_handler.mode_texture === POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
                 var chords_monophonified = [];
-                for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
-                    var note_group = chords_grouped_1[_i];
+                for (var _i = 0, chords_grouped_2 = chords_grouped; _i < chords_grouped_2.length; _i++) {
+                    var note_group = chords_grouped_2[_i];
                     chords_monophonified.push(Harmony.monophonify(note_group));
                 }
                 return chords_monophonified;

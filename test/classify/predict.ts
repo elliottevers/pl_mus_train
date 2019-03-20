@@ -235,6 +235,12 @@ let clip_user_input = {
     set_endpoints_loop: (former, latter) => {}
 };
 
+let clip_user_input_synchronous = {
+    fire: () => {},
+    stop: () => {},
+    set_endpoints_loop: (former, latter) => {}
+};
+
 let notes_segments = [
     segment_note_1,
     segment_note_2
@@ -261,16 +267,17 @@ for (let note of notes_segments) {
     )
 }
 
-let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
-
-let clip_target = new Clip(clip_dao_virtual);
+// let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
+//
+// let clip_target = new Clip(clip_dao_virtual);
 
 let trainer_local = new Trainer(
     window_local,
     user_input_handler,
     algorithm_train,
     clip_user_input,
-    clip_target,
+    clip_user_input_synchronous,
+    notes_target_clip,
     song,
     segments,
     messenger

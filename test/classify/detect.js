@@ -6,17 +6,10 @@ var user_input_1 = require("../../src/control/user_input");
 var UserInputHandler = user_input_1.user_input.UserInputHandler;
 var messenger_1 = require("../../src/message/messenger");
 var Messenger = messenger_1.message.Messenger;
-var live_1 = require("../../src/live/live");
-var LiveClipVirtual = live_1.live.LiveClipVirtual;
 var segment_1 = require("../../src/segment/segment");
 var Segment = segment_1.segment.Segment;
-var clip_1 = require("../../src/clip/clip");
-var Clip = clip_1.clip.Clip;
 var algorithm_1 = require("../../src/train/algorithm");
 var Detect = algorithm_1.algorithm.Detect;
-var serialize_1 = require("../../src/serialize/serialize");
-var TrainFreezer = serialize_1.freeze.TrainFreezer;
-var TrainThawer = serialize_1.thaw.TrainThawer;
 var window_1 = require("../../src/render/window");
 var trainer_1 = require("../../src/train/trainer");
 var Trainer = trainer_1.trainer.Trainer;
@@ -94,6 +87,11 @@ var clip_user_input = {
     stop: function () { },
     set_endpoints_loop: function (former, latter) { }
 };
+var clip_user_input_synchronous = {
+    fire: function () { },
+    stop: function () { },
+    set_endpoints_loop: function (former, latter) { }
+};
 var notes_segments = [
     segment_note_1,
     segment_note_2
@@ -113,9 +111,12 @@ for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length
     var note = notes_segments_1[_i];
     segments.push(new Segment(note));
 }
-var clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
-var clip_target = new Clip(clip_dao_virtual);
-var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, clip_user_input, clip_target, song, segments, messenger);
+// let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
+//
+// let clip_target = new Clip(clip_dao_virtual);
+var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, clip_user_input, clip_user_input_synchronous, notes_target_clip, 
+// clip_target,
+song, segments, messenger);
 // test case - 2 segments, 2 notes a piece
 trainer_local.init();
 trainer_local.accept_input([note_target_1_subtarget_1]);
@@ -124,21 +125,43 @@ trainer_local.accept_input([note_target_2_subtarget_1]);
 trainer_local.accept_input([note_target_2_subtarget_2]);
 trainer_local.accept_input([note_target_3_subtarget_1]);
 trainer_local.render_window();
-trainer_local.clear_window();
-var freezer = new TrainFreezer(env);
-freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
-var thawer = new TrainThawer(env);
-var config = {
-    'window': window_local,
-    'user_input_handler': user_input_handler,
-    'algorithm': algorithm_train,
-    'clip_user_input': clip_user_input,
-    'clip_target': clip_target,
-    'song': song,
-    'segments': segments,
-    'messenger': messenger,
-    'env': env
-};
-var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', config);
-train_thawed.render_window();
+// trainer_local.clear_window(
+//
+// );
+//
+// let freezer = new TrainFreezer(
+//     env
+// );
+//
+// freezer.freeze(
+//     trainer_local,
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json'
+// );
+//
+// let thawer = new TrainThawer(
+//     env
+// );
+//
+// let config = {
+//     'window': window_local,
+//     'user_input_handler': user_input_handler,
+//     'algorithm': algorithm_train,
+//     'clip_user_input': clip_user_input,
+//     'clip_user_input_synchronous': clip_user_input_synchronous,
+//     'notes_target': notes_target_clip,
+//     // 'clip_target': clip_target,
+//     'song': song,
+//     'segments': segments,
+//     'messenger': messenger,
+//     'env': env
+// };
+//
+// let train_thawed = thawer.thaw(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
+//     config
+// );
+//
+// train_thawed.render_window(
+//
+// );
 //# sourceMappingURL=detect.js.map

@@ -16,6 +16,7 @@ export namespace algorithm {
     import POLYPHONY = modes_texture.POLYPHONY;
     import MONOPHONY = modes_texture.MONOPHONY;
     import TypeSequenceTarget = history.TypeSequenceTarget;
+    import TypeTarget = history.TypeTarget;
 
     export interface Temporal {
         determine_region_present
@@ -73,25 +74,26 @@ export namespace algorithm {
             let targets;
 
             switch(this.user_input_handler.mode_texture) {
-                // case POLYPHONY: {
-                //     let chords_grouped: TypeTarget[] = Harmony.group(
-                //         notes_segment_next
-                //     );
-                //
-                //     let chords_monophonified: TypeTarget[] = [];
-                //
-                //     for (let chord of chords_grouped) {
-                //         let notes_monophonified: TypeTarget = Harmony.monophonify(
-                //             chord
-                //         );
-                //
-                //         chords_monophonified.push(notes_monophonified)
-                //     }
-                //
-                //     targets = chords_monophonified;
-                //
-                //     break;
-                // }
+                // TODO: we should never have to use this, but I'm keeping it for the original test cases
+                case POLYPHONY: {
+                    let chords_grouped: TypeTarget[] = Harmony.group(
+                        notes_segment_next
+                    );
+
+                    let chords_monophonified: TypeTarget[] = [];
+
+                    for (let chord of chords_grouped) {
+                        let notes_monophonified: TypeTarget = Harmony.monophonify(
+                            chord
+                        );
+
+                        chords_monophonified.push(notes_monophonified)
+                    }
+
+                    targets = chords_monophonified;
+
+                    break;
+                }
                 case MONOPHONY: {
                     let notes_grouped_trivial = [];
 
