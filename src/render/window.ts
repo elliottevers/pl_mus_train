@@ -225,7 +225,6 @@ export namespace window {
                     null
                 );
             } else {
-
                 this.render_trees(
                     parse_matrix
                 );

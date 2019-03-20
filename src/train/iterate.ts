@@ -159,7 +159,12 @@ export namespace iterate {
         }
 
         public static get_coords_above(coord): number[][] {
-            return [[coord[0] - 1, coord[1]]]
+            if (coord[0] === 0) {
+                return [[-1]]
+            } else {
+                return [[coord[0] - 1, coord[1]]]
+            }
+            // return [[coord[0] - 1, coord[1]]]
         }
 
         public static get_coords_below(coord): number[][] {

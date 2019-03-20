@@ -122,7 +122,13 @@ var iterate;
             return [pos_row, pos_column];
         };
         MatrixIterator.get_coords_above = function (coord) {
-            return [[coord[0] - 1, coord[1]]];
+            if (coord[0] === 0) {
+                return [[-1]];
+            }
+            else {
+                return [[coord[0] - 1, coord[1]]];
+            }
+            // return [[coord[0] - 1, coord[1]]]
         };
         MatrixIterator.get_coords_below = function (coord) {
             return [[coord[0] + 1, coord[1]]];

@@ -74,7 +74,16 @@ var trainer;
                 // logger.log(JSON.stringify(segment));
                 var note_2 = segment_1.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
-                this.struct_parse.set_notes([note_2], coord_current_virtual);
+                switch (this.algorithm.get_name()) {
+                    case DERIVE: {
+                        this.struct_parse.add([note_2], coord_current_virtual, this.algorithm);
+                        break;
+                    }
+                    case PARSE: {
+                        this.struct_parse.set_notes([note_2], coord_current_virtual);
+                        break;
+                    }
+                }
                 this.window.add_notes_to_clip([note_2], coord_current_virtual);
                 this.history_user_input.add([note_2], coord_current_virtual);
                 this.stream_segment_bounds();
@@ -138,15 +147,16 @@ var trainer;
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            var notes;
+            var notes = [];
             if (this.algorithm.b_targeted()) {
                 notes = this.target_current.iterator_subtarget.subtargets.map(function (subtarget) {
                     return subtarget.note;
                 });
             }
-            else {
-                notes = [this.segment_current.get_note()];
-            }
+            // } else {
+            //     // notes = [this.segment_current.get_note()]
+            //     notes = []
+            // }
             this.window.render(this.iterator_matrix_train, notes, this.algorithm, this.struct_parse);
         };
         Trainer.prototype.reset_user_input = function () {
@@ -233,7 +243,8 @@ var trainer;
             }
             var coord = obj_next_coord.value;
             this.segment_current = this.segments[coord[1]];
-            this.advance_scene(first_time);
+            // TODO: PLEASE put back in
+            // this.advance_scene(first_time);
         };
         Trainer.prototype.advance_subtarget = function () {
             var have_not_begun = (!this.iterator_matrix_train.b_started);
@@ -281,7 +292,8 @@ var trainer;
         };
         Trainer.prototype.handle_boundary_change = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
-            this.advance_scene();
+            // TODO: PLEASE put back in
+            // this.advance_scene(first_time);
             // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
             // } else {
@@ -305,7 +317,6 @@ var trainer;
                 this.struct_parse.add(notes_input_user, this.iterator_matrix_train.get_coord_current(), this.algorithm);
                 this.advance_segment();
                 this.stream_segment_bounds();
-                // this.advance_scene();
                 this.render_window();
                 return;
             }

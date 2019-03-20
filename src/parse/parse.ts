@@ -179,12 +179,24 @@ export namespace parse {
                     break;
                 }
                 case DERIVE: {
-                    let coords_notes_previous = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
+                    // if (coord_notes_current[0] === -1) {
+                    //     for (let i in this.matrix_leaves[0]) {
+                    //         coords_notes_previous.push([0, Number(i)])
+                    //     }
+                    // } else {
+                    //     coords_notes_previous = MatrixIterator.get_coords_below([coord_notes_current[0], coord_notes_current[1]]);
+                    // }
+
+                    coords_notes_previous = MatrixIterator.get_coords_above([coord_notes_current[0], coord_notes_current[1]]);
 
                     let notes_parent;
 
                     for (let coord of coords_notes_previous) {
-                        notes_parent = this.matrix_leaves[coord[0]][coord[1]];
+                        if (coord[0] === -1) {
+                            notes_parent = [this.root];
+                        } else {
+                            notes_parent = this.matrix_leaves[coord[0]][coord[1]];
+                        }
                     }
 
                     this.add_layer(
@@ -200,8 +212,8 @@ export namespace parse {
             }
 
 
-            let logger = new Logger('max');
-            logger.log(JSON.stringify(this.coords_roots));
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.coords_roots));
             // // remove references to old leaves
             // for (let coord_notes_previous of coords_notes_previous) {
             //     this.coords_roots = this.coords_roots.filter((x) => {

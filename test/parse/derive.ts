@@ -1,32 +1,33 @@
-import {note as n, note} from "../../src/note/note";
+import {note as n} from "../../src/note/note";
 import TreeModel = require("tree-model");
-import {
-    set_depth_tree_export,
-    add_to_tree_export,
-    pwindow,
-    parse_matrix,
-    // load_export,
-    initialize_parse_tree, grow_from_matrix, render, wipe_render
-} from "../../src/scripts/parse_tree";
+import {user_input} from "../../src/control/user_input";
+import UserInputHandler = user_input.UserInputHandler;
 import {message} from "../../src/message/messenger";
 import Messenger = message.Messenger;
-
-// stubs
-let song = {
-    set_overdub: (int) => {},
-    set_session_record: (int) => {}
-};
-
-let clip_user_input = {
-    fire: () => {},
-    stop: () => {},
-    set_endpoints_loop: (former, latter) => {}
-};
+import {live as li, live} from "../../src/live/live";
+import LiveClipVirtual = live.LiveClipVirtual;
+import {segment} from "../../src/segment/segment";
+import Segment = segment.Segment;
+import {clip} from "../../src/clip/clip";
+import Clip = clip.Clip;
+import {algorithm} from "../../src/train/algorithm";
+import {freeze, thaw} from "../../src/serialize/serialize";
+import TrainFreezer = freeze.TrainFreezer;
+import TrainThawer = thaw.TrainThawer;
+import {window} from "../../src/render/window";
+import MatrixWindow = window.MatrixWindow;
+import {trainer} from "../../src/train/trainer";
+import Trainer = trainer.Trainer;
+import {modes_control, modes_texture} from "../../src/constants/constants";
+import VOCAL = modes_control.VOCAL;
+import Parse = algorithm.Parse;
+import MONOPHONY = modes_texture.MONOPHONY;
+import Derive = algorithm.Derive;
 
 
 let tree: TreeModel = new TreeModel();
 
-let notes_segments;
+// let notes_segments;
 
 let note_2_1 = tree.parse(
     {
@@ -204,85 +205,187 @@ let note_4_2 = tree.parse(
     }
 );
 
-notes_segments = [note_2_1, note_2_2, note_2_3];
+let notes_segments = [note_2_1, note_2_2, note_2_3];
 
-set_depth_tree_export(4);
 
-let env: string;
-env = 'node';
-env = 'node_for_max';
-// const Max = require('max-api');
+let mode_texture = MONOPHONY;
 
-let messenger = new Messenger(env, 0);
+let mode_control = VOCAL;
 
-wipe_render(messenger);
+let user_input_handler = new UserInputHandler(
+    mode_texture,
+    mode_control
+);
 
-initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree_export, messenger);
+let env: string = 'node_for_max';
+// env = 'node';
 
-add_to_tree_export(
-    [note_3_1, note_3_2],
-    note_2_1.model.note.beat_start,
-    note_2_1.model.note.get_beat_end(),
+
+let messenger = new Messenger(env, 0, 'render_derive');
+
+let algorithm_train = new Derive(
+    user_input_handler
+);
+
+let window_local = new MatrixWindow(
+    384,
+    384,
+    messenger,
+    algorithm_train
+);
+
+algorithm_train.set_depth(
+    3
+);
+
+// stubs
+let song = {
+    set_overdub: (int) => {},
+    set_session_record: (int) => {},
+    stop: () => {}
+};
+
+let clip_user_input = {
+    fire: () => {},
+    stop: () => {},
+    set_endpoints_loop: (former, latter) => {}
+};
+
+let clip_user_input_synchronous = {
+    fire: () => {},
+    stop: () => {},
+    set_endpoints_loop: (former, latter) => {}
+};
+
+let scene = {
+    fire: () => {},
+    // stop: () => {},
+    // set_endpoints_loop: (former, latter) => {}
+};
+
+// let notes_segments = [
+//     note_2_1,
+//     note_2_2,
+//     note_2_3
+// ];
+
+let notes_target_clip = [
+    // TODO: make sure we don't do anything with these notes when deriving
+    // OTHER THAN mute the target track we're deriving
+];
+
+let segments: Segment[] = [];
+
+for (let note of notes_segments) {
+    let segment = new Segment(
+        note
+    );
+
+    // @ts-ignore
+    segment.set_scene(scene);
+
+    segments.push(
+        segment
+    )
+
+
+    // let note = notes_segments[Number(i_note)];
+    // let path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
+    // let segment_local = new Segment(
+    //     note
+    // );
+    // segment_local.set_scene(
+    //     new Scene(
+    //         new SceneDao(
+    //             new li.LiveApiJs(
+    //                 path_scene
+    //             )
+    //         )
+    //     )
+    // );
+}
+
+
+let trainer_local = new Trainer(
+    window_local,
+    user_input_handler,
+    algorithm_train,
     clip_user_input,
+    clip_user_input_synchronous,
+    notes_target_clip,
     song,
+    segments,
     messenger
 );
 
-add_to_tree_export(
-    [note_3_3, note_3_4],
-    note_2_2.model.note.beat_start,
-    note_2_2.model.note.get_beat_end(),
-    clip_user_input,
-    song,
-    messenger
+// test case - 2 segments, 2 notes a piece
+
+trainer_local.init(
+
 );
 
-add_to_tree_export(
-    [note_3_5, note_3_6],
-    note_2_3.model.note.beat_start,
-    note_2_3.model.note.get_beat_end(),
-    clip_user_input,
-    song,
-    messenger
+trainer_local.accept_input(
+    [note_3_1, note_3_2]
 );
 
-add_to_tree_export(
-    [note_4_1],
-    note_2_1.model.note.beat_start,
-    note_2_1.model.note.get_beat_end(),
-    clip_user_input,
-    song,
-    messenger
+trainer_local.accept_input(
+    [note_3_3, note_3_4]
 );
 
-add_to_tree_export(
-    [note_4_2],
-    note_2_2.model.note.beat_start,
-    note_2_2.model.note.get_beat_end(),
-    clip_user_input,
-    song,
-    messenger
+
+trainer_local.accept_input(
+    [note_3_5, note_3_6]
 );
 
-wipe_render(messenger);
+trainer_local.accept_input(
+    [note_4_1]
+);
+
+trainer_local.accept_input(
+    [note_4_2]
+);
 
 
-// pwindow.render();
+trainer_local.render_window(
 
-parse_matrix.save('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/parse_matrix.json');
+);
 
-// let ds = parse_matrix.load('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/parse_matrix.json');
+
+// trainer_local_parse.clear_window(
 //
+// );
 //
-// initialize_parse_tree(notes_segments, clip_user_input, song, add_to_tree_export, messenger);
+// let freezer_parse = new TrainFreezer(
+//     env_parse
+// );
 //
-// grow_from_matrix(parse_matrix);
+// freezer_parse.freeze(
+//     trainer_local_parse,
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
+// );
 //
-// render();
+// let thawer_parse = new TrainThawer(
+//     env_parse
+// );
 //
-// // let msg_clear = ["clear"];
-// // msg_clear.unshift('render');
-// // messenger.message(msg_clear);
+// let config_parse = {
+//     'window': window_local_parse,
+//     'user_input_handler': user_input_handler_parse,
+//     'algorithm': algorithm_train_parse,
+//     'clip_user_input': clip_user_input_parse,
+//     'clip_user_input_synchronous': clip_user_input_parse_synchronous,
+//     'clip_target': clip_target_virtual_parse,
+//     'song': song_parse,
+//     'segments': segments_parse,
+//     'messenger': messenger_parse,
+//     'env': env_parse
+// };
 //
-// // TODO: serialize parse matrix, deserialize, replay building
-// // TODO: can we delay render?
+// let train_thawed_parse = thawer_parse.thaw(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
+//     config_parse
+// );
+//
+// train_thawed_parse.render_window(
+//
+// );

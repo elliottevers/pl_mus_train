@@ -4,7 +4,7 @@ import {user_input} from "../../src/control/user_input";
 import UserInputHandler = user_input.UserInputHandler;
 import {message} from "../../src/message/messenger";
 import Messenger = message.Messenger;
-import {live} from "../../src/live/live";
+import {live as li, live} from "../../src/live/live";
 import LiveClipVirtual = live.LiveClipVirtual;
 import {segment} from "../../src/segment/segment";
 import Segment = segment.Segment;
@@ -356,6 +356,18 @@ let clip_user_input_parse = {
     set_endpoints_loop: (former, latter) => {}
 };
 
+let clip_user_input_parse_synchronous = {
+    fire: () => {},
+    stop: () => {},
+    set_endpoints_loop: (former, latter) => {}
+};
+
+let scene = {
+    fire: () => {},
+    // stop: () => {},
+    // set_endpoints_loop: (former, latter) => {}
+};
+
 let notes_segments_parse = [
     segment_note_1_parse,
     segment_note_2_parse
@@ -375,11 +387,32 @@ let notes_target_clip_parse = [
 let segments_parse: Segment[] = [];
 
 for (let note of notes_segments_parse) {
+    let segment = new Segment(
+        note
+    );
+
+    // @ts-ignore
+    segment.set_scene(scene);
+
     segments_parse.push(
-        new Segment(
-            note
-        )
+        segment
     )
+
+
+    // let note = notes_segments[Number(i_note)];
+    // let path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
+    // let segment_local = new Segment(
+    //     note
+    // );
+    // segment_local.set_scene(
+    //     new Scene(
+    //         new SceneDao(
+    //             new li.LiveApiJs(
+    //                 path_scene
+    //             )
+    //         )
+    //     )
+    // );
 }
 
 let clip_dao_virtual_parse = new LiveClipVirtual(notes_target_clip_parse);
@@ -391,7 +424,14 @@ let trainer_local_parse = new Trainer(
     user_input_handler_parse,
     algorithm_train_parse,
     clip_user_input_parse,
-    clip_target_virtual_parse,
+    clip_user_input_parse_synchronous,
+    // clip_target_virtual_parse.get_notes(
+    //     clip_target_virtual_parse.get_beat_start(),
+    //     0,
+    //     clip_target_virtual_parse.get_beat_end(),
+    //     128
+    // ),
+    notes_target_clip_parse,
     song_parse,
     segments_parse,
     messenger_parse
@@ -411,45 +451,46 @@ trainer_local_parse.accept_input(
     [note_melody_parsed_3, note_melody_parsed_4]
 );
 
-trainer_local_parse.render_window(
+// trainer_local_parse.render_window(
+//
+// );
 
-);
 
-
-trainer_local_parse.clear_window(
-
-);
-
-let freezer_parse = new TrainFreezer(
-    env_parse
-);
-
-freezer_parse.freeze(
-    trainer_local_parse,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
-);
-
-let thawer_parse = new TrainThawer(
-    env_parse
-);
-
-let config_parse = {
-    'window': window_local_parse,
-    'user_input_handler': user_input_handler_parse,
-    'algorithm': algorithm_train_parse,
-    'clip_user_input': clip_user_input_parse,
-    'clip_target': clip_target_virtual_parse,
-    'song': song_parse,
-    'segments': segments_parse,
-    'messenger': messenger_parse,
-    'env': env_parse
-};
-
-let train_thawed_parse = thawer_parse.thaw(
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
-    config_parse
-);
-
-train_thawed_parse.render_window(
-
-);
+// trainer_local_parse.clear_window(
+//
+// );
+//
+// let freezer_parse = new TrainFreezer(
+//     env_parse
+// );
+//
+// freezer_parse.freeze(
+//     trainer_local_parse,
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
+// );
+//
+// let thawer_parse = new TrainThawer(
+//     env_parse
+// );
+//
+// let config_parse = {
+//     'window': window_local_parse,
+//     'user_input_handler': user_input_handler_parse,
+//     'algorithm': algorithm_train_parse,
+//     'clip_user_input': clip_user_input_parse,
+//     'clip_user_input_synchronous': clip_user_input_parse_synchronous,
+//     'clip_target': clip_target_virtual_parse,
+//     'song': song_parse,
+//     'segments': segments_parse,
+//     'messenger': messenger_parse,
+//     'env': env_parse
+// };
+//
+// let train_thawed_parse = thawer_parse.thaw(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
+//     config_parse
+// );
+//
+// train_thawed_parse.render_window(
+//
+// );

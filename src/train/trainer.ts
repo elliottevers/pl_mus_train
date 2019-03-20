@@ -161,10 +161,24 @@ export namespace trainer {
 
                 let coord_current_virtual = [0, Number(i_segment)];
 
-                this.struct_parse.set_notes(
-                    [note],
-                    coord_current_virtual
-                );
+                switch (this.algorithm.get_name()) {
+                    case DERIVE: {
+                        this.struct_parse.add(
+                            [note],
+                            coord_current_virtual,
+                            this.algorithm
+                        );
+                        break;
+                    }
+                    case PARSE: {
+                        this.struct_parse.set_notes(
+                            [note],
+                            coord_current_virtual
+                        );
+                        break;
+                    }
+                }
+
                 this.window.add_notes_to_clip(
                     [note],
                     coord_current_virtual
@@ -251,14 +265,16 @@ export namespace trainer {
         }
 
         public render_window() {
-            let notes;
+            let notes = [];
             if (this.algorithm.b_targeted()) {
-                notes = this.target_current.iterator_subtarget.subtargets.map((subtarget)=> {
+                notes = this.target_current.iterator_subtarget.subtargets.map((subtarget) => {
                     return subtarget.note
                 })
-            } else {
-                notes = [this.segment_current.get_note()]
             }
+            // } else {
+            //     // notes = [this.segment_current.get_note()]
+            //     notes = []
+            // }
             this.window.render(
                 this.iterator_matrix_train,
                 notes,
@@ -397,7 +413,8 @@ export namespace trainer {
 
             this.segment_current = this.segments[coord[1]];
 
-            this.advance_scene(first_time);
+            // TODO: PLEASE put back in
+            // this.advance_scene(first_time);
         }
 
         private advance_subtarget() {
@@ -490,7 +507,8 @@ export namespace trainer {
         handle_boundary_change() {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
 
-            this.advance_scene();
+            // TODO: PLEASE put back in
+            // this.advance_scene(first_time);
 
             // if (this.algorithm.b_targeted()) {
             this.stream_subtarget_bounds();
@@ -535,8 +553,6 @@ export namespace trainer {
                 this.advance_segment();
 
                 this.stream_segment_bounds();
-
-                // this.advance_scene();
 
                 this.render_window();
 
