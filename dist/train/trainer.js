@@ -9,7 +9,6 @@ var parse_1 = require("../parse/parse");
 var messenger_1 = require("../message/messenger");
 var clip_1 = require("../clip/clip");
 var iterate_1 = require("./iterate");
-var logger_1 = require("../log/logger");
 var utils_1 = require("../utils/utils");
 var live_1 = require("../live/live");
 var segmenter_1 = require("../scripts/segmenter");
@@ -29,7 +28,6 @@ var trainer;
     var FactoryMatrixTargetIterator = iterate_1.iterate.FactoryMatrixTargetIterator;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var Note = note_1.note.Note;
-    var Logger = logger_1.log.Logger;
     var ClipDao = clip_1.clip.ClipDao;
     var LiveApiJs = live_1.live.LiveApiJs;
     var Trainer = /** @class */ (function () {
@@ -43,17 +41,7 @@ var trainer;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
-            var logger = new Logger('max');
-            // logger.log(JSON.stringify(track_target.get_path() === 'live_set tracks 3'));
-            // logger.log(JSON.stringify(typeof track_target.get_path()));
-            // logger.log(JSON.stringify(typeof 'live_set tracks 3'));
-            // this.notes_target = get_notes_on_track(
-            //     track_target.get_path()
-            //     // 'live_set tracks 3'
-            // );
-            //
             this.notes_target = segmenter_1.get_notes_on_track(['live_set', 'tracks', this.index_track_target].join(' '));
-            // logger.log(JSON.stringify(this.notes_target));
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
             this.matrix_focus = FactoryMatrixTargetIterator.create_matrix_focus(this.algorithm, this.segments);
             this.history_user_input = new HistoryUserInput(l.cloneDeep(this.matrix_focus));
@@ -188,19 +176,12 @@ var trainer;
                 return;
             }
         };
-        // private set_loop() {
-        //     let interval = this.segment_current.get_endpoints_loop();
-        //
-        //     this.clip_user_input.set_endpoints_loop(
-        //         interval[0],
-        //         interval[1]
-        //     )
-        // }
         Trainer.prototype.advance_scene = function (first_time) {
             this.segment_current.scene.fire(true);
-            if (this.algorithm.get_name() === DETECT || this.algorithm.get_name() === PREDICT) {
+            if (this.algorithm.get_name() !== PARSE) {
                 return;
             }
+            // TODO: put this logic somewhere else, preferably where we define the algorithm
             var list_path_current_s = this.clip_user_input_synchronous.get_path().split(' ');
             var index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
             var list_path_next_s = list_path_current_s;
@@ -213,22 +194,14 @@ var trainer;
                 list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s;
                 this.clip_user_input_synchronous = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
                 list_path_next[list_path_next.length - 2] = index_clipslot_current;
-                // let logger = new Logger('max');
-                // logger.log(list_path_next.join(' '));
                 var clip_user_input_next = new Clip(new ClipDao(new LiveApiJs(list_path_next.join(' ')), new Messenger('max', 0), true, 'clip_user_input'));
                 clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
                 this.clip_user_input = clip_user_input_next;
             }
-            var logger = new Logger('max');
-            logger.log(this.clip_user_input.get_path());
             if (this.iterator_matrix_train.get_coord_current()[0] === this.algorithm.get_depth() - 2) {
                 var api_clip_target_synchronous = new LiveApiJs(['live_set', 'tracks', this.index_track_target, 'clip_slots', index_clipslot_current, 'clip'].join(' '));
                 var clip_target = new Clip(new ClipDao(api_clip_target_synchronous, new Messenger('max', 0)));
-                var logger_2 = new Logger('max');
-                logger_2.log(clip_target.get_path());
                 var notes = clip_target.get_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
-                // let logger = new Logger('max');
-                // logger.log(JSON.stringify(notes));
                 this.clip_user_input.remove_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
                 this.clip_user_input.set_notes(notes);
             }

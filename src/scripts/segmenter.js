@@ -67,9 +67,6 @@ var contract_highlighted_clip = function () {
     contract_clip('live_set view highlighted_clip_slot');
 };
 exports.get_notes_on_track = function (path_track) {
-    // let obj = new li.LiveApiJs(path_device);
-    //
-    // let path_obj = obj.get_path();
     var index_track = Number(path_track.split(' ')[2]);
     var track = new live_1.live.LiveApiJs(path_track);
     var num_clipslots = track.get("clip_slots").length / 2;
@@ -79,8 +76,6 @@ exports.get_notes_on_track = function (path_track) {
         var path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
         var clip_2 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
         notes_amassed = notes_amassed.concat(clip_2.get_notes(clip_2.get_loop_bracket_lower(), 0, clip_2.get_loop_bracket_upper(), 128));
-        // let logger = new Logger('max');
-        // logger.log(JSON.stringify(notes_amassed))
     }
     return notes_amassed;
 };
@@ -90,6 +85,26 @@ exports.get_notes_segments = function () {
     // let logger = new Logger('max');
     // logger.log(path_this_track);
     return exports.get_notes_on_track(path_this_track);
+};
+// 'live_set view highlighted_clip_slot'
+var test = function () {
+    expand_clip_audio('live_set view highlighted_clip_slot');
+};
+var expand_clip_audio = function (path_clip_slot) {
+    var clipslot_audio = new live_1.live.LiveApiJs(path_clip_slot);
+    var track = new live_1.live.LiveApiJs(clipslot_audio.get_path().split(' ').slice(0, 3).join(' '));
+    var index_track = clipslot_audio.get_path().split(' ')[2];
+    var num_clipslots = track.get("clip_slots").length / 2;
+    for (var _i = 0, _a = _.range(1, num_clipslots); _i < _a.length; _i++) {
+        var i_clipslot = _a[_i];
+        var path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+        var clipslot = new live_1.live.LiveApiJs(path_clipslot);
+        var has_clip = clipslot.get("has_clip")[0] === 1;
+        if (has_clip) {
+            clipslot.call("delete_clip");
+        }
+        clipslot_audio.call("duplicate_clip_to", ['id', clipslot.get_id()].join(' '));
+    }
 };
 // let notes_segments = io.Importer.import('segment');
 var expand_clip = function (path_clip_slot) {
@@ -119,11 +134,6 @@ var expand_clip = function (path_clip_slot) {
         if (Number(i_segment) === 0) {
             clipslot.call('delete_clip');
         }
-        // clipslot.call('create_clip', String(length_beats));
-        var logger_2 = new Logger('max');
-        logger_2.log(String(segment_2.get_endpoints_loop()[1]));
-        logger_2.log(String(segment_2.get_endpoints_loop()[0]));
-        logger_2.log('---------');
         clipslot.call('create_clip', String(segment_2.get_endpoints_loop()[1] - segment_2.get_endpoints_loop()[0]));
         var path_clip = path_clipslot.concat('clip').join(' ');
         var clip_3 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clip), new Messenger(env, 0)));
@@ -143,5 +153,6 @@ if (typeof Global !== "undefined") {
     Global.segmenter.contract_segments = contract_segments;
     Global.segmenter.expand_segments = expand_segments;
     Global.segmenter.set_length_beats = set_length_beats;
+    Global.segmenter.test = test;
 }
 //# sourceMappingURL=segmenter.js.map

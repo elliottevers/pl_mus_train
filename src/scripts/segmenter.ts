@@ -142,10 +142,6 @@ let contract_highlighted_clip = () => {
 };
 
 export let get_notes_on_track = (path_track) => {
-    // let obj = new li.LiveApiJs(path_device);
-    //
-    // let path_obj = obj.get_path();
-
     let index_track = Number(path_track.split(' ')[2]);
 
     let track = new li.LiveApiJs(path_track);
@@ -174,9 +170,6 @@ export let get_notes_on_track = (path_track) => {
                 128
             )
         );
-
-        // let logger = new Logger('max');
-        // logger.log(JSON.stringify(notes_amassed))
     }
 
     return notes_amassed
@@ -188,6 +181,37 @@ export let get_notes_segments = () => {
     // let logger = new Logger('max');
     // logger.log(path_this_track);
     return get_notes_on_track(path_this_track)
+};
+
+// 'live_set view highlighted_clip_slot'
+
+let test = () => {
+    expand_clip_audio('live_set view highlighted_clip_slot')
+};
+
+let expand_clip_audio = (path_clip_slot) => {
+    let clipslot_audio = new li.LiveApiJs(path_clip_slot);
+
+    let track = new li.LiveApiJs(clipslot_audio.get_path().split(' ').slice(0, 3).join(' '));
+
+    let index_track = clipslot_audio.get_path().split(' ')[2];
+
+    let num_clipslots = track.get("clip_slots").length/2;
+
+    for (let i_clipslot of _.range(1, num_clipslots)) {
+        let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+
+        let clipslot = new li.LiveApiJs(path_clipslot);
+
+        let has_clip = clipslot.get("has_clip")[0] === 1;
+
+        if (has_clip) {
+            clipslot.call("delete_clip")
+        }
+
+        clipslot_audio.call("duplicate_clip_to", ['id', clipslot.get_id()].join(' '))
+
+    }
 };
 
 // let notes_segments = io.Importer.import('segment');
@@ -262,14 +286,6 @@ let expand_clip = (path_clip_slot) => {
             clipslot.call('delete_clip');
         }
 
-        // clipslot.call('create_clip', String(length_beats));
-
-        let logger = new Logger('max');
-
-        logger.log(String(segment.get_endpoints_loop()[1]));
-        logger.log(String(segment.get_endpoints_loop()[0]));
-        logger.log('---------');
-
         clipslot.call('create_clip', String(segment.get_endpoints_loop()[1] - segment.get_endpoints_loop()[0]));
 
         let path_clip = path_clipslot.concat('clip').join(' ');
@@ -309,4 +325,5 @@ if (typeof Global !== "undefined") {
     Global.segmenter.contract_segments = contract_segments;
     Global.segmenter.expand_segments = expand_segments;
     Global.segmenter.set_length_beats = set_length_beats;
+    Global.segmenter.test = test;
 }
