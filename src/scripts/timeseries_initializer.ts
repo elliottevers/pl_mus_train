@@ -60,6 +60,10 @@ let returns = (index_callable, val_return) => {
 
     if (!next_result.done) {
 
+        // let logger = new Logger(env);
+        //
+        // logger.log(JSON.stringify(next_result));
+
         let next_callable = next_result.value['callable'];
 
         next_callable.call(next_result.value['index']);
@@ -245,8 +249,8 @@ let test = () => {
 // test();
 
 if (typeof Global !== "undefined") {
-    Global.test = {};
-    Global.test.main = main;
-    Global.test.returns = returns;
-    Global.test.test = test;
+    Global.timeseries_initializer = {};
+    Global.timeseries_initializer.main = main;
+    Global.timeseries_initializer.returns = returns;
+    Global.timeseries_initializer.test = test;
 }

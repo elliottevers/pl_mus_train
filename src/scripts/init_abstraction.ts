@@ -1,5 +1,7 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
+import {log} from "../log/logger";
+import Logger = log.Logger;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -91,7 +93,6 @@ let init_return_sender = (index) => {
 
     let resetter = patcher.getnamed('reset');
     let one_pass_gate = patcher.newdefault(469, 194, "one_pass_gate");
-    //
 
     patcher.connect(inlet, 0, one_pass_gate, 0);
     patcher.connect(resetter, 0, one_pass_gate, 1);
@@ -138,6 +139,7 @@ let init_return_receiver = (name_first, i_first, name_last, i_last) => {
 };
 
 let init_setter = (index) => {
+
     if (ran_init_setter) {
         return;
     }

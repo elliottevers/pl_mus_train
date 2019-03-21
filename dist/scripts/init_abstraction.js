@@ -59,7 +59,6 @@ var init_return_sender = function (index) {
     var inlet = patcher.getnamed("inlet");
     var resetter = patcher.getnamed('reset');
     var one_pass_gate = patcher.newdefault(469, 194, "one_pass_gate");
-    //
     patcher.connect(inlet, 0, one_pass_gate, 0);
     patcher.connect(resetter, 0, one_pass_gate, 1);
     patcher.connect(one_pass_gate, 0, sender, 0);

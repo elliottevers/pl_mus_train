@@ -268,6 +268,9 @@ var returns = function (index_callable, val_return) {
     executor.return(index_callable, val_return);
     var next_result = executor.next();
     if (!next_result.done) {
+        // let logger = new Logger(env);
+        //
+        // logger.log(JSON.stringify(next_result));
         var next_callable = next_result.value['callable'];
         next_callable.call(next_result.value['index']);
         return;
@@ -334,11 +337,14 @@ var test = function () {
 };
 // test();
 if (typeof Global !== "undefined") {
-    Global.test = {};
-    Global.test.main = main;
-    Global.test.returns = returns;
-    Global.test.test = test;
+    Global.timeseries_initializer = {};
+    Global.timeseries_initializer.main = main;
+    Global.timeseries_initializer.returns = returns;
+    Global.timeseries_initializer.test = test;
 }
 
 },{"../execute/executor":1,"../log/logger":2,"../message/messenger":3}]},{},[4]);
 
+var main = Global.timeseries_initializer.main;
+var returns = Global.timeseries_initializer.returns;
+var test = Global.timeseries_initializer.test;
