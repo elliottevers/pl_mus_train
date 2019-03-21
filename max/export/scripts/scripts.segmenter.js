@@ -850,6 +850,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
+var logger_1 = require("../log/logger");
+var Logger = logger_1.log.Logger;
 var clip_1 = require("../clip/clip");
 var Clip = clip_1.clip.Clip;
 var ClipDao = clip_1.clip.ClipDao;
@@ -892,16 +894,11 @@ var contract_selected_track = function () {
 var contract_track = function (path_track) {
     var length_beats = get_length_beats();
     var track = new live_1.live.LiveApiJs(path_track);
-    // let path_this_device = track.get_path();
     var list_path_track_with_index = track.get_path().split(' ').map(function (el) {
         return el.replace('\"', '');
     });
-    //
     var index_track = Number(list_path_track_with_index[2]);
-    //
     track = new live_1.live.LiveApiJs(list_path_track_with_index.join(' '));
-    // let logger = new Logger('max');
-    // logger.log(JSON.stringify(list_path_track_with_index));
     var num_clipslots = track.get("clip_slots").length / 2;
     var notes_amassed = [];
     // first, amass all notes of clips and delete all clips
@@ -943,24 +940,62 @@ exports.get_notes_segments = function () {
 };
 // 'live_set view highlighted_clip_slot'
 var test = function () {
-    // expand_clip_audio('live_set view highlighted_clip_slot')
-    // let logger = new Logger(env);
-    // logger.log(String(get_length_beats()));
 };
-var expand_clip_audio = function (path_clip_slot) {
-    var clipslot_audio = new live_1.live.LiveApiJs(path_clip_slot);
-    var track = new live_1.live.LiveApiJs(clipslot_audio.get_path().split(' ').slice(0, 3).join(' '));
-    var index_track = clipslot_audio.get_path().split(' ')[2];
+var expand_highlighted_audio_clip = function () {
+    expand_clip_audio('live_set view highlighted_clip_slot');
+};
+var contract_selected_audio_track = function () {
+    contract_track_audio('live_set view selected_track');
+};
+var contract_track_audio = function (path_track) {
+    var length_beats = get_length_beats();
+    var track = new live_1.live.LiveApiJs(path_track);
+    var list_path_track_with_index = track.get_path().split(' ').map(function (el) {
+        return el.replace('\"', '');
+    });
+    var index_track = Number(list_path_track_with_index[2]);
+    track = new live_1.live.LiveApiJs(list_path_track_with_index.join(' '));
     var num_clipslots = track.get("clip_slots").length / 2;
+    // let notes_segments = get_notes_segments();
     for (var _i = 0, _a = _.range(1, num_clipslots); _i < _a.length; _i++) {
         var i_clipslot = _a[_i];
         var path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+        var api_clipslot_segment = new live_1.live.LiveApiJs(path_clipslot);
+        api_clipslot_segment.call('delete_clip');
+    }
+    var path_clipslot_contracted = ['live_set', 'tracks', String(index_track), 'clip_slots', String(0)];
+    var clip_contracted = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clipslot_contracted.concat(['clip']).join(' ')), new Messenger(env, 0)));
+    clip_contracted.set_endpoints_loop(0, length_beats);
+};
+var expand_clip_audio = function (path_clip_slot) {
+    // let length_beats = get_length_beats();
+    var clipslot_audio = new live_1.live.LiveApiJs(path_clip_slot);
+    // let track = new li.LiveApiJs(clipslot_audio.get_path().split(' ').slice(0, 3).join(' '));
+    var index_track = clipslot_audio.get_path().split(' ')[2];
+    // let num_clipslots = track.get("clip_slots").length/2;
+    var notes_segments = exports.get_notes_segments();
+    var logger = new Logger(env);
+    logger.log(JSON.stringify(notes_segments.length));
+    var song = new live_1.live.LiveApiJs('live_set');
+    for (var _i = 0, _a = _.range(1, notes_segments.length); _i < _a.length; _i++) {
+        var i_clipslot = _a[_i];
+        var note_segment = notes_segments[Number(i_clipslot)];
+        // let notes_segments
+        var path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+        var scene = new live_1.live.LiveApiJs(['live_set', 'scenes', String(Number(i_clipslot))].join(' '));
+        var scene_exists = Number(scene.get_id()) !== 0;
+        if (!scene_exists) {
+            song.call('create_scene', String(Number(i_clipslot)));
+        }
         var clipslot = new live_1.live.LiveApiJs(path_clipslot);
         var has_clip = clipslot.get("has_clip")[0] === 1;
         if (has_clip) {
             clipslot.call("delete_clip");
         }
         clipslot_audio.call("duplicate_clip_to", ['id', clipslot.get_id()].join(' '));
+        var clip_3 = new Clip(new ClipDao(new LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
+        var segment_2 = new Segment(note_segment);
+        clip_3.set_endpoints_loop(segment_2.beat_start, segment_2.beat_end);
     }
 };
 // let notes_segments = io.Importer.import('segment');
@@ -980,7 +1015,7 @@ var expand_clip = function (path_clip_slot) {
     // let logger = new Logger(env);
     var length_beats = get_length_beats();
     var _loop_1 = function (i_segment) {
-        var segment_2 = segments[Number(i_segment)];
+        var segment_3 = segments[Number(i_segment)];
         var path_clipslot = ['live_set', 'tracks', String(index_track), 'clip_slots', String(Number(i_segment))];
         var path_live = path_clipslot.join(' ');
         var scene = new live_1.live.LiveApiJs(['live_set', 'scenes', String(Number(i_segment))].join(' '));
@@ -994,11 +1029,11 @@ var expand_clip = function (path_clip_slot) {
         }
         clipslot.call('create_clip', String(length_beats));
         var path_clip = path_clipslot.concat('clip').join(' ');
-        var clip_3 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clip), new Messenger(env, 0)));
-        clip_3.set_endpoints_loop(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
-        clip_3.set_endpoint_markers(segment_2.get_endpoints_loop()[0], segment_2.get_endpoints_loop()[1]);
-        var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_2.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_2.get_endpoints_loop()[1]; });
-        clip_3.set_notes(notes_within_segment);
+        var clip_4 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clip), new Messenger(env, 0)));
+        clip_4.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        clip_4.set_endpoint_markers(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
+        clip_4.set_notes(notes_within_segment);
     };
     for (var i_segment in segments) {
         _loop_1(i_segment);
@@ -1010,10 +1045,12 @@ if (typeof Global !== "undefined") {
     Global.segmenter.contract_selected_track = contract_selected_track;
     Global.segmenter.contract_segments = contract_segments;
     Global.segmenter.expand_segments = expand_segments;
+    Global.segmenter.expand_highlighted_audio_clip = expand_highlighted_audio_clip;
+    Global.segmenter.contract_selected_audio_track = contract_selected_audio_track;
     Global.segmenter.test = test;
 }
 
-},{"../clip/clip":1,"../live/live":2,"../message/messenger":4,"../segment/segment":7,"underscore":12}],7:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../segment/segment":7,"underscore":12}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -3256,4 +3293,6 @@ var expand_highlighted_clip = Global.segmenter.expand_highlighted_clip;
 var contract_selected_track = Global.segmenter.contract_selected_track;
 var contract_segments = Global.segmenter.contract_segments;
 var expand_segments = Global.segmenter.expand_segments;
+var expand_highlighted_audio_clip = Global.segmenter.expand_highlighted_audio_clip;
+var contract_selected_audio_track = Global.segmenter.contract_selected_audio_track;
 var test = Global.segmenter.test;

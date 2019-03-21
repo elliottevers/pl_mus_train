@@ -203,17 +203,90 @@ let test = () => {
 
 };
 
-let expand_clip_audio = (path_clip_slot) => {
-    let clipslot_audio = new li.LiveApiJs(path_clip_slot);
+let expand_highlighted_audio_clip = () => {
+    expand_clip_audio('live_set view highlighted_clip_slot')
+};
 
-    let track = new li.LiveApiJs(clipslot_audio.get_path().split(' ').slice(0, 3).join(' '));
+let contract_selected_audio_track = () => {
+    contract_track_audio('live_set view selected_track')
+};
 
-    let index_track = clipslot_audio.get_path().split(' ')[2];
+let contract_track_audio = (path_track) => {
+
+    let length_beats = get_length_beats();
+
+    let track = new li.LiveApiJs(path_track);
+
+    let list_path_track_with_index = track.get_path().split(' ').map((el) => {
+        return el.replace('\"', '')
+    });
+
+    let index_track = Number(list_path_track_with_index[2]);
+
+    track = new li.LiveApiJs(list_path_track_with_index.join(' '));
 
     let num_clipslots = track.get("clip_slots").length/2;
 
+    // let notes_segments = get_notes_segments();
+
     for (let i_clipslot of _.range(1, num_clipslots)) {
         let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+
+        let api_clipslot_segment = new li.LiveApiJs(path_clipslot);
+
+        api_clipslot_segment.call('delete_clip')
+    }
+
+    let path_clipslot_contracted = ['live_set', 'tracks', String(index_track), 'clip_slots', String(0)];
+
+    let clip_contracted = new Clip(
+        new ClipDao(
+            new li.LiveApiJs(
+                path_clipslot_contracted.concat(['clip']).join(' ')
+            ),
+            new Messenger(env, 0)
+        )
+    );
+
+    clip_contracted.set_endpoints_loop(0, length_beats);
+};
+
+let expand_clip_audio = (path_clip_slot) => {
+
+    // let length_beats = get_length_beats();
+
+    let clipslot_audio = new li.LiveApiJs(path_clip_slot);
+
+    // let track = new li.LiveApiJs(clipslot_audio.get_path().split(' ').slice(0, 3).join(' '));
+
+    let index_track = clipslot_audio.get_path().split(' ')[2];
+
+    // let num_clipslots = track.get("clip_slots").length/2;
+
+    let notes_segments = get_notes_segments();
+
+    let logger = new Logger(env);
+
+    logger.log(JSON.stringify(notes_segments.length));
+
+    let song = new li.LiveApiJs(
+        'live_set'
+    );
+
+    for (let i_clipslot of _.range(1, notes_segments.length)) {
+        let note_segment = notes_segments[Number(i_clipslot)];
+        // let notes_segments
+        let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+
+        let scene = new li.LiveApiJs(
+            ['live_set', 'scenes', String(Number(i_clipslot))].join(' ')
+        );
+
+        let scene_exists = Number(scene.get_id()) !== 0;
+
+        if (!scene_exists) {
+            song.call('create_scene', String(Number(i_clipslot)))
+        }
 
         let clipslot = new li.LiveApiJs(path_clipslot);
 
@@ -223,8 +296,23 @@ let expand_clip_audio = (path_clip_slot) => {
             clipslot.call("delete_clip")
         }
 
-        clipslot_audio.call("duplicate_clip_to", ['id', clipslot.get_id()].join(' '))
+        clipslot_audio.call("duplicate_clip_to", ['id', clipslot.get_id()].join(' '));
 
+        let clip = new Clip(
+            new ClipDao(
+                new LiveApiJs(
+                    path_clipslot.split(' ').concat(['clip']).join(' ')
+                ),
+                new Messenger(env, 0)
+            )
+        );
+
+        let segment = new Segment(note_segment);
+
+        clip.set_endpoints_loop(
+            segment.beat_start,
+            segment.beat_end
+        )
     }
 };
 
@@ -340,5 +428,7 @@ if (typeof Global !== "undefined") {
     Global.segmenter.contract_selected_track = contract_selected_track;
     Global.segmenter.contract_segments = contract_segments;
     Global.segmenter.expand_segments = expand_segments;
+    Global.segmenter.expand_highlighted_audio_clip = expand_highlighted_audio_clip;
+    Global.segmenter.contract_selected_audio_track = contract_selected_audio_track;
     Global.segmenter.test = test;
 }

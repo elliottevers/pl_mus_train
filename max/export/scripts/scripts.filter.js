@@ -383,90 +383,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../log/logger":4,"../note/note":6,"../utils/utils":8,"tree-model":11}],2:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var clip_1 = require("../clip/clip");
-var messenger_1 = require("../message/messenger");
-var logger_1 = require("../log/logger");
-var io;
-(function (io) {
-    var dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
-    io.file_json_comm = dir_projects + 'json_live.json';
-    var Messenger = messenger_1.message.Messenger;
-    var Logger = logger_1.log.Logger;
-    var Exporter = /** @class */ (function () {
-        function Exporter(filepath_export, name_dict) {
-            this.filepath_export = filepath_export;
-            this.dict = new Dict(name_dict);
-            this.clips = {};
-        }
-        Exporter.prototype.set_notes = function (name_part, notes) {
-            this.clips[name_part] = notes;
-        };
-        Exporter.prototype.unset_notes = function (name_part) {
-            this.clips[name_part] = null;
-        };
-        Exporter.prototype.set_tempo = function (bpm) {
-            this.tempo = bpm;
-        };
-        Exporter.prototype.set_length = function (beats) {
-            this.length_beats = beats;
-        };
-        Exporter.get_messages = function (notes) {
-            var messages = [];
-            messages.push(['notes', notes.length.toString()].join(' '));
-            for (var i_note in notes) {
-                messages.push(notes[i_note].model.note.encode());
-            }
-            messages.push(['notes', 'done'].join(' '));
-            return messages;
-        };
-        Exporter.prototype.export_clips = function (partnames) {
-            var _a;
-            var messenger = new Messenger('max', 0);
-            for (var name_part in this.clips) {
-                var notes = this.clips[name_part];
-                if (partnames.indexOf(name_part) !== -1) {
-                    var key = [name_part, 'notes'].join('::');
-                    this.dict.replace(key, "");
-                    (_a = this.dict).set.apply(_a, [key].concat(Exporter.get_messages(notes)));
-                }
-            }
-            this.dict.replace('tempo', this.tempo);
-            this.dict.replace('length_beats', this.length_beats);
-            this.dict.export_json(this.filepath_export);
-            messenger.message(['python']);
-        };
-        return Exporter;
-    }());
-    io.Exporter = Exporter;
-    var Importer = /** @class */ (function () {
-        function Importer(filepath_import, name_dict) {
-            this.filepath_import = filepath_import;
-            this.name_dict = name_dict;
-            this.dict = new Dict(name_dict);
-        }
-        Importer.import = function (name_part) {
-            var dict = new Dict();
-            dict.import_json(io.file_json_comm);
-            return clip_1.clip.Clip.parse_note_messages(dict.get([name_part, 'notes'].join('::')));
-        };
-        Importer.prototype.import = function () {
-            this.dict.import_json(this.filepath_import);
-        };
-        Importer.prototype.get_notes = function (name_part) {
-            var key = [this.name_dict, name_part, 'notes'].join('::');
-            var logger = new Logger('max');
-            logger.log(key.toString());
-            return clip_1.clip.Clip.parse_note_messages(this.dict.get(key));
-        };
-        return Importer;
-    }());
-    io.Importer = Importer;
-})(io = exports.io || (exports.io = {}));
-
-},{"../clip/clip":1,"../log/logger":4,"../message/messenger":5}],3:[function(require,module,exports){
+},{"../log/logger":3,"../note/note":5,"../utils/utils":7,"tree-model":10}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -610,7 +527,7 @@ var live;
     live.LiveClipVirtual = LiveClipVirtual;
 })(live = exports.live || (exports.live = {}));
 
-},{"../clip/clip":1}],4:[function(require,module,exports){
+},{"../clip/clip":1}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var log;
@@ -703,7 +620,7 @@ var log;
     log.Logger = Logger;
 })(log = exports.log || (exports.log = {}));
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
@@ -760,7 +677,7 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -927,112 +844,57 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":11}],7:[function(require,module,exports){
+},{"tree-model":10}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
-var io_1 = require("../io/io");
-var Exporter = io_1.io.Exporter;
-var utils_1 = require("../utils/utils");
+var LiveApiJs = live_1.live.LiveApiJs;
+var ClipDao = clip_1.clip.ClipDao;
+var Clip = clip_1.clip.Clip;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-var dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
-var file_json_comm = dir_projects + 'json_live.json';
-var exporter = new Exporter(file_json_comm);
-var part_names = new utils_1.utils.Set([]);
-var set_length = function () {
-    var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
-    exporter.set_length(clip_highlighted.get("length"));
+var notes_original = [];
+var notes_filtered = [];
+// let cached: boolean = false;
+var get_clip = function () {
+    var this_device = new live_1.live.LiveApiJs('this_device');
+    var path_this_device = this_device.get_path();
+    var list_this_device = path_this_device.split(' ');
+    var index_this_track = Number(list_this_device[2]);
+    var path_clip = ['live_set', 'tracks', index_this_track, 'clip_slots', '0', 'clip'].join(' ');
+    return new Clip(new ClipDao(new LiveApiJs(path_clip), new Messenger(env, 0)));
 };
-var set_tempo = function () {
-    var song = new live_1.live.LiveApiJs('live_set');
-    exporter.set_tempo(song.get('tempo'));
-};
-// let add = (name_part) => {
-//
-//     let song = new li.LiveApiJs(
-//         'live_set'
-//     );
-//
-//     let clip_highlighted = new li.LiveApiJs(
-//         'live_set view highlighted_clip_slot clip'
-//     );
-//
-//     let clip = new c.Clip(
-//         new c.ClipDao(
-//             clip_highlighted,
-//             new m.Messenger(env, 0),
-//             false
-//         )
-//     );
-//
-//     let notes = clip.get_notes(
-//         0,
-//         0,
-//         clip_highlighted.get("length"),
-//         128
-//     );
-//
-//     exporter.set_notes(
-//         name_part,
-//         notes
-//     );
-// };
-var export_part = function (name_part) {
-    var clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
-    var clip = new clip_1.clip.Clip(new clip_1.clip.ClipDao(clip_highlighted, new messenger_1.message.Messenger(env, 0), false));
-    var notes = clip.get_notes(clip.get_loop_bracket_lower(), 0, clip.get_loop_bracket_upper() - clip.get_loop_bracket_lower(), 128);
-    exporter.set_notes(name_part, notes);
-    part_names.addItem(name_part);
-};
-var remove = function (name_part) {
-    exporter.unset_notes(name_part);
-    part_names.removeItem(name_part);
-};
-var export_clips = function () {
-    var clips_to_export = [];
-    for (var _i = 0, _a = part_names.data(); _i < _a.length; _i++) {
-        var name_part = _a[_i];
-        clips_to_export.push(name_part);
+var undo = function () {
+    var clip = get_clip();
+    if (notes_original.length === 0) {
+        notes_original = clip.get_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
     }
-    exporter.export_clips(clips_to_export);
-    var messenger = new Messenger(env, 0);
-    messenger.message(['clips_exported', 'bang']);
+    clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
+    clip.set_notes(notes_original);
 };
-var test = function () {
-    // let song = new li.LiveApiJs(
-    //     'live_set'
-    // );
-    //
-    // let clip_highlighted = new li.LiveApiJs(
-    //     'live_set view highlighted_clip_slot clip'
-    // );
-    //
-    // let length_clip = clip_highlighted.get("length");
-    //
-    // let tempo = song.get("tempo");
-    //
-    // let logger = new Logger(env);
-    //
-    // logger.log(clip_highlighted.get_id())
+var filter = function (length_beat) {
+    var clip = get_clip();
+    if (notes_original.length === 0) {
+        notes_original = clip.get_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
+    }
+    clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
+    clip.set_notes(notes_original.filter(function (node) {
+        return node.model.note.beats_duration >= length_beat;
+    }));
 };
 if (typeof Global !== "undefined") {
-    Global.clip_exporter = {};
-    Global.clip_exporter.test = test;
-    Global.clip_exporter.export_part = export_part;
-    Global.clip_exporter.export_clips = export_clips;
-    Global.clip_exporter.remove = remove;
-    Global.clip_exporter.set_length = set_length;
-    Global.clip_exporter.set_tempo = set_tempo;
+    Global.filter = {};
+    Global.filter.filter = filter;
+    Global.filter.undo = undo;
 }
 
-},{"../clip/clip":1,"../io/io":2,"../live/live":3,"../message/messenger":5,"../utils/utils":8}],8:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../message/messenger":4}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
@@ -1124,7 +986,7 @@ var utils;
     utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1148,7 +1010,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1200,7 +1062,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -1493,11 +1355,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":9,"mergesort":10}]},{},[7]);
+},{"find-insert-index":8,"mergesort":9}]},{},[6]);
 
-var test = Global.clip_exporter.test;
-var export_part = Global.clip_exporter.export_part;
-var export_clips = Global.clip_exporter.export_clips;
-var remove = Global.clip_exporter.remove;
-var set_length = Global.clip_exporter.set_length;
-var set_tempo = Global.clip_exporter.set_tempo;
+var filter = Global.filter.filter;
+var undo = Global.filter.undo;
