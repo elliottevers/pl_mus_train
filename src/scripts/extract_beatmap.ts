@@ -23,14 +23,6 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-// let messenger_beat_start = new Messenger(env, 0, 'beat_start');
-//
-// let messenger_beat_end = new Messenger(env, 0, 'beat_end');
-//
-// let messenger_length_beats = new Messenger(env, 0, 'length-beats');
-//
-// let messenger_run = new Messenger(env, 0, 'run');
-
 let messenger = new Messenger(env, 0);
 
 let extract_beatmap_manual = () => {

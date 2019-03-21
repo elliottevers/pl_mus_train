@@ -34,6 +34,8 @@ max_api.addHandler("set_flag", function (name_flag, val_flag) {
     }
 });
 max_api.addHandler("set_option", function (name_opt, val_opt) {
+    max_api.post(name_opt);
+    max_api.post(val_opt);
     if (_.contains(options.map(function (opt) { return opt.name; }), name_opt)) {
         var opt_existing = options.filter(function (opt) { return opt.name === name_opt; })[0];
         opt_existing.set(val_opt);
@@ -48,6 +50,7 @@ max_api.addHandler("set_path_interpreter", function (path) {
     path_interpreter = path;
 });
 max_api.addHandler("set_path_script", function (filename_script) {
+    // max_api.post(filename_script);
     path_script = dir_scripts_python + filename_script;
 });
 // let opt = new cli.Option('s', false, false, false);
@@ -74,6 +77,7 @@ var run = function () {
     if (parameters_exist) {
         options_python_shell['args'] = script.get_run_parameters().split(' ');
     }
+    // max_api.post(script.get_run_parameters().split(' '));
     python_shell_1.PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err)
             throw err;
@@ -88,6 +92,7 @@ var run = function () {
     });
 };
 max_api.addHandler("run", function () {
+    max_api.post(path_script);
     run();
 });
 // run();

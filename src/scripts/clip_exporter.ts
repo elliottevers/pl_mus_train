@@ -141,7 +141,7 @@ let export_clips = () => {
 
     let messenger = new Messenger(env, 0);
 
-    messenger.message(['clips_exported'])
+    messenger.message(['clips_exported', 'bang'])
 };
 
 let test = () => {

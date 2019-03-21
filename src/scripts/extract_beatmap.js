@@ -11,13 +11,6 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-// let messenger_beat_start = new Messenger(env, 0, 'beat_start');
-//
-// let messenger_beat_end = new Messenger(env, 0, 'beat_end');
-//
-// let messenger_length_beats = new Messenger(env, 0, 'length-beats');
-//
-// let messenger_run = new Messenger(env, 0, 'run');
 var messenger = new Messenger(env, 0);
 var extract_beatmap_manual = function () {
     var clip_audio_warped = new Clip(new ClipDao(new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip'), new Messenger(env, 0)));

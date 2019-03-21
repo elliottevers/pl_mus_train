@@ -99,8 +99,6 @@ var expand_clip_audio = function (path_clip_slot) {
         var i_clipslot = _a[_i];
         var path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
         var clipslot = new live_1.live.LiveApiJs(path_clipslot);
-        var logger = new Logger(env);
-        logger.log(JSON.stringify(clipslot.get("has_clip")));
         var has_clip = clipslot.get("has_clip")[0] === 1;
         if (has_clip) {
             clipslot.call("delete_clip");

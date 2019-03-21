@@ -23,6 +23,19 @@ var clip;
                 this.clip_dao.set_loop_bracket_upper(beat_end);
             }
         };
+        Clip.prototype.set_endpoint_markers = function (beat_start, beat_end) {
+            if (beat_start >= this.clip_dao.get_end_marker()) {
+                this.clip_dao.set_clip_endpoint_upper(beat_end);
+                this.clip_dao.set_clip_endpoint_lower(beat_start);
+            }
+            else {
+                this.clip_dao.set_clip_endpoint_lower(beat_start);
+                this.clip_dao.set_clip_endpoint_upper(beat_end);
+            }
+        };
+        Clip.prototype.get_index_track = function () {
+            return this.clip_dao.get_path().split(' ')[2];
+        };
         Clip.prototype.get_beat_start = function () {
             return this.clip_dao.beat_start;
         };
@@ -845,13 +858,6 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-// let messenger_beat_start = new Messenger(env, 0, 'beat_start');
-//
-// let messenger_beat_end = new Messenger(env, 0, 'beat_end');
-//
-// let messenger_length_beats = new Messenger(env, 0, 'length-beats');
-//
-// let messenger_run = new Messenger(env, 0, 'run');
 var messenger = new Messenger(env, 0);
 var extract_beatmap_manual = function () {
     var clip_audio_warped = new Clip(new ClipDao(new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip'), new Messenger(env, 0)));
