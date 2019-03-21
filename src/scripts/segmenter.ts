@@ -1,6 +1,6 @@
 import {message as m, message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live as li} from "../live/live";
+import {live, live as li} from "../live/live";
 import {log} from "../log/logger";
 import Logger = log.Logger;
 import {utils} from "../utils/utils";
@@ -13,6 +13,7 @@ import Segment = segment.Segment;
 import {song} from "../song/song";
 import SongDao = song.SongDao;
 import Song = song.Song;
+import LiveApiJs = live.LiveApiJs;
 const _ = require('underscore');
 
 declare let autowatch: any;
@@ -33,33 +34,78 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let length_beats: number;
+let get_length_beats = () => {
+    let this_device = new LiveApiJs('this_device');
 
-let set_length_beats = (beats) => {
-    length_beats = beats
+    let segments_first_clip = new Clip(
+        new ClipDao(
+            new LiveApiJs(
+                this_device.get_path().split(' ').slice(0, 3).concat(['clip_slots', '0', 'clip']).join(' ')
+            ),
+            new Messenger(env, 0)
+        )
+    );
+
+    return segments_first_clip.get_end_marker() - segments_first_clip.get_start_marker()
 };
 
-// NB: works without highlighting any tracks
-let contract_clip = (path_clip_slot) => {
+let expand_segments = () => {
+    let this_device = new li.LiveApiJs('this_device');
 
-    let device = new li.LiveApiJs(path_clip_slot);
-
-    let path_this_device = device.get_path();
+    let path_this_device = this_device.get_path();
 
     let list_this_device = path_this_device.split(' ');
 
     let index_this_track = Number(list_this_device[2]);
 
-    let this_track = new li.LiveApiJs(list_this_device.slice(0, 3).join(' '));
+    expand_clip(['live_set', 'tracks', index_this_track, 'clip_slots', 0].join(' '))
+};
 
-    let num_clipslots = this_track.get("clip_slots").length/2;
+let contract_segments = () => {
+    let this_device = new li.LiveApiJs('this_device');
+
+    let path_this_device = this_device.get_path();
+
+    let list_this_device = path_this_device.split(' ');
+
+    let index_this_track = Number(list_this_device[2]);
+
+    contract_track(['live_set', 'tracks', index_this_track].join(' '))
+};
+
+let expand_highlighted_clip = () => {
+    expand_clip('live_set view highlighted_clip_slot')
+};
+
+let contract_selected_track = () => {
+    contract_track('live_set view selected_track')
+};
+
+// Assumption: all clips on "segment track have same length"
+
+// NB: works without highlighting any tracks
+let contract_track = (path_track) => {
+
+    let length_beats = get_length_beats();
+
+    let track = new li.LiveApiJs(path_track);
+
+    let list_path_track_with_index = track.get_path().split(' ').map((el) => {
+        return el.replace('\"', '')
+    });
+
+    let index_track = Number(list_path_track_with_index[2]);
+
+    track = new li.LiveApiJs(list_path_track_with_index.join(' '));
+
+    let num_clipslots = track.get("clip_slots").length/2;
 
     let notes_amassed = [];
 
     // first, amass all notes of clips and delete all clips
 
     for (let i_clipslot of _.range(0, num_clipslots)) {
-        let path_clipslot = ['live_set', 'tracks', index_this_track, 'clip_slots', Number(i_clipslot)].join(' ');
+        let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
 
         let api_clipslot_segment = new li.LiveApiJs(path_clipslot);
 
@@ -85,7 +131,7 @@ let contract_clip = (path_clip_slot) => {
 
     // create one clip of length "length_beats"
 
-    let path_clipslot_contracted = ['live_set', 'tracks', String(index_this_track), 'clip_slots', String(0)];
+    let path_clipslot_contracted = ['live_set', 'tracks', String(index_track), 'clip_slots', String(0)];
 
     let api_clipslot_contracted = new li.LiveApiJs(
         path_clipslot_contracted.join(' ')
@@ -107,38 +153,6 @@ let contract_clip = (path_clip_slot) => {
     clip_contracted.set_notes(
         notes_amassed
     )
-};
-
-let expand_segments = () => {
-    let this_device = new li.LiveApiJs('this_device');
-
-    let path_this_device = this_device.get_path();
-
-    let list_this_device = path_this_device.split(' ');
-
-    let index_this_track = Number(list_this_device[2]);
-
-    expand_clip(['live_set', 'tracks', index_this_track, 'clip_slots', 0].join(' '))
-};
-
-let contract_segments = () => {
-    let this_device = new li.LiveApiJs('this_device');
-
-    let path_this_device = this_device.get_path();
-
-    let list_this_device = path_this_device.split(' ');
-
-    let index_this_track = Number(list_this_device[2]);
-
-    contract_clip(['live_set', 'tracks', index_this_track, 'clip_slots', 0].join(' '))
-};
-
-let expand_highlighted_clip = () => {
-    expand_clip('live_set view highlighted_clip_slot')
-};
-
-let contract_highlighted_clip = () => {
-    contract_clip('live_set view highlighted_clip_slot')
 };
 
 export let get_notes_on_track = (path_track) => {
@@ -186,7 +200,7 @@ export let get_notes_segments = () => {
 // 'live_set view highlighted_clip_slot'
 
 let test = () => {
-    expand_clip_audio('live_set view highlighted_clip_slot')
+
 };
 
 let expand_clip_audio = (path_clip_slot) => {
@@ -258,7 +272,9 @@ let expand_clip = (path_clip_slot) => {
         'live_set'
     );
 
-    let logger = new Logger(env);
+    // let logger = new Logger(env);
+
+    let length_beats = get_length_beats();
 
     for (let i_segment in segments) {
 
@@ -286,7 +302,7 @@ let expand_clip = (path_clip_slot) => {
             clipslot.call('delete_clip');
         }
 
-        clipslot.call('create_clip', String(segment.get_endpoints_loop()[1] - segment.get_endpoints_loop()[0]));
+        clipslot.call('create_clip', String(length_beats));
 
         let path_clip = path_clipslot.concat('clip').join(' ');
 
@@ -321,9 +337,8 @@ let expand_clip = (path_clip_slot) => {
 if (typeof Global !== "undefined") {
     Global.segmenter = {};
     Global.segmenter.expand_highlighted_clip = expand_highlighted_clip;
-    Global.segmenter.contract_highlighted_clip = contract_highlighted_clip;
+    Global.segmenter.contract_selected_track = contract_selected_track;
     Global.segmenter.contract_segments = contract_segments;
     Global.segmenter.expand_segments = expand_segments;
-    Global.segmenter.set_length_beats = set_length_beats;
     Global.segmenter.test = test;
 }
