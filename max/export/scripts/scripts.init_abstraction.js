@@ -80,7 +80,7 @@ var init_call_receiver = function (index) {
     var receiver = patcher.newdefault(100, 100, "receive", name.join('.'));
     var outlet = patcher.getnamed("outlet");
     var resetter = patcher.getnamed('reset');
-    var one_pass_gate = patcher.newdefault(100, 157, "one_pass_gate");
+    var one_pass_gate = patcher.newdefault(100, 157, "utils.one_pass_gate");
     patcher.connect(resetter, 0, one_pass_gate, 1);
     patcher.connect(receiver, 0, one_pass_gate, 0);
     patcher.connect(one_pass_gate, 0, outlet, 0);
@@ -116,7 +116,7 @@ var init_return_sender = function (index) {
     var sender = patcher.newdefault(469, 267, "send", name.join('.'));
     var inlet = patcher.getnamed("inlet");
     var resetter = patcher.getnamed('reset');
-    var one_pass_gate = patcher.newdefault(469, 194, "one_pass_gate");
+    var one_pass_gate = patcher.newdefault(469, 194, "utils.one_pass_gate");
     patcher.connect(inlet, 0, one_pass_gate, 0);
     patcher.connect(resetter, 0, one_pass_gate, 1);
     patcher.connect(one_pass_gate, 0, sender, 0);
@@ -141,7 +141,7 @@ var init_return_receiver = function (name_first, i_first, name_last, i_last) {
         var index = indices_2[_i];
         var name = ['return', index];
         receiver = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + pixels_offset_top, "receive", name.join('.'));
-        one_pass_gate = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 2 * pixels_offset_top, "one_pass_gate");
+        one_pass_gate = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 2 * pixels_offset_top, "utils.one_pass_gate");
         prepender = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 3 * pixels_offset_top, "prepend", "returns", index);
         patcher.connect(receiver, 0, one_pass_gate, 0);
         patcher.connect(one_pass_gate, 0, prepender, 0);
@@ -155,11 +155,11 @@ var init_setter = function (index) {
         return;
     }
     var outlet = patcher.getnamed('outlet');
-    var call_receiver = patcher.newdefault(361, 308, "call.receiver", index);
-    var one_pass_gate_sender = patcher.newdefault(285, 357, "one_pass_gate");
-    var one_pass_gate_outlet = patcher.newdefault(361, 460, "one_pass_gate");
+    var call_receiver = patcher.newdefault(361, 308, "execute.call.receiver", index);
+    var one_pass_gate_sender = patcher.newdefault(285, 357, "utils.one_pass_gate");
+    var one_pass_gate_outlet = patcher.newdefault(361, 460, "utils.one_pass_gate");
     var typecast_bang = patcher.newdefault(238, 398, "t", "b");
-    var return_sender = patcher.newdefault(180, 453, "return.sender", index);
+    var return_sender = patcher.newdefault(180, 453, "execute.return.sender", index);
     var resetter = patcher.getnamed("reset");
     patcher.connect(call_receiver, 0, one_pass_gate_outlet, 0);
     patcher.connect(one_pass_gate_outlet, 0, outlet, 0);

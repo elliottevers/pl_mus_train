@@ -42,7 +42,7 @@ let init_call_receiver = (index) => {
     let outlet = patcher.getnamed("outlet");
 
     let resetter = patcher.getnamed('reset');
-    let one_pass_gate = patcher.newdefault(100, 157, "one_pass_gate");
+    let one_pass_gate = patcher.newdefault(100, 157, "utils.one_pass_gate");
 
     patcher.connect(resetter, 0, one_pass_gate, 1);
     patcher.connect(receiver, 0, one_pass_gate, 0);
@@ -92,7 +92,7 @@ let init_return_sender = (index) => {
     let inlet = patcher.getnamed("inlet");
 
     let resetter = patcher.getnamed('reset');
-    let one_pass_gate = patcher.newdefault(469, 194, "one_pass_gate");
+    let one_pass_gate = patcher.newdefault(469, 194, "utils.one_pass_gate");
 
     patcher.connect(inlet, 0, one_pass_gate, 0);
     patcher.connect(resetter, 0, one_pass_gate, 1);
@@ -126,7 +126,7 @@ let init_return_receiver = (name_first, i_first, name_last, i_last) => {
     for (let index of indices) {
         let name = ['return', index];
         receiver = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + pixels_offset_top, "receive", name.join('.'));
-        one_pass_gate = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 2 * pixels_offset_top, "one_pass_gate");
+        one_pass_gate = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 2 * pixels_offset_top, "utils.one_pass_gate");
         prepender = patcher.newdefault(pixels_init_left + (pixels_offset_left * (index)), pixels_init_top + 3 * pixels_offset_top, "prepend", "returns", index);
         patcher.connect(receiver, 0, one_pass_gate, 0);
         patcher.connect(one_pass_gate, 0, prepender, 0);
@@ -146,11 +146,11 @@ let init_setter = (index) => {
 
     let outlet = patcher.getnamed('outlet');
 
-    let call_receiver = patcher.newdefault(361, 308, "call.receiver", index);
-    let one_pass_gate_sender = patcher.newdefault(285, 357, "one_pass_gate");
-    let one_pass_gate_outlet = patcher.newdefault(361, 460, "one_pass_gate");
+    let call_receiver = patcher.newdefault(361, 308, "execute.call.receiver", index);
+    let one_pass_gate_sender = patcher.newdefault(285, 357, "utils.one_pass_gate");
+    let one_pass_gate_outlet = patcher.newdefault(361, 460, "utils.one_pass_gate");
     let typecast_bang = patcher.newdefault(238, 398, "t", "b");
-    let return_sender = patcher.newdefault(180, 453, "return.sender", index);
+    let return_sender = patcher.newdefault(180, 453, "execute.return.sender", index);
 
     let resetter = patcher.getnamed("reset");
 
