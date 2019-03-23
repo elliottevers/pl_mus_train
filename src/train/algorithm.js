@@ -19,8 +19,8 @@ var constants_1 = require("../constants/constants");
 var parse_1 = require("../parse/parse");
 var iterate_1 = require("./iterate");
 var target_1 = require("../target/target");
-var live_1 = require("../live/live");
 var utils_1 = require("../utils/utils");
+var _ = require('underscore');
 var algorithm;
 (function (algorithm) {
     algorithm.DETECT = 'detect';
@@ -36,7 +36,6 @@ var algorithm;
     var StructParse = parse_1.parse.StructParse;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var TargetIterator = target_1.target.TargetIterator;
-    var ApiJs = live_1.live.ApiJs;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
     // logic common to detect and predict
     var Targeted = /** @class */ (function () {
@@ -44,32 +43,6 @@ var algorithm;
             this.b_parsed = false;
             this.b_targeted = true;
         }
-        Targeted.prototype.determine_targets = function (user_input_handler, notes_segment_next) {
-            if (user_input_handler.mode_texture === POLYPHONY) {
-                var chords_grouped = Harmony.group(notes_segment_next);
-                var chords_monophonified = [];
-                for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
-                    var note_group = chords_grouped_1[_i];
-                    chords_monophonified.push(Harmony.monophonify(note_group));
-                }
-                // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
-                return [chords_monophonified[chords_monophonified.length / 2]];
-            }
-            else if (user_input_handler.mode_texture === MONOPHONY) {
-                var notes_grouped_trivial = [];
-                for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
-                    var note_2 = notes_segment_next_1[_a];
-                    notes_grouped_trivial.push([note_2]);
-                }
-                // return notes_grouped_trivial
-                // TODO: let's put more weight towards the center of the measure
-                // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
-                return [notes_grouped_trivial[notes_grouped_trivial.length / 2]];
-            }
-            else {
-                throw ['texture mode', user_input_handler.mode_texture, 'not supported'].join(' ');
-            }
-        };
         Targeted.prototype.get_depth = function () {
             return 1;
         };
@@ -113,27 +86,6 @@ var algorithm;
                 var segment_1 = segments[Number(i_segment)];
                 var notes_in_segment = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_1.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_1.get_endpoints_loop()[1]; });
                 var sequence_targets = this_1.determine_targets(user_input_handler, notes_in_segment);
-                // set the note as muted for predict
-                // TODO: put in "initialize_track_user_input
-                // for (let target of sequence_targets) {
-                //     for (let subtarget of target) {
-                //
-                //         let subtarget_processed = this.postprocess_subtarget(
-                //             subtarget
-                //         );
-                //
-                //         clip_target_track.remove_notes(
-                //             subtarget_processed.model.note.beat_start,
-                //             0,
-                //             subtarget_processed.model.note.get_beat_end(),
-                //             128
-                //         );
-                //
-                //         clip_target_track.set_notes(
-                //             [subtarget_processed]
-                //         )
-                //     }
-                // }
                 matrix_targets[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             };
             var this_1 = this;
@@ -232,6 +184,32 @@ var algorithm;
         function Detect() {
             return _super.call(this) || this;
         }
+        Detect.prototype.determine_targets = function (user_input_handler, notes_segment_next) {
+            if (user_input_handler.mode_texture === POLYPHONY) {
+                var chords_grouped = Harmony.group(notes_segment_next);
+                var chords_monophonified = [];
+                for (var _i = 0, chords_grouped_1 = chords_grouped; _i < chords_grouped_1.length; _i++) {
+                    var note_group = chords_grouped_1[_i];
+                    chords_monophonified.push(Harmony.monophonify(note_group));
+                }
+                // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
+                return [chords_monophonified[chords_monophonified.length / 2]];
+            }
+            else if (user_input_handler.mode_texture === MONOPHONY) {
+                var notes_grouped_trivial = [];
+                for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
+                    var note_2 = notes_segment_next_1[_a];
+                    notes_grouped_trivial.push([note_2]);
+                }
+                // return notes_grouped_trivial
+                // TODO: let's put more weight towards the center of the measure
+                // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
+                return [notes_grouped_trivial[notes_grouped_trivial.length / 2]];
+            }
+            else {
+                throw ['texture mode', user_input_handler.mode_texture, 'not supported'].join(' ');
+            }
+        };
         Detect.prototype.get_name = function () {
             return algorithm.DETECT;
         };
@@ -256,6 +234,41 @@ var algorithm;
         Predict.prototype.get_name = function () {
             return algorithm.PREDICT;
         };
+        Predict.prototype.determine_targets = function (user_input_handler, notes_segment_next) {
+            if (user_input_handler.mode_texture === POLYPHONY) {
+                // let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
+                //     notes_segment_next
+                // );
+                //
+                // let chords_monophonified: TypeSequenceTarget = [];
+                //
+                // for (let note_group of chords_grouped) {
+                //     chords_monophonified.push(
+                //         Harmony.monophonify(
+                //             note_group
+                //         )
+                //     );
+                // }
+                throw 'polyphonic targets for prediction not yet implemented';
+            }
+            else if (user_input_handler.mode_texture === MONOPHONY) {
+                var notes_grouped = [];
+                // partition segment into measures
+                var position_measure = function (node) {
+                    Math.floor(node.model.note.beat_start / 4);
+                };
+                var note_partitions = _.groupBy(notes_segment_next, position_measure);
+                for (var _i = 0, note_partitions_1 = note_partitions; _i < note_partitions_1.length; _i++) {
+                    var partition = note_partitions_1[_i];
+                    // get the middle note of the measure
+                    notes_grouped.push([partition[partition.length / 2]]);
+                }
+                return notes_grouped;
+            }
+            else {
+                throw ['texture mode', user_input_handler.mode_texture, 'not supported'].join(' ');
+            }
+        };
         Predict.prototype.postprocess_subtarget = function (note_subtarget) {
             note_subtarget.model.note.muted = 1;
             return note_subtarget;
@@ -264,7 +277,21 @@ var algorithm;
         Predict.prototype.initialize_render = function (window, segments, notes_target_track) {
             return;
         };
+        // NB: we only have to initialize clips in the target track
         Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
+            for (var i_segment in segments) {
+                var segment_2 = segments[Number(i_segment)];
+                var targeted_notes_in_segment = matrix_target[0][Number(i_segment)].get_notes();
+                // TODO: this won't work for polyphony
+                for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
+                    var note_3 = targeted_notes_in_segment_1[_i];
+                    // clip = track_target.get_clip_at_interval(
+                    //     [note.model.note.beat_start, note.model.note.get_beat_end()]
+                    // );
+                    segment_2.clip_user_input_async.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
+                    segment_2.clip_user_input_async.set_notes([note_3]);
+                }
+            }
             // TODO: get the subtargets that are currently in each segment and mute them
             //     for (let target of sequence_targets) {
             //         for (let subtarget of target) {
@@ -345,27 +372,11 @@ var algorithm;
         Parse.prototype.grow_layer = function (notes_user_input_renderable, notes_to_grow) {
             ParseTree.add_layer(notes_user_input_renderable, notes_to_grow, -1);
         };
-        // TODO: we can't pass in just one clip if we want to initialize an entire track
+        // TODO: we don't need the target track - we should 1) transfer all notes over to user input track and 2) mute the track
         Parse.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
             for (var i_segment in segments) {
-                var index_clip_slot_current = Number(i_segment);
-                var api_clip_target_synchronous = new ApiJs(track_target.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' '));
-                var api_clip_user_input_synchronous = new ApiJs(track_user_input.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' '));
-                var clip_target = track_target.get_clip_at_clip_slot(index_clip_slot_current);
-                var clip_user_input = track_user_input.get_clip_at_clip_slot(index_clip_slot_current);
-                // let clip_target = new Clip(
-                //     new ClipDao(
-                //         api_clip_target_synchronous,
-                //         new Messenger('max', 0)
-                //     )
-                // );
-                //
-                // let clip_user_input = new Clip(
-                //     new ClipDao(
-                //         api_clip_user_input_synchronous,
-                //         new Messenger('max', 0)
-                //     )
-                // );
+                var clip_target = track_target.get_clip_at_index(Number(i_segment));
+                var clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
                 var notes = clip_target.get_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
                 clip_user_input.remove_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
                 clip_user_input.set_notes(notes);
@@ -378,10 +389,10 @@ var algorithm;
             // first layer
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             var _loop_2 = function (i_segment) {
-                var segment_2 = segments[Number(i_segment)];
-                var note_segment = segment_2.get_note();
+                var segment_3 = segments[Number(i_segment)];
+                var note_segment = segment_3.get_note();
                 var coord_current_virtual_second_layer = [0, Number(i_segment)];
-                var notes_leaves = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_2.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_2.get_endpoints_loop()[1]; });
+                var notes_leaves = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
                 var coord_current_virtual_leaves = [this_2.get_depth() - 1, Number(i_segment)];
                 // second layer
                 window.add_notes_to_clip([note_segment], coord_current_virtual_second_layer, this_2);
@@ -417,8 +428,8 @@ var algorithm;
         Parse.prototype.initialize_parse = function (struct_parse, segments, notes_target_track) {
             // this is to set the leaves as the notes of the target clip
             var _loop_4 = function (i_segment) {
-                var segment_3 = segments[Number(i_segment)];
-                var notes = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
+                var segment_4 = segments[Number(i_segment)];
+                var notes = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_4.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_4.get_endpoints_loop()[1]; });
                 var coord_current_virtual_leaf = [this_3.get_depth() - 1, Number(i_segment)];
                 struct_parse.add(notes, coord_current_virtual_leaf, this_3);
             };
@@ -430,8 +441,8 @@ var algorithm;
         Parse.prototype.finish_parse = function (struct_parse, segments) {
             // make connections with segments
             for (var i_segment in segments) {
-                var segment_4 = segments[Number(i_segment)];
-                struct_parse.add([segment_4.get_note()], [0, Number(i_segment)], this);
+                var segment_5 = segments[Number(i_segment)];
+                struct_parse.add([segment_5.get_note()], [0, Number(i_segment)], this);
             }
             struct_parse.set_root(StructParse.create_root_from_segments(segments));
             // make connections with root
@@ -454,6 +465,7 @@ var algorithm;
         Derive.prototype.grow_layer = function (notes_user_input_renderable, notes_to_grow) {
             ParseTree.add_layer(notes_to_grow, notes_user_input_renderable, -1);
         };
+        // TODO: verify that the segments should already be here so we don't have to do anything
         Derive.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
             return;
         };
@@ -461,18 +473,18 @@ var algorithm;
             // add the root to the tree immediately
             struct_parse.set_root(ParseTree.create_root_from_segments(segments));
             for (var i_segment in segments) {
-                var segment_5 = segments[Number(i_segment)];
-                var note_3 = segment_5.get_note();
+                var segment_6 = segments[Number(i_segment)];
+                var note_4 = segment_6.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
-                struct_parse.add([note_3], coord_current_virtual, this);
+                struct_parse.add([note_4], coord_current_virtual, this);
             }
         };
         Derive.prototype.initialize_render = function (window, segments, notes_target_track) {
             // first layer (root)
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             for (var i_segment in segments) {
-                var segment_6 = segments[Number(i_segment)];
-                var note_segment = segment_6.get_note();
+                var segment_7 = segments[Number(i_segment)];
+                var note_segment = segment_7.get_note();
                 var coord_current_virtual_second_layer = [0, Number(i_segment)];
                 // second layer
                 window.add_notes_to_clip([note_segment], coord_current_virtual_second_layer, this);

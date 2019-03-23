@@ -14,6 +14,8 @@ var clip_slot;
         };
         ClipSlot.prototype.get_id = function () {
         };
+        ClipSlot.prototype.create_clip = function () {
+        };
         return ClipSlot;
     }());
     clip_slot_1.ClipSlot = ClipSlot;

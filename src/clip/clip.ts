@@ -11,10 +11,6 @@ export namespace clip {
     import Logger = log.Logger;
     import ClipLive = live.ClipLive;
 
-    export class ClipVirtual implements ClipLive {
-
-    }
-
     export class Clip implements ClipLive {
 
         public clip_dao;

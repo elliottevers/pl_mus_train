@@ -39,13 +39,6 @@ export namespace trainer {
     import UserInputHandler = user_input.UserInputHandler;
     import Song = song.Song;
     import MatrixWindow = window.MatrixWindow;
-    import ClipVirtual = live.ClipVirtual;
-    import TrackVirtual = track.TrackVirtual;
-    import SongVirtual = song.SongVirtual;
-    import Clip = live.Clip;
-    import Song = song.Song;
-    import Track = track.Track;
-    // import Algorithm = algorithm.Algorithm;
 
     export class Trainer {
 
@@ -97,9 +90,11 @@ export namespace trainer {
             this.segments = segments;
             this.messenger = messenger;
 
-            this.notes_target_track = track.get_notes_on_track(
-                track_target.get_path()
-            );
+            // this.notes_target_track = track.get_notes_on_track(
+            //     track_target.get_path()
+            // );
+
+            this.notes_target_track = track_target.get_notes();
 
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
                 this.trainable,
@@ -315,7 +310,7 @@ export namespace trainer {
                     this.trainable
                 );
 
-                this.advance()
+                this.advance();
 
                 this.render_window();
             }

@@ -17,8 +17,8 @@ export namespace segment {
         beat_start: number;
         beat_end: number;
         scene: Scene;
-        clip: ClipLive; // used as storage with an interface similar to Live
-        clip_user_input_sync: ClipLive;
+        clip: Clip; // used as storage with an interface similar to Live
+        clip_user_input_sync: Clip;
         clip_user_input_async: Clip;
 
         constructor(note: TreeModel.Node<n.Note>) {

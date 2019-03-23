@@ -58,6 +58,14 @@ export namespace track {
             this.track_dao = track_dao;
         }
 
+        public mute() {
+            this.track_dao.mute(1);
+        }
+
+        public unmute() {
+            this.track_dao.mute(0);
+        }
+
         public static get_clip_at_index(index_track: number, index_clip_slot: number): Clip {
             return new Clip(
                 new ClipDao(
@@ -67,6 +75,11 @@ export namespace track {
                     new Messenger(env, 0)
                 )
             );
+        }
+
+        // TODO: maintain an interval tree
+        public get_clip_at_interval() {
+
         }
 
         public get_index() {
@@ -120,6 +133,10 @@ export namespace track {
             }
             return notes_amassed;
         }
+
+        public get_path() {
+
+        }
     }
 
     export interface iTrackDao {
@@ -132,9 +149,12 @@ export namespace track {
         num_clip_slots: number;
         clips: Clip[];
 
-        constructor(num_clip_slots: number, clips: Clip[]) {
-            this.num_clip_slots = num_clip_slots;
+        constructor(clips: Clip[]) {
             this.clips = clips;
+        }
+
+        mute() {
+
         }
 
         get_num_clip_slots(): number {
@@ -185,7 +205,7 @@ export namespace track {
         }
     }
 
-    export class TrackDao {
+    export class TrackDao implements iTrackDao {
 
         private live_api: LiveApiJs;
 
@@ -212,6 +232,19 @@ export namespace track {
             }
 
             return clip_slots
+        }
+
+        mute(val: boolean) {
+            if (val) {
+                this.live_api.call('mute', '1')
+            } else {
+                this.live_api.call('mute', '0')
+            }
+        }
+
+        // implement the amassing notes logic
+        get_notes(): TreeModel.Node<Note>[] {
+
         }
     }
 }

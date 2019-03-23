@@ -1,4 +1,16 @@
+import {live} from "../live/live";
+
 export namespace utils {
+
+    import LiveApiJs = live.LiveApiJs;
+
+    export let get_path_this_track = () => {
+        let this_device = new LiveApiJs('this_device');
+
+        let path_this_device = this_device.get_path();
+
+        return path_this_device.split(' ').slice(0, 3).join(' ');
+    };
 
     export class PathLive  {
 

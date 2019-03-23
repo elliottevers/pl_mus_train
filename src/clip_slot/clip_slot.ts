@@ -25,6 +25,10 @@ export namespace clip_slot {
         get_id() {
 
         }
+
+        create_clip() {
+
+        }
     }
 
     interface iClipSlotDao {

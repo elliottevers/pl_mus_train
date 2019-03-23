@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
 var iterate_1 = require("./iterate");
-var track_1 = require("../track/track");
 // import {get_notes_on_track} from "../scripts/segmenter";
 var _ = require('underscore');
 var l = require('lodash');
@@ -11,7 +10,6 @@ var trainer;
     var HistoryUserInput = history_1.history.HistoryUserInput;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
-    // import Algorithm = algorithm.Algorithm;
     var Trainer = /** @class */ (function () {
         function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, segments, messenger) {
             this.window = window;
@@ -21,7 +19,10 @@ var trainer;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
-            this.notes_target_track = track_1.track.get_notes_on_track(track_target.get_path());
+            // this.notes_target_track = track.get_notes_on_track(
+            //     track_target.get_path()
+            // );
+            this.notes_target_track = track_target.get_notes();
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_objectives(this.trainable, this.segments));
             this.window.initialize_clips(this.trainable, this.segments);

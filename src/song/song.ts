@@ -50,6 +50,7 @@ export namespace song {
         get_num_scenes(): number {
             return this.get_scenes().length/2
         }
+
     }
 
     export interface iSongDao {

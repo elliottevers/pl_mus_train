@@ -51,8 +51,17 @@ var track;
         function Track(track_dao) {
             this.track_dao = track_dao;
         }
+        Track.prototype.mute = function () {
+            this.track_dao.mute(1);
+        };
+        Track.prototype.unmute = function () {
+            this.track_dao.mute(0);
+        };
         Track.get_clip_at_index = function (index_track, index_clip_slot) {
             return new Clip(new ClipDao(new LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
+        };
+        // TODO: maintain an interval tree
+        Track.prototype.get_clip_at_interval = function () {
         };
         Track.prototype.get_index = function () {
         };
@@ -86,14 +95,17 @@ var track;
             }
             return notes_amassed;
         };
+        Track.prototype.get_path = function () {
+        };
         return Track;
     }());
     track.Track = Track;
     var TrackDaoVirtual = /** @class */ (function () {
-        function TrackDaoVirtual(num_clip_slots, clips) {
-            this.num_clip_slots = num_clip_slots;
+        function TrackDaoVirtual(clips) {
             this.clips = clips;
         }
+        TrackDaoVirtual.prototype.mute = function () {
+        };
         TrackDaoVirtual.prototype.get_num_clip_slots = function () {
             return this.num_clip_slots;
         };
@@ -151,6 +163,17 @@ var track;
                 }
             }
             return clip_slots;
+        };
+        TrackDao.prototype.mute = function (val) {
+            if (val) {
+                this.live_api.call('mute', '1');
+            }
+            else {
+                this.live_api.call('mute', '0');
+            }
+        };
+        // implement the amassing notes logic
+        TrackDao.prototype.get_notes = function () {
         };
         return TrackDao;
     }());

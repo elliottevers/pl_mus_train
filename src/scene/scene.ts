@@ -20,7 +20,17 @@ export namespace scene {
         }
     }
 
-    export class SceneDao {
+    export interface iSceneDao {
+        fire(force_legato: boolean)
+    }
+
+    export class SceneDaoVirtual implements iSceneDao {
+        fire(force_legato: boolean) {
+            return
+        }
+    }
+
+    export class SceneDao implements iSceneDao {
         live_api: li.LiveApiJs;
 
         constructor(live_api: li.LiveApiJs) {
@@ -28,7 +38,7 @@ export namespace scene {
         }
 
         public fire(force_legato: boolean) {
-            this.live_api.call("fire", force_legato ? 1 : 0)
+            this.live_api.call("fire", force_legato ? '1' : '0')
         }
     }
 

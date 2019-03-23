@@ -16,6 +16,7 @@ import {live} from "../live/live";
 import {scene} from "../scene/scene";
 import {utils} from "../utils/utils";
 import {song} from "../song/song";
+const _ = require('underscore');
 
 export namespace algorithm {
     import Song = song.Song;
@@ -32,14 +33,12 @@ export namespace algorithm {
     import ParseTree = parse.ParseTree;
     import StructParse = parse.StructParse;
     import Segment = segment.Segment;
-    import get_notes_on_track = track.get_notes_on_track;
     import Window = window.Window;
     import Track = track.Track;
     import MatrixIterator = iterate.MatrixIterator;
     import Messenger = message.Messenger;
     import Subtarget = target.Subtarget;
     import TargetIterator = target.TargetIterator;
-    import ApiJs = live.ApiJs;
     import ClipDao = clip.ClipDao;
     import Target = target.Target;
     import FactoryMatrixObjectives = iterate.FactoryMatrixObjectives;
@@ -107,45 +106,12 @@ export namespace algorithm {
         public b_parsed: boolean = false;
         public b_targeted: boolean = true;
         public depth: number;
+
         public abstract get_name()
 
-        determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
-            if (user_input_handler.mode_texture === POLYPHONY) {
+        public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: target.TargetIterator[][])
 
-                let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
-                    notes_segment_next
-                );
-
-                let chords_monophonified: TypeSequenceTarget = [];
-
-                for (let note_group of chords_grouped) {
-                    chords_monophonified.push(
-                        Harmony.monophonify(
-                            note_group
-                        )
-                    );
-                }
-
-                // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
-                return [chords_monophonified[chords_monophonified.length/2]]
-
-            } else if (user_input_handler.mode_texture === MONOPHONY) {
-
-                let notes_grouped_trivial: TypeSequenceTarget = [];
-
-                for (let note of notes_segment_next) {
-                    notes_grouped_trivial.push([note])
-                }
-
-                // return notes_grouped_trivial
-                // TODO: let's put more weight towards the center of the measure
-                // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
-                return [notes_grouped_trivial[notes_grouped_trivial.length/2]]
-
-            } else {
-                throw ['texture mode', user_input_handler.mode_texture, 'not supported'].join(' ')
-            }
-        }
+        public abstract determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget
 
         public get_depth(): number {
             return 1
@@ -220,28 +186,6 @@ export namespace algorithm {
                     notes_in_segment
                 );
 
-                // set the note as muted for predict
-                // TODO: put in "initialize_track_user_input
-                // for (let target of sequence_targets) {
-                //     for (let subtarget of target) {
-                //
-                //         let subtarget_processed = this.postprocess_subtarget(
-                //             subtarget
-                //         );
-                //
-                //         clip_target_track.remove_notes(
-                //             subtarget_processed.model.note.beat_start,
-                //             0,
-                //             subtarget_processed.model.note.get_beat_end(),
-                //             128
-                //         );
-                //
-                //         clip_target_track.set_notes(
-                //             [subtarget_processed]
-                //         )
-                //     }
-                // }
-
                 matrix_targets[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             }
 
@@ -276,6 +220,8 @@ export namespace algorithm {
         depth: number;
 
         public abstract initialize_render(window: Window, segments: Segment[], notes_track_target: TreeModel.Node<Note>[])
+
+        public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: target.TargetIterator[][])
 
         public get_depth(): number {
             return this.depth
@@ -378,6 +324,44 @@ export namespace algorithm {
             super();
         }
 
+        determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
+            if (user_input_handler.mode_texture === POLYPHONY) {
+
+                let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
+                    notes_segment_next
+                );
+
+                let chords_monophonified: TypeSequenceTarget = [];
+
+                for (let note_group of chords_grouped) {
+                    chords_monophonified.push(
+                        Harmony.monophonify(
+                            note_group
+                        )
+                    );
+                }
+
+                // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
+                return [chords_monophonified[chords_monophonified.length/2]]
+
+            } else if (user_input_handler.mode_texture === MONOPHONY) {
+
+                let notes_grouped_trivial: TypeSequenceTarget = [];
+
+                for (let note of notes_segment_next) {
+                    notes_grouped_trivial.push([note])
+                }
+
+                // return notes_grouped_trivial
+                // TODO: let's put more weight towards the center of the measure
+                // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
+                return [notes_grouped_trivial[notes_grouped_trivial.length/2]]
+
+            } else {
+                throw ['texture mode', user_input_handler.mode_texture, 'not supported'].join(' ')
+            }
+        }
+
         public get_name(): string {
             return DETECT
         }
@@ -402,6 +386,50 @@ export namespace algorithm {
             return PREDICT
         }
 
+        determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
+
+            if (user_input_handler.mode_texture === POLYPHONY) {
+
+                // let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
+                //     notes_segment_next
+                // );
+                //
+                // let chords_monophonified: TypeSequenceTarget = [];
+                //
+                // for (let note_group of chords_grouped) {
+                //     chords_monophonified.push(
+                //         Harmony.monophonify(
+                //             note_group
+                //         )
+                //     );
+                // }
+
+                throw 'polyphonic targets for prediction not yet implemented'
+
+            } else if (user_input_handler.mode_texture === MONOPHONY) {
+
+                let notes_grouped: TypeSequenceTarget = [];
+
+                // partition segment into measures
+
+                let position_measure = (node) => {
+                    Math.floor(node.model.note.beat_start/4)
+                };
+
+                let note_partitions: TreeModel.Node<Note>[][] = _.groupBy(notes_segment_next, position_measure);
+
+                for (let partition of note_partitions) {
+                    // get the middle note of the measure
+                    notes_grouped.push([partition[partition.length/2]])
+                }
+
+                return notes_grouped
+
+            } else {
+                throw ['texture mode', user_input_handler.mode_texture, 'not supported'].join(' ')
+            }
+        }
+
         postprocess_subtarget(note_subtarget) {
             note_subtarget.model.note.muted = 1;
             return note_subtarget;
@@ -412,7 +440,33 @@ export namespace algorithm {
             return
         }
 
+        // NB: we only have to initialize clips in the target track
         initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
+
+            for (let i_segment in segments) {
+                let segment = segments[Number(i_segment)];
+
+                let targeted_notes_in_segment = matrix_target[0][Number(i_segment)].get_notes();
+
+                // TODO: this won't work for polyphony
+                for (let note of targeted_notes_in_segment) {
+                    // clip = track_target.get_clip_at_interval(
+                    //     [note.model.note.beat_start, note.model.note.get_beat_end()]
+                    // );
+
+                    segment.clip_user_input_async.remove_notes(
+                        note.model.note.beat_start,
+                        0,
+                        note.model.note.get_beat_end(),
+                        128
+                    );
+
+                    segment.clip_user_input_async.set_notes(
+                        [note]
+                    )
+                }
+            }
+
             // TODO: get the subtargets that are currently in each segment and mute them
         //     for (let target of sequence_targets) {
         //         for (let subtarget of target) {
@@ -499,37 +553,13 @@ export namespace algorithm {
             )
         }
 
-        // TODO: we can't pass in just one clip if we want to initialize an entire track
+        // TODO: we don't need the target track - we should 1) transfer all notes over to user input track and 2) mute the track
         initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
             for (let i_segment in segments) {
 
-                let index_clip_slot_current = Number(i_segment);
+                let clip_target = track_target.get_clip_at_index(Number(i_segment));
 
-                let api_clip_target_synchronous = new ApiJs(
-                    track_target.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
-                );
-
-                let api_clip_user_input_synchronous = new ApiJs(
-                    track_user_input.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
-                );
-
-                let clip_target: Clip = track_target.get_clip_at_clip_slot(index_clip_slot_current);
-
-                let clip_user_input: Clip = track_user_input.get_clip_at_clip_slot(index_clip_slot_current);
-
-                // let clip_target = new Clip(
-                //     new ClipDao(
-                //         api_clip_target_synchronous,
-                //         new Messenger('max', 0)
-                //     )
-                // );
-                //
-                // let clip_user_input = new Clip(
-                //     new ClipDao(
-                //         api_clip_user_input_synchronous,
-                //         new Messenger('max', 0)
-                //     )
-                // );
+                let clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
 
                 let notes = clip_target.get_notes(
                     clip_target.get_loop_bracket_lower(),
@@ -682,6 +712,7 @@ export namespace algorithm {
             )
         }
 
+        // TODO: verify that the segments should already be here so we don't have to do anything
         initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
             return
         }
