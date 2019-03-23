@@ -9,6 +9,10 @@ var scene;
         Scene.prototype.fire = function (force_legato) {
             this.scene_dao.fire(force_legato);
         };
+        Scene.prototype.get_id = function () {
+            // TODO: implement
+            return;
+        };
         return Scene;
     }());
     scene.Scene = Scene;

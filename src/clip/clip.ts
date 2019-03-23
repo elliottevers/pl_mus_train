@@ -9,8 +9,13 @@ export namespace clip {
 
     import Messenger = message.Messenger;
     import Logger = log.Logger;
+    import ClipLive = live.ClipLive;
 
-    export class Clip {
+    export class ClipVirtual implements ClipLive {
+
+    }
+
+    export class Clip implements ClipLive {
 
         public clip_dao;
 

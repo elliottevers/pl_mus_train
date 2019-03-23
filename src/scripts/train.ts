@@ -10,8 +10,8 @@ import {algorithm} from "../train/algorithm";
 import Detect = algorithm.Detect;
 import {live as li, live} from "../live/live";
 import LiveClipVirtual = live.LiveClipVirtual;
-import {segment} from "../segment/segment";
-import Segment = segment.Segment;
+import {segment as module_segment} from "../segment/segment";
+import Segment = module_segment.Segment;
 import {modes_control, modes_texture} from "../constants/constants";
 import INSTRUMENTAL = modes_control.INSTRUMENTAL;
 import {clip as c, clip} from "../clip/clip";
@@ -70,7 +70,7 @@ let logger = new Logger(env);
 let messenger_render = new Messenger(env, 0, 'render');
 let messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
 let messenger_num_segments = new Messenger(env, 0, 'num_segments');
-let mode_texture, mode_control, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, notes_target, segments, trainer;
+let mode_texture, mode_control, clip_user_input, clip_user_input_synchronous, song, algorithm_train, user_input_handler, window, segments_train, trainer;
 let index_track_target;
 
 let set_mode_texture = (option) => {
@@ -189,20 +189,64 @@ let set_clip_user_input = () => {
     )
 };
 
+// update_clips(clip_user_input_current: Clip, clip_user_input_synchronous_current: Clip): Clip[] {
+//
+//     let list_path_current_s = clip_user_input_synchronous_current.get_path().split(' ');
+//     let index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
+//     let list_path_next_s = list_path_current_s;
+//
+//     let list_path_current = clip_user_input_current.get_path().split(' ');
+//     let index_clipslot_current = list_path_current[list_path_current.length - 2];
+//     let list_path_next = list_path_current;
+//
+//     list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
+//
+//     let clip_user_input_synchronous_next = new Clip(
+//         new ClipDao(
+//             new LiveApiJs(
+//                 list_path_next_s.join(' ')
+//             ),
+//             new Messenger('max', 0)
+//         )
+//     );
+//
+//     list_path_next[list_path_next.length - 2] = index_clipslot_current + 1;
+//
+//     let clip_user_input_next = new Clip(
+//         new ClipDao(
+//             new LiveApiJs(
+//                 list_path_next.join(' ')
+//             ),
+//             new Messenger('max', 0),
+//             true,
+//             'clip_user_input'
+//         )
+//     );
+//
+//     clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
+//
+//     return [clip_user_input_next, clip_user_input_synchronous_next]
+// }
+
 let set_segments = () => {
 
     // TODO: this assumes the trainer device is on the same track as the segmenter
     let notes_segments = get_notes_segments();
 
-    let segments_local: Segment[] = [];
+    let this_device = new li.LiveApiJs('this_device');
+
+    // let path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
+
+    let segments = [];
 
     for (let i_note in notes_segments) {
         let note = notes_segments[Number(i_note)];
         let path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
-        let segment_local = new Segment(
+        let segment = new Segment(
             note
         );
-        segment_local.set_scene(
+
+        segment.set_scene(
             new Scene(
                 new SceneDao(
                     new li.LiveApiJs(
@@ -211,15 +255,40 @@ let set_segments = () => {
                 )
             )
         );
-        segments_local.push(
-            segment_local
+
+        segment.set_clip_user_input_sync(
+            new Clip(
+                new ClipDao(
+                    new LiveApiJs(
+                        this_device.get_path().split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')
+                    ),
+                    new Messenger(env, 0)
+                )
+            )
+        );
+
+        segment.set_clip_user_input_async(
+            new Clip(
+                new ClipDao(
+                    new LiveApiJs(
+                        this_device.get_path().split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')
+                    ),
+                    new Messenger(env, 0),
+                    true,
+                    'clip_user_input'
+                )
+            )
+        );
+
+        segments.push(
+            segment
         )
 
     }
 
-    messenger_num_segments.message([segments_local.length]);
+    messenger_num_segments.message([segments.length]);
 
-    segments = segments_local;
+    segments_train = segments
 };
 
 let test = () => {
@@ -352,7 +421,7 @@ let begin = () => {
         clip_user_input_synchronous,
         index_track_target,
         song,
-        segments,
+        segments_train,
         new Messenger(env, 0)
     );
 
@@ -549,7 +618,7 @@ let save = () => {
         'clip_user_input_synchronous': trainer.clip_user_input_synchronous,
         'index_track_target': index_track_target,
         'song': song,
-        'segments': segments,
+        'segments': segments_train,
         'messenger': messenger_render,
         'env': env
     };

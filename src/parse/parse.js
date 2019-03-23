@@ -15,6 +15,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
+// import {algorithm} from "../train/algorithm";
 var _ = require("underscore");
 var parse;
 (function (parse) {
@@ -115,19 +116,19 @@ var parse;
             return this.regions_renderable;
         };
         // TODO: never set the root in this manner - maybe that's how we can get around the if-else barrage
-        StructParse.prototype.add = function (notes_user_input, coord_notes_current, algorithm) {
+        StructParse.prototype.add = function (notes_user_input, coord_notes_current, parsable) {
             var notes_user_input_renderable = notes_user_input.map(function (note) {
                 return NoteRenderable.from_note(note, coord_notes_current);
             });
             this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
             this.regions_renderable.push(coord_notes_current);
-            var coords_notes_to_grow = algorithm.get_coords_notes_to_grow(coord_notes_current);
+            var coords_notes_to_grow = parsable.get_coords_notes_to_grow(coord_notes_current);
             for (var _i = 0, coords_notes_to_grow_1 = coords_notes_to_grow; _i < coords_notes_to_grow_1.length; _i++) {
                 var coord_to_grow = coords_notes_to_grow_1[_i];
                 var notes_to_grow = this.get_notes_at_coord(coord_to_grow);
-                algorithm.grow_layer(notes_user_input_renderable, notes_to_grow);
+                parsable.grow_layer(notes_user_input_renderable, notes_to_grow);
             }
-            this.coords_roots = algorithm.update_roots(this.coords_roots, coords_notes_to_grow, coord_notes_current);
+            this.coords_roots = parsable.update_roots(this.coords_roots, coords_notes_to_grow, coord_notes_current);
         };
         return StructParse;
     }(ParseTree));

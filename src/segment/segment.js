@@ -13,6 +13,12 @@ var segment;
             var clip_dao_virtual = new LiveClipVirtual([note]);
             this.clip = new Clip(clip_dao_virtual);
         }
+        Segment.prototype.set_clip_user_input_sync = function (clip) {
+            this.clip_user_input_sync = clip;
+        };
+        Segment.prototype.set_clip_user_input_async = function (clip) {
+            this.clip_user_input_async = clip;
+        };
         Segment.prototype.get_note = function () {
             return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128)[0];
         };

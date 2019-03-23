@@ -4,7 +4,19 @@ import Note = note.Note;
 
 export namespace note {
 
-    export class Note implements p.parse.Parsable {
+    interface Parsable {
+        // get_overlap_beats(
+        //     beat_start_former: number,
+        //     beat_end_former: number,
+        //     beat_start_latter: number,
+        //     beat_end_latter: number
+        // )
+        get_best_candidate(
+            list_candidate_note: TreeModel.Node<Note>[]
+        )
+    }
+
+    export class Note implements Parsable {
 
         public pitch: number;
         public beat_start: number;

@@ -1,20 +1,14 @@
 import {note as n, note} from "../note/note";
 import TreeModel = require("tree-model");
 import {algorithm} from "../train/algorithm";
+// import {algorithm} from "../train/algorithm";
 
 const _ = require("underscore");
 
 
 export namespace parse {
     import NoteRenderable = note.NoteRenderable;
-    import Parsed = algorithm.Parsed;
-
-    export interface Parsable {
-        choose(): boolean;
-
-        // TODO: annotation
-        get_best_candidate(list_candidate_note);
-    }
+    import Parsable = algorithm.Parsable;
 
     export abstract class ParseTree {
         root: TreeModel.Node<n.NoteRenderable>;
@@ -146,7 +140,7 @@ export namespace parse {
         }
 
         // TODO: never set the root in this manner - maybe that's how we can get around the if-else barrage
-        public add(notes_user_input, coord_notes_current, algorithm: Parsed): void {
+        public add(notes_user_input, coord_notes_current, parsable: Parsable): void {
 
             let notes_user_input_renderable = notes_user_input.map((note) => {
                 return NoteRenderable.from_note(note, coord_notes_current)
@@ -156,16 +150,16 @@ export namespace parse {
 
             this.regions_renderable.push(coord_notes_current);
 
-            let coords_notes_to_grow = algorithm.get_coords_notes_to_grow(coord_notes_current);
+            let coords_notes_to_grow = parsable.get_coords_notes_to_grow(coord_notes_current);
 
             for (let coord_to_grow of coords_notes_to_grow) {
 
                 let notes_to_grow = this.get_notes_at_coord(coord_to_grow);
 
-                algorithm.grow_layer(notes_user_input_renderable, notes_to_grow);
+                parsable.grow_layer(notes_user_input_renderable, notes_to_grow);
             }
 
-            this.coords_roots = algorithm.update_roots(
+            this.coords_roots = parsable.update_roots(
                 this.coords_roots,
                 coords_notes_to_grow,
                 coord_notes_current

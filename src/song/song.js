@@ -6,6 +6,10 @@ var song;
         function Song(song_dao) {
             this.song_dao = song_dao;
         }
+        Song.prototype.get_scene_at_index = function (index) {
+        };
+        Song.prototype.create_scene_at_index = function (index) {
+        };
         Song.prototype.set_session_record = function (int) {
             this.song_dao.set_session_record(int);
         };
@@ -30,6 +34,37 @@ var song;
         return Song;
     }());
     song.Song = Song;
+    var SongDaoVirtual = /** @class */ (function () {
+        function SongDaoVirtual(scenes) {
+            this.scenes = scenes;
+        }
+        SongDaoVirtual.prototype.get_scenes = function () {
+            var data = [];
+            for (var _i = 0, _a = this.scenes; _i < _a.length; _i++) {
+                var scene_1 = _a[_i];
+                data.push('id');
+                data.push(scene_1.get_id());
+            }
+            return data;
+        };
+        SongDaoVirtual.prototype.set_overdub = function (int) {
+            return;
+        };
+        SongDaoVirtual.prototype.set_session_record = function (int) {
+            return;
+        };
+        SongDaoVirtual.prototype.set_tempo = function (int) {
+            return;
+        };
+        SongDaoVirtual.prototype.start = function () {
+            return;
+        };
+        SongDaoVirtual.prototype.stop = function () {
+            return;
+        };
+        return SongDaoVirtual;
+    }());
+    song.SongDaoVirtual = SongDaoVirtual;
     var SongDao = /** @class */ (function () {
         function SongDao(clip_live, messenger, deferlow) {
             this.clip_live = clip_live;

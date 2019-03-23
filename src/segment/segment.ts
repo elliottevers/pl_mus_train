@@ -10,19 +10,30 @@ export namespace segment {
     import Note = note.Note;
     import LiveClipVirtual = live.LiveClipVirtual;
     import Scene = scene.Scene;
+    import ClipLive = live.ClipLive;
 
     export class Segment {
 
         beat_start: number;
         beat_end: number;
         scene: Scene;
-        clip: Clip;
+        clip: ClipLive; // used as storage with an interface similar to Live
+        clip_user_input_sync: ClipLive;
+        clip_user_input_async: Clip;
 
         constructor(note: TreeModel.Node<n.Note>) {
             this.beat_start = note.model.note.beat_start;
             this.beat_end = note.model.note.get_beat_end();
             let clip_dao_virtual = new LiveClipVirtual([note]);
             this.clip = new Clip(clip_dao_virtual);
+        }
+
+        public set_clip_user_input_sync(clip: Clip) {
+            this.clip_user_input_sync = clip;
+        }
+
+        public set_clip_user_input_async(clip: Clip) {
+            this.clip_user_input_async = clip;
         }
 
         public get_note(): TreeModel.Node<n.Note> {

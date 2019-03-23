@@ -1,20 +1,6 @@
-import {message as m, message} from "../message/messenger";
-import Messenger = message.Messenger;
-import {live, live as li} from "../live/live";
-import {clip, clip as c} from "../clip/clip";
-import LiveApiJs = live.LiveApiJs;
 import {log} from "../log/logger";
 import Logger = log.Logger;
-import {io} from "../io/io";
-import Exporter = io.Exporter;
-import {utils} from "../utils/utils";
-import {harmony} from "../music/harmony";
-import Harmony = harmony.Harmony;
-import ClipDao = clip.ClipDao;
-import Clip = clip.Clip;
-import {track} from "../track/track";
-import TrackDao = track.TrackDao;
-import Track = track.Track;
+
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -22,6 +8,8 @@ declare let outlets: any;
 declare function outlet(n: number, o: any): void;
 declare function post(message?: any): void;
 declare let Dict: any;
+
+const jsEnv = require('browser-or-node');
 
 export {}
 
@@ -36,17 +24,29 @@ if (env === 'max') {
 
 
 let test = () => {
-    let track = new Track(
-        new TrackDao(
-            new LiveApiJs(
-                'live_set tracks 2'
-            )
-        )
-    );
+    // let track = new Track(
+    //     new TrackDao(
+    //         new LiveApiJs(
+    //             'live_set tracks 2'
+    //         )
+    //     )
+    // );
+    //
+    // let logger = new Logger(env);
+    //
+    // logger.log(track.get_num_clip_slots());
 
     let logger = new Logger(env);
 
-    logger.log(track.get_num_clip_slots());
+    if (jsEnv.isBrowser) {
+        // do browser only stuff
+        logger.log('this is a browser')
+    }
+
+    if (jsEnv.isNode) {
+        // do node.js only stuff
+        logger.log('this is node')
+    }
 };
 
 if (typeof Global !== "undefined") {

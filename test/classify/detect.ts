@@ -22,6 +22,11 @@ import {modes_control, modes_texture} from "../../src/constants/constants";
 import POLYPHONY = modes_texture.POLYPHONY;
 import INSTRUMENTAL = modes_control.INSTRUMENTAL;
 import MatrixWindow = window.MatrixWindow;
+import {track} from "../../src/track/track";
+import TrackVirtual = track.TrackVirtual;
+import ClipVirtual = clip.ClipVirtual;
+import {song} from "../../src/song/song";
+import SongVirtual = song.SongVirtual;
 
 
 let tree: TreeModel = new TreeModel();
@@ -210,60 +215,93 @@ let env: string = 'node_for_max';
 let messenger = new Messenger(env, 0, 'render_detect');
 
 let algorithm_train = new Detect(
-    user_input_handler
 );
 
 let window_local = new MatrixWindow(
     384,
     384,
-    messenger,
-    algorithm_train
+    messenger
 );
 
-// stubs
-let song = {
-    set_overdub: (int) => {},
-    set_session_record: (int) => {},
-    stop: () => {}
-};
+let song = new SongVirtual();
 
-let clip_user_input = {
-    fire: () => {},
-    stop: () => {},
-    set_endpoints_loop: (former, latter) => {}
-};
+// let num_clip_slots = 2;
 
-let clip_user_input_synchronous = {
-    fire: () => {},
-    stop: () => {},
-    set_endpoints_loop: (former, latter) => {}
-};
+let track_user_input = new TrackVirtual();
 
-let notes_segments = [
-    segment_note_1,
-    segment_note_2
-];
+track_user_input.set_clip_at_index(
+    new ClipVirtual(
+        segment_note_1
+    ),
+    0
+);
 
-let notes_target_clip = [
-    note_target_1_subtarget_1,
-    note_target_1_subtarget_2,
-    note_target_2_subtarget_1,
-    note_target_2_subtarget_2,
-    note_target_3_subtarget_1,
-    note_target_3_subtarget_2,
-    note_target_4_subtarget_1,
-    note_target_4_subtarget_2
-];
+track_user_input.set_clip_at_index(
+    new ClipVirtual(
+        segment_note_2
+    ),
+    1
+);
 
-let segments: Segment[] = [];
+let track_target = new TrackVirtual();
 
-for (let note of notes_segments) {
-    segments.push(
-        new Segment(
-            note
-        )
-    )
-}
+track_target.set_clip_at_index(
+    new ClipVirtual(
+        note_target_1_subtarget_1,
+        note_target_1_subtarget_2,
+        note_target_2_subtarget_1,
+        note_target_2_subtarget_2
+    ),
+    0
+);
+
+track_target.set_clip_at_index(
+    new ClipVirtual(
+        note_target_3_subtarget_1,
+        note_target_3_subtarget_2,
+        note_target_4_subtarget_1,
+        note_target_4_subtarget_2
+    ),
+    1
+);
+
+// let clip_user_input_async = {
+//     fire: () => {},
+//     stop: () => {},
+//     set_endpoints_loop: (former, latter) => {}
+// };
+//
+// let clip_user_input_synchronous = {
+//     fire: () => {},
+//     stop: () => {},
+//     set_endpoints_loop: (former, latter) => {}
+// };
+
+// let notes_segments = [
+//     segment_note_1,
+//     segment_note_2
+// ];
+
+// let notes_target_clip = [
+//     note_target_1_subtarget_1,
+//     note_target_1_subtarget_2,
+//     note_target_2_subtarget_1,
+//     note_target_2_subtarget_2,
+//     note_target_3_subtarget_1,
+//     note_target_3_subtarget_2,
+//     note_target_4_subtarget_1,
+//     note_target_4_subtarget_2
+// ];
+
+// let segments: Segment[] = [];
+//
+// for (let note of notes_segments) {
+//     segments.push(
+//         new Segment(
+//             note
+//         )
+//     )
+// }
 
 // let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
 //
@@ -273,12 +311,9 @@ let trainer_local = new Trainer(
     window_local,
     user_input_handler,
     algorithm_train,
-    clip_user_input,
-    clip_user_input_synchronous,
-    notes_target_clip,
-    // clip_target,
+    track_target,
+    track_user_input
     song,
-    segments,
     messenger
 );
 

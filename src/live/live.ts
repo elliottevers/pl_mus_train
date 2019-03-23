@@ -16,29 +16,6 @@ export namespace live {
         call(func: string): void;
     }
 
-    export interface ClipLive {
-
-        get_end_marker(): number
-
-        get_start_marker(): number
-
-        set_loop_bracket_lower(beat: number): void
-
-        set_loop_bracket_upper(beat: number): void
-
-        set_clip_endpoint_lower(beat: number): void
-
-        set_clip_endpoint_upper(beat: number): void
-
-        fire(): void
-
-        stop(): void
-
-        get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[]
-
-        remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void
-    }
-
     export class LiveApiJs implements iLiveApiJs {
         private live_api: any;
 
@@ -75,6 +52,30 @@ export namespace live {
         }
     }
 
+    export interface ClipLive {
+
+        get_end_marker(): number
+
+        get_start_marker(): number
+
+        set_loop_bracket_lower(beat: number): void
+
+        set_loop_bracket_upper(beat: number): void
+
+        set_clip_endpoint_lower(beat: number): void
+
+        set_clip_endpoint_upper(beat: number): void
+
+        fire(): void
+
+        stop(): void
+
+        get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[]
+
+        remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void
+    }
+
+    // simulate dao
     export class LiveClipVirtual implements ClipLive {
 
         beat_start: number;
@@ -85,15 +86,6 @@ export namespace live {
         constructor(notes: TreeModel.Node<n.Note>[]) {
             this.notes = notes;
         }
-
-        // load_notes_within_loop_brackets(): void {
-        //     this.notes = this.get_notes(
-        //         this.get_loop_bracket_lower(),
-        //         0,
-        //         this.get_loop_bracket_upper(),
-        //         128
-        //     )
-        // }
 
         append(note) {
             let test = this.notes;

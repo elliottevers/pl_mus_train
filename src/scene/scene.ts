@@ -13,6 +13,11 @@ export namespace scene {
         public fire(force_legato: boolean) {
             this.scene_dao.fire(force_legato)
         }
+
+        public get_id(): string {
+            // TODO: implement
+            return
+        }
     }
 
     export class SceneDao {

@@ -14,6 +14,7 @@ import {window} from "../render/window";
 import {utils} from "../utils/utils";
 import {live} from "../live/live";
 import {track} from "../track/track";
+import {user_input} from "../control/user_input";
 // import {get_notes_on_track} from "../scripts/segmenter";
 const _ = require('underscore');
 const l = require('lodash');
@@ -35,18 +36,28 @@ export namespace trainer {
     import Track = track.Track;
     import FactoryMatrixObjectives = iterate.FactoryMatrixObjectives;
     import Trainable = algorithm.Trainable;
+    import UserInputHandler = user_input.UserInputHandler;
+    import Song = song.Song;
+    import MatrixWindow = window.MatrixWindow;
+    import ClipVirtual = live.ClipVirtual;
+    import TrackVirtual = track.TrackVirtual;
+    import SongVirtual = song.SongVirtual;
+    import Clip = live.Clip;
+    import Song = song.Song;
+    import Track = track.Track;
     // import Algorithm = algorithm.Algorithm;
 
     export class Trainer {
 
         private window;
         public trainable: Trainable; // TODO: type
-        public clip_user_input: Clip;
-        public clip_user_input_synchronous: Clip;
+        public clip_user_input_async: Clip;
+        public clip_user_input_sync: Clip;
         // private clip_target: Clip;
-        private notes_target: TreeModel.Node<Note>[];
+        private notes_target_track: TreeModel.Node<Note>[];
         private track_target: Track;
-        private song;
+        private track_user_input: Track;
+        private song: Song;
         private segments: Segment[];
         private messenger: Messenger;
 
@@ -66,19 +77,27 @@ export namespace trainer {
         private iterator_target_current: TargetIterator;
         private iterator_subtarget_current: SubtargetIterator;
 
-        constructor(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, track_target, song, segments, messenger) {
+        private user_input_handler: UserInputHandler;
+
+        constructor(
+            window: MatrixWindow,
+            user_input_handler: UserInputHandler,
+            trainable: Trainable,
+            track_target: Track,
+            track_user_input: Track,
+            song: Song,
+            segments: Segment[],
+            messenger: Messenger
+        ) {
             this.window = window;
-            this.algorithm = algorithm;
-            this.clip_user_input = clip_user_input;
-            this.clip_user_input_synchronous = clip_user_input_synchronous;
+            this.trainable = trainable;
             // this.notes_target = notes_target;
             this.track_target = track_target;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
 
-
-            this.notes_target = track.get_notes_on_track(
+            this.notes_target_track = track.get_notes_on_track(
                 track_target.get_path()
             );
 
@@ -104,18 +123,31 @@ export namespace trainer {
             );
 
             this.trainable.initialize(
-
+                this.window,
+                this.segments,
+                this.notes_target_track,
+                this.user_input_handler
             );
 
+            // TODO: figure out getting notes from the target track
             this.matrix_targets = this.trainable.create_matrix_targets(
-
+                this.user_input_handler,
+                this.segments,
+                this.notes_target_track
             );
 
             this.struct_parse = this.trainable.create_struct_parse(
+                this.segments
+            );
 
+            this.trainable.initialize_tracks(
+                this.segments,
+                this.track_target,
+                this.track_user_input,
+                this.matrix_targets
             )
-
         }
+
         public clear_window() {
             this.window.clear()
         }
@@ -130,31 +162,41 @@ export namespace trainer {
         }
 
         public unpause() {
-            this.trainable.unpause()
+            this.trainable.unpause(this.song, this.segment_current.scene)
         }
 
         public pause() {
-            this.trainable.pause()
+            this.trainable.pause(this.song, this.segment_current.scene)
         }
 
-        public init(virtual?: boolean) {
-
+        private advance() {
+            if (this.trainable.b_parsed) {
+                this.advance_segment()
+            } else if (this.trainable.b_targeted) {
+                this.advance_subtarget()
+            } else {
+                throw 'cannot determine how to advance'
+            }
         }
 
-        private advance_segment(first_time?: boolean) {
+        public commence() {
+            this.advance()
+        }
+
+        private advance_segment() {
 
             let obj_next_coord = this.iterator_matrix_train.next();
 
             if (obj_next_coord.done) {
 
-                this.trainable.terminate(this.song, this.clip_user_input);
+                this.trainable.terminate(this.struct_parse, this.segments);
+
+                this.trainable.pause(this.song, this.segment_current.scene);
 
                 return
             }
 
-            let coord = obj_next_coord.value;
-
-            this.segment_current = this.segments[coord[1]];
+            this.next_segment()
         }
 
         private advance_subtarget() {
@@ -176,6 +218,8 @@ export namespace trainer {
 
                 this.subtarget_current = this.iterator_subtarget_current.current();
 
+                this.next_segment();
+
                 return
             }
 
@@ -191,7 +235,9 @@ export namespace trainer {
 
                     if (obj_next_coord.done) {
 
-                        this.trainable.terminate();
+                        this.trainable.terminate(this.struct_parse, this.segments);
+
+                        this.trainable.pause(this.song, this.segment_current.scene);
 
                         return
                     }
@@ -210,7 +256,7 @@ export namespace trainer {
 
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
-                    this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+                    this.next_segment();
 
                     return
                 }
@@ -227,6 +273,18 @@ export namespace trainer {
             }
 
             this.subtarget_current = obj_next_subtarget.value;
+        }
+
+        next_segment() {
+            this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+
+            this.segment_current.scene.fire(true);
+
+            this.clip_user_input_sync = this.segment_current.clip_user_input_sync;
+
+            this.clip_user_input_async = this.segment_current.clip_user_input_async;
+
+            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current)
         }
 
         accept_input(notes_input_user: TreeModel.Node<n.Note>[]) {
@@ -257,15 +315,7 @@ export namespace trainer {
                     this.trainable
                 );
 
-                if (this.trainable.b_parsed) {
-                    this.advance_segment()
-                } else if (this.trainable.b_targeted) {
-                    this.advance_subtarget()
-                } else {
-                    throw 'cannot determine how to advance'
-                }
-
-                this.algorithm.advance();
+                this.advance()
 
                 this.render_window();
             }

@@ -1,16 +1,26 @@
 import {message} from "../message/messenger";
 import {live} from "../live/live";
+import {scene} from "../scene/scene";
 
 export namespace song {
     import Messenger = message.Messenger;
     import iLiveApiJs = live.iLiveApiJs;
+    import Scene = scene.Scene;
 
     export class Song {
 
-        song_dao: SongDao;
+        song_dao: iSongDao;
 
-        constructor(song_dao) {
+        constructor(song_dao: iSongDao) {
             this.song_dao = song_dao;
+        }
+
+        get_scene_at_index(index: number) {
+
+        }
+
+        create_scene_at_index(index: number) {
+
         }
 
         set_session_record(int) {
@@ -42,7 +52,54 @@ export namespace song {
         }
     }
 
-    export class SongDao {
+    export interface iSongDao {
+        set_session_record(int: number)
+        set_overdub(int: number)
+        set_tempo(int: number)
+        start(): void
+        stop(): void
+        get_scenes(): any[]
+    }
+
+    export class SongDaoVirtual implements iSongDao {
+
+        scenes: Scene[];
+
+        constructor(scenes: Scene[]) {
+            this.scenes = scenes
+        }
+
+        get_scenes(): string[] {
+            let data: string[] = [];
+            for (let scene of this.scenes) {
+                data.push('id');
+                data.push(scene.get_id());
+            }
+            return data;
+        }
+
+        set_overdub(int: number) {
+            return
+        }
+
+        set_session_record(int: number) {
+            return
+        }
+
+        set_tempo(int: number) {
+            return
+        }
+
+        start(): void {
+            return
+        }
+
+        stop(): void {
+            return
+        }
+    }
+
+    export class SongDao implements iSongDao {
 
         private clip_live: iLiveApiJs;
         private messenger: Messenger;

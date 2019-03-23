@@ -7,6 +7,12 @@ var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
     var Logger = logger_1.log.Logger;
+    var ClipVirtual = /** @class */ (function () {
+        function ClipVirtual() {
+        }
+        return ClipVirtual;
+    }());
+    clip.ClipVirtual = ClipVirtual;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;

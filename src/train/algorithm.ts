@@ -15,8 +15,10 @@ import {target} from "../target/target";
 import {live} from "../live/live";
 import {scene} from "../scene/scene";
 import {utils} from "../utils/utils";
+import {song} from "../song/song";
 
 export namespace algorithm {
+    import Song = song.Song;
     export let DETECT = 'detect';
     export let PREDICT = 'predict';
     export let PARSE = 'parse';
@@ -26,7 +28,6 @@ export namespace algorithm {
     import POLYPHONY = modes_texture.POLYPHONY;
     import MONOPHONY = modes_texture.MONOPHONY;
     import TypeSequenceTarget = history.TypeSequenceTarget;
-    import Clip = clip.Clip;
     import Note = note.Note;
     import ParseTree = parse.ParseTree;
     import StructParse = parse.StructParse;
@@ -38,17 +39,22 @@ export namespace algorithm {
     import Messenger = message.Messenger;
     import Subtarget = target.Subtarget;
     import TargetIterator = target.TargetIterator;
-    import LiveApiJs = live.LiveApiJs;
+    import ApiJs = live.ApiJs;
     import ClipDao = clip.ClipDao;
     import Target = target.Target;
     import FactoryMatrixObjectives = iterate.FactoryMatrixObjectives;
+    import Scene = scene.Scene;
+    import UserInputHandler = user_input.UserInputHandler;
+    import Clip = clip.Clip;
+
 
     interface Temporal {
         determine_region_present(notes_next)
+        stream_bounds(messenger: message.Messenger, subtarget_current: Subtarget, segment_current: Segment): void
     }
 
     interface Renderable {
-        initialize_render(window: Window, segments: Segment[], track_target: Track)
+        initialize_render(window: Window, segments: Segment[], notes_track_target: TreeModel.Node<Note>[])
         get_notes_in_region(target: Target, segment: Segment): TreeModel.Node<Note>[]
     }
 
@@ -61,14 +67,13 @@ export namespace algorithm {
         get_name(): string
         get_depth(): number
         coord_to_index_clip(coord: number[]): number
-        initialize()
-        terminate()
-        stream_bounds(messenger: message.Messenger, subtarget_current: Subtarget, segment_current: Segment): void
-        advance()
-        unpause()
-        pause()
-        create_matrix_targets(segments: Segment[], notes_target_track: TreeModel.Node<Note>[])
-        create_struct_parse()
+        initialize(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[], user_input_handler: UserInputHandler): void
+        terminate(struct_parse: StructParse, segments: Segment[])
+        unpause(song: Song, scene_current: Scene)
+        pause(song: Song, scene_current: Scene)
+        create_matrix_targets(user_input_handler: UserInputHandler, segments: Segment[], notes_target_track: TreeModel.Node<Note>[])
+        create_struct_parse(segments: Segment[]): StructParse
+        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][])
 
         warrants_advance(
             notes_user_input: TreeModel.Node<Note>[],
@@ -81,68 +86,10 @@ export namespace algorithm {
         ): TreeModel.Node<Note>[]
     }
 
-    // logic common to all algorithms
-    export abstract class SceneIterator {
-
-        // update the clips we'll be using to store user input and retrieve information about it
-        update_clips(clip_user_input_current: Clip, clip_user_input_synchronous_current: Clip): Clip[] {
-
-            let list_path_current_s = clip_user_input_synchronous_current.get_path().split(' ');
-            let index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
-            let list_path_next_s = list_path_current_s;
-
-            let list_path_current = clip_user_input_current.get_path().split(' ');
-            let index_clipslot_current = list_path_current[list_path_current.length - 2];
-            let list_path_next = list_path_current;
-
-            list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
-
-            let clip_user_input_synchronous_next = new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        list_path_next_s.join(' ')
-                    ),
-                    new Messenger('max', 0)
-                )
-            );
-
-            list_path_next[list_path_next.length - 2] = index_clipslot_current + 1;
-
-            let clip_user_input_next = new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        list_path_next.join(' ')
-                    ),
-                    new Messenger('max', 0),
-                    true,
-                    'clip_user_input'
-                )
-            );
-
-            clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
-
-            return [clip_user_input_next, clip_user_input_synchronous_next]
-        }
-
-        advance_scene(segment_current: Segment, clip_user_input_current: Clip, clip_user_input_synchronous_current: Clip) {
-            segment_current.scene.fire(true);
-            this.update_clips(clip_user_input_current, clip_user_input_synchronous_current)
-        }
-
-        advance(messenger: message.Messenger, subtarget_current: target.Subtarget, segment_current: segment.Segment) {
-            this.advance_scene(segment_current, clip_user_input_current, clip_user_input_synchronous_current);
-            this.stream_bounds(messenger, subtarget_current, segment_current)
-        }
-
-        protected abstract stream_bounds(messenger: Messenger, subtarget_current: Subtarget, segment_current: Segment)
-    }
-
     // interface common to both parse and derive, but have different implementations
     export interface Parsable extends Trainable {
         initialize_parse(struct_parse, segments, track_target)
         finish_parse(struct_parse: StructParse, segments: Segment[]): void;
-        determine_parents()
-        determine_children()
         update_roots(coords_roots_previous: number[][], coords_notes_to_grow: number[][], coord_notes_current: number[])
         get_coords_notes_to_grow(coords_note_input_current): number[][]
         grow_layer(notes_user_input_renderable, notes_to_grow)
@@ -150,15 +97,19 @@ export namespace algorithm {
 
     // interface common to both detect and predict, but have different implementations
     export interface Targetable extends Trainable {
-        determine_targets(notes_in_segment: TreeModel.Node<Note>[])
-        postprocess_subtarget()
+        determine_targets(user_input_handler: UserInputHandler, notes_in_segment: TreeModel.Node<Note>[])
+        postprocess_subtarget(subtarget: Subtarget)
     }
 
     // logic common to detect and predict
-    abstract class Targeted extends SceneIterator implements Targetable {
-        public b_targeted: boolean;
+    abstract class Targeted implements Targetable {
 
-        determine_targets(notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
+        public b_parsed: boolean = false;
+        public b_targeted: boolean = true;
+        public depth: number;
+        public abstract get_name()
+
+        determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {
             if (user_input_handler.mode_texture === POLYPHONY) {
 
                 let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
@@ -204,7 +155,7 @@ export namespace algorithm {
             return 0;
         }
 
-        create_struct_parse() {
+        create_struct_parse(segments: Segment[]) {
             return null
         }
 
@@ -221,27 +172,25 @@ export namespace algorithm {
             })
         }
 
-        initialize() {
-            // TODO: add logic
-        }
+        public abstract initialize_render(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[])
 
-        protected abstract initialize_render(window: Window, segments: Segment[], track_target: Track)
-
-        pause(song) {
-            song.start()
+        unpause(song: Song, scene_current: Scene) {
+            // not forcing legato so that it starts immediately
+            scene_current.fire(false)
         }
 
         postprocess_user_input(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current: target.Subtarget): TreeModel.Node<note.Note>[] {
             return [subtarget_current.note];
         }
 
-        protected abstract postprocess_subtarget()
+        public abstract postprocess_subtarget(subtarget: Subtarget)
 
+        // TODO: verify that we don't need to do anything
         terminate() {
-            // TODO: add logic
+            return
         }
 
-        pause(song) {
+        pause(song: Song, scene_current: Scene) {
             song.stop()
         }
 
@@ -249,7 +198,7 @@ export namespace algorithm {
             return utils.remainder(notes_user_input[0].model.note.pitch, 12) === utils.remainder(subtarget_current.note.model.note.pitch, 12)
         }
 
-        public create_matrix_targets(segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): TargetIterator[][] {
+        public create_matrix_targets(user_input_handler: UserInputHandler, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): TargetIterator[][] {
 
             let matrix_targets = FactoryMatrixObjectives.create_matrix_objectives(
                 this,
@@ -267,30 +216,31 @@ export namespace algorithm {
                 );
 
                 let sequence_targets = this.determine_targets(
+                    user_input_handler,
                     notes_in_segment
                 );
 
                 // set the note as muted for predict
-                // TODO: do we actually use the user input clip for prediction?  Isn't it just for parsing/deriving to store input and overdub?
-                for (let target of sequence_targets) {
-                    for (let subtarget of target) {
-
-                        let subtarget_processed = this.postprocess_subtarget(
-                            subtarget
-                        );
-
-                        clip_user_input.remove_notes(
-                            subtarget_processed.model.note.beat_start,
-                            0,
-                            subtarget_processed.model.note.get_beat_end(),
-                            128
-                        );
-
-                        clip_user_input.set_notes(
-                            [subtarget_processed]
-                        )
-                    }
-                }
+                // TODO: put in "initialize_track_user_input
+                // for (let target of sequence_targets) {
+                //     for (let subtarget of target) {
+                //
+                //         let subtarget_processed = this.postprocess_subtarget(
+                //             subtarget
+                //         );
+                //
+                //         clip_target_track.remove_notes(
+                //             subtarget_processed.model.note.beat_start,
+                //             0,
+                //             subtarget_processed.model.note.get_beat_end(),
+                //             128
+                //         );
+                //
+                //         clip_target_track.set_notes(
+                //             [subtarget_processed]
+                //         )
+                //     }
+                // }
 
                 matrix_targets[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             }
@@ -308,24 +258,24 @@ export namespace algorithm {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current)
         }
 
-        initialize_render(window, segments) {
-            // TODO: implement here because it should be the same for both algorithms
-        }
-
-        initialize(window, segments) {
-            this.create_matrix_targets(window, segments);
-            this.initialize_render(window, segments)
+        initialize(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[], user_input_handler: UserInputHandler) {
+            this.create_matrix_targets(user_input_handler, segments, notes_target_track);
+            this.initialize_render(window, segments, notes_target_track)
         }
     }
 
     // logic common to parse and derive
-    abstract class Parsed extends SceneIterator implements Parsable {
+    abstract class Parsed implements Parsable {
 
-        public b_parsed: boolean;
+        public b_parsed: boolean = true;
+
+        public b_targeted: boolean = false;
+
+        public abstract get_name();
 
         depth: number;
 
-        protected abstract initialize_render(window: Window, segments: Segment[], track_target: Track)
+        public abstract initialize_render(window: Window, segments: Segment[], notes_track_target: TreeModel.Node<Note>[])
 
         public get_depth(): number {
             return this.depth
@@ -333,10 +283,6 @@ export namespace algorithm {
 
         set_depth(depth: number) {
             this.depth = depth;
-        }
-
-        advance() {
-
         }
 
         coord_to_index_clip(coord: number[]): number {
@@ -347,20 +293,17 @@ export namespace algorithm {
             }
         }
 
-        create_matrix_targets(segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
+        create_matrix_targets(user_input_handler: UserInputHandler, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
             return []
         }
 
-        create_struct_parse() {
-
-        }
-
-        determine_children() {
-
-        }
-
-        determine_parents() {
-
+        create_struct_parse(segments: Segment[]): StructParse {
+            return new StructParse(
+                FactoryMatrixObjectives.create_matrix_objectives(
+                    this,
+                    segments
+                )
+            )
         }
 
         determine_region_present(notes_target_next): number[] {
@@ -373,22 +316,22 @@ export namespace algorithm {
         finish_parse(struct_parse: parse.StructParse, segments: segment.Segment[]): void {
         }
 
-        protected abstract get_coords_notes_to_grow(coords_note_input_current): number[][]
+        public abstract get_coords_notes_to_grow(coords_note_input_current): number[][]
 
         get_notes_in_region(target: target.Target, segment: segment.Segment) {
             return [segment.get_note()]
         }
 
-        protected abstract grow_layer(notes_user_input_renderable, notes_to_grow)
+        public abstract grow_layer(notes_user_input_renderable, notes_to_grow)
 
         initialize() {
             // TODO: add logic
         }
 
-        protected abstract initialize_parse(struct_parse, segments, track_target)
+        public abstract initialize_parse(struct_parse, segments, track_target)
 
 
-        pause(song, clip_user_input) {
+        pause(song: Song, scene_current: Scene) {
             song.set_overdub(0);
 
             song.set_session_record(0);
@@ -412,12 +355,12 @@ export namespace algorithm {
             this.finish_parse(struct_parse, segments)
         }
 
-        unpause(song, scene_current) {
+        unpause(song: Song, scene_current: Scene) {
             song.set_overdub(1);
 
             song.set_session_record(1);
 
-            scene_current.fire();
+            scene_current.fire(false);
         }
 
         update_roots(coords_roots_previous: number[][], coords_notes_to_grow: number[][], coord_notes_current: number[]) {
@@ -431,8 +374,8 @@ export namespace algorithm {
 
     export class Detect extends Targeted {
 
-        constructor(user_input_handler) {
-            super(user_input_handler);
+        constructor() {
+            super();
         }
 
         public get_name(): string {
@@ -441,6 +384,15 @@ export namespace algorithm {
 
         postprocess_subtarget(note_subtarget) {
             return note_subtarget
+        }
+
+        // TODO: verify that we don't have to do anything here
+        initialize_render(window: window.Window, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
+            return
+        }
+
+        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
+            return
         }
     }
 
@@ -454,12 +406,85 @@ export namespace algorithm {
             note_subtarget.model.note.muted = 1;
             return note_subtarget;
         }
+
+        // TODO: verify that we don't have to do anythiing here
+        initialize_render(window: window.Window, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
+            return
+        }
+
+        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
+            // TODO: get the subtargets that are currently in each segment and mute them
+        //     for (let target of sequence_targets) {
+        //         for (let subtarget of target) {
+        //
+        //             let subtarget_processed = this.postprocess_subtarget(
+        //                 subtarget
+        //             );
+        //
+        //             clip_target_track.remove_notes(
+        //                 subtarget_processed.model.note.beat_start,
+        //                 0,
+        //                 subtarget_processed.model.note.get_beat_end(),
+        //                 128
+        //             );
+        //
+        //             clip_target_track.set_notes(
+        //                 [subtarget_processed]
+        //             )
+        //         }
+        //     }
+        //
+        //     for (let i_segment in segments) {
+        //
+        //         let index_clip_slot_current = Number(i_segment);
+        //
+        //         let api_clip_target_synchronous = new ApiJs(
+        //             track_target.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
+        //         );
+        //
+        //         let api_clip_user_input_synchronous = new ApiJs(
+        //             track_user_input.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
+        //         );
+        //
+        //         let clip_target = new Clip(
+        //             new ClipDao(
+        //                 api_clip_target_synchronous,
+        //                 new Messenger('max', 0)
+        //             )
+        //         );
+        //
+        //         let clip_user_input = new Clip(
+        //             new ClipDao(
+        //                 api_clip_user_input_synchronous,
+        //                 new Messenger('max', 0)
+        //             )
+        //         );
+        //
+        //         let notes = clip_target.get_notes(
+        //             clip_target.get_loop_bracket_lower(),
+        //             0,
+        //             clip_target.get_loop_bracket_upper(),
+        //             128
+        //         );
+        //
+        //         clip_user_input.remove_notes(
+        //             clip_target.get_loop_bracket_lower(),
+        //             0,
+        //             clip_target.get_loop_bracket_upper(),
+        //             128
+        //         );
+        //
+        //         clip_user_input.set_notes(
+        //             notes
+        //         )
+        //     }
+        }
     }
 
     export class Parse extends Parsed {
 
-        constructor(user_input_handler) {
-            super(user_input_handler);
+        constructor() {
+            super();
         }
 
         public get_name(): string {
@@ -474,21 +499,37 @@ export namespace algorithm {
             )
         }
 
-        initialize_track_user_input(segments: Segment[], track_target: Track, clip_user_input_initial: Clip) {
+        // TODO: we can't pass in just one clip if we want to initialize an entire track
+        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
             for (let i_segment in segments) {
 
                 let index_clip_slot_current = Number(i_segment);
 
-                let api_clip_target_synchronous = new LiveApiJs(
+                let api_clip_target_synchronous = new ApiJs(
                     track_target.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
                 );
 
-                let clip_target = new Clip(
-                    new ClipDao(
-                        api_clip_target_synchronous,
-                        new Messenger('max', 0)
-                    )
+                let api_clip_user_input_synchronous = new ApiJs(
+                    track_user_input.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
                 );
+
+                let clip_target: Clip = track_target.get_clip_at_clip_slot(index_clip_slot_current);
+
+                let clip_user_input: Clip = track_user_input.get_clip_at_clip_slot(index_clip_slot_current);
+
+                // let clip_target = new Clip(
+                //     new ClipDao(
+                //         api_clip_target_synchronous,
+                //         new Messenger('max', 0)
+                //     )
+                // );
+                //
+                // let clip_user_input = new Clip(
+                //     new ClipDao(
+                //         api_clip_user_input_synchronous,
+                //         new Messenger('max', 0)
+                //     )
+                // );
 
                 let notes = clip_target.get_notes(
                     clip_target.get_loop_bracket_lower(),
@@ -497,14 +538,14 @@ export namespace algorithm {
                     128
                 );
 
-                clip_user_input_initial.remove_notes(
+                clip_user_input.remove_notes(
                     clip_target.get_loop_bracket_lower(),
                     0,
                     clip_target.get_loop_bracket_upper(),
                     128
                 );
 
-                clip_user_input_initial.set_notes(
+                clip_user_input.set_notes(
                     notes
                 )
             }
@@ -513,11 +554,7 @@ export namespace algorithm {
         // add the root up to which we're going to parse
         // add the segments as the layer below
         // add the leaf notes
-        initialize_render(window: Window, segments: Segment[], track_target: Track) {
-            let notes_target_track = get_notes_on_track(
-                track_target.track_dao.get_path()
-            );
-
+        initialize_render(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]) {
             // first layer
             window.add_note_to_clip_root(
                 StructParse.create_root_from_segments(
@@ -580,12 +617,8 @@ export namespace algorithm {
         // adding the leaf notes to the actual parse tree
         // DO NOT set the root or the segments as nodes immediately below that - do that at the end
         // set the leaf notes as the notes in the target track
-        initialize_parse(struct_parse: StructParse, segments: Segment[], track_target: Track) {
+        initialize_parse(struct_parse: StructParse, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]) {
             // this is to set the leaves as the notes of the target clip
-
-            let notes_target_track = get_notes_on_track(
-                track_target.track_dao.get_path()
-            );
 
             for (let i_segment in segments) {
                 let segment = segments[Number(i_segment)];
@@ -649,7 +682,7 @@ export namespace algorithm {
             )
         }
 
-        initialize_track_user_input(segments: Segment[], track_target: Track, clip_user_input_initial: Clip) {
+        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
             return
         }
 
@@ -677,7 +710,7 @@ export namespace algorithm {
             }
         }
 
-        initialize_render(window: Window, segments: Segment[], track_target: Track) {
+        initialize_render(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]) {
             // first layer (root)
             window.add_note_to_clip_root(
                 StructParse.create_root_from_segments(

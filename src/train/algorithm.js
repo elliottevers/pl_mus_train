@@ -16,11 +16,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var harmony_1 = require("../music/harmony");
 var constants_1 = require("../constants/constants");
-var clip_1 = require("../clip/clip");
 var parse_1 = require("../parse/parse");
-var track_1 = require("../track/track");
 var iterate_1 = require("./iterate");
-var messenger_1 = require("../message/messenger");
 var target_1 = require("../target/target");
 var live_1 = require("../live/live");
 var utils_1 = require("../utils/utils");
@@ -34,54 +31,20 @@ var algorithm;
     var Harmony = harmony_1.harmony.Harmony;
     var POLYPHONY = constants_1.modes_texture.POLYPHONY;
     var MONOPHONY = constants_1.modes_texture.MONOPHONY;
-    var Clip = clip_1.clip.Clip;
     var Note = note_1.note.Note;
     var ParseTree = parse_1.parse.ParseTree;
     var StructParse = parse_1.parse.StructParse;
-    var get_notes_on_track = track_1.track.get_notes_on_track;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
-    var Messenger = messenger_1.message.Messenger;
     var TargetIterator = target_1.target.TargetIterator;
-    var LiveApiJs = live_1.live.LiveApiJs;
-    var ClipDao = clip_1.clip.ClipDao;
+    var ApiJs = live_1.live.ApiJs;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
-    // logic common to all algorithms
-    var SceneIterator = /** @class */ (function () {
-        function SceneIterator() {
-        }
-        // update the clips we'll be using to store user input and retrieve information about it
-        SceneIterator.prototype.update_clips = function (clip_user_input_current, clip_user_input_synchronous_current) {
-            var list_path_current_s = clip_user_input_synchronous_current.get_path().split(' ');
-            var index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
-            var list_path_next_s = list_path_current_s;
-            var list_path_current = clip_user_input_current.get_path().split(' ');
-            var index_clipslot_current = list_path_current[list_path_current.length - 2];
-            var list_path_next = list_path_current;
-            list_path_next_s[list_path_next_s.length - 2] = index_clipslot_current_s + 1;
-            var clip_user_input_synchronous_next = new Clip(new ClipDao(new LiveApiJs(list_path_next_s.join(' ')), new Messenger('max', 0)));
-            list_path_next[list_path_next.length - 2] = index_clipslot_current + 1;
-            var clip_user_input_next = new Clip(new ClipDao(new LiveApiJs(list_path_next.join(' ')), new Messenger('max', 0), true, 'clip_user_input'));
-            clip_user_input_next.set_path_deferlow('set_path_clip_user_input');
-            return [clip_user_input_next, clip_user_input_synchronous_next];
-        };
-        SceneIterator.prototype.advance_scene = function (segment_current, clip_user_input_current, clip_user_input_synchronous_current) {
-            segment_current.scene.fire(true);
-            this.update_clips(clip_user_input_current, clip_user_input_synchronous_current);
-        };
-        SceneIterator.prototype.advance = function (messenger, subtarget_current, segment_current) {
-            this.advance_scene(segment_current, clip_user_input_current, clip_user_input_synchronous_current);
-            this.stream_bounds(messenger, subtarget_current, segment_current);
-        };
-        return SceneIterator;
-    }());
-    algorithm.SceneIterator = SceneIterator;
     // logic common to detect and predict
-    var Targeted = /** @class */ (function (_super) {
-        __extends(Targeted, _super);
+    var Targeted = /** @class */ (function () {
         function Targeted() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            this.b_parsed = false;
+            this.b_targeted = true;
         }
-        Targeted.prototype.determine_targets = function (notes_segment_next) {
+        Targeted.prototype.determine_targets = function (user_input_handler, notes_segment_next) {
             if (user_input_handler.mode_texture === POLYPHONY) {
                 var chords_grouped = Harmony.group(notes_segment_next);
                 var chords_monophonified = [];
@@ -113,7 +76,7 @@ var algorithm;
         Targeted.prototype.coord_to_index_clip = function (coord) {
             return 0;
         };
-        Targeted.prototype.create_struct_parse = function () {
+        Targeted.prototype.create_struct_parse = function (segments) {
             return null;
         };
         Targeted.prototype.determine_region_present = function (notes_target_next) {
@@ -127,41 +90,50 @@ var algorithm;
                 return subtarget.note;
             });
         };
-        Targeted.prototype.initialize = function () {
-            // TODO: add logic
-        };
-        Targeted.prototype.pause = function (song) {
-            song.start();
+        Targeted.prototype.unpause = function (song, scene_current) {
+            // not forcing legato so that it starts immediately
+            scene_current.fire(false);
         };
         Targeted.prototype.postprocess_user_input = function (notes_user_input, subtarget_current) {
             return [subtarget_current.note];
         };
+        // TODO: verify that we don't need to do anything
         Targeted.prototype.terminate = function () {
-            // TODO: add logic
+            return;
         };
-        Targeted.prototype.pause = function (song) {
+        Targeted.prototype.pause = function (song, scene_current) {
             song.stop();
         };
         Targeted.prototype.warrants_advance = function (notes_user_input, subtarget_current) {
             return utils_1.utils.remainder(notes_user_input[0].model.note.pitch, 12) === utils_1.utils.remainder(subtarget_current.note.model.note.pitch, 12);
         };
-        Targeted.prototype.create_matrix_targets = function (segments, notes_target_track) {
+        Targeted.prototype.create_matrix_targets = function (user_input_handler, segments, notes_target_track) {
             var matrix_targets = FactoryMatrixObjectives.create_matrix_objectives(this, segments);
             var _loop_1 = function (i_segment) {
                 var segment_1 = segments[Number(i_segment)];
                 var notes_in_segment = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_1.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_1.get_endpoints_loop()[1]; });
-                var sequence_targets = this_1.determine_targets(notes_in_segment);
+                var sequence_targets = this_1.determine_targets(user_input_handler, notes_in_segment);
                 // set the note as muted for predict
-                // TODO: do we actually use the user input clip for prediction?  Isn't it just for parsing/deriving to store input and overdub?
-                for (var _i = 0, sequence_targets_1 = sequence_targets; _i < sequence_targets_1.length; _i++) {
-                    var target_3 = sequence_targets_1[_i];
-                    for (var _a = 0, target_2 = target_3; _a < target_2.length; _a++) {
-                        var subtarget = target_2[_a];
-                        var subtarget_processed = this_1.postprocess_subtarget(subtarget);
-                        clip_user_input.remove_notes(subtarget_processed.model.note.beat_start, 0, subtarget_processed.model.note.get_beat_end(), 128);
-                        clip_user_input.set_notes([subtarget_processed]);
-                    }
-                }
+                // TODO: put in "initialize_track_user_input
+                // for (let target of sequence_targets) {
+                //     for (let subtarget of target) {
+                //
+                //         let subtarget_processed = this.postprocess_subtarget(
+                //             subtarget
+                //         );
+                //
+                //         clip_target_track.remove_notes(
+                //             subtarget_processed.model.note.beat_start,
+                //             0,
+                //             subtarget_processed.model.note.get_beat_end(),
+                //             128
+                //         );
+                //
+                //         clip_target_track.set_notes(
+                //             [subtarget_processed]
+                //         )
+                //     }
+                // }
                 matrix_targets[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             };
             var this_1 = this;
@@ -180,28 +152,23 @@ var algorithm;
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current);
         };
-        Targeted.prototype.initialize_render = function (window, segments) {
-            // TODO: implement here because it should be the same for both algorithms
-        };
-        Targeted.prototype.initialize = function (window, segments) {
-            this.create_matrix_targets(window, segments);
-            this.initialize_render(window, segments);
+        Targeted.prototype.initialize = function (window, segments, notes_target_track, user_input_handler) {
+            this.create_matrix_targets(user_input_handler, segments, notes_target_track);
+            this.initialize_render(window, segments, notes_target_track);
         };
         return Targeted;
-    }(SceneIterator));
+    }());
     // logic common to parse and derive
-    var Parsed = /** @class */ (function (_super) {
-        __extends(Parsed, _super);
+    var Parsed = /** @class */ (function () {
         function Parsed() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            this.b_parsed = true;
+            this.b_targeted = false;
         }
         Parsed.prototype.get_depth = function () {
             return this.depth;
         };
         Parsed.prototype.set_depth = function (depth) {
             this.depth = depth;
-        };
-        Parsed.prototype.advance = function () {
         };
         Parsed.prototype.coord_to_index_clip = function (coord) {
             if (coord[0] === -1) {
@@ -211,14 +178,11 @@ var algorithm;
                 return coord[0] + 1;
             }
         };
-        Parsed.prototype.create_matrix_targets = function (segments, notes_target_track) {
+        Parsed.prototype.create_matrix_targets = function (user_input_handler, segments, notes_target_track) {
             return [];
         };
-        Parsed.prototype.create_struct_parse = function () {
-        };
-        Parsed.prototype.determine_children = function () {
-        };
-        Parsed.prototype.determine_parents = function () {
+        Parsed.prototype.create_struct_parse = function (segments) {
+            return new StructParse(FactoryMatrixObjectives.create_matrix_objectives(this, segments));
         };
         Parsed.prototype.determine_region_present = function (notes_target_next) {
             return [
@@ -234,7 +198,7 @@ var algorithm;
         Parsed.prototype.initialize = function () {
             // TODO: add logic
         };
-        Parsed.prototype.pause = function (song, clip_user_input) {
+        Parsed.prototype.pause = function (song, scene_current) {
             song.set_overdub(0);
             song.set_session_record(0);
             song.stop();
@@ -254,7 +218,7 @@ var algorithm;
         Parsed.prototype.unpause = function (song, scene_current) {
             song.set_overdub(1);
             song.set_session_record(1);
-            scene_current.fire();
+            scene_current.fire(false);
         };
         Parsed.prototype.update_roots = function (coords_roots_previous, coords_notes_to_grow, coord_notes_current) {
         };
@@ -262,17 +226,24 @@ var algorithm;
             return true;
         };
         return Parsed;
-    }(SceneIterator));
+    }());
     var Detect = /** @class */ (function (_super) {
         __extends(Detect, _super);
-        function Detect(user_input_handler) {
-            return _super.call(this, user_input_handler) || this;
+        function Detect() {
+            return _super.call(this) || this;
         }
         Detect.prototype.get_name = function () {
             return algorithm.DETECT;
         };
         Detect.prototype.postprocess_subtarget = function (note_subtarget) {
             return note_subtarget;
+        };
+        // TODO: verify that we don't have to do anything here
+        Detect.prototype.initialize_render = function (window, segments, notes_target_track) {
+            return;
+        };
+        Detect.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
+            return;
         };
         return Detect;
     }(Targeted));
@@ -289,13 +260,84 @@ var algorithm;
             note_subtarget.model.note.muted = 1;
             return note_subtarget;
         };
+        // TODO: verify that we don't have to do anythiing here
+        Predict.prototype.initialize_render = function (window, segments, notes_target_track) {
+            return;
+        };
+        Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
+            // TODO: get the subtargets that are currently in each segment and mute them
+            //     for (let target of sequence_targets) {
+            //         for (let subtarget of target) {
+            //
+            //             let subtarget_processed = this.postprocess_subtarget(
+            //                 subtarget
+            //             );
+            //
+            //             clip_target_track.remove_notes(
+            //                 subtarget_processed.model.note.beat_start,
+            //                 0,
+            //                 subtarget_processed.model.note.get_beat_end(),
+            //                 128
+            //             );
+            //
+            //             clip_target_track.set_notes(
+            //                 [subtarget_processed]
+            //             )
+            //         }
+            //     }
+            //
+            //     for (let i_segment in segments) {
+            //
+            //         let index_clip_slot_current = Number(i_segment);
+            //
+            //         let api_clip_target_synchronous = new ApiJs(
+            //             track_target.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
+            //         );
+            //
+            //         let api_clip_user_input_synchronous = new ApiJs(
+            //             track_user_input.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
+            //         );
+            //
+            //         let clip_target = new Clip(
+            //             new ClipDao(
+            //                 api_clip_target_synchronous,
+            //                 new Messenger('max', 0)
+            //             )
+            //         );
+            //
+            //         let clip_user_input = new Clip(
+            //             new ClipDao(
+            //                 api_clip_user_input_synchronous,
+            //                 new Messenger('max', 0)
+            //             )
+            //         );
+            //
+            //         let notes = clip_target.get_notes(
+            //             clip_target.get_loop_bracket_lower(),
+            //             0,
+            //             clip_target.get_loop_bracket_upper(),
+            //             128
+            //         );
+            //
+            //         clip_user_input.remove_notes(
+            //             clip_target.get_loop_bracket_lower(),
+            //             0,
+            //             clip_target.get_loop_bracket_upper(),
+            //             128
+            //         );
+            //
+            //         clip_user_input.set_notes(
+            //             notes
+            //         )
+            //     }
+        };
         return Predict;
     }(Targeted));
     algorithm.Predict = Predict;
     var Parse = /** @class */ (function (_super) {
         __extends(Parse, _super);
-        function Parse(user_input_handler) {
-            return _super.call(this, user_input_handler) || this;
+        function Parse() {
+            return _super.call(this) || this;
         }
         Parse.prototype.get_name = function () {
             return algorithm.PARSE;
@@ -303,21 +345,36 @@ var algorithm;
         Parse.prototype.grow_layer = function (notes_user_input_renderable, notes_to_grow) {
             ParseTree.add_layer(notes_user_input_renderable, notes_to_grow, -1);
         };
-        Parse.prototype.initialize_track_user_input = function (segments, track_target, clip_user_input_initial) {
+        // TODO: we can't pass in just one clip if we want to initialize an entire track
+        Parse.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
             for (var i_segment in segments) {
                 var index_clip_slot_current = Number(i_segment);
-                var api_clip_target_synchronous = new LiveApiJs(track_target.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' '));
-                var clip_target = new Clip(new ClipDao(api_clip_target_synchronous, new Messenger('max', 0)));
+                var api_clip_target_synchronous = new ApiJs(track_target.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' '));
+                var api_clip_user_input_synchronous = new ApiJs(track_user_input.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' '));
+                var clip_target = track_target.get_clip_at_clip_slot(index_clip_slot_current);
+                var clip_user_input = track_user_input.get_clip_at_clip_slot(index_clip_slot_current);
+                // let clip_target = new Clip(
+                //     new ClipDao(
+                //         api_clip_target_synchronous,
+                //         new Messenger('max', 0)
+                //     )
+                // );
+                //
+                // let clip_user_input = new Clip(
+                //     new ClipDao(
+                //         api_clip_user_input_synchronous,
+                //         new Messenger('max', 0)
+                //     )
+                // );
                 var notes = clip_target.get_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
-                clip_user_input_initial.remove_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
-                clip_user_input_initial.set_notes(notes);
+                clip_user_input.remove_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
+                clip_user_input.set_notes(notes);
             }
         };
         // add the root up to which we're going to parse
         // add the segments as the layer below
         // add the leaf notes
-        Parse.prototype.initialize_render = function (window, segments, track_target) {
-            var notes_target_track = get_notes_on_track(track_target.track_dao.get_path());
+        Parse.prototype.initialize_render = function (window, segments, notes_target_track) {
             // first layer
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             var _loop_2 = function (i_segment) {
@@ -357,9 +414,8 @@ var algorithm;
         // adding the leaf notes to the actual parse tree
         // DO NOT set the root or the segments as nodes immediately below that - do that at the end
         // set the leaf notes as the notes in the target track
-        Parse.prototype.initialize_parse = function (struct_parse, segments, track_target) {
+        Parse.prototype.initialize_parse = function (struct_parse, segments, notes_target_track) {
             // this is to set the leaves as the notes of the target clip
-            var notes_target_track = get_notes_on_track(track_target.track_dao.get_path());
             var _loop_4 = function (i_segment) {
                 var segment_3 = segments[Number(i_segment)];
                 var notes = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
@@ -398,7 +454,7 @@ var algorithm;
         Derive.prototype.grow_layer = function (notes_user_input_renderable, notes_to_grow) {
             ParseTree.add_layer(notes_to_grow, notes_user_input_renderable, -1);
         };
-        Derive.prototype.initialize_track_user_input = function (segments, track_target, clip_user_input_initial) {
+        Derive.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
             return;
         };
         Derive.prototype.initialize_parse = function (struct_parse, segments) {
@@ -411,7 +467,7 @@ var algorithm;
                 struct_parse.add([note_3], coord_current_virtual, this);
             }
         };
-        Derive.prototype.initialize_render = function (window, segments, track_target) {
+        Derive.prototype.initialize_render = function (window, segments, notes_target_track) {
             // first layer (root)
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             for (var i_segment in segments) {

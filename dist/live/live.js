@@ -38,18 +38,11 @@ var live;
         return LiveApiJs;
     }());
     live.LiveApiJs = LiveApiJs;
+    // simulate dao
     var LiveClipVirtual = /** @class */ (function () {
         function LiveClipVirtual(notes) {
             this.notes = notes;
         }
-        // load_notes_within_loop_brackets(): void {
-        //     this.notes = this.get_notes(
-        //         this.get_loop_bracket_lower(),
-        //         0,
-        //         this.get_loop_bracket_upper(),
-        //         128
-        //     )
-        // }
         LiveClipVirtual.prototype.append = function (note) {
             var test = this.notes;
             test.push(note);
