@@ -18,8 +18,12 @@ export namespace history {
         }
 
         // TODO: does this only work for parsing/deriving?
-        add(struct: any, coord: number[]) {
-            this.matrix_data[coord[0]][coord[1]] = struct;
+        // add(struct: any, coord: number[]) {
+        //     this.matrix_data[coord[0]][coord[1]] = struct;
+        // }
+
+        concat(struct: TreeModel.Node<Note>[], coord: number[]) {
+            this.matrix_data[coord[0]][coord[1]] = this.matrix_data[coord[0]][coord[1]].concat(struct);
         }
 
         get(coord: number[]): any {

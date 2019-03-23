@@ -16,6 +16,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
+var algorithm_1 = require("../train/algorithm");
+var trainer_1 = require("../train/trainer");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
@@ -27,7 +29,8 @@ var window;
     var region_red = [251, 1, 6];
     var blue = [10, 10, 251];
     var Window = /** @class */ (function () {
-        function Window(height, width, messenger, algorithm) {
+        // trainer: Trainer;
+        function Window(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
                 var num_pixels_width = this.width;
                 return beat * (num_pixels_width / this.length_beats);
@@ -35,56 +38,45 @@ var window;
             this.height = height;
             this.width = width;
             this.messenger = messenger;
-            this.algorithm = algorithm;
+            // this.trainer = trainer;
         }
         Window.prototype.clear = function () {
             var msg_clear = ["clear"];
             this.messenger.message(msg_clear);
         };
-        Window.prototype.coord_to_index_clip = function (coord) {
-            if (this.algorithm.b_targeted()) {
-                return 0;
-            }
-            else {
-                if (coord[0] === -1) {
-                    return 0;
-                }
-                else {
-                    return coord[0] + 1;
-                }
-            }
-        };
+        // TODO: put this logic in Algorithm
+        // public coord_to_index_clip(coord): number {
+        //     if (this.algorithm.b_targeted()) {
+        //         return 0
+        //     } else {
+        //         if (coord[0] === -1) {
+        //             return 0
+        //         } else {
+        //             return coord[0] + 1
+        //         }
+        //     }
+        // }
         Window.prototype.initialize_clips = function (algorithm, segments) {
             var list_clips = [];
-            var depth = algorithm.get_depth();
             var beat_start_song = segments[0].beat_start;
             var beat_end_song = segments[segments.length - 1].beat_end;
-            if (algorithm.b_targeted()) {
+            for (var i in _.range(0, algorithm.get_depth() + 1)) {
                 var clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
                 var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
                 list_clips.push(clip_virtual);
             }
-            else {
-                for (var i in _.range(0, depth + 1)) {
-                    var clip_dao_virtual = new LiveClipVirtual([]);
-                    clip_dao_virtual.beat_start = beat_start_song;
-                    clip_dao_virtual.beat_end = beat_end_song;
-                    var clip_virtual = new clip_1.clip.Clip(clip_dao_virtual);
-                    list_clips.push(clip_virtual);
-                }
-            }
             this.list_clips = list_clips;
         };
         Window.prototype.set_length_beats = function (beats) {
             this.length_beats = beats;
         };
-        Window.prototype.add_notes_to_clip = function (notes_to_add_to_clip, coord_current) {
-            var index_clip = this.coord_to_index_clip(coord_current);
+        Window.prototype.add_notes_to_clip = function (notes_to_add_to_clip, coord_current, algorithm) {
+            var index_clip = algorithm.coord_to_index_clip(coord_current);
             for (var _i = 0, notes_to_add_to_clip_1 = notes_to_add_to_clip; _i < notes_to_add_to_clip_1.length; _i++) {
-                var note = notes_to_add_to_clip_1[_i];
-                this.list_clips[index_clip].append(note);
+                var note_1 = notes_to_add_to_clip_1[_i];
+                this.list_clips[index_clip].append(note_1);
             }
         };
         Window.prototype.add_note_to_clip_root = function (note) {
@@ -160,19 +152,23 @@ var window;
     window.Window = Window;
     var MatrixWindow = /** @class */ (function (_super) {
         __extends(MatrixWindow, _super);
-        function MatrixWindow(height, width, messenger, algorithm) {
-            return _super.call(this, height, width, messenger, algorithm) || this;
+        function MatrixWindow(height, width, messenger) {
+            return _super.call(this, height, width, messenger) || this;
         }
-        MatrixWindow.prototype.render = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
+        MatrixWindow.prototype.render = function (iterator_matrix_train, algorithm, target_current, // only for detect/predict
+        struct_parse // only for parse/derive
+        ) {
             this.clear();
-            this.render_regions(iterator_matrix_train, notes_target_current, algorithm, parse_matrix);
-            if (algorithm.b_targeted()) {
-                this.render_clips(iterator_matrix_train, null);
-            }
-            else {
-                this.render_trees(parse_matrix);
-                this.render_clips(iterator_matrix_train, parse_matrix);
-            }
+            // TODO: compensate for this logic
+            // if (this.algorithm.b_targeted()) {
+            //     notes = this.target_current.iterator_subtarget.subtargets.map((subtarget) => {
+            //         return subtarget.note
+            //     })
+            // }
+            var notes_in_region = algorithm.get_notes_in_region(target_current);
+            this.render_regions(iterator_matrix_train, algorithm, target_current, struct_parse);
+            this.render_clips(iterator_matrix_train, algorithm, target_current, struct_parse);
+            this.render_trees(struct_parse);
         };
         MatrixWindow.prototype.render_trees = function (parse_matrix) {
             var messages_render_trees = this.get_messages_render_trees(parse_matrix);
@@ -181,22 +177,23 @@ var window;
                 this.messenger.message(message_tree);
             }
         };
-        MatrixWindow.prototype.get_messages_render_trees = function (parse_matrix) {
+        MatrixWindow.prototype.get_messages_render_trees = function (struct_parse) {
             var _this = this;
+            if (struct_parse === null) {
+                return [];
+            }
             var color;
             var messages = [];
             var message;
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(parse_matrix));
-            for (var _i = 0, _a = parse_matrix.coords_roots; _i < _a.length; _i++) {
+            for (var _i = 0, _a = struct_parse.coords_roots; _i < _a.length; _i++) {
                 var coord = _a[_i];
                 var roots_parse_tree = void 0;
-                if (coord[0] === -1) {
-                    roots_parse_tree = [parse_matrix.get_root()];
-                }
-                else {
-                    roots_parse_tree = parse_matrix.get_notes_at_coord(coord);
-                }
+                // if (coord[0] === -1) {
+                //     roots_parse_tree = [struct_parse.get_root()]
+                // } else {
+                //     roots_parse_tree = struct_parse.get_notes_at_coord(coord);
+                // }
+                roots_parse_tree = struct_parse.get_notes_at_coord(coord);
                 for (var _b = 0, roots_parse_tree_1 = roots_parse_tree; _b < roots_parse_tree_1.length; _b++) {
                     var root = roots_parse_tree_1[_b];
                     root.walk(function (node) {
@@ -223,7 +220,7 @@ var window;
         MatrixWindow.prototype.get_centroid = function (node) {
             var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
             var coord_clip = node.model.note.get_coordinates_matrix();
-            var index_clip = this.coord_to_index_clip(coord_clip);
+            var index_clip = this.algorithm.coord_to_index_clip(coord_clip);
             // TODO: determine how to get the index of the clip from just depth of the node
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
@@ -235,8 +232,8 @@ var window;
             ];
         };
         ;
-        MatrixWindow.prototype.render_clips = function (iterator_matrix_train, parse_matrix) {
-            var messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, parse_matrix);
+        MatrixWindow.prototype.render_clips = function (iterator_matrix_train, struct_parse) {
+            var messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, struct_parse);
             for (var _i = 0, messages_render_clips_1 = messages_render_clips; _i < messages_render_clips_1.length; _i++) {
                 var messages_notes = messages_render_clips_1[_i];
                 for (var _a = 0, messages_notes_1 = messages_notes; _a < messages_notes_1.length; _a++) {
@@ -248,16 +245,30 @@ var window;
         MatrixWindow.prototype.get_messages_render_clips = function (iterator_matrix_train, parse_matrix) {
             var messages = [];
             var b_targeted = (parse_matrix === null);
-            if (b_targeted) {
-                var index_clip = 0;
-                messages.push(this.get_messages_render_clip(index_clip));
+            // make abstraction that gets the renderable regions
+            algorithm_1.algorithm.get_regions_renderable();
+            for (var _i = 0, _a = algorithm_1.algorithm.get_regions_renderable(); _i < _a.length; _i++) {
+                var coord = _a[_i];
+                messages.push(this.get_messages_render_clip(algorithm_1.algorithm.coord_to_index_clip(coord)));
             }
-            else {
-                for (var _i = 0, _a = parse_matrix.get_history(); _i < _a.length; _i++) {
-                    var coord = _a[_i];
-                    messages.push(this.get_messages_render_clip(this.coord_to_index_clip(coord)));
-                }
-            }
+            // if (b_targeted) {
+            //
+            //     let index_clip = 0;
+            //
+            //     messages.push(
+            //         this.get_messages_render_clip(index_clip)
+            //     )
+            // } else {
+            //     for (let coord of parse_matrix.get_regions_renderable()) {
+            //         messages.push(
+            //             this.get_messages_render_clip(
+            //                 this.algorithm.coord_to_index_clip(
+            //                     coord
+            //                 )
+            //             )
+            //         )
+            //     }
+            // }
             return messages;
         };
         MatrixWindow.prototype.get_message_render_region_past = function (interval_current) {
@@ -284,23 +295,26 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
+        MatrixWindow.prototype.render_regions = function (algorithm, iterator_matrix_train) {
             var notes, coord;
             var interval_current;
+            var notes_region_current = algorithm; // either segment of target note
+            interval_current = algorithm.determine_region_present(notes_region_current);
+            // prediction/detection need the current target, while parse/derive need the current segment
             if (algorithm.b_targeted()) {
-                interval_current = algorithm.determine_region_present(notes_target_current);
+                interval_current = trainer_1.trainer.algorithm.determine_region_present(notes_target_current);
             }
             else {
-                if (iterator_matrix_train.done) {
+                if (trainer_1.trainer.iterator_matrix_train.done) {
                     interval_current = [
-                        parse_matrix.root.model.note.get_beat_end(),
-                        parse_matrix.root.model.note.get_beat_end()
+                        trainer_1.trainer.struct_parse.get_root().model.note.get_beat_end(),
+                        trainer_1.trainer.struct_parse.get_root().model.note.get_beat_end()
                     ];
                 }
                 else {
-                    coord = iterator_matrix_train.get_coord_current();
+                    coord = trainer_1.trainer.iterator_matrix_train.get_coord_current();
                     var coord_segment = [0, coord[1]];
-                    notes = parse_matrix.get_notes_at_coord(coord_segment);
+                    notes = trainer_1.trainer.struct_parse.get_notes_at_coord(coord_segment);
                     interval_current = algorithm.determine_region_present(notes);
                 }
             }

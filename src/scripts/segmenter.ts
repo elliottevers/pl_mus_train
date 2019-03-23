@@ -14,6 +14,8 @@ import {song} from "../song/song";
 import SongDao = song.SongDao;
 import Song = song.Song;
 import LiveApiJs = live.LiveApiJs;
+import {track} from "../track/track";
+import get_notes_on_track = track.get_notes_on_track;
 const _ = require('underscore');
 
 declare let autowatch: any;
@@ -155,39 +157,39 @@ let contract_track = (path_track) => {
     )
 };
 
-export let get_notes_on_track = (path_track) => {
-    let index_track = Number(path_track.split(' ')[2]);
-
-    let track = new li.LiveApiJs(path_track);
-
-    let num_clipslots = track.get("clip_slots").length/2;
-
-    let notes_amassed = [];
-
-    for (let i_clipslot of _.range(0, num_clipslots)) {
-        let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
-
-        let clip = new Clip(
-            new ClipDao(
-                new li.LiveApiJs(
-                    path_clipslot.split(' ').concat(['clip']).join(' ')
-                ),
-                new Messenger(env, 0)
-            )
-        );
-
-        notes_amassed = notes_amassed.concat(
-            clip.get_notes(
-                clip.get_loop_bracket_lower(),
-                0,
-                clip.get_loop_bracket_upper(),
-                128
-            )
-        );
-    }
-
-    return notes_amassed
-};
+// export let get_notes_on_track = (path_track) => {
+//     let index_track = Number(path_track.split(' ')[2]);
+//
+//     let track = new li.LiveApiJs(path_track);
+//
+//     let num_clipslots = track.get("clip_slots").length/2;
+//
+//     let notes_amassed = [];
+//
+//     for (let i_clipslot of _.range(0, num_clipslots)) {
+//         let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+//
+//         let clip = new Clip(
+//             new ClipDao(
+//                 new li.LiveApiJs(
+//                     path_clipslot.split(' ').concat(['clip']).join(' ')
+//                 ),
+//                 new Messenger(env, 0)
+//             )
+//         );
+//
+//         notes_amassed = notes_amassed.concat(
+//             clip.get_notes(
+//                 clip.get_loop_bracket_lower(),
+//                 0,
+//                 clip.get_loop_bracket_upper(),
+//                 128
+//             )
+//         );
+//     }
+//
+//     return notes_amassed
+// };
 
 export let get_notes_segments = () => {
     let this_device = new li.LiveApiJs('this_device');

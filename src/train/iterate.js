@@ -136,10 +136,10 @@ var iterate;
         return MatrixIterator;
     }());
     iterate.MatrixIterator = MatrixIterator;
-    var FactoryMatrixTargetIterator = /** @class */ (function () {
-        function FactoryMatrixTargetIterator() {
+    var FactoryMatrixObjectives = /** @class */ (function () {
+        function FactoryMatrixObjectives() {
         }
-        FactoryMatrixTargetIterator.create_matrix_focus = function (algorithm, segments) {
+        FactoryMatrixObjectives.create_matrix_objectives = function (algorithm, segments) {
             var matrix_data = [];
             switch (algorithm.get_name()) {
                 case algorithm_1.algorithm.DETECT: {
@@ -172,9 +172,9 @@ var iterate;
             }
             return matrix_data;
         };
-        return FactoryMatrixTargetIterator;
+        return FactoryMatrixObjectives;
     }());
-    iterate.FactoryMatrixTargetIterator = FactoryMatrixTargetIterator;
+    iterate.FactoryMatrixObjectives = FactoryMatrixObjectives;
     var IteratorTrainFactory = /** @class */ (function () {
         function IteratorTrainFactory() {
         }

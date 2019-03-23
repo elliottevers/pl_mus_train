@@ -11,6 +11,8 @@ var ClipDao = clip_1.clip.ClipDao;
 var segment_1 = require("../segment/segment");
 var Segment = segment_1.segment.Segment;
 var LiveApiJs = live_1.live.LiveApiJs;
+var track_1 = require("../track/track");
+var get_notes_on_track = track_1.track.get_notes_on_track;
 var _ = require('underscore');
 var env = 'max';
 if (env === 'max') {
@@ -71,25 +73,45 @@ var contract_track = function (path_track) {
     // add the amassed notes to it
     clip_contracted.set_notes(notes_amassed);
 };
-exports.get_notes_on_track = function (path_track) {
-    var index_track = Number(path_track.split(' ')[2]);
-    var track = new live_1.live.LiveApiJs(path_track);
-    var num_clipslots = track.get("clip_slots").length / 2;
-    var notes_amassed = [];
-    for (var _i = 0, _a = _.range(0, num_clipslots); _i < _a.length; _i++) {
-        var i_clipslot = _a[_i];
-        var path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
-        var clip_2 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
-        notes_amassed = notes_amassed.concat(clip_2.get_notes(clip_2.get_loop_bracket_lower(), 0, clip_2.get_loop_bracket_upper(), 128));
-    }
-    return notes_amassed;
-};
+// export let get_notes_on_track = (path_track) => {
+//     let index_track = Number(path_track.split(' ')[2]);
+//
+//     let track = new li.LiveApiJs(path_track);
+//
+//     let num_clipslots = track.get("clip_slots").length/2;
+//
+//     let notes_amassed = [];
+//
+//     for (let i_clipslot of _.range(0, num_clipslots)) {
+//         let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
+//
+//         let clip = new Clip(
+//             new ClipDao(
+//                 new li.LiveApiJs(
+//                     path_clipslot.split(' ').concat(['clip']).join(' ')
+//                 ),
+//                 new Messenger(env, 0)
+//             )
+//         );
+//
+//         notes_amassed = notes_amassed.concat(
+//             clip.get_notes(
+//                 clip.get_loop_bracket_lower(),
+//                 0,
+//                 clip.get_loop_bracket_upper(),
+//                 128
+//             )
+//         );
+//     }
+//
+//     return notes_amassed
+// };
 exports.get_notes_segments = function () {
     var this_device = new live_1.live.LiveApiJs('this_device');
     var path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
     // let logger = new Logger('max');
     // logger.log(path_this_track);
-    return exports.get_notes_on_track(path_this_track);
+    return get_notes_on_track(path_this_track);
 };
 // 'live_set view highlighted_clip_slot'
 var test = function () {
@@ -146,9 +168,9 @@ var expand_clip_audio = function (path_clip_slot) {
             clipslot.call("delete_clip");
         }
         clipslot_audio.call("duplicate_clip_to", ['id', clipslot.get_id()].join(' '));
-        var clip_3 = new Clip(new ClipDao(new LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
+        var clip_2 = new Clip(new ClipDao(new LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
         var segment_2 = new Segment(note_segment);
-        clip_3.set_endpoints_loop(segment_2.beat_start, segment_2.beat_end);
+        clip_2.set_endpoints_loop(segment_2.beat_start, segment_2.beat_end);
     }
 };
 // let notes_segments = io.Importer.import('segment');
@@ -182,11 +204,11 @@ var expand_clip = function (path_clip_slot) {
         }
         clipslot.call('create_clip', String(length_beats));
         var path_clip = path_clipslot.concat('clip').join(' ');
-        var clip_4 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clip), new Messenger(env, 0)));
-        clip_4.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
-        clip_4.set_endpoint_markers(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        var clip_3 = new Clip(new ClipDao(new live_1.live.LiveApiJs(path_clip), new Messenger(env, 0)));
+        clip_3.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        clip_3.set_endpoint_markers(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
         var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
-        clip_4.set_notes(notes_within_segment);
+        clip_3.set_notes(notes_within_segment);
     };
     for (var i_segment in segments) {
         _loop_1(i_segment);

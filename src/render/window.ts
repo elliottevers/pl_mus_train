@@ -1,7 +1,7 @@
 import TreeModel = require("tree-model");
 import {message, message as m} from "../message/messenger"
 import {clip, clip as c} from "../clip/clip";
-import {note as n} from "../note/note";
+import {note, note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
 import {segment} from "../segment/segment";
@@ -9,6 +9,8 @@ import {algorithm} from "../train/algorithm";
 import {iterate} from "../train/iterate";
 import {parse} from "../parse/parse";
 import {log} from "../log/logger";
+import {target} from "../target/target";
+import {trainer} from "../train/trainer";
 
 export namespace window {
 
@@ -20,6 +22,10 @@ export namespace window {
     import MatrixIterator = iterate.MatrixIterator;
     import StructParse = parse.StructParse;
     import Logger = log.Logger;
+    import Note = note.Note;
+    import NoteRenderable = note.NoteRenderable;
+    import Target = target.Target;
+    import Trainer = trainer.Trainer;
 
     const red = [255, 0, 0];
     const white = [255, 255, 255];
@@ -41,13 +47,13 @@ export namespace window {
         width: number;
         messenger: Messenger;
         length_beats: number;
-        algorithm: Algorithm;
+        // trainer: Trainer;
 
-        protected constructor(height, width, messenger, algorithm) {
+        protected constructor(height, width, messenger) {
             this.height = height;
             this.width = width;
             this.messenger = messenger;
-            this.algorithm = algorithm;
+            // this.trainer = trainer;
         }
 
         public clear() {
@@ -55,38 +61,30 @@ export namespace window {
             this.messenger.message(msg_clear);
         }
 
-        public coord_to_index_clip(coord): number {
-            if (this.algorithm.b_targeted()) {
-                return 0
-            } else {
-                if (coord[0] === -1) {
-                    return 0
-                } else {
-                    return coord[0] + 1
-                }
-            }
-        }
+        // TODO: put this logic in Algorithm
+        // public coord_to_index_clip(coord): number {
+        //     if (this.algorithm.b_targeted()) {
+        //         return 0
+        //     } else {
+        //         if (coord[0] === -1) {
+        //             return 0
+        //         } else {
+        //             return coord[0] + 1
+        //         }
+        //     }
+        // }
 
         public initialize_clips(algorithm: Algorithm, segments: Segment[]) {
             let list_clips = [];
-            let depth = algorithm.get_depth();
             let beat_start_song = segments[0].beat_start;
             let beat_end_song = segments[segments.length - 1].beat_end;
 
-            if (algorithm.b_targeted()) {
+            for (let i in _.range(0, algorithm.get_depth() + 1)) {
                 let clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
                 let clip_virtual = new c.Clip(clip_dao_virtual);
                 list_clips.push(clip_virtual)
-            } else {
-                for (let i in _.range(0, depth + 1)) {
-                    let clip_dao_virtual = new LiveClipVirtual([]);
-                    clip_dao_virtual.beat_start = beat_start_song;
-                    clip_dao_virtual.beat_end = beat_end_song;
-                    let clip_virtual = new c.Clip(clip_dao_virtual);
-                    list_clips.push(clip_virtual)
-                }
             }
 
             this.list_clips = list_clips;
@@ -96,8 +94,8 @@ export namespace window {
             this.length_beats = beats;
         }
 
-        public add_notes_to_clip(notes_to_add_to_clip, coord_current) {
-            let index_clip = this.coord_to_index_clip(coord_current);
+        public add_notes_to_clip(notes_to_add_to_clip, coord_current, algorithm) {
+            let index_clip = algorithm.coord_to_index_clip(coord_current);
             for (let note of notes_to_add_to_clip) {
                 this.list_clips[index_clip].append(note);
             }
@@ -187,52 +185,48 @@ export namespace window {
         };
     }
 
-    export interface Renderable {
-        render_regions(
-            iterator_matrix_train,
-            matrix_target_iterator
-        )
-
-        render_notes(
-            history_user_input
-        )
-
-        render(
-
-        )
-    }
-
     export class MatrixWindow extends Window implements Temporal {
 
-        constructor(height, width, messenger, algorithm) {
-            super(height, width, messenger, algorithm);
+        constructor(height, width, messenger) {
+            super(height, width, messenger);
         }
 
-        public render(iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
+        public render(
+            iterator_matrix_train: MatrixIterator,
+            algorithm: Algorithm,
+            target_current: Target, // only for detect/predict
+            struct_parse: StructParse // only for parse/derive
+        ) {
 
             this.clear();
 
-            this.render_regions(
-                iterator_matrix_train,
-                notes_target_current,
-                algorithm,
-                parse_matrix
+            // TODO: compensate for this logic
+            // if (this.algorithm.b_targeted()) {
+            //     notes = this.target_current.iterator_subtarget.subtargets.map((subtarget) => {
+            //         return subtarget.note
+            //     })
+            // }
+            let notes_in_region = algorithm.get_notes_in_region(
+                target_current
             );
 
-            if (algorithm.b_targeted()) {
-                this.render_clips(
-                    iterator_matrix_train,
-                    null
-                );
-            } else {
-                this.render_trees(
-                    parse_matrix
-                );
-                this.render_clips(
-                    iterator_matrix_train,
-                    parse_matrix
-                );
-            }
+            this.render_regions(
+                iterator_matrix_train,
+                algorithm,
+                target_current,
+                struct_parse
+            );
+
+            this.render_clips(
+                iterator_matrix_train,
+                algorithm,
+                target_current,
+                struct_parse
+            );
+
+            this.render_trees(
+                struct_parse
+            );
         }
 
         public render_trees(parse_matrix) {
@@ -242,22 +236,26 @@ export namespace window {
             }
         }
 
-        public get_messages_render_trees(parse_matrix) {
+        public get_messages_render_trees(struct_parse: StructParse) {
+
+            if (struct_parse === null) {
+                return []
+            }
 
             let color: number[];
             let messages: any[] = [];
             let message: any[];
 
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(parse_matrix));
-
-            for (let coord of parse_matrix.coords_roots) {
+            for (let coord of struct_parse.coords_roots) {
                 let roots_parse_tree;
-                if (coord[0] === -1) {
-                    roots_parse_tree = [parse_matrix.get_root()]
-                } else {
-                    roots_parse_tree = parse_matrix.get_notes_at_coord(coord);
-                }
+
+                // if (coord[0] === -1) {
+                //     roots_parse_tree = [struct_parse.get_root()]
+                // } else {
+                //     roots_parse_tree = struct_parse.get_notes_at_coord(coord);
+                // }
+
+                roots_parse_tree = struct_parse.get_notes_at_coord(coord);
 
                 for (let root of roots_parse_tree) {
                     root.walk((node)=>{
@@ -295,7 +293,7 @@ export namespace window {
 
             let coord_clip = node.model.note.get_coordinates_matrix();
 
-            let index_clip = this.coord_to_index_clip(coord_clip);
+            let index_clip = this.algorithm.coord_to_index_clip(coord_clip);
 
             // TODO: determine how to get the index of the clip from just depth of the node
 
@@ -310,8 +308,8 @@ export namespace window {
             ]
         };
 
-        public render_clips(iterator_matrix_train, parse_matrix) {
-            let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, parse_matrix);
+        public render_clips(iterator_matrix_train: MatrixIterator, struct_parse: StructParse) {
+            let messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, struct_parse);
             for (let messages_notes of messages_render_clips) {
                 for (let message_note of messages_notes) {
                     this.messenger.message(message_note);
@@ -324,25 +322,38 @@ export namespace window {
 
             let b_targeted = (parse_matrix === null);
 
-            if (b_targeted) {
+            // make abstraction that gets the renderable regions
 
-                let index_clip = 0;
+            algorithm.get_regions_renderable()
 
+            for (let coord of algorithm.get_regions_renderable()) {
                 messages.push(
-                    this.get_messages_render_clip(index_clip)
-                )
-
-            } else {
-                for (let coord of parse_matrix.get_history()) {
-                    messages.push(
-                        this.get_messages_render_clip(
-                            this.coord_to_index_clip(
-                                coord
-                            )
+                    this.get_messages_render_clip(
+                        algorithm.coord_to_index_clip(
+                            coord
                         )
                     )
-                }
+                )
             }
+
+            // if (b_targeted) {
+            //
+            //     let index_clip = 0;
+            //
+            //     messages.push(
+            //         this.get_messages_render_clip(index_clip)
+            //     )
+            // } else {
+            //     for (let coord of parse_matrix.get_regions_renderable()) {
+            //         messages.push(
+            //             this.get_messages_render_clip(
+            //                 this.algorithm.coord_to_index_clip(
+            //                     coord
+            //                 )
+            //             )
+            //         )
+            //     }
+            // }
 
             return messages
         }
@@ -380,28 +391,37 @@ export namespace window {
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end]
         }
 
-        public render_regions(iterator_matrix_train: MatrixIterator, notes_target_current, algorithm, parse_matrix) {
+        public render_regions(
+            algorithm: Algorithm,
+            iterator_matrix_train: MatrixIterator,
+
+        ) {
 
             let notes, coord;
 
             let interval_current;
 
+            let notes_region_current = algorithm// either segment of target note
+
+            interval_current = algorithm.determine_region_present(notes_region_current);
+
+            // prediction/detection need the current target, while parse/derive need the current segment
             if (algorithm.b_targeted()) {
-                interval_current = algorithm.determine_region_present(
+                interval_current = trainer.algorithm.determine_region_present(
                     notes_target_current
                 );
             } else {
-                if (iterator_matrix_train.done) {
+                if (trainer.iterator_matrix_train.done) {
                     interval_current = [
-                        parse_matrix.root.model.note.get_beat_end(),
-                        parse_matrix.root.model.note.get_beat_end()
+                        trainer.struct_parse.get_root().model.note.get_beat_end(),
+                        trainer.struct_parse.get_root().model.note.get_beat_end()
                     ]
                 } else {
-                    coord = iterator_matrix_train.get_coord_current();
+                    coord = trainer.iterator_matrix_train.get_coord_current();
 
                     let coord_segment = [0, coord[1]];
 
-                    notes = parse_matrix.get_notes_at_coord(coord_segment);
+                    notes = trainer.struct_parse.get_notes_at_coord(coord_segment);
 
                     interval_current = algorithm.determine_region_present(
                         notes

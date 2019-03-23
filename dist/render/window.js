@@ -59,6 +59,9 @@ var window;
             var depth = algorithm.get_depth();
             var beat_start_song = segments[0].beat_start;
             var beat_end_song = segments[segments.length - 1].beat_end;
+            // TODO: put in Algorithm
+            // this specifies how many rows we want in the rendered matrix
+            // TODO: possibly get_num_rows_rendered()
             if (algorithm.b_targeted()) {
                 var clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
@@ -165,6 +168,13 @@ var window;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, notes_target_current, algorithm, parse_matrix) {
             this.clear();
+            // TODO: compensate for this logic
+            // if (this.algorithm.b_targeted()) {
+            //     notes = this.target_current.iterator_subtarget.subtargets.map((subtarget) => {
+            //         return subtarget.note
+            //     })
+            // }
+            var notes = algorithm.get_notes_region();
             this.render_regions(iterator_matrix_train, notes_target_current, algorithm, parse_matrix);
             if (algorithm.b_targeted()) {
                 this.render_clips(iterator_matrix_train, null);
@@ -186,11 +196,10 @@ var window;
             var color;
             var messages = [];
             var message;
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(parse_matrix));
             for (var _i = 0, _a = parse_matrix.coords_roots; _i < _a.length; _i++) {
                 var coord = _a[_i];
                 var roots_parse_tree = void 0;
+                // TODO: put in ALGORITHM
                 if (coord[0] === -1) {
                     roots_parse_tree = [parse_matrix.get_root()];
                 }

@@ -172,8 +172,8 @@ export namespace iterate {
         }
     }
 
-    export class FactoryMatrixTargetIterator {
-        public static create_matrix_focus(algorithm: Algorithm, segments: Segment[]): any[][] {
+    export class FactoryMatrixObjectives {
+        public static create_matrix_objectives(algorithm: Algorithm, segments: Segment[]): any[][] {
 
             let matrix_data = [];
 

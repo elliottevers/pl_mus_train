@@ -76,17 +76,6 @@ var parse;
             ];
         };
         ;
-        // public finish_parse() {
-        //     for (let col of this.matrix_leaves[0]) {
-        //         for (let note of col) {
-        //             this.add_layer(
-        //                 [this.root],
-        //                 [note],
-        //                 -1
-        //             )
-        //         }
-        //     }
-        // }
         StructParse.prototype.set_root = function (note) {
             var coord_root = [-1];
             this.history.push(coord_root);
@@ -108,6 +97,7 @@ var parse;
             var notes_user_input_renderable = notes_user_input.map(function (note) {
                 return NoteRenderable.from_note(note, coord_notes_current);
             });
+            // do something special if this is the root
             if (coord_notes_current[0] === -1) {
                 this.root = notes_user_input_renderable[0];
             }
@@ -115,8 +105,10 @@ var parse;
                 this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
             }
             this.history.push(coord_notes_current);
+            // TODO: put this entire switch statement in Algorithm
             switch (algorithm.get_name()) {
                 case PARSE: {
+                    // again, do something special if this is the root
                     if (coord_notes_current[0] === -1) {
                         for (var i in this.matrix_leaves[0]) {
                             coords_notes_previous.push([0, Number(i)]);
@@ -171,19 +163,6 @@ var parse;
                     throw 'adding notes to parse tree failed';
                 }
             }
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.coords_roots));
-            // // remove references to old leaves
-            // for (let coord_notes_previous of coords_notes_previous) {
-            //     this.coords_roots = this.coords_roots.filter((x) => {
-            //         return !(x[0] === coord_notes_previous[0] && x[1] === coord_notes_previous[1])
-            //     });
-            // }
-            //
-            // // add references to new leaves
-            // this.coords_roots.push(
-            //     coord_notes_current
-            // )
         };
         StructParse.prototype.add_layer = function (notes_parent, notes_child, index_new_layer) {
             var note_parent_best, b_successful;

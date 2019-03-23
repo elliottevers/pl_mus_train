@@ -11,7 +11,8 @@ var clip_1 = require("../clip/clip");
 var iterate_1 = require("./iterate");
 var utils_1 = require("../utils/utils");
 var live_1 = require("../live/live");
-var segmenter_1 = require("../scripts/segmenter");
+var track_1 = require("../track/track");
+// import {get_notes_on_track} from "../scripts/segmenter";
 var _ = require('underscore');
 var l = require('lodash');
 var trainer;
@@ -30,18 +31,22 @@ var trainer;
     var Note = note_1.note.Note;
     var ClipDao = clip_1.clip.ClipDao;
     var LiveApiJs = live_1.live.LiveApiJs;
+    var get_notes_on_track = track_1.track.get_notes_on_track;
     var Trainer = /** @class */ (function () {
-        function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, index_track_target, song, segments, messenger) {
+        function Trainer(window, user_input_handler, algorithm, clip_user_input, clip_user_input_synchronous, track_target, song, segments, messenger) {
             this.window = window;
             this.algorithm = algorithm;
             this.clip_user_input = clip_user_input;
             this.clip_user_input_synchronous = clip_user_input_synchronous;
             // this.notes_target = notes_target;
-            this.index_track_target = index_track_target;
+            this.track_target = track_target;
             this.song = song;
             this.segments = segments;
             this.messenger = messenger;
-            this.notes_target = segmenter_1.get_notes_on_track(['live_set', 'tracks', this.index_track_target].join(' '));
+            // this.notes_target = get_notes_on_track(
+            //     ['live_set', 'tracks', this.index_track_target].join(' ')
+            // );
+            this.notes_target = get_notes_on_track(track_target.get_path());
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.algorithm, this.segments);
             this.matrix_focus = FactoryMatrixTargetIterator.create_matrix_focus(this.algorithm, this.segments);
             this.history_user_input = new HistoryUserInput(l.cloneDeep(this.matrix_focus));
@@ -63,7 +68,9 @@ var trainer;
                 note: new note_1.note.Note(note_segment_last.model.note.pitch, this.segments[0].get_note().model.note.beat_start, (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - this.segments[0].get_note().model.note.beat_start, note_segment_last.model.note.velocity, note_segment_last.model.note.muted),
                 children: []
             });
+            // DERIVE
             this.struct_parse.set_root(note_length_full);
+            // we always want the root to show up in the window, but we don't always want it to be a part of tree rendering
             if (this.algorithm.get_name() === DERIVE) {
                 this.struct_parse.coords_roots = [[-1]];
             }
@@ -77,6 +84,7 @@ var trainer;
                 // logger.log(JSON.stringify(segment));
                 var note_2 = segment_1.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
+                // note that we don't add to parse tree if parsing, but deriving we do
                 switch (this.algorithm.get_name()) {
                     case DERIVE: {
                         this.struct_parse.add([note_2], coord_current_virtual, this.algorithm);
@@ -88,7 +96,9 @@ var trainer;
                     }
                 }
                 this.window.add_notes_to_clip([note_2], coord_current_virtual);
+                // why would we add to the user input history?  These aren't input at training time
                 this.history_user_input.add([note_2], coord_current_virtual);
+                // only stream segment bounds for parse/derive
                 this.stream_segment_bounds();
             }
             switch (this.algorithm.get_name()) {
@@ -104,7 +114,7 @@ var trainer;
                         this_1.window.add_notes_to_clip(notes, coord_current_virtual);
                     };
                     var this_1 = this;
-                    // TODO: use 'filter'
+                    // this is to add the target notes as leaves
                     for (var i_segment in this.segments) {
                         _loop_1(i_segment);
                     }
@@ -126,14 +136,9 @@ var trainer;
             var _loop_2 = function (i_segment) {
                 var segment_3 = this_2.segments[Number(i_segment)];
                 var notes_in_segment = this_2.notes_target.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
-                var sequence_targets = this_2.algorithm.determine_targets(
-                // this.clip_target.get_notes(
-                //     this.segments[Number(i_segment)].beat_start,
-                //     0,
-                //     this.segments[Number(i_segment)].beat_end - this.segments[Number(i_segment)].beat_start,
-                //     128
-                // )
-                notes_in_segment);
+                var sequence_targets = this_2.algorithm.determine_targets(notes_in_segment);
+                // set the note as muted for predict
+                // TODO: do we actually use the user input clip for prediction?  Isn't it just for parsing/deriving to store input and overdub?
                 for (var _i = 0, sequence_targets_1 = sequence_targets; _i < sequence_targets_1.length; _i++) {
                     var target_3 = sequence_targets_1[_i];
                     for (var _a = 0, target_2 = target_3; _a < target_2.length; _a++) {
@@ -155,16 +160,12 @@ var trainer;
         };
         Trainer.prototype.render_window = function () {
             var notes = [];
-            if (this.algorithm.b_targeted()) {
-                notes = this.target_current.iterator_subtarget.subtargets.map(function (subtarget) {
-                    return subtarget.note;
-                });
-            }
-            // } else {
-            //     // notes = [this.segment_current.get_note()]
-            //     notes = []
+            // if (this.algorithm.b_targeted()) {
+            //     notes = this.target_current.iterator_subtarget.subtargets.map((subtarget) => {
+            //         return subtarget.note
+            //     })
             // }
-            this.window.render(this.iterator_matrix_train, notes, this.algorithm, this.struct_parse);
+            this.window.render(this.iterator_matrix_train, this.target_current, this.algorithm, this.struct_parse);
         };
         Trainer.prototype.reset_user_input = function () {
             if (_.contains([DETECT, PREDICT], this.algorithm.get_name())) {
@@ -176,12 +177,15 @@ var trainer;
                 return;
             }
         };
+        // this logic is about updating the user input clip every time we advance a scene
+        // initializing the user input clip for the specific type of algorithm is necessary for parsing
+        // TODO: please make a "pre-train initialize subroutine for the user input clip, and don't start training until it's done
+        // TODO: definitely put this algorithm specific logic in Algorithm
         Trainer.prototype.advance_scene = function (first_time) {
             this.segment_current.scene.fire(true);
             if (this.algorithm.get_name() !== PARSE) {
                 return;
             }
-            // TODO: put this logic somewhere else, preferably where we define the algorithm
             var list_path_current_s = this.clip_user_input_synchronous.get_path().split(' ');
             var index_clipslot_current_s = list_path_current_s[list_path_current_s.length - 2];
             var list_path_next_s = list_path_current_s;
@@ -199,7 +203,10 @@ var trainer;
                 this.clip_user_input = clip_user_input_next;
             }
             if (this.iterator_matrix_train.get_coord_current()[0] === this.algorithm.get_depth() - 2) {
-                var api_clip_target_synchronous = new LiveApiJs(['live_set', 'tracks', this.index_track_target, 'clip_slots', index_clipslot_current, 'clip'].join(' '));
+                // let api_clip_target_synchronous = new LiveApiJs(
+                //     ['live_set', 'tracks', this.index_track_target, 'clip_slots', index_clipslot_current, 'clip'].join(' ')
+                // );
+                var api_clip_target_synchronous = new LiveApiJs(this.track_target.track_dao.get_path().split(' ').concat(['clip_slots', index_clipslot_current, 'clip']).join(' '));
                 var clip_target = new Clip(new ClipDao(api_clip_target_synchronous, new Messenger('max', 0)));
                 var notes = clip_target.get_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
                 this.clip_user_input.remove_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
@@ -215,6 +222,7 @@ var trainer;
         Trainer.prototype.terminate = function () {
             this.algorithm.pre_terminate(this.song, this.clip_user_input);
         };
+        // 'virtual' is just a way to *not* interact with Ableton - this could be useful for testing
         Trainer.prototype.init = function (virtual) {
             if (this.algorithm.b_targeted()) {
                 this.advance_subtarget();
@@ -229,6 +237,7 @@ var trainer;
         Trainer.prototype.advance_segment = function (first_time) {
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
+                // TODO: put in Algorithm - finalize parse
                 switch (this.algorithm.get_name()) {
                     case PARSE: {
                         // make connections with segments
@@ -340,11 +349,6 @@ var trainer;
                 this.render_window();
                 return;
             }
-            // let logger = new Logger('max');
-            //
-            // logger.log(JSON.stringify(notes_input_user[0].model.note.pitch));
-            // logger.log(JSON.stringify(this.subtarget_current));
-            // logger.log('------------');
             // detect/predict logic
             if (utils_1.utils.remainder(notes_input_user[0].model.note.pitch, 12) === utils_1.utils.remainder(this.subtarget_current.note.model.note.pitch, 12)) {
                 this.window.add_notes_to_clip([this.subtarget_current.note], this.iterator_matrix_train.get_coord_current());

@@ -117,13 +117,6 @@ var algorithm;
             return 1;
         };
         Predict.prototype.postprocess_subtarget = function (note_subtarget) {
-            // return notes_segment.map((note) => {
-            //     let note_processed = note;
-            //     if (note_processed.model.note.beat_start === note_subtarget.model.note.beat_start && note_processed.model.note.get_beat_end() === note_subtarget.model.note.get_beat_end()) {
-            //         note_processed.model.note.muted = 1
-            //     }
-            //     return note_processed
-            // });
             note_subtarget.model.note.muted = 1;
             return note_subtarget;
         };
