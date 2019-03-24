@@ -88,7 +88,11 @@ export namespace trainer {
             this.track_target = track_target;
             this.song = song;
             // TODO: pull notes from clip user input track and transform into segments
-            this.segments = segments;
+            this.segments = Segment.from_notes(
+                this.track_user_input.get_notes()
+            );
+
+            // this.segments = segments;
             this.messenger = messenger;
 
             // this.notes_target_track = track.get_notes_on_track(

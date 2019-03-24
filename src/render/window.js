@@ -17,7 +17,6 @@ var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
 var algorithm_1 = require("../train/algorithm");
-var trainer_1 = require("../train/trainer");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
@@ -56,11 +55,11 @@ var window;
         //         }
         //     }
         // }
-        Window.prototype.initialize_clips = function (algorithm, segments) {
+        Window.prototype.initialize_clips = function (trainable, segments) {
             var list_clips = [];
             var beat_start_song = segments[0].beat_start;
             var beat_end_song = segments[segments.length - 1].beat_end;
-            for (var i in _.range(0, algorithm.get_depth() + 1)) {
+            for (var i in _.range(0, trainable.get_depth() + 1)) {
                 var clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
@@ -155,9 +154,9 @@ var window;
         function MatrixWindow(height, width, messenger) {
             return _super.call(this, height, width, messenger) || this;
         }
-        MatrixWindow.prototype.render = function (iterator_matrix_train, algorithm, target_current, // only for detect/predict
-        struct_parse // only for parse/derive
-        ) {
+        MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, target_current, // only for detect/predict
+        struct_parse, // only for parse/derive
+        segment_current) {
             this.clear();
             // TODO: compensate for this logic
             // if (this.algorithm.b_targeted()) {
@@ -165,9 +164,9 @@ var window;
             //         return subtarget.note
             //     })
             // }
-            var notes_in_region = algorithm.get_notes_in_region(target_current);
-            this.render_regions(iterator_matrix_train, algorithm, target_current, struct_parse);
-            this.render_clips(iterator_matrix_train, algorithm, target_current, struct_parse);
+            var notes_in_region = trainable.get_notes_in_region(target_current, segment_current);
+            this.render_regions(iterator_matrix_train, algorithm_1.algorithm, target_current, struct_parse);
+            this.render_clips(iterator_matrix_train, algorithm_1.algorithm, target_current, struct_parse);
             this.render_trees(struct_parse);
         };
         MatrixWindow.prototype.render_trees = function (parse_matrix) {
@@ -295,27 +294,27 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        MatrixWindow.prototype.render_regions = function (algorithm, iterator_matrix_train) {
+        MatrixWindow.prototype.render_regions = function (trainable, iterator_matrix_train) {
             var notes, coord;
             var interval_current;
-            var notes_region_current = algorithm; // either segment of target note
-            interval_current = algorithm.determine_region_present(notes_region_current);
+            // let notes_region_current = algorithm; // either segment of target note
+            interval_current = trainable.determine_region_present(notes_region_current);
             // prediction/detection need the current target, while parse/derive need the current segment
-            if (algorithm.b_targeted()) {
-                interval_current = trainer_1.trainer.algorithm.determine_region_present(notes_target_current);
+            if (trainable.b_targeted) {
+                interval_current = trainable.determine_region_present(notes_target_current);
             }
             else {
-                if (trainer_1.trainer.iterator_matrix_train.done) {
+                if (trainer.iterator_matrix_train.done) {
                     interval_current = [
-                        trainer_1.trainer.struct_parse.get_root().model.note.get_beat_end(),
-                        trainer_1.trainer.struct_parse.get_root().model.note.get_beat_end()
+                        trainer.struct_parse.get_root().model.note.get_beat_end(),
+                        trainer.struct_parse.get_root().model.note.get_beat_end()
                     ];
                 }
                 else {
-                    coord = trainer_1.trainer.iterator_matrix_train.get_coord_current();
+                    coord = trainer.iterator_matrix_train.get_coord_current();
                     var coord_segment = [0, coord[1]];
-                    notes = trainer_1.trainer.struct_parse.get_notes_at_coord(coord_segment);
-                    interval_current = algorithm.determine_region_present(notes);
+                    notes = trainer.struct_parse.get_notes_at_coord(coord_segment);
+                    interval_current = algorithm_1.algorithm.determine_region_present(notes);
                 }
             }
             var quadruplet_region_past = this.get_message_render_region_past(interval_current);

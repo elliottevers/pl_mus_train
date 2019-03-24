@@ -4,21 +4,21 @@ import {clip, clip as c} from "../clip/clip";
 import {note, note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
-import {segment} from "../segment/segment";
+import {segment as module_segment} from "../segment/segment";
 import {algorithm} from "../train/algorithm";
 import {iterate} from "../train/iterate";
 import {parse} from "../parse/parse";
 import {log} from "../log/logger";
 import {target} from "../target/target";
-import {trainer} from "../train/trainer";
+import {trainer as module_trainer} from "../train/trainer";
 
 export namespace window {
 
     import LiveClipVirtual = live.LiveClipVirtual;
     import Messenger = message.Messenger;
-    import Segment = segment.Segment;
+    import Segment = module_segment.Segment;
     import Clip = clip.Clip;
-    import Algorithm = algorithm.Algorithm;
+    // import Algorithm = algorithm.Algorithm;
     import MatrixIterator = iterate.MatrixIterator;
     import StructParse = parse.StructParse;
     import Logger = log.Logger;
@@ -26,6 +26,7 @@ export namespace window {
     import NoteRenderable = note.NoteRenderable;
     import Target = target.Target;
     import Trainer = trainer.Trainer;
+    import Trainable = algorithm.Trainable;
 
     const red = [255, 0, 0];
     const white = [255, 255, 255];
@@ -74,12 +75,12 @@ export namespace window {
         //     }
         // }
 
-        public initialize_clips(algorithm: Algorithm, segments: Segment[]) {
+        public initialize_clips(trainable: Trainable, segments: Segment[]) {
             let list_clips = [];
             let beat_start_song = segments[0].beat_start;
             let beat_end_song = segments[segments.length - 1].beat_end;
 
-            for (let i in _.range(0, algorithm.get_depth() + 1)) {
+            for (let i in _.range(0, trainable.get_depth() + 1)) {
                 let clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
@@ -193,9 +194,10 @@ export namespace window {
 
         public render(
             iterator_matrix_train: MatrixIterator,
-            algorithm: Algorithm,
+            trainable: Trainable,
             target_current: Target, // only for detect/predict
-            struct_parse: StructParse // only for parse/derive
+            struct_parse: StructParse, // only for parse/derive
+            segment_current: Segment
         ) {
 
             this.clear();
@@ -206,8 +208,9 @@ export namespace window {
             //         return subtarget.note
             //     })
             // }
-            let notes_in_region = algorithm.get_notes_in_region(
-                target_current
+            let notes_in_region = trainable.get_notes_in_region(
+                target_current,
+                segment_current
             );
 
             this.render_regions(
@@ -392,7 +395,7 @@ export namespace window {
         }
 
         public render_regions(
-            algorithm: Algorithm,
+            trainable: Trainable,
             iterator_matrix_train: MatrixIterator,
 
         ) {
@@ -401,13 +404,13 @@ export namespace window {
 
             let interval_current;
 
-            let notes_region_current = algorithm// either segment of target note
+            // let notes_region_current = algorithm; // either segment of target note
 
-            interval_current = algorithm.determine_region_present(notes_region_current);
+            interval_current = trainable.determine_region_present(notes_region_current);
 
             // prediction/detection need the current target, while parse/derive need the current segment
-            if (algorithm.b_targeted()) {
-                interval_current = trainer.algorithm.determine_region_present(
+            if (trainable.b_targeted) {
+                interval_current = trainable.determine_region_present(
                     notes_target_current
                 );
             } else {

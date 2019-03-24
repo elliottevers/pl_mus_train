@@ -13,6 +13,9 @@ var segment;
             var clip_dao_virtual = new LiveClipVirtual([note]);
             this.clip = new Clip(clip_dao_virtual);
         }
+        Segment.from_notes = function (notes) {
+            return;
+        };
         Segment.prototype.set_clip_user_input_sync = function (clip) {
             this.clip_user_input_sync = clip;
         };

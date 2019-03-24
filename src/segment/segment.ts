@@ -28,6 +28,10 @@ export namespace segment {
             this.clip = new Clip(clip_dao_virtual);
         }
 
+        public static from_notes(notes: TreeModel.Node<Note>[]): Segment[] {
+            return
+        }
+
         public set_clip_user_input_sync(clip: Clip) {
             this.clip_user_input_sync = clip;
         }

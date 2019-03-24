@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
+var segment_1 = require("../segment/segment");
 var iterate_1 = require("./iterate");
 // import {get_notes_on_track} from "../scripts/segmenter";
 var _ = require('underscore');
@@ -8,6 +9,7 @@ var l = require('lodash');
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
+    var Segment = segment_1.segment.Segment;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
     var Trainer = /** @class */ (function () {
@@ -20,7 +22,8 @@ var trainer;
             this.track_target = track_target;
             this.song = song;
             // TODO: pull notes from clip user input track and transform into segments
-            this.segments = segments;
+            this.segments = Segment.from_notes(this.track_user_input.get_notes());
+            // this.segments = segments;
             this.messenger = messenger;
             // this.notes_target_track = track.get_notes_on_track(
             //     track_target.get_path()
