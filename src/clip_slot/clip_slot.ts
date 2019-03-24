@@ -4,12 +4,14 @@ import {message} from "../message/messenger";
 // import {log} from "../log/logger";
 import LiveApiJs = live.LiveApiJs;
 import {utils} from "../utils/utils";
+import {log} from "../log/logger";
 
 export namespace clip_slot {
     import Clip = module_clip.Clip;
     // import ClipDao = module_clip.ClipDao;
     import Messenger = message.Messenger;
     import ClipDao = clip.ClipDao;
+    import Logger = log.Logger;
     // import Logger = log.Logger;
 
     export class ClipSlot {
@@ -23,7 +25,10 @@ export namespace clip_slot {
         }
 
         b_has_clip(): boolean {
-            return this.clip !== null
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.clip));
+            // return this.clip !== null
+            return this.clip_slot_dao.has_clip()
         }
 
         delete_clip(): void {
@@ -43,9 +48,12 @@ export namespace clip_slot {
         }
 
         load_clip(): void {
-            this.clip = this.clip_slot_dao.get_clip();
+            if (this.b_has_clip()) {
+                this.clip = this.clip_slot_dao.get_clip();
+            }
         }
 
+        // TODO: we should consider checking whether it exists here
         get_clip(): Clip {
             return this.clip
         }
@@ -101,10 +109,12 @@ export namespace clip_slot {
             //     String(this.live_api.get('clip')).split(',').join(' '),
             //     this.messenger
             // )
+            // let logger = new Logger('max');
+            // logger.log(utils.cleanse_id(this.live_api.get('clip')));
             return new Clip(
                 new ClipDao(
                     new LiveApiJs(
-                        String(this.live_api.get('clip')).split(',').join(' ')
+                        utils.cleanse_id(this.live_api.get('clip'))
                     ),
                     this.messenger
                 )
@@ -112,7 +122,7 @@ export namespace clip_slot {
         }
 
         get_path(): string {
-            return this.live_api.get_path()
+            return utils.cleanse_path(this.live_api.get_path())
         }
 
         get_id(): number {

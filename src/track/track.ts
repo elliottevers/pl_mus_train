@@ -107,11 +107,14 @@ export namespace track {
         public get_index(): number {
             // let logger = new Logger('max');
             // logger.log(String(String(this.track_dao.get_path()).split(' ')[2]));
-            return Number(utils.cleanse_path(this.track_dao.get_path()).split(' ')[2])
+            return Number(this.track_dao.get_path().split(' ')[2])
         }
 
         public load_clip_slots(): void {
             this.clip_slots = this.track_dao.get_clip_slots();
+            // for (let clip_slot of this.clip_slots) {
+            //     clip_slot.load_clip();
+            // }
             // let logger = new Logger('max');
             // logger.log(this.track_dao.get_clip_slots().length);
         }
@@ -143,14 +146,17 @@ export namespace track {
         //     }
         // }
 
-        load_clips() {
+        public load_clips() {
             this.load_clip_slots();
 
             // let logger = new Logger('max');
             // logger.log(JSON.stringify(this.clip_slots))
 
             for (let clip_slot of this.clip_slots) {
-                clip_slot.load_clip();
+                if (clip_slot.b_has_clip()) {
+                    clip_slot.load_clip();
+                }
+                // clip_slot.load_clip()
                 // if (clip_slot.b_has_clip()) {
                 //     logger.log(JSON.stringify(clip_slot.get_clip().get_notes_within_markers()))
                 // }
@@ -159,7 +165,9 @@ export namespace track {
 
         public delete_clips() {
             for (let clip_slot of this.clip_slots) {
-                clip_slot.delete_clip()
+                if (clip_slot.b_has_clip()) {
+                    clip_slot.delete_clip()
+                }
             }
         }
 
@@ -189,11 +197,11 @@ export namespace track {
         get_notes(): TreeModel.Node<Note>[] {
             let notes_amassed = [];
             for (let clip_slot of this.clip_slots) {
-                let logger = new Logger('max');
-                logger.log(JSON.stringify(clip_slot.get_clip().get_path()));
-                notes_amassed = notes_amassed.concat(
-                    clip_slot.get_clip().get_notes_within_markers()
-                )
+                if (clip_slot.b_has_clip()) {
+                    notes_amassed = notes_amassed.concat(
+                        clip_slot.get_clip().get_notes_within_markers()
+                    )
+                }
             }
             return notes_amassed;
         }
@@ -205,7 +213,7 @@ export namespace track {
     }
 
     export interface iTrackDao {
-        get_notes(): TreeModel.Node<Note>[]
+        // get_notes(): TreeModel.Node<Note>[]
         get_clip_slots(int: number)
         get_path()
     }
@@ -313,13 +321,13 @@ export namespace track {
             }
         }
 
-        // implement the amassing notes logic
-        get_notes(): TreeModel.Node<Note>[] {
-            return
-        }
+        // // implement the amassing notes logic
+        // get_notes(): TreeModel.Node<Note>[] {
+        //     return
+        // }
 
         get_path(): string {
-            return this.live_api.get_path()
+            return utils.cleanse_path(this.live_api.get_path())
         }
     }
 }

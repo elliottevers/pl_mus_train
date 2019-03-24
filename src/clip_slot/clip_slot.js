@@ -4,6 +4,7 @@ var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
 // import {log} from "../log/logger";
 var LiveApiJs = live_1.live.LiveApiJs;
+var utils_1 = require("../utils/utils");
 var clip_slot;
 (function (clip_slot_1) {
     var Clip = clip_1.clip.Clip;
@@ -14,7 +15,10 @@ var clip_slot;
             this.clip_slot_dao = clip_slot_dao;
         }
         ClipSlot.prototype.b_has_clip = function () {
-            return this.clip !== null;
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.clip));
+            // return this.clip !== null
+            return this.clip_slot_dao.has_clip();
         };
         ClipSlot.prototype.delete_clip = function () {
             this.clip_slot_dao.delete_clip();
@@ -29,8 +33,11 @@ var clip_slot;
             this.clip_slot_dao.create_clip(length_beats);
         };
         ClipSlot.prototype.load_clip = function () {
-            this.clip = this.clip_slot_dao.get_clip();
+            if (this.b_has_clip()) {
+                this.clip = this.clip_slot_dao.get_clip();
+            }
         };
+        // TODO: we should consider checking whether it exists here
         ClipSlot.prototype.get_clip = function () {
             return this.clip;
         };
@@ -59,10 +66,12 @@ var clip_slot;
             //     String(this.live_api.get('clip')).split(',').join(' '),
             //     this.messenger
             // )
-            return new Clip(new ClipDao(new LiveApiJs(String(this.live_api.get('clip')).split(',').join(' ')), this.messenger));
+            // let logger = new Logger('max');
+            // logger.log(utils.cleanse_id(this.live_api.get('clip')));
+            return new Clip(new ClipDao(new LiveApiJs(utils_1.utils.cleanse_id(this.live_api.get('clip'))), this.messenger));
         };
         ClipSlotDao.prototype.get_path = function () {
-            return this.live_api.get_path();
+            return utils_1.utils.cleanse_path(this.live_api.get_path());
         };
         ClipSlotDao.prototype.get_id = function () {
             return this.live_api.get_id();

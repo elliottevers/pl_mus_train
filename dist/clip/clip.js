@@ -256,7 +256,7 @@ var clip;
             return this.clip_live.get('start_marker')[0];
         };
         ClipDao.prototype.get_path = function () {
-            return this.clip_live.get_path();
+            return utils_1.utils.cleanse_path(this.clip_live.get_path());
         };
         ClipDao.prototype.set_loop_bracket_lower = function (beat) {
             if (this.deferlow) {

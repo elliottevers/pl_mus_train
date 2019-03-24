@@ -396,7 +396,7 @@ export namespace clip {
         }
 
         get_path(): string {
-            return this.clip_live.get_path();
+            return utils.cleanse_path(this.clip_live.get_path());
         }
 
         set_loop_bracket_lower(beat: number) {

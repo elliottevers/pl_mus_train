@@ -1,6 +1,10 @@
 
 export namespace utils {
 
+    export let cleanse_id = (string_id): string => {
+        return String(string_id).split(',').join(' ')
+    };
+
     // accepts a path directly from the DAO object
     export let cleanse_path = (path): string => {
         // return path.replace('/"', '')

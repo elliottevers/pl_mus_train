@@ -77,16 +77,37 @@ var contract_selected_track = function () {
 // delete all the track's clips
 // set the notes inside of the single clip
 var contract_track = function (path_track) {
+    var logger = new Logger(env);
+    // let thing = new ClipSlot(
+    //     new ClipSlotDao(
+    //         new LiveApiJs('id 267'),
+    //         messenger
+    //     )
+    // );
+    //
+    // thing.load_clip()
+    //
+    // logger.log(JSON.stringify(thing.get_clip().get_start_marker()));
+    //
+    // logger.log(JSON.stringify(thing.get_clip().get_end_marker()));
+    //
+    //
+    // return;
     // length of first clip
     var length_beats = get_length_beats();
     var track = new Track(new TrackDao(new live_1.live.LiveApiJs(path_track), messenger));
     // clip_slots and clips
     track.load_clips();
     var notes = track.get_notes();
+    // logger.log(JSON.stringify(notes));
     track.delete_clips();
     track.create_clip_at_index(0, length_beats);
-    var clip = track.get_clip_at_index(0);
+    var clip_slot = track.get_clip_slot_at_index(0);
+    clip_slot.load_clip();
+    var clip = clip_slot.get_clip();
     clip.set_notes(notes);
+    clip.set_endpoint_markers(0, length_beats);
+    clip.set_endpoints_loop(0, length_beats);
     // for (let clip_slot of track.get_clip_slots()) {
     //
     //     if (clip_slot.get_index() === 0) {
@@ -331,137 +352,49 @@ var expand_track_audio = function (path_track) {
         //         new Messenger(env, 0)
         //     )
         // );
-        var clip = Track.get_clip_at_index(track.get_index(), Number(i_clipslot), messenger);
+        var clip_1 = Track.get_clip_at_index(track.get_index(), Number(i_clipslot), messenger);
         var segment_2 = new Segment(note_segment);
-        clip.set_endpoints_loop(segment_2.beat_start, segment_2.beat_end);
+        clip_1.set_endpoints_loop(segment_2.beat_start, segment_2.beat_end);
     }
 };
 // let notes_segments = io.Importer.import('segment');
 var expand_track = function (path_track) {
     var logger = new Logger(env);
-    //
-    // let clipslot_highlighted = new li.LiveApiJs(
-    //     path_clip_slot
-    // );
-    //
-    // let path_track = clipslot_highlighted.get_path();
-    //
-    // let index_track = path_track.split(' ')[2];
-    //
-    // let clip_highlighted = new Clip(
-    //     new ClipDao(
-    //         new li.LiveApiJs(
-    //             [path_clip_slot, 'clip'].join(' ')
-    //         ),
-    //         new Messenger(env, 0)
-    //     )
-    // );
-    // logger.log(path_track);
     var track = new Track(new TrackDao(new LiveApiJs(path_track), messenger));
-    //
-    // let clip_slot = new ClipSlot(
-    //     new ClipSlotDao(
-    //         new LiveApiJs('id 15'),
-    //         messenger
-    //     )
-    // );
-    //
-    // clip_slot.load_clip();
-    //
-    // logger.log(JSON.stringify(clip_slot.b_has_clip()));
-    // logger.log(path_track);
-    // return;
-    // logger.log(JSON.stringify(track.track_dao.live_api.get('clip_slots')));
     track.load_clips();
-    var clip = track.get_clip_at_index(0);
-    // get first clip
-    // get its notes
+    var clip_slot = track.get_clip_slot_at_index(0);
+    clip_slot.load_clip();
+    var clip = clip_slot.get_clip();
     var notes_clip = clip.get_notes(clip.get_loop_bracket_lower(), 0, clip.get_loop_bracket_upper(), 128);
-    // TODO: put back in please
-    // let notes_segments = get_notes_segments();
-    // logger.log(JSON.stringify(notes_clip));
-    // return;
     var notes_segments = get_notes_segments();
-    logger.log(JSON.stringify(notes_segments));
+    // logger.log(JSON.stringify(notes_segments));
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
         segments.push(new Segment(note));
     }
     var song_read = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
-    // let song_write = new Song(
-    //     new SongDao(
-    //         new li.LiveApiJs(
-    //             'live_set'
-    //         ),
-    //         new Messenger(env, 0),
-    //         true,
-    //         'song'
-    //     )
-    // );
-    // let song = new li.LiveApiJs(
-    //     'live_set'
-    // );
-    // let logger = new Logger(env);
     var length_beats = get_length_beats();
     song_read.load_scenes();
     var _loop_1 = function (i_segment) {
         var segment_3 = segments[Number(i_segment)];
-        // let path_clipslot = ['live_set', 'tracks', String(index_track), 'clip_slots', String(Number(i_segment))];
-        //
-        // let path_live = path_clipslot.join(' ');
-        // let scene = new li.LiveApiJs(
-        //     ['live_set', 'scenes', String(Number(i_segment))].join(' ')
-        // );
         var scene = song_read.get_scene_at_index(Number(i_segment));
         var scene_exists = scene !== null;
         if (!scene_exists) {
-            // song.call('create_scene', String(Number(i_segment)))
             song_read.create_scene_at_index(Number(i_segment));
         }
-        // let clipslot = new li.LiveApiJs(
-        //     path_live
-        // );
-        // logger.log(JSON.stringify(track.get_index()));
-        // utils.cleanse_path(track.track_dao.get_path());
-        // let thing = String(track.track_dao.get_path()).split(' ').map((text) => {
-        //     return text.replace('\"', '')
-        // }).join(' ');
-        //
-        // // logger.log(JSON.stringify(String(track.track_dao.get_path()).split(' ')));
-        // logger.log(JSON.stringify(track.get_index()));
-        //
-        //
-        // return;
-        var clip_slot = Track.get_clip_slot_at_index(track.get_index(), Number(i_segment), messenger);
-        clip_slot.load_clip();
+        var clip_slot_1 = Track.get_clip_slot_at_index(track.get_index(), Number(i_segment), messenger);
+        clip_slot_1.load_clip();
         if (Number(i_segment) === 0) {
-            clip_slot.delete_clip();
+            clip_slot_1.delete_clip();
         }
-        clip_slot.create_clip(length_beats);
-        clip_slot.load_clip();
-        var clip_1 = clip_slot.get_clip();
-        clip_1.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
-        // logger.log(JSON.stringify(segment.get_endpoints_loop()[0]));
-        // logger.log(JSON.stringify(segment.get_endpoints_loop()[1]));
-        // clipslot.call('create_clip', String(length_beats));
-        // let path_clip = path_clipslot.concat('clip').join(' ');
-        //
-        // let clip = new Clip(
-        //     new ClipDao(
-        //         new li.LiveApiJs(
-        //             path_clip
-        //         ),
-        //         new Messenger(env, 0)
-        //     )
-        // );
-        // clip.set_endpoints_loop(
-        //     segment.get_endpoints_loop()[0],
-        //     segment.get_endpoints_loop()[1]
-        // );
-        clip_1.set_endpoint_markers(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        clip_slot_1.create_clip(length_beats);
+        clip_slot_1.load_clip();
+        var clip_2 = clip_slot_1.get_clip();
+        clip_2.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        clip_2.set_endpoint_markers(0, length_beats);
         var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
-        clip_1.set_notes(notes_within_segment);
+        clip_2.set_notes(notes_within_segment);
     };
     for (var i_segment in segments) {
         _loop_1(i_segment);

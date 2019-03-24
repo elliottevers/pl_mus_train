@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
 (function (utils) {
+    utils.cleanse_id = function (string_id) {
+        return String(string_id).split(',').join(' ');
+    };
     // accepts a path directly from the DAO object
     utils.cleanse_path = function (path) {
         // return path.replace('/"', '')
