@@ -65,19 +65,10 @@ export namespace track {
             this.track_dao = track_dao;
         }
 
-        public mute() {
-            this.track_dao.mute(1);
-        }
-
-        public unmute() {
-            this.track_dao.mute(0);
-        }
-
         public static get_clip_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): Clip {
             return new Clip(
                 new ClipDao(
                     new LiveApiJs(
-                        // path_clipslot.split(' ').concat(['clip']).join(' ')
                         ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot), 'clip'].join(' ')
                     ),
                     messenger
@@ -85,19 +76,33 @@ export namespace track {
             );
         }
 
-        // TODO: maintain an interval tree
-        public get_clip_at_interval() {
-
+        public static get_clip_slot_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): ClipSlot {
+            return new ClipSlot(
+                new ClipSlotDao(
+                    new LiveApiJs(
+                        ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot)].join(' ')
+                    ),
+                    messenger
+                )
+            );
         }
 
         public get_index(): number {
-            return
+            return Number(this.track_dao.get_path().split(' ')[2])
         }
 
         public load_clip_slots(): void {
             this.clip_slots = this.track_dao.get_clip_slots();
-            let logger = new Logger('max');
-            logger.log(this.track_dao.get_clip_slots().length);
+            // let logger = new Logger('max');
+            // logger.log(this.track_dao.get_clip_slots().length);
+        }
+
+        public mute() {
+            this.track_dao.mute(true);
+        }
+
+        public unmute() {
+            this.track_dao.mute(false);
         }
 
         // public load_clips(): void {
@@ -122,35 +127,29 @@ export namespace track {
         load_clips() {
             this.load_clip_slots();
 
-            let logger = new Logger('max');
+            // let logger = new Logger('max');
             // logger.log(JSON.stringify(this.clip_slots))
 
             for (let clip_slot of this.clip_slots) {
                 clip_slot.load_clip();
-                if (clip_slot.b_has_clip()) {
-                    logger.log(JSON.stringify(clip_slot.get_clip().get_notes_within_markers()))
-                }
+                // if (clip_slot.b_has_clip()) {
+                //     logger.log(JSON.stringify(clip_slot.get_clip().get_notes_within_markers()))
+                // }
             }
         }
 
-        public load() {
-
-        }
-
         public delete_clips() {
-
+            for (let clip_slot of this.clip_slots) {
+                clip_slot.delete_clip()
+            }
         }
 
-        public create_clip_at_index(index: number): void {
-
+        public create_clip_at_index(index: number, length_beats: number): void {
+            this.clip_slots[index].create_clip(length_beats)
         }
 
         public get_clip_slot_at_index(index_clip_slot: number): ClipSlot {
-            return
-        }
-
-        public static get_clip_slot_at_index(index_track: number, index_clip_slot: number): ClipSlot {
-            return
+            return this.clip_slots[index_clip_slot]
         }
 
         // TODO: should return null if the there aren't even that many scenes
@@ -203,9 +202,9 @@ export namespace track {
 
         }
 
-        get_num_clip_slots(): number {
-            return this.num_clip_slots;
-        }
+        // get_num_clip_slots(): number {
+        //     return this.num_clip_slots;
+        // }
 
         get_notes(): TreeModel.Node<Note>[] {
             let notes_amassed = [];
@@ -223,31 +222,7 @@ export namespace track {
         }
 
         get_clip_slots() {
-            // let data_clip_slots = this.live_api.get("clip_slots");
-            //
-            // let clip_slots = [];
-            //
-            // let clip_slot = [];
-            //
-            // for (let i_datum in data_clip_slots) {
-            //
-            //     let datum = Number(i_datum);
-            //
-            //     clip_slot.push(datum);
-            //
-            //     if (Number(i_datum) % 2 === 1) {
-            //         clip_slots.push(clip_slot)
-            //     }
-            // }
-            //
-            // return clip_slots
-
-            let data: string[] = [];
-            for (let i of _.range(0, this.num_clip_slots)) {
-                data.push('id');
-                data.push(String(i));
-            }
-            return data;
+            return
         }
     }
 

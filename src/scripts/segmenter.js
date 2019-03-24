@@ -77,10 +77,10 @@ var contract_track = function (path_track) {
     var length_beats = get_length_beats();
     var track = new Track(new TrackDao(new live_1.live.LiveApiJs(path_track), messenger));
     // clip_slots and clips
-    track.load();
+    track.load_clips();
     var notes = track.get_notes();
     track.delete_clips();
-    track.create_clip_at_index(0);
+    track.create_clip_at_index(0, length_beats);
     var clip = track.get_clip_at_index(0);
     clip.set_notes(notes);
     // for (let clip_slot of track.get_clip_slots()) {
@@ -200,7 +200,7 @@ var get_notes_segments = function () {
     // let this_device = new li.LiveApiJs('this_device');
     // let path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
     var track_segments = utils_1.utils.get_this_track();
-    track_segments.load();
+    track_segments.load_clips();
     return track_segments.get_notes();
     // return get_notes_on_track(path_this_track)
 };
@@ -217,7 +217,7 @@ var contract_selected_audio_track = function () {
 var contract_track_audio = function (path_track) {
     var length_beats = get_length_beats();
     var track = new Track(new TrackDao(new live_1.live.LiveApiJs(path_track), messenger));
-    track.load();
+    track.load_clips();
     var clip_slots = track.get_clip_slots();
     for (var i_clip_slot_audio in clip_slots) {
         var clip_slot_audio = clip_slots[Number(i_clip_slot_audio)];
@@ -408,7 +408,7 @@ var expand_track = function (path_track) {
         // let clipslot = new li.LiveApiJs(
         //     path_live
         // );
-        var clip_slot_2 = Track.get_clip_slot_at_index(track.get_index(), Number(i_segment));
+        var clip_slot_2 = Track.get_clip_slot_at_index(track.get_index(), Number(i_segment), messenger);
         if (Number(i_segment) === 0) {
             // clipslot.call('delete_clip');
             clip_slot_2.delete_clip();

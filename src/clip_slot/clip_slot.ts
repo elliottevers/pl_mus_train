@@ -24,20 +24,20 @@ export namespace clip_slot {
             return this.clip !== null
         }
 
-        delete_clip() {
-
+        delete_clip(): void {
+            this.clip_slot_dao.delete_clip()
         }
 
-        duplicate_clip_to(clip_slot: ClipSlot) {
+        duplicate_clip_to(clip_slot: ClipSlot): void {
             this.clip_slot_dao.duplicate_clip_to(clip_slot.get_id())
         }
 
         get_id(): number {
-            return
+            return this.clip_slot_dao.get_id()
         }
 
         create_clip(length_beats: number): void {
-
+            this.clip_slot_dao.create_clip(length_beats);
         }
 
         load_clip(): void {
@@ -61,6 +61,10 @@ export namespace clip_slot {
 
         get_path()
 
+        get_id()
+
+        create_clip(length_beats: number): void
+
     }
 
     export class ClipSlotDao implements iClipSlotDao {
@@ -69,8 +73,12 @@ export namespace clip_slot {
         private messenger: Messenger;
 
         constructor(live_api: LiveApiJs, messenger: Messenger) {
-            this.live_api = live_api
+            this.live_api = live_api;
             this.messenger = messenger;
+        }
+
+        create_clip(length_beats: number) {
+            this.live_api.call("create_clip", String(length_beats))
         }
 
         delete_clip() {
@@ -100,7 +108,11 @@ export namespace clip_slot {
         }
 
         get_path(): string {
-            return
+            return this.live_api.get_path()
+        }
+
+        get_id(): number {
+            return this.live_api.get_id()
         }
     }
 }

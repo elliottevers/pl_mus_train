@@ -137,13 +137,13 @@ let contract_track = (path_track) => {
     );
 
     // clip_slots and clips
-    track.load();
+    track.load_clips();
 
     let notes = track.get_notes();
 
     track.delete_clips();
 
-    track.create_clip_at_index(0);
+    track.create_clip_at_index(0, length_beats);
 
     let clip = track.get_clip_at_index(0);
 
@@ -274,7 +274,7 @@ let get_notes_segments = () => {
     // let this_device = new li.LiveApiJs('this_device');
     // let path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
     let track_segments = utils.get_this_track();
-    track_segments.load();
+    track_segments.load_clips();
     return track_segments.get_notes();
     // return get_notes_on_track(path_this_track)
 };
@@ -305,7 +305,7 @@ let contract_track_audio = (path_track) => {
         )
     );
 
-    track.load();
+    track.load_clips();
 
     let clip_slots = track.get_clip_slots();
 
@@ -634,7 +634,8 @@ let expand_track = (path_track) => {
 
         let clip_slot = Track.get_clip_slot_at_index(
             track.get_index(),
-            Number(i_segment)
+            Number(i_segment),
+            messenger
         );
 
         if (Number(i_segment) === 0) {

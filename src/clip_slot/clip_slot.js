@@ -17,14 +17,16 @@ var clip_slot;
             return this.clip !== null;
         };
         ClipSlot.prototype.delete_clip = function () {
+            this.clip_slot_dao.delete_clip();
         };
         ClipSlot.prototype.duplicate_clip_to = function (clip_slot) {
             this.clip_slot_dao.duplicate_clip_to(clip_slot.get_id());
         };
         ClipSlot.prototype.get_id = function () {
-            return;
+            return this.clip_slot_dao.get_id();
         };
         ClipSlot.prototype.create_clip = function (length_beats) {
+            this.clip_slot_dao.create_clip(length_beats);
         };
         ClipSlot.prototype.load_clip = function () {
             this.clip = this.clip_slot_dao.get_clip();
@@ -40,6 +42,9 @@ var clip_slot;
             this.live_api = live_api;
             this.messenger = messenger;
         }
+        ClipSlotDao.prototype.create_clip = function (length_beats) {
+            this.live_api.call("create_clip", String(length_beats));
+        };
         ClipSlotDao.prototype.delete_clip = function () {
             this.live_api.call("delete_clip");
         };
@@ -56,7 +61,10 @@ var clip_slot;
             return new Clip(new ClipDao(new LiveApiJs(String(this.live_api.get('clip')).split(',').join(' ')), this.messenger));
         };
         ClipSlotDao.prototype.get_path = function () {
-            return;
+            return this.live_api.get_path();
+        };
+        ClipSlotDao.prototype.get_id = function () {
+            return this.live_api.get_id();
         };
         return ClipSlotDao;
     }());
