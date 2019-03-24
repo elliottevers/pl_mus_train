@@ -40,7 +40,7 @@ export namespace clip_slot {
         }
 
         get_clip(): Clip {
-
+            return
         }
     }
 
@@ -50,7 +50,7 @@ export namespace clip_slot {
 
         has_clip()
 
-        duplicate_clip_to()
+        duplicate_clip_to(id: number)
 
     }
 

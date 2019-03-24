@@ -56,6 +56,8 @@ export namespace track {
 
         public track_dao;
 
+        clip_slots: ClipSlot[];
+
         constructor(track_dao: iTrackDao) {
             this.track_dao = track_dao;
         }
@@ -68,13 +70,14 @@ export namespace track {
             this.track_dao.mute(0);
         }
 
-        public static get_clip_at_index(index_track: number, index_clip_slot: number): Clip {
+        public static get_clip_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): Clip {
             return new Clip(
                 new ClipDao(
                     new LiveApiJs(
-                        path_clipslot.split(' ').concat(['clip']).join(' ')
+                        // path_clipslot.split(' ').concat(['clip']).join(' ')
+                        ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot), 'clip'].join(' ')
                     ),
-                    new Messenger(env, 0)
+                    messenger
                 )
             );
         }
@@ -132,9 +135,9 @@ export namespace track {
         // NB: assumes that the clips form a perfect partition of the duration inside the start, end marker
         get_notes(): TreeModel.Node<Note>[] {
             let notes_amassed = [];
-            for (let clip of this.clip_slots) {
+            for (let clip_slot of this.clip_slots) {
                 notes_amassed = notes_amassed.concat(
-                    clip.get_notes_within_markers()
+                    clip_slot.get_clip().get_notes_within_markers()
                 )
             }
             return notes_amassed;
@@ -251,7 +254,7 @@ export namespace track {
 
         // implement the amassing notes logic
         get_notes(): TreeModel.Node<Note>[] {
-
+            return
         }
     }
 }

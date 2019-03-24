@@ -11,9 +11,9 @@ export namespace clip {
     import Logger = log.Logger;
     import ClipLive = live.ClipLive;
 
-    export class Clip implements ClipLive {
+    export class Clip {
 
-        public clip_dao;
+        public clip_dao; // : ClipLive;
 
         private notes: TreeModel.Node<n.Note>[];
 

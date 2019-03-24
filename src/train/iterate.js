@@ -139,9 +139,9 @@ var iterate;
     var FactoryMatrixObjectives = /** @class */ (function () {
         function FactoryMatrixObjectives() {
         }
-        FactoryMatrixObjectives.create_matrix_objectives = function (algorithm, segments) {
+        FactoryMatrixObjectives.create_matrix_objectives = function (trainable, segments) {
             var matrix_data = [];
-            switch (algorithm.get_name()) {
+            switch (trainable.get_name()) {
                 case algorithm_1.algorithm.DETECT: {
                     for (var i = 0; i < 1; i++) {
                         matrix_data[i] = new Array(segments.length);
@@ -155,13 +155,13 @@ var iterate;
                     break;
                 }
                 case algorithm_1.algorithm.PARSE: {
-                    for (var i = 0; i < algorithm.get_depth(); i++) {
+                    for (var i = 0; i < trainable.get_depth(); i++) {
                         matrix_data[i] = new Array(segments.length);
                     }
                     break;
                 }
                 case algorithm_1.algorithm.DERIVE: {
-                    for (var i = 0; i < algorithm.get_depth(); i++) {
+                    for (var i = 0; i < trainable.get_depth(); i++) {
                         matrix_data[i] = new Array(segments.length);
                     }
                     break;
@@ -178,10 +178,10 @@ var iterate;
     var IteratorTrainFactory = /** @class */ (function () {
         function IteratorTrainFactory() {
         }
-        IteratorTrainFactory.get_iterator_train = function (algorithm, segments) {
+        IteratorTrainFactory.get_iterator_train = function (trainable, segments) {
             var iterator;
             var downward, rightward;
-            switch (algorithm.get_name()) {
+            switch (trainable.get_name()) {
                 case algorithm_1.algorithm.DETECT: {
                     iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
                     break;
@@ -193,21 +193,21 @@ var iterate;
                 case algorithm_1.algorithm.PARSE: {
                     downward = false;
                     rightward = true;
-                    var index_row_start = algorithm.get_depth() - 1;
+                    var index_row_start = trainable.get_depth() - 1;
                     var index_row_stop = 1;
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
+                    iterator = new MatrixIterator(trainable.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
                     break;
                 }
                 case algorithm_1.algorithm.DERIVE: {
                     downward = true;
                     rightward = true;
                     var index_row_start = 1;
-                    var index_row_stop = algorithm.get_depth();
-                    iterator = new MatrixIterator(algorithm.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
+                    var index_row_stop = trainable.get_depth();
+                    iterator = new MatrixIterator(trainable.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
                     break;
                 }
                 default: {
-                    throw ['algorithm of name', algorithm.get_name(), 'not supported'].join(' ');
+                    throw ['algorithm of name', trainable.get_name(), 'not supported'].join(' ');
                 }
             }
             return iterator;

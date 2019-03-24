@@ -1,0 +1,1 @@
+Global.train.patcher = this.patcher;

@@ -2,14 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
-var messenger_1 = require("../message/messenger");
 var _ = require('underscore');
 var track;
 (function (track) {
     var LiveApiJs = live_1.live.LiveApiJs;
     var Clip = clip_1.clip.Clip;
     var ClipDao = clip_1.clip.ClipDao;
-    var Messenger = messenger_1.message.Messenger;
     // export let get_notes_on_track = (path_track) => {
     //     let index_track = Number(path_track.split(' ')[2]);
     //
@@ -57,8 +55,10 @@ var track;
         Track.prototype.unmute = function () {
             this.track_dao.mute(0);
         };
-        Track.get_clip_at_index = function (index_track, index_clip_slot) {
-            return new Clip(new ClipDao(new LiveApiJs(path_clipslot.split(' ').concat(['clip']).join(' ')), new Messenger(env, 0)));
+        Track.get_clip_at_index = function (index_track, index_clip_slot, messenger) {
+            return new Clip(new ClipDao(new LiveApiJs(
+            // path_clipslot.split(' ').concat(['clip']).join(' ')
+            ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot), 'clip'].join(' ')), messenger));
         };
         // TODO: maintain an interval tree
         Track.prototype.get_clip_at_interval = function () {
@@ -96,8 +96,8 @@ var track;
         Track.prototype.get_notes = function () {
             var notes_amassed = [];
             for (var _i = 0, _a = this.clip_slots; _i < _a.length; _i++) {
-                var clip_2 = _a[_i];
-                notes_amassed = notes_amassed.concat(clip_2.get_notes_within_markers());
+                var clip_slot_1 = _a[_i];
+                notes_amassed = notes_amassed.concat(clip_slot_1.get_clip().get_notes_within_markers());
             }
             return notes_amassed;
         };
@@ -120,8 +120,8 @@ var track;
         TrackDaoVirtual.prototype.get_notes = function () {
             var notes_amassed = [];
             for (var _i = 0, _a = this.clips; _i < _a.length; _i++) {
-                var clip_3 = _a[_i];
-                notes_amassed = notes_amassed.concat(clip_3.get_notes(clip_3.get_loop_bracket_lower(), 0, clip_3.get_loop_bracket_upper(), 128));
+                var clip_2 = _a[_i];
+                notes_amassed = notes_amassed.concat(clip_2.get_notes(clip_2.get_loop_bracket_lower(), 0, clip_2.get_loop_bracket_upper(), 128));
             }
             return notes_amassed;
         };
@@ -182,6 +182,7 @@ var track;
         };
         // implement the amassing notes logic
         TrackDao.prototype.get_notes = function () {
+            return;
         };
         return TrackDao;
     }());

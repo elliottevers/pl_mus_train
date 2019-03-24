@@ -97,7 +97,7 @@ export namespace freeze {
         public freeze(trainer: Trainer, filepath: string) {
             let data_serializable = trainer.history_user_input.matrix_data as any;
 
-            switch (trainer.algorithm.get_name()) {
+            switch (trainer.trainable.get_name()) {
                 case DETECT: {
                     for (let i_row in trainer.history_user_input.matrix_data) {
                         for (let i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
@@ -162,12 +162,10 @@ export namespace thaw {
             trainer =  new Trainer(
                 config['window'],
                 config['user_input_handler'],
-                config['algorithm'],
-                config['clip_user_input'],
-                config['clip_user_input_synchronous'],
+                config['trainable'],
                 config['track_target'],
+                config['track_user_input'],
                 config['song'],
-                config['segments'],
                 config['messenger']
             );
 

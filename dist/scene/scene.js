@@ -16,12 +16,21 @@ var scene;
         return Scene;
     }());
     scene.Scene = Scene;
+    var SceneDaoVirtual = /** @class */ (function () {
+        function SceneDaoVirtual() {
+        }
+        SceneDaoVirtual.prototype.fire = function (force_legato) {
+            return;
+        };
+        return SceneDaoVirtual;
+    }());
+    scene.SceneDaoVirtual = SceneDaoVirtual;
     var SceneDao = /** @class */ (function () {
         function SceneDao(live_api) {
             this.live_api = live_api;
         }
         SceneDao.prototype.fire = function (force_legato) {
-            this.live_api.call("fire", force_legato ? 1 : 0);
+            this.live_api.call("fire", force_legato ? '1' : '0');
         };
         return SceneDao;
     }());

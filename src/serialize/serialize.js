@@ -81,7 +81,7 @@ var freeze;
         }
         TrainFreezer.prototype.freeze = function (trainer, filepath) {
             var data_serializable = trainer.history_user_input.matrix_data;
-            switch (trainer.algorithm.get_name()) {
+            switch (trainer.trainable.get_name()) {
                 case DETECT: {
                     for (var i_row in trainer.history_user_input.matrix_data) {
                         for (var i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
@@ -130,7 +130,7 @@ var thaw;
         TrainThawer.prototype.thaw = function (filepath, config) {
             var trainer;
             var matrix_deserialized = from_json(filepath, config['env']);
-            trainer = new Trainer(config['window'], config['user_input_handler'], config['algorithm'], config['clip_user_input'], config['clip_user_input_synchronous'], config['track_target'], config['song'], config['segments'], config['messenger']);
+            trainer = new Trainer(config['window'], config['user_input_handler'], config['trainable'], config['track_target'], config['track_user_input'], config['song'], config['messenger']);
             trainer.init(true);
             switch (config['algorithm'].get_name()) {
                 case DETECT: {

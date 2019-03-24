@@ -20,6 +20,7 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
+var messenger = new Messenger(env, 0);
 // get the first clip and use its start and end markers to determine the length of the entire song
 var get_length_beats = function () {
     // let this_device = new LiveApiJs('this_device');
@@ -326,7 +327,7 @@ var expand_track_audio = function (path_track) {
         //         new Messenger(env, 0)
         //     )
         // );
-        var clip_1 = Track.get_clip_at_index(track.get_index(), Number(i_clipslot));
+        var clip_1 = Track.get_clip_at_index(track.get_index(), Number(i_clipslot), messenger);
         var segment_2 = new Segment(note_segment);
         clip_1.set_endpoints_loop(segment_2.beat_start, segment_2.beat_end);
     }

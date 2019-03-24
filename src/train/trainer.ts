@@ -42,7 +42,7 @@ export namespace trainer {
 
     export class Trainer {
 
-        private window;
+        private window: MatrixWindow;
         public trainable: Trainable; // TODO: type
         public clip_user_input_async: Clip;
         public clip_user_input_sync: Clip;
@@ -155,9 +155,10 @@ export namespace trainer {
         public render_window() {
             this.window.render(
                 this.iterator_matrix_train,
-                this.target_current,
                 this.trainable,
-                this.struct_parse
+                this.target_current,
+                this.struct_parse,
+                // this.segment_current
             )
         }
 

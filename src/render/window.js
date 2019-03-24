@@ -16,7 +16,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
-var algorithm_1 = require("../train/algorithm");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
@@ -155,8 +154,7 @@ var window;
             return _super.call(this, height, width, messenger) || this;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, target_current, // only for detect/predict
-        struct_parse, // only for parse/derive
-        segment_current) {
+        struct_parse) {
             this.clear();
             // TODO: compensate for this logic
             // if (this.algorithm.b_targeted()) {
@@ -164,19 +162,22 @@ var window;
             //         return subtarget.note
             //     })
             // }
-            var notes_in_region = trainable.get_notes_in_region(target_current, segment_current);
-            this.render_regions(iterator_matrix_train, algorithm_1.algorithm, target_current, struct_parse);
-            this.render_clips(iterator_matrix_train, algorithm_1.algorithm, target_current, struct_parse);
-            this.render_trees(struct_parse);
+            // let notes_in_region = trainable.get_notes_in_region(
+            //     target_current,
+            //     segment_current
+            // );
+            this.render_regions(iterator_matrix_train, trainable, target_current, struct_parse);
+            this.render_clips(trainable, struct_parse);
+            this.render_trees(struct_parse, trainable);
         };
-        MatrixWindow.prototype.render_trees = function (parse_matrix) {
-            var messages_render_trees = this.get_messages_render_trees(parse_matrix);
+        MatrixWindow.prototype.render_trees = function (struct_parse, trainable) {
+            var messages_render_trees = this.get_messages_render_trees(struct_parse, trainable);
             for (var _i = 0, messages_render_trees_1 = messages_render_trees; _i < messages_render_trees_1.length; _i++) {
                 var message_tree = messages_render_trees_1[_i];
                 this.messenger.message(message_tree);
             }
         };
-        MatrixWindow.prototype.get_messages_render_trees = function (struct_parse) {
+        MatrixWindow.prototype.get_messages_render_trees = function (struct_parse, trainable) {
             var _this = this;
             if (struct_parse === null) {
                 return [];
@@ -201,10 +202,10 @@ var window;
                                 var child = _a[_i];
                                 message = [
                                     "linesegment",
-                                    _this.get_centroid(child)[0],
-                                    _this.get_centroid(child)[1],
-                                    _this.get_centroid(node)[0],
-                                    _this.get_centroid(node)[1]
+                                    _this.get_centroid(child, trainable)[0],
+                                    _this.get_centroid(child, trainable)[1],
+                                    _this.get_centroid(node, trainable)[0],
+                                    _this.get_centroid(node, trainable)[1]
                                 ];
                                 color = black;
                                 messages.push(message.concat(color));
@@ -216,10 +217,10 @@ var window;
             }
             return messages;
         };
-        MatrixWindow.prototype.get_centroid = function (node) {
+        MatrixWindow.prototype.get_centroid = function (node, trainable) {
             var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
             var coord_clip = node.model.note.get_coordinates_matrix();
-            var index_clip = this.algorithm.coord_to_index_clip(coord_clip);
+            var index_clip = trainable.coord_to_index_clip(coord_clip);
             // TODO: determine how to get the index of the clip from just depth of the node
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
@@ -231,8 +232,8 @@ var window;
             ];
         };
         ;
-        MatrixWindow.prototype.render_clips = function (iterator_matrix_train, struct_parse) {
-            var messages_render_clips = this.get_messages_render_clips(iterator_matrix_train, struct_parse);
+        MatrixWindow.prototype.render_clips = function (trainable, struct_parse) {
+            var messages_render_clips = this.get_messages_render_clips(trainable, struct_parse);
             for (var _i = 0, messages_render_clips_1 = messages_render_clips; _i < messages_render_clips_1.length; _i++) {
                 var messages_notes = messages_render_clips_1[_i];
                 for (var _a = 0, messages_notes_1 = messages_notes; _a < messages_notes_1.length; _a++) {
@@ -241,14 +242,14 @@ var window;
                 }
             }
         };
-        MatrixWindow.prototype.get_messages_render_clips = function (iterator_matrix_train, parse_matrix) {
+        MatrixWindow.prototype.get_messages_render_clips = function (trainable, struct_parse) {
             var messages = [];
-            var b_targeted = (parse_matrix === null);
+            var b_targeted = (struct_parse === null);
             // make abstraction that gets the renderable regions
-            algorithm_1.algorithm.get_regions_renderable();
-            for (var _i = 0, _a = algorithm_1.algorithm.get_regions_renderable(); _i < _a.length; _i++) {
+            struct_parse.get_regions_renderable();
+            for (var _i = 0, _a = struct_parse.get_regions_renderable(); _i < _a.length; _i++) {
                 var coord = _a[_i];
-                messages.push(this.get_messages_render_clip(algorithm_1.algorithm.coord_to_index_clip(coord)));
+                messages.push(this.get_messages_render_clip(trainable.coord_to_index_clip(coord)));
             }
             // if (b_targeted) {
             //
@@ -294,27 +295,26 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        MatrixWindow.prototype.render_regions = function (trainable, iterator_matrix_train) {
+        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, trainable, target_current, struct_parse) {
             var notes, coord;
             var interval_current;
-            // let notes_region_current = algorithm; // either segment of target note
-            interval_current = trainable.determine_region_present(notes_region_current);
             // prediction/detection need the current target, while parse/derive need the current segment
             if (trainable.b_targeted) {
+                var notes_target_current = target_current.get_notes();
                 interval_current = trainable.determine_region_present(notes_target_current);
             }
             else {
-                if (trainer.iterator_matrix_train.done) {
+                if (iterator_matrix_train.done) {
                     interval_current = [
-                        trainer.struct_parse.get_root().model.note.get_beat_end(),
-                        trainer.struct_parse.get_root().model.note.get_beat_end()
+                        struct_parse.get_root().model.note.get_beat_end(),
+                        struct_parse.get_root().model.note.get_beat_end()
                     ];
                 }
                 else {
-                    coord = trainer.iterator_matrix_train.get_coord_current();
+                    coord = iterator_matrix_train.get_coord_current();
                     var coord_segment = [0, coord[1]];
-                    notes = trainer.struct_parse.get_notes_at_coord(coord_segment);
-                    interval_current = algorithm_1.algorithm.determine_region_present(notes);
+                    notes = struct_parse.get_notes_at_coord(coord_segment);
+                    interval_current = trainable.determine_region_present(notes);
                 }
             }
             var quadruplet_region_past = this.get_message_render_region_past(interval_current);

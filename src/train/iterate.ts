@@ -5,8 +5,9 @@ import {segment} from "../segment/segment";
 export namespace iterate {
     import division_int = utils.division_int;
     import remainder = utils.remainder;
-    import Algorithm = algorithm.Algorithm;
+    // import Algorithm = algorithm.Algorithm;
     import Segment = segment.Segment;
+    import Trainable = algorithm.Trainable;
 
     export class MatrixIterator {
 
@@ -173,11 +174,11 @@ export namespace iterate {
     }
 
     export class FactoryMatrixObjectives {
-        public static create_matrix_objectives(algorithm: Algorithm, segments: Segment[]): any[][] {
+        public static create_matrix_objectives(trainable: Trainable, segments: Segment[]): any[][] {
 
             let matrix_data = [];
 
-            switch(algorithm.get_name()) {
+            switch(trainable.get_name()) {
                 case algo.DETECT: {
                     for (let i=0; i < 1; i++) {
                         matrix_data[i] = new Array(segments.length);
@@ -191,13 +192,13 @@ export namespace iterate {
                     break;
                 }
                 case algo.PARSE: {
-                    for (let i=0; i < algorithm.get_depth(); i++) {
+                    for (let i=0; i < trainable.get_depth(); i++) {
                         matrix_data[i] = new Array(segments.length);
                     }
                     break;
                 }
                 case algo.DERIVE: {
-                    for (let i=0; i < algorithm.get_depth(); i++) {
+                    for (let i=0; i < trainable.get_depth(); i++) {
                         matrix_data[i] = new Array(segments.length);
                     }
                     break;
@@ -211,13 +212,13 @@ export namespace iterate {
     }
 
     export class IteratorTrainFactory {
-        public static get_iterator_train(algorithm: Algorithm, segments: Segment[]) {
+        public static get_iterator_train(trainable: Trainable, segments: Segment[]) {
 
             let iterator: MatrixIterator;
 
             let downward, rightward;
 
-            switch (algorithm.get_name()) {
+            switch (trainable.get_name()) {
                 case algo.DETECT: {
                     iterator = new MatrixIterator(
                         1,
@@ -236,10 +237,10 @@ export namespace iterate {
                 case algo.PARSE: {
                     downward = false;
                     rightward = true;
-                    let index_row_start = algorithm.get_depth() - 1;
+                    let index_row_start = trainable.get_depth() - 1;
                     let index_row_stop = 1;
                     iterator = new MatrixIterator(
-                        algorithm.get_depth(),
+                        trainable.get_depth(),
                         segments.length,
                         downward,
                         rightward,
@@ -252,9 +253,9 @@ export namespace iterate {
                     downward = true;
                     rightward = true;
                     let index_row_start = 1;
-                    let index_row_stop = algorithm.get_depth();
+                    let index_row_stop = trainable.get_depth();
                     iterator = new MatrixIterator(
-                        algorithm.get_depth(),
+                        trainable.get_depth(),
                         segments.length,
                         downward,
                         rightward,
@@ -264,7 +265,7 @@ export namespace iterate {
                     break;
                 }
                 default: {
-                    throw ['algorithm of name', algorithm.get_name(), 'not supported'].join(' ')
+                    throw ['algorithm of name', trainable.get_name(), 'not supported'].join(' ')
                 }
             }
             return iterator

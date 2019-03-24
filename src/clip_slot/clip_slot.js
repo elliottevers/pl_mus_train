@@ -21,6 +21,7 @@ var clip_slot;
         ClipSlot.prototype.load_clip = function () {
         };
         ClipSlot.prototype.get_clip = function () {
+            return;
         };
         return ClipSlot;
     }());

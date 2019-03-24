@@ -6,8 +6,9 @@ var song;
     var Song = /** @class */ (function () {
         function Song(song_dao) {
             this.song_dao = song_dao;
+            // automatically set path at time of instantiation
             if (this.song_dao.is_async()) {
-                this.set_path_deferlow();
+                this.set_path_deferlow('set_path_' + this.song_dao.key_route);
             }
         }
         Song.prototype.get_scene_at_index = function (index) {
@@ -46,13 +47,21 @@ var song;
     }());
     song.Song = Song;
     var SongDaoVirtual = /** @class */ (function () {
+        // constructor(scenes: Scene[], messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
         function SongDaoVirtual(scenes, messenger, deferlow, key_route, env) {
             this.scenes = scenes;
             if (deferlow && !key_route) {
                 throw new Error('key route not specified when using deferlow');
             }
             this.deferlow = deferlow;
+            this.key_route = key_route;
         }
+        SongDaoVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            return;
+        };
+        SongDaoVirtual.prototype.is_async = function () {
+            return this.deferlow;
+        };
         SongDaoVirtual.prototype.get_path = function () {
             return 'live_set';
         };
@@ -84,8 +93,9 @@ var song;
     }());
     song.SongDaoVirtual = SongDaoVirtual;
     var SongDao = /** @class */ (function () {
-        function SongDao(clip_live, messenger, deferlow, key_route, env) {
-            this.clip_live = clip_live;
+        function SongDao(song_live, messenger, deferlow, key_route, env) {
+            // constructor(song_live: iLiveApiJs, patcher: Patcher, deferlow?: boolean, key_route?: string, env?: string) {
+            this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
                 throw new Error('key route not specified when using deferlow');
@@ -93,6 +103,8 @@ var song;
             this.deferlow = deferlow;
             this.key_route = key_route;
             this.env = env;
+            // automatically set the deferlow path
+            // this.patcher.getnamed('song').message('set', 'session_record', String(int))
         }
         SongDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
@@ -102,28 +114,36 @@ var song;
             }
             this.messenger.message(mess);
         };
+        SongDao.prototype.is_async = function () {
+            return this.deferlow;
+        };
         SongDao.prototype.set_session_record = function (int) {
             if (this.deferlow) {
-                this.messenger.message([this.key_route, "call", "stop"]);
+                this.messenger.message([this.key_route, "set", "session_record", String(int)]);
             }
             else {
-                this.clip_live.set("session_record", int);
+                this.song_live.set("session_record", String(int));
             }
+            // if (this.deferlow) {
+            //     this.patcher.getnamed('song').message('set', 'session_record', String(int))
+            // } else {
+            //
+            // }
         };
         SongDao.prototype.set_overdub = function (int) {
-            this.clip_live.set("overdub", int);
+            this.song_live.set("overdub", int);
         };
         SongDao.prototype.set_tempo = function (int) {
-            this.clip_live.set("tempo", int);
+            this.song_live.set("tempo", int);
         };
         SongDao.prototype.start = function () {
-            this.clip_live.set("is_playing", 1);
+            this.song_live.set("is_playing", 1);
         };
         SongDao.prototype.stop = function () {
-            this.clip_live.set("is_playing", 0);
+            this.song_live.set("is_playing", 0);
         };
         SongDao.prototype.get_scenes = function () {
-            return this.clip_live.get("scenes");
+            return this.song_live.get("scenes");
         };
         SongDao.prototype.get_path = function () {
             return 'live_set';

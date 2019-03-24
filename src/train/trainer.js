@@ -43,7 +43,7 @@ var trainer;
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            this.window.render(this.iterator_matrix_train, this.target_current, this.trainable, this.struct_parse);
+            this.window.render(this.iterator_matrix_train, this.trainable, this.target_current, this.struct_parse);
         };
         Trainer.prototype.unpause = function () {
             this.trainable.unpause(this.song, this.segment_current.scene);

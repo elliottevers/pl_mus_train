@@ -14,8 +14,9 @@ export namespace song {
 
         constructor(song_dao: iSongDao) {
             this.song_dao = song_dao;
+            // automatically set path at time of instantiation
             if (this.song_dao.is_async()) {
-                this.set_path_deferlow()
+                this.set_path_deferlow('set_path_' + this.song_dao.key_route)
             }
         }
 
@@ -69,6 +70,7 @@ export namespace song {
     }
 
     export interface iSongDao {
+        key_route;
         set_session_record(int: number)
         set_overdub(int: number)
         set_tempo(int: number)
@@ -83,9 +85,11 @@ export namespace song {
     export class SongDaoVirtual implements iSongDao {
 
         private deferlow: boolean;
+        public key_route: string;
 
         scenes: Scene[];
 
+        // constructor(scenes: Scene[], messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
         constructor(scenes: Scene[], messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
             this.scenes = scenes;
 
@@ -93,6 +97,15 @@ export namespace song {
                 throw new Error('key route not specified when using deferlow');
             }
             this.deferlow = deferlow;
+            this.key_route = key_route;
+        }
+
+        public set_path_deferlow(key_route_override: string, path_live: string): void {
+            return
+        }
+
+        public is_async(): boolean {
+            return this.deferlow
         }
 
         get_path(): string {
@@ -133,14 +146,15 @@ export namespace song {
 
     export class SongDao implements iSongDao {
 
-        private clip_live: iLiveApiJs;
+        private song_live: iLiveApiJs;
         private messenger: Messenger;
         private deferlow: boolean;
-        private key_route: string;
+        public key_route: string;
         private env: string;
 
-        constructor(clip_live: iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
-            this.clip_live = clip_live;
+        constructor(song_live: iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
+        // constructor(song_live: iLiveApiJs, patcher: Patcher, deferlow?: boolean, key_route?: string, env?: string) {
+            this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
                 throw new Error('key route not specified when using deferlow');
@@ -148,6 +162,9 @@ export namespace song {
             this.deferlow = deferlow;
             this.key_route = key_route;
             this.env = env;
+
+            // automatically set the deferlow path
+            // this.patcher.getnamed('song').message('set', 'session_record', String(int))
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {
@@ -160,32 +177,41 @@ export namespace song {
             this.messenger.message(mess)
         }
 
+        public is_async(): boolean {
+            return this.deferlow;
+        }
+
         set_session_record(int) {
             if (this.deferlow) {
-                this.messenger.message([this.key_route, "call", "stop"]);
+                this.messenger.message([this.key_route, "set", "session_record", String(int)]);
             } else {
-                this.clip_live.set("session_record", int);
+                this.song_live.set("session_record", String(int));
             }
+            // if (this.deferlow) {
+            //     this.patcher.getnamed('song').message('set', 'session_record', String(int))
+            // } else {
+            //
+            // }
         }
 
         set_overdub(int) {
-            this.clip_live.set("overdub", int);
+            this.song_live.set("overdub", int);
         }
 
         set_tempo(int) {
-            this.clip_live.set("tempo", int);
+            this.song_live.set("tempo", int);
         }
 
         start() {
-            this.clip_live.set("is_playing", 1);
+            this.song_live.set("is_playing", 1);
         }
 
         stop() {
-            this.clip_live.set("is_playing", 0);
+            this.song_live.set("is_playing", 0);
         }
 
         get_scenes(): any[] {
-            return this.clip_live.get("scenes")
+            return this.song_live.get("scenes")
         }
 
         get_path(): string {

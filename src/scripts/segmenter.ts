@@ -43,6 +43,8 @@ if (env === 'max') {
     autowatch = 1;
 }
 
+let messenger = new Messenger(env, 0);
+
 // get the first clip and use its start and end markers to determine the length of the entire song
 let get_length_beats = () => {
     // let this_device = new LiveApiJs('this_device');
@@ -473,7 +475,8 @@ let expand_track_audio = (path_track) => {
 
         let clip = Track.get_clip_at_index(
             track.get_index(),
-            Number(i_clipslot)
+            Number(i_clipslot),
+            messenger
         );
 
         let segment = new Segment(note_segment);
