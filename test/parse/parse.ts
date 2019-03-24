@@ -4,10 +4,8 @@ import {user_input} from "../../src/control/user_input";
 import UserInputHandler = user_input.UserInputHandler;
 import {message} from "../../src/message/messenger";
 import Messenger = message.Messenger;
-import {live as li, live} from "../../src/live/live";
+import {live} from "../../src/live/live";
 import LiveClipVirtual = live.LiveClipVirtual;
-import {segment} from "../../src/segment/segment";
-import Segment = segment.Segment;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
 import {algorithm} from "../../src/train/algorithm";
@@ -22,18 +20,25 @@ import {modes_control, modes_texture} from "../../src/constants/constants";
 import VOCAL = modes_control.VOCAL;
 import Parse = algorithm.Parse;
 import MONOPHONY = modes_texture.MONOPHONY;
+import {track} from "../../src/track/track";
+import TrackDaoVirtual = track.TrackDaoVirtual;
+import Track = track.Track;
+import {song} from "../../src/song/song";
+import SongDaoVirtual = song.SongDaoVirtual;
+import {scene as module_scene} from "../../src/scene/scene";
+import Scene = module_scene.Scene;
+import Song = song.Song;
+import SceneDaoVirtual = module_scene.SceneDaoVirtual;
 
 
 let tree: TreeModel = new TreeModel();
-
-// let tree: TreeModel = new TreeModel();
 
 let segment_note_1_parse = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             51,
-            1,
+            0,
             4,
             90,
             0
@@ -49,7 +54,7 @@ let segment_note_2_parse = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             51,
-            5,
+            4,
             4,
             90,
             0
@@ -66,7 +71,7 @@ let note_melody_1 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             51,
-            1,
+            0,
             1,
             90,
             0
@@ -82,7 +87,7 @@ let note_melody_2 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             53,
-            2,
+            1,
             1,
             90,
             0
@@ -100,7 +105,7 @@ let note_melody_3 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             55,
-            3,
+            2,
             1,
             90,
             0
@@ -116,7 +121,7 @@ let note_melody_4 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             56,
-            4,
+            3,
             1,
             90,
             0
@@ -133,7 +138,7 @@ let note_melody_5 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             51,
-            5,
+            4,
             1,
             90,
             0
@@ -149,7 +154,7 @@ let note_melody_6 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             53,
-            6,
+            5,
             1,
             90,
             0
@@ -167,7 +172,7 @@ let note_melody_7 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             55,
-            7,
+            6,
             1,
             90,
             0
@@ -183,7 +188,7 @@ let note_melody_8 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             56,
-            8,
+            7,
             1,
             90,
             0
@@ -201,7 +206,7 @@ let note_melody_parsed_1 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             51,
-            1,
+            0,
             2,
             90,
             0
@@ -217,7 +222,7 @@ let note_melody_parsed_2 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             53,
-            3,
+            2,
             2,
             90,
             0
@@ -235,7 +240,7 @@ let note_melody_parsed_3 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             55,
-            5,
+            4,
             2,
             90,
             0
@@ -251,7 +256,7 @@ let note_melody_parsed_4 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             56,
-            7,
+            6,
             2,
             90,
             0
@@ -269,7 +274,7 @@ let note_summarized_melody_1 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             51,
-            1,
+            0,
             4,
             90,
             0
@@ -285,7 +290,7 @@ let note_summarized_melody_2 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             55,
-            5,
+            4,
             4,
             90,
             0
@@ -296,6 +301,7 @@ let note_summarized_melody_2 = tree.parse(
     }
 );
 
+// TODO: shouldn't this be automatically determined by the trainer?
 let note_summarized_root = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
@@ -329,117 +335,166 @@ let env_parse: string = 'node_for_max';
 let messenger_parse = new Messenger(env_parse, 0, 'render_parse');
 
 let algorithm_train_parse = new Parse(
-    user_input_handler_parse
-);
 
-let window_local_parse = new MatrixWindow(
-    384,
-    384,
-    messenger_parse,
-    algorithm_train_parse
 );
 
 algorithm_train_parse.set_depth(
     3
 );
 
-// stubs
-let song_parse = {
-    set_overdub: (int) => {},
-    set_session_record: (int) => {},
-    stop: () => {}
-};
+let window_local_parse = new MatrixWindow(
+    384,
+    384,
+    messenger_parse
+);
 
-let clip_user_input_parse = {
-    fire: () => {},
-    stop: () => {},
-    set_endpoints_loop: (former, latter) => {}
-};
 
-let clip_user_input_parse_synchronous = {
-    fire: () => {},
-    stop: () => {},
-    set_endpoints_loop: (former, latter) => {}
-};
 
-let scene = {
-    fire: () => {},
-    // stop: () => {},
-    // set_endpoints_loop: (former, latter) => {}
-};
 
-let notes_segments_parse = [
-    segment_note_1_parse,
-    segment_note_2_parse
-];
 
-let notes_target_clip_parse = [
-    note_melody_1,
-    note_melody_2,
-    note_melody_3,
-    note_melody_4,
-    note_melody_5,
-    note_melody_6,
-    note_melody_7,
-    note_melody_8
-];
 
-let segments_parse: Segment[] = [];
 
-for (let note of notes_segments_parse) {
-    let segment = new Segment(
-        note
-    );
 
-    // @ts-ignore
-    segment.set_scene(scene);
 
-    segments_parse.push(
-        segment
+
+let scene, scenes;
+
+scenes = [];
+
+scene = new Scene(
+    new SceneDaoVirtual(
+
     )
+);
+
+scenes.push(scene);
+
+scene = new Scene(
+    new SceneDaoVirtual(
+
+    )
+);
+
+scenes.push(scene);
+
+let song_parse = new Song(
+    new SongDaoVirtual(
+        scenes
+    )
+);
+
+// let num_clip_slots = 2;
 
 
-    // let note = notes_segments[Number(i_note)];
-    // let path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
-    // let segment_local = new Segment(
-    //     note
-    // );
-    // segment_local.set_scene(
-    //     new Scene(
-    //         new SceneDao(
-    //             new li.LiveApiJs(
-    //                 path_scene
-    //             )
-    //         )
-    //     )
-    // );
-}
+// USER INPUT CLIP - HAS THE SEGMENTS
 
-let clip_dao_virtual_parse = new LiveClipVirtual(notes_target_clip_parse);
+let clip_dao_virtual, clip_user_input;
 
-let clip_target_virtual_parse = new Clip(clip_dao_virtual_parse);
+let clips_user_input = [];
+
+
+clip_dao_virtual = new LiveClipVirtual([segment_note_1_parse]);
+
+clip_dao_virtual.beat_start = 0;
+
+clip_dao_virtual.beat_end = 4;
+
+clip_user_input = new Clip(
+    clip_dao_virtual
+);
+
+clips_user_input.push(clip_user_input);
+
+
+
+clip_dao_virtual = new LiveClipVirtual([segment_note_2_parse]);
+
+clip_dao_virtual.beat_start = 4;
+
+clip_dao_virtual.beat_end = 8;
+
+clip_user_input = new Clip(
+    clip_dao_virtual
+);
+
+clips_user_input.push(clip_user_input);
+
+
+
+let track_user_input = new Track(
+    new TrackDaoVirtual(
+        clips_user_input
+    )
+);
+
+// TARGET CLIP
+
+let clips_target = [];
+
+let clip_target;
+
+clip_dao_virtual = new LiveClipVirtual(
+    [
+        note_melody_1,
+        note_melody_2,
+        note_melody_3,
+        note_melody_4
+    ]
+);
+
+clip_dao_virtual.beat_start = 0;
+
+clip_dao_virtual.beat_end = 4;
+
+clip_target = new Clip(
+    clip_dao_virtual
+);
+
+clips_target.push(clip_target);
+
+
+
+clip_dao_virtual = new LiveClipVirtual(
+    [
+        note_melody_5,
+        note_melody_6,
+        note_melody_7,
+        note_melody_8
+    ]
+);
+
+clip_dao_virtual.beat_start = 4;
+
+clip_dao_virtual.beat_end = 8;
+
+clip_target = new Clip(
+    clip_dao_virtual
+);
+
+clips_target.push(clip_target);
+
+
+let track_target = new Track(
+    new TrackDaoVirtual(
+        clips_target
+    )
+);
+
+
 
 let trainer_local_parse = new Trainer(
     window_local_parse,
     user_input_handler_parse,
     algorithm_train_parse,
-    clip_user_input_parse,
-    clip_user_input_parse_synchronous,
-    // clip_target_virtual_parse.get_notes(
-    //     clip_target_virtual_parse.get_beat_start(),
-    //     0,
-    //     clip_target_virtual_parse.get_beat_end(),
-    //     128
-    // ),
-    notes_target_clip_parse,
+    track_target,
+    track_user_input,
     song_parse,
-    segments_parse,
     messenger_parse
 );
 
 // test case - 2 segments, 2 notes a piece
 
-trainer_local_parse.init(
+trainer_local_parse.commence(
 
 );
 
