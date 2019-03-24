@@ -20,13 +20,14 @@ var POLYPHONY = constants_1.modes_texture.POLYPHONY;
 var INSTRUMENTAL = constants_1.modes_control.INSTRUMENTAL;
 var MatrixWindow = window_1.window.MatrixWindow;
 var track_1 = require("../../src/track/track");
-var Song = song.Song;
-var ClipVirtual = clip_1.clip.ClipVirtual;
-var SongDaoVirtual = song.SongDaoVirtual;
+var song_1 = require("../../src/song/song");
+var Song = song_1.song.Song;
+var SongDaoVirtual = song_1.song.SongDaoVirtual;
 var Track = track_1.track.Track;
 var TrackDaoVirtual = track_1.track.TrackDaoVirtual;
-var SceneDaoVirtual = scene.SceneDaoVirtual;
-var Scene = scene.Scene;
+var scene_1 = require("../../src/scene/scene");
+var SceneDaoVirtual = scene_1.scene.SceneDaoVirtual;
+var Scene = scene_1.scene.Scene;
 var tree = new TreeModel();
 var segment_note_1 = tree.parse({
     id: -1,
@@ -94,75 +95,47 @@ scene = new Scene(new SceneDaoVirtual());
 scenes.push(scene);
 var song = new Song(new SongDaoVirtual(scenes));
 // let num_clip_slots = 2;
+// USER INPUT CLIP - HAS THE SEGMENTS
 var clip_dao_virtual, clip_user_input;
 var clips_user_input = [];
-clip_dao_virtual = new LiveClipVirtual([]);
-clip_dao_virtual.beat_start = 1;
-clip_dao_virtual.beat_end = 5;
+clip_dao_virtual = new LiveClipVirtual([segment_note_1]);
+clip_dao_virtual.beat_start = 0;
+clip_dao_virtual.beat_end = 4;
 clip_user_input = new Clip(clip_dao_virtual);
 clips_user_input.push(clip_user_input);
-clip_dao_virtual = new LiveClipVirtual([]);
-clip_dao_virtual.beat_start = 5;
-clip_dao_virtual.beat_end = 9;
+clip_dao_virtual = new LiveClipVirtual([segment_note_2]);
+clip_dao_virtual.beat_start = 4;
+clip_dao_virtual.beat_end = 8;
 clip_user_input = new Clip(clip_dao_virtual);
 clips_user_input.push(clip_user_input);
 var track_user_input = new Track(new TrackDaoVirtual(clips_user_input));
-// track_user_input.set_clip_at_index(
-//     new ClipVirtual(
-//         segment_note_1
-//     ),
-//     0
-// );
-// track_user_input.set_clip_at_index(
-//     new ClipVirtual(
-//         segment_note_2
-//     ),
-//     1
-// );
+// TARGET CLIP
 var clips_target = [];
-var track_target = new Track(new TrackDaoVirtual(clip_target));
-track_target.set_clip_at_index(new ClipVirtual(note_target_1_subtarget_1, note_target_1_subtarget_2, note_target_2_subtarget_1, note_target_2_subtarget_2), 0);
-track_target.set_clip_at_index(new ClipVirtual(note_target_3_subtarget_1, note_target_3_subtarget_2, note_target_4_subtarget_1, note_target_4_subtarget_2), 1);
-// let clip_user_input_async = {
-//     fire: () => {},
-//     stop: () => {},
-//     set_endpoints_loop: (former, latter) => {}
-// };
-//
-// let clip_user_input_synchronous = {
-//     fire: () => {},
-//     stop: () => {},
-//     set_endpoints_loop: (former, latter) => {}
-// };
-// let notes_segments = [
-//     segment_note_1,
-//     segment_note_2
-// ];
-// let notes_target_clip = [
-//     note_target_1_subtarget_1,
-//     note_target_1_subtarget_2,
-//     note_target_2_subtarget_1,
-//     note_target_2_subtarget_2,
-//     note_target_3_subtarget_1,
-//     note_target_3_subtarget_2,
-//     note_target_4_subtarget_1,
-//     note_target_4_subtarget_2
-// ];
-// let segments: Segment[] = [];
-//
-// for (let note of notes_segments) {
-//     segments.push(
-//         new Segment(
-//             note
-//         )
-//     )
-// }
-// let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
-//
-// let clip_target = new Clip(clip_dao_virtual);
-var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, track_target, track_user_input, song, messenger);
+var clip_target;
+clip_dao_virtual = new LiveClipVirtual([
+    note_target_1_subtarget_1,
+    note_target_1_subtarget_2,
+    note_target_2_subtarget_1,
+    note_target_2_subtarget_2
+]);
+clip_dao_virtual.beat_start = 0;
+clip_dao_virtual.beat_end = 4;
+clip_target = new Clip(clip_dao_virtual);
+clips_target.push(clip_target);
+clip_dao_virtual = new LiveClipVirtual([
+    note_target_3_subtarget_1,
+    note_target_3_subtarget_2,
+    note_target_4_subtarget_1,
+    note_target_4_subtarget_2
+]);
+clip_dao_virtual.beat_start = 4;
+clip_dao_virtual.beat_end = 8;
+clip_target = new Clip(clip_dao_virtual);
+clips_target.push(clip_target);
+var track_target = new Track(new TrackDaoVirtual(clips_target));
+var trainer_local = new Trainer(window_train, user_input_handler, algorithm_train, track_target, track_user_input, song, messenger);
 // test case - 2 segments, 2 notes a piece
-trainer_local.init();
+trainer_local.commence();
 trainer_local.accept_input([note_target_1_subtarget_1]);
 trainer_local.accept_input([note_target_1_subtarget_2]);
 trainer_local.accept_input([note_target_2_subtarget_1]);

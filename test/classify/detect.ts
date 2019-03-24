@@ -23,16 +23,15 @@ import POLYPHONY = modes_texture.POLYPHONY;
 import INSTRUMENTAL = modes_control.INSTRUMENTAL;
 import MatrixWindow = window.MatrixWindow;
 import {track} from "../../src/track/track";
-import {song} from "../../src/song/song";
-import Song = song.Song;
-import ClipVirtual = clip.ClipVirtual;
-import SongDaoVirtual = song.SongDaoVirtual;
+import {song as module_song} from "../../src/song/song";
+import Song = module_song.Song;
+import SongDaoVirtual = module_song.SongDaoVirtual;
 import Track = track.Track;
 import TrackDaoVirtual = track.TrackDaoVirtual;
-import {scene} from "../../src/scene/scene";
-import SceneDao = scene.SceneDao;
-import SceneDaoVirtual = scene.SceneDaoVirtual;
-import Scene = scene.Scene;
+import {scene as module_scene} from "../../src/scene/scene";
+import SceneDao = module_scene.SceneDao;
+import SceneDaoVirtual = module_scene.SceneDaoVirtual;
+import Scene = module_scene.Scene;
 
 
 
@@ -259,16 +258,18 @@ let song = new Song(
 // let num_clip_slots = 2;
 
 
+// USER INPUT CLIP - HAS THE SEGMENTS
+
 let clip_dao_virtual, clip_user_input;
 
 let clips_user_input = [];
 
 
-clip_dao_virtual = new LiveClipVirtual([]);
+clip_dao_virtual = new LiveClipVirtual([segment_note_1]);
 
-clip_dao_virtual.beat_start = 1;
+clip_dao_virtual.beat_start = 0;
 
-clip_dao_virtual.beat_end = 5;
+clip_dao_virtual.beat_end = 4;
 
 clip_user_input = new Clip(
     clip_dao_virtual
@@ -278,11 +279,11 @@ clips_user_input.push(clip_user_input);
 
 
 
-clip_dao_virtual = new LiveClipVirtual([]);
+clip_dao_virtual = new LiveClipVirtual([segment_note_2]);
 
-clip_dao_virtual.beat_start = 5;
+clip_dao_virtual.beat_start = 4;
 
-clip_dao_virtual.beat_end = 9;
+clip_dao_virtual.beat_end = 8;
 
 clip_user_input = new Clip(
     clip_dao_virtual
@@ -298,103 +299,72 @@ let track_user_input = new Track(
     )
 );
 
-// track_user_input.set_clip_at_index(
-//     new ClipVirtual(
-//         segment_note_1
-//     ),
-//     0
-// );
-
-// track_user_input.set_clip_at_index(
-//     new ClipVirtual(
-//         segment_note_2
-//     ),
-//     1
-// );
+// TARGET CLIP
 
 let clips_target = [];
 
-let track_target = new Track(
-    new TrackDaoVirtual(
-        clip_target
-    )
-);
+let clip_target;
 
-track_target.set_clip_at_index(
-    new ClipVirtual(
+clip_dao_virtual = new LiveClipVirtual(
+    [
         note_target_1_subtarget_1,
         note_target_1_subtarget_2,
         note_target_2_subtarget_1,
         note_target_2_subtarget_2
-    ),
-    0
+    ]
 );
 
-track_target.set_clip_at_index(
-    new ClipVirtual(
+clip_dao_virtual.beat_start = 0;
+
+clip_dao_virtual.beat_end = 4;
+
+clip_target = new Clip(
+    clip_dao_virtual
+);
+
+clips_target.push(clip_target);
+
+
+
+clip_dao_virtual = new LiveClipVirtual(
+    [
         note_target_3_subtarget_1,
         note_target_3_subtarget_2,
         note_target_4_subtarget_1,
         note_target_4_subtarget_2
-    ),
-    1
+    ]
 );
 
-// let clip_user_input_async = {
-//     fire: () => {},
-//     stop: () => {},
-//     set_endpoints_loop: (former, latter) => {}
-// };
-//
-// let clip_user_input_synchronous = {
-//     fire: () => {},
-//     stop: () => {},
-//     set_endpoints_loop: (former, latter) => {}
-// };
+clip_dao_virtual.beat_start = 4;
 
-// let notes_segments = [
-//     segment_note_1,
-//     segment_note_2
-// ];
+clip_dao_virtual.beat_end = 8;
 
-// let notes_target_clip = [
-//     note_target_1_subtarget_1,
-//     note_target_1_subtarget_2,
-//     note_target_2_subtarget_1,
-//     note_target_2_subtarget_2,
-//     note_target_3_subtarget_1,
-//     note_target_3_subtarget_2,
-//     note_target_4_subtarget_1,
-//     note_target_4_subtarget_2
-// ];
+clip_target = new Clip(
+    clip_dao_virtual
+);
 
-// let segments: Segment[] = [];
-//
-// for (let note of notes_segments) {
-//     segments.push(
-//         new Segment(
-//             note
-//         )
-//     )
-// }
+clips_target.push(clip_target);
 
-// let clip_dao_virtual = new LiveClipVirtual(notes_target_clip);
-//
-// let clip_target = new Clip(clip_dao_virtual);
+
+let track_target = new Track(
+    new TrackDaoVirtual(
+        clips_target
+    )
+);
 
 let trainer_local = new Trainer(
-    window_local,
+    window_train,
     user_input_handler,
     algorithm_train,
     track_target,
-    track_user_input
+    track_user_input,
     song,
     messenger
 );
 
 // test case - 2 segments, 2 notes a piece
 
-trainer_local.init(
+trainer_local.commence(
 
 );
 

@@ -54,7 +54,7 @@ export namespace track {
 
         public track_dao;
 
-        constructor(track_dao: TrackDao) {
+        constructor(track_dao: iTrackDao) {
             this.track_dao = track_dao;
         }
 

@@ -79,7 +79,7 @@ export namespace trainer {
             track_target: Track,
             track_user_input: Track,
             song: Song,
-            segments: Segment[],
+            // segments: Segment[],
             messenger: Messenger
         ) {
             this.window = window;
@@ -87,6 +87,7 @@ export namespace trainer {
             // this.notes_target = notes_target;
             this.track_target = track_target;
             this.song = song;
+            // TODO: pull notes from clip user input track and transform into segments
             this.segments = segments;
             this.messenger = messenger;
 

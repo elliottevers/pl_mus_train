@@ -11,12 +11,15 @@ var trainer;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
     var Trainer = /** @class */ (function () {
-        function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, segments, messenger) {
+        function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, 
+        // segments: Segment[],
+        messenger) {
             this.window = window;
             this.trainable = trainable;
             // this.notes_target = notes_target;
             this.track_target = track_target;
             this.song = song;
+            // TODO: pull notes from clip user input track and transform into segments
             this.segments = segments;
             this.messenger = messenger;
             // this.notes_target_track = track.get_notes_on_track(
