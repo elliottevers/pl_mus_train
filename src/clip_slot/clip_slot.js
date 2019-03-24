@@ -6,6 +6,7 @@ var clip_slot;
         function ClipSlot() {
         }
         ClipSlot.prototype.b_has_clip = function () {
+            return false;
         };
         ClipSlot.prototype.delete_clip = function () {
         };
@@ -13,8 +14,13 @@ var clip_slot;
             this.clip_slot_dao.duplicate_clip_to(clip_slot.get_id());
         };
         ClipSlot.prototype.get_id = function () {
+            return;
         };
-        ClipSlot.prototype.create_clip = function () {
+        ClipSlot.prototype.create_clip = function (length_beats) {
+        };
+        ClipSlot.prototype.load_clip = function () {
+        };
+        ClipSlot.prototype.get_clip = function () {
         };
         return ClipSlot;
     }());

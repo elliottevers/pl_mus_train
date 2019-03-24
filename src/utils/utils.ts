@@ -1,8 +1,17 @@
 import {live} from "../live/live";
+import {clip} from "../clip/clip";
+import {track} from "../track/track";
 
 export namespace utils {
 
     import LiveApiJs = live.LiveApiJs;
+    import Clip = clip.Clip;
+    import Track = track.Track;
+
+    export let get_clip_on_this_device_at_index = (index: number): Clip => {
+        // TODO: implement
+        return
+    };
 
     export let get_path_this_track = () => {
         let this_device = new LiveApiJs('this_device');
@@ -10,6 +19,11 @@ export namespace utils {
         let path_this_device = this_device.get_path();
 
         return path_this_device.split(' ').slice(0, 3).join(' ');
+    };
+
+    export let get_this_track = (): Track => {
+        // TODO: use the method above
+        return
     };
 
     export class PathLive  {

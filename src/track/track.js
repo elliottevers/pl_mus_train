@@ -64,6 +64,7 @@ var track;
         Track.prototype.get_clip_at_interval = function () {
         };
         Track.prototype.get_index = function () {
+            return;
         };
         Track.prototype.load_clip_slots = function () {
         };
@@ -73,12 +74,17 @@ var track;
         };
         Track.prototype.delete_clips = function () {
         };
-        Track.prototype.create_clip_at_index = function () {
+        Track.prototype.create_clip_at_index = function (index) {
         };
-        Track.prototype.get_clip_slot_at_index = function () {
+        Track.prototype.get_clip_slot_at_index = function (index_clip_slot) {
+            return;
+        };
+        Track.get_clip_slot_at_index = function (index_track, index_clip_slot) {
+            return;
         };
         // TODO: should return null if the there aren't even that many scenes
-        Track.prototype.get_clip_at_index = function () {
+        Track.prototype.get_clip_at_index = function (index) {
+            return;
         };
         Track.prototype.get_num_clip_slots = function () {
             return this.get_clip_slots().length;
@@ -96,6 +102,8 @@ var track;
             return notes_amassed;
         };
         Track.prototype.get_path = function () {
+            // TODO: implement
+            return;
         };
         return Track;
     }());

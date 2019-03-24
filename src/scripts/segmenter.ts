@@ -10,9 +10,9 @@ import ClipDao = clip.ClipDao;
 import {io} from "../io/io";
 import {segment} from "../segment/segment";
 import Segment = segment.Segment;
-import {song} from "../song/song";
-import SongDao = song.SongDao;
-import Song = song.Song;
+import {song as module_song} from "../song/song";
+import SongDao = module_song.SongDao;
+import Song = module_song.Song;
 import LiveApiJs = live.LiveApiJs;
 import {track as module_track} from "../track/track";
 import TrackDao = module_track.TrackDao;
@@ -20,8 +20,8 @@ import Track = module_track.Track;
 import {clip_slot} from "../clip_slot/clip_slot";
 import ClipSlot = clip_slot.ClipSlot;
 import ClipSlotDao = clip_slot.ClipSlotDao;
-import {scene} from "../scene/scene";
-import Scene = scene.Scene;
+import {scene as module_scen} from "../scene/scene";
+import Scene = module_scen.Scene;
 // import get_notes_on_track = track.get_notes_on_track;
 const _ = require('underscore');
 
@@ -78,11 +78,9 @@ let expand_segments = () => {
                 utils.get_path_this_track()
             )
         )
-    )
+    );
 
-    let path_track_segments = track.get_path();
-
-    expand_track(['live_set', 'tracks', index_this_track, 'clip_slots', 0].join(' '))
+    expand_track(track.get_path())
 };
 
 let contract_segments = () => {
@@ -94,10 +92,18 @@ let contract_segments = () => {
     //
     // let index_this_track = Number(list_this_device[2]);
 
-    contract_track(['live_set', 'tracks', index_this_track].join(' '))
+    let track = new Track(
+        new TrackDao(
+            new LiveApiJs(
+                utils.get_path_this_track()
+            )
+        )
+    );
+
+    contract_track(track.get_path())
 };
 
-let expand_highlighted_clip = () => {
+let expand_selected_track = () => {
     expand_track('live_set view selected_track')
 };
 
@@ -262,8 +268,8 @@ let get_notes_segments = () => {
     // let this_device = new li.LiveApiJs('this_device');
     // let path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
     let track_segments = utils.get_this_track();
-    track.load();
-    return track.get_notes();
+    track_segments.load();
+    return track_segments.get_notes();
     // return get_notes_on_track(path_this_track)
 };
 
@@ -273,8 +279,8 @@ let test = () => {
 
 };
 
-let expand_highlighted_audio_clip = () => {
-    expand_clip_audio('live_set view highlighted_clip_slot')
+let expand_selected_audio_track = () => {
+    expand_track_audio('live_set view selected_track')
 };
 
 let contract_selected_audio_track = () => {
@@ -378,9 +384,13 @@ let expand_track_audio = (path_track) => {
         new SongDao(
             new li.LiveApiJs(
                 'live_set'
-            )
+            ),
+            new Messenger(env, 0),
+            true
         )
     );
+
+    song.set_path_deferlow('set_path_song');
 
     for (let i_clipslot of _.range(1, notes_segments.length)) {
         let note_segment = notes_segments[Number(i_clipslot)];
@@ -448,7 +458,7 @@ let expand_track_audio = (path_track) => {
         //     clipslot.call("delete_clip")
         // }
 
-        clip_slot_audio.duplicate_clip_to(clip_slot)
+        clip_slot_audio.duplicate_clip_to(clip_slot);
 
         // clipslot_audio.call("duplicate_clip_to", ['id', clipslot.get_id()].join(' '));
 
@@ -461,7 +471,10 @@ let expand_track_audio = (path_track) => {
         //     )
         // );
 
-        let clip = Track.get_clip_at_index(Number(i_clipslot));
+        let clip = Track.get_clip_at_index(
+            track.get_index(),
+            Number(i_clipslot)
+        );
 
         let segment = new Segment(note_segment);
 
@@ -494,12 +507,12 @@ let expand_track = (path_track) => {
     // );
 
     let track = new Track(
-        TrackDao(
+        new TrackDao(
             new LiveApiJs(
                 path_track
             )
         )
-    )
+    );
 
     track.load_clips();
 
@@ -527,11 +540,24 @@ let expand_track = (path_track) => {
         )
     }
 
-    let song = new Song(
-        SongDao(
+    let song_read = new Song(
+        new SongDao(
             new li.LiveApiJs(
                 'live_set'
-            )
+            ),
+            new Messenger(env, 0),
+            false
+        )
+    );
+
+    let song_write = new Song(
+        new SongDao(
+            new li.LiveApiJs(
+                'live_set'
+            ),
+            new Messenger(env, 0),
+            true,
+            'song'
         )
     );
 
@@ -555,20 +581,23 @@ let expand_track = (path_track) => {
         //     ['live_set', 'scenes', String(Number(i_segment))].join(' ')
         // );
 
-        let scene = song.get_scene_at_index(Number(i_segment));
+        let scene = song_read.get_scene_at_index(Number(i_segment));
 
         let scene_exists = scene !== null;
 
         if (!scene_exists) {
             // song.call('create_scene', String(Number(i_segment)))
-            song.create_scene_at_index(Number(i_segment))
+            song_write.create_scene_at_index(Number(i_segment))
         }
 
         // let clipslot = new li.LiveApiJs(
         //     path_live
         // );
 
-        let clip_slot = Track.get_clip_slot_at_index(Number(i_segment));
+        let clip_slot = Track.get_clip_slot_at_index(
+            track.get_index(),
+            Number(i_segment)
+        );
 
         if (Number(i_segment) === 0) {
             // clipslot.call('delete_clip');
@@ -579,7 +608,7 @@ let expand_track = (path_track) => {
 
         clip_slot.load_clip();
 
-        let clip = clip_slot.clip;
+        let clip = clip_slot.get_clip();
 
         // clipslot.call('create_clip', String(length_beats));
 
@@ -615,11 +644,11 @@ let expand_track = (path_track) => {
 
 if (typeof Global !== "undefined") {
     Global.segmenter = {};
-    Global.segmenter.expand_highlighted_clip = expand_highlighted_clip;
+    Global.segmenter.expand_selected_track = expand_selected_track;
     Global.segmenter.contract_selected_track = contract_selected_track;
     Global.segmenter.contract_segments = contract_segments;
     Global.segmenter.expand_segments = expand_segments;
-    Global.segmenter.expand_highlighted_audio_clip = expand_highlighted_audio_clip;
+    Global.segmenter.expand_selected_audio_track = expand_selected_audio_track;
     Global.segmenter.contract_selected_audio_track = contract_selected_audio_track;
     Global.segmenter.test = test;
 }

@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var messenger_1 = require("../message/messenger");
+var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
 var utils_1 = require("../utils/utils");
 var segment_1 = require("../segment/segment");
@@ -43,8 +45,7 @@ var expand_segments = function () {
     //
     // let index_this_track = Number(list_this_device[2]);
     var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_this_track())));
-    var path_track_segments = track.get_path();
-    expand_track(['live_set', 'tracks', index_this_track, 'clip_slots', 0].join(' '));
+    expand_track(track.get_path());
 };
 var contract_segments = function () {
     // let this_device = new li.LiveApiJs('this_device');
@@ -54,9 +55,10 @@ var contract_segments = function () {
     // let list_this_device = path_this_device.split(' ');
     //
     // let index_this_track = Number(list_this_device[2]);
-    contract_track(['live_set', 'tracks', index_this_track].join(' '));
+    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_this_track())));
+    contract_track(track.get_path());
 };
-var expand_highlighted_clip = function () {
+var expand_selected_track = function () {
     expand_track('live_set view selected_track');
 };
 var contract_selected_track = function () {
@@ -195,15 +197,15 @@ var get_notes_segments = function () {
     // let this_device = new li.LiveApiJs('this_device');
     // let path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
     var track_segments = utils_1.utils.get_this_track();
-    track.load();
-    return track.get_notes();
+    track_segments.load();
+    return track_segments.get_notes();
     // return get_notes_on_track(path_this_track)
 };
 // 'live_set view highlighted_clip_slot'
 var test = function () {
 };
-var expand_highlighted_audio_clip = function () {
-    expand_clip_audio('live_set view highlighted_clip_slot');
+var expand_selected_audio_track = function () {
+    expand_track_audio('live_set view selected_track');
 };
 var contract_selected_audio_track = function () {
     contract_track_audio('live_set view selected_track');
@@ -265,7 +267,8 @@ var expand_track_audio = function (path_track) {
     // TODO: we won't need to do this since we will be creating new ones anyway
     // track.load();
     var notes_segments = get_notes_segments();
-    var song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set')));
+    var song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), true));
+    song.set_path_deferlow('set_path_song');
     for (var _i = 0, _a = _.range(1, notes_segments.length); _i < _a.length; _i++) {
         var i_clipslot = _a[_i];
         var note_segment = notes_segments[Number(i_clipslot)];
@@ -275,11 +278,11 @@ var expand_track_audio = function (path_track) {
         //         // utils.get_clipslot_at_index(Number(i_clipslot))
         //     )
         // );
-        var scene_1 = song.get_scene_at_index(Number(i_clipslot));
+        var scene = song.get_scene_at_index(Number(i_clipslot));
         // if (track.get_clip_slot_at_index(Number(i_clipslot)) === null) {
         //     let scen
         // }
-        var scene_exists = scene_1 !== null;
+        var scene_exists = scene !== null;
         if (scene_exists) {
             song.create_scene_at_index(Number(i_clipslot));
         }
@@ -323,7 +326,7 @@ var expand_track_audio = function (path_track) {
         //         new Messenger(env, 0)
         //     )
         // );
-        var clip_1 = Track.get_clip_at_index(Number(i_clipslot));
+        var clip_1 = Track.get_clip_at_index(track.get_index(), Number(i_clipslot));
         var segment_2 = new Segment(note_segment);
         clip_1.set_endpoints_loop(segment_2.beat_start, segment_2.beat_end);
     }
@@ -347,7 +350,7 @@ var expand_track = function (path_track) {
     //         new Messenger(env, 0)
     //     )
     // );
-    var track = new Track(TrackDao(new LiveApiJs(path_track)));
+    var track = new Track(new TrackDao(new LiveApiJs(path_track)));
     track.load_clips();
     var clip = track.get_clip_at_index(0);
     // get first clip
@@ -359,7 +362,8 @@ var expand_track = function (path_track) {
         var note = notes_segments_1[_i];
         segments.push(new Segment(note));
     }
-    var song = new Song(SongDao(new live_1.live.LiveApiJs('live_set')));
+    var song_read = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
+    var song_write = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), true, 'song'));
     // let song = new li.LiveApiJs(
     //     'live_set'
     // );
@@ -373,23 +377,23 @@ var expand_track = function (path_track) {
         // let scene = new li.LiveApiJs(
         //     ['live_set', 'scenes', String(Number(i_segment))].join(' ')
         // );
-        var scene_2 = song.get_scene_at_index(Number(i_segment));
-        var scene_exists = scene_2 !== null;
+        var scene = song_read.get_scene_at_index(Number(i_segment));
+        var scene_exists = scene !== null;
         if (!scene_exists) {
             // song.call('create_scene', String(Number(i_segment)))
-            song.create_scene_at_index(Number(i_segment));
+            song_write.create_scene_at_index(Number(i_segment));
         }
         // let clipslot = new li.LiveApiJs(
         //     path_live
         // );
-        var clip_slot_2 = Track.get_clip_slot_at_index(Number(i_segment));
+        var clip_slot_2 = Track.get_clip_slot_at_index(track.get_index(), Number(i_segment));
         if (Number(i_segment) === 0) {
             // clipslot.call('delete_clip');
             clip_slot_2.delete_clip();
         }
         clip_slot_2.create_clip(length_beats);
         clip_slot_2.load_clip();
-        var clip_2 = clip_slot_2.clip;
+        var clip_2 = clip_slot_2.get_clip();
         // clipslot.call('create_clip', String(length_beats));
         // let path_clip = path_clipslot.concat('clip').join(' ');
         //
@@ -412,11 +416,11 @@ var expand_track = function (path_track) {
 };
 if (typeof Global !== "undefined") {
     Global.segmenter = {};
-    Global.segmenter.expand_highlighted_clip = expand_highlighted_clip;
+    Global.segmenter.expand_selected_track = expand_selected_track;
     Global.segmenter.contract_selected_track = contract_selected_track;
     Global.segmenter.contract_segments = contract_segments;
     Global.segmenter.expand_segments = expand_segments;
-    Global.segmenter.expand_highlighted_audio_clip = expand_highlighted_audio_clip;
+    Global.segmenter.expand_selected_audio_track = expand_selected_audio_track;
     Global.segmenter.contract_selected_audio_track = contract_selected_audio_track;
     Global.segmenter.test = test;
 }

@@ -3,6 +3,7 @@ import {clip} from "../clip/clip";
 import {message} from "../message/messenger";
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
+import {clip_slot} from "../clip_slot/clip_slot";
 const _ = require('underscore');
 
 export namespace track {
@@ -11,6 +12,7 @@ export namespace track {
     import ClipDao = clip.ClipDao;
     import Messenger = message.Messenger;
     import Note = note.Note;
+    import ClipSlot = clip_slot.ClipSlot;
 
     // export let get_notes_on_track = (path_track) => {
     //     let index_track = Number(path_track.split(' ')[2]);
@@ -82,8 +84,8 @@ export namespace track {
 
         }
 
-        public get_index() {
-
+        public get_index(): number {
+            return
         }
 
         public load_clip_slots() {
@@ -102,17 +104,21 @@ export namespace track {
 
         }
 
-        public create_clip_at_index() {
+        public create_clip_at_index(index: number): void {
 
         }
 
-        public get_clip_slot_at_index() {
+        public get_clip_slot_at_index(index_clip_slot: number): ClipSlot {
+            return
+        }
 
+        public static get_clip_slot_at_index(index_track: number, index_clip_slot: number): ClipSlot {
+            return
         }
 
         // TODO: should return null if the there aren't even that many scenes
-        public get_clip_at_index() {
-
+        public get_clip_at_index(index: number): Clip {
+            return
         }
 
         public get_num_clip_slots() {
@@ -134,8 +140,9 @@ export namespace track {
             return notes_amassed;
         }
 
-        public get_path() {
-
+        public get_path(): string {
+            // TODO: implement
+            return
         }
     }
 

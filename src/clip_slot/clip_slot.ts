@@ -1,17 +1,22 @@
 import {live} from "../live/live";
+import {clip} from "../clip/clip";
 
 export namespace clip_slot {
     import LiveApiJs = live.LiveApiJs;
+    import Clip = clip.Clip;
 
     export class ClipSlot {
+
+        clip: Clip;
+
         clip_slot_dao: ClipSlotDao;
 
         constructor() {
 
         }
 
-        b_has_clip() {
-
+        b_has_clip(): boolean {
+            return false
         }
 
         delete_clip() {
@@ -22,11 +27,19 @@ export namespace clip_slot {
             this.clip_slot_dao.duplicate_clip_to(clip_slot.get_id())
         }
 
-        get_id() {
+        get_id(): number {
+            return
+        }
+
+        create_clip(length_beats: number): void {
 
         }
 
-        create_clip() {
+        load_clip(): void {
+
+        }
+
+        get_clip(): Clip {
 
         }
     }
