@@ -1,6 +1,9 @@
 import {live as li} from "../live/live";
+import {message} from "../message/messenger";
 
 export namespace scene {
+
+    import Messenger = message.Messenger;
 
     export class Scene {
 
@@ -32,9 +35,11 @@ export namespace scene {
 
     export class SceneDao implements iSceneDao {
         live_api: li.LiveApiJs;
+        messenger: Messenger;
 
-        constructor(live_api: li.LiveApiJs) {
-            this.live_api = live_api
+        constructor(live_api: li.LiveApiJs, messenger: Messenger) {
+            this.live_api = live_api;
+            this.messenger = messenger;
         }
 
         public fire(force_legato: boolean) {

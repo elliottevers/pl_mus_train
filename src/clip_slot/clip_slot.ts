@@ -1,14 +1,15 @@
 import {live} from "../live/live";
-import {clip} from "../clip/clip";
+import {clip as module_clip} from "../clip/clip";
 import {message} from "../message/messenger";
-import {log} from "../log/logger";
+// import {log} from "../log/logger";
+import LiveApiJs = live.LiveApiJs;
+import {utils} from "../utils/utils";
 
 export namespace clip_slot {
-    import LiveApiJs = live.LiveApiJs;
-    import Clip = clip.Clip;
-    import ClipDao = clip.ClipDao;
+    import Clip = module_clip.Clip;
+    // import ClipDao = module_clip.ClipDao;
     import Messenger = message.Messenger;
-    import Logger = log.Logger;
+    // import Logger = log.Logger;
 
     export class ClipSlot {
 
@@ -70,6 +71,7 @@ export namespace clip_slot {
     export class ClipSlotDao implements iClipSlotDao {
 
         private live_api: LiveApiJs;
+        // private live_api;
         private messenger: Messenger;
 
         constructor(live_api: LiveApiJs, messenger: Messenger) {
@@ -94,16 +96,9 @@ export namespace clip_slot {
         }
 
         get_clip(): Clip {
-            let logger = new Logger('max');
-            // logger.log(String(this.live_api.get('clip')));
-            // logger.log(this.live_api.get('clip').split(',').join(' '));
-            return new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        String(this.live_api.get('clip')).split(',').join(' ')
-                    ),
-                    this.messenger
-                )
+            return utils.FactoryLive.clip_from_path(
+                String(this.live_api.get('clip')).split(',').join(' '),
+                this.messenger
             )
         }
 

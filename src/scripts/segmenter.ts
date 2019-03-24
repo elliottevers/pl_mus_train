@@ -4,10 +4,6 @@ import {live, live as li} from "../live/live";
 import {log} from "../log/logger";
 import Logger = log.Logger;
 import {utils} from "../utils/utils";
-import {clip as c, clip} from "../clip/clip";
-import Clip = clip.Clip;
-import ClipDao = clip.ClipDao;
-import {io} from "../io/io";
 import {segment} from "../segment/segment";
 import Segment = segment.Segment;
 import {song as module_song} from "../song/song";
@@ -17,13 +13,8 @@ import LiveApiJs = live.LiveApiJs;
 import {track as module_track} from "../track/track";
 import TrackDao = module_track.TrackDao;
 import Track = module_track.Track;
-import {clip_slot} from "../clip_slot/clip_slot";
-import ClipSlot = clip_slot.ClipSlot;
-import ClipSlotDao = clip_slot.ClipSlotDao;
 import {scene as module_scen} from "../scene/scene";
 import Scene = module_scen.Scene;
-import {cli} from "../cli/cli";
-// import get_notes_on_track = track.get_notes_on_track;
 const _ = require('underscore');
 
 declare let autowatch: any;
@@ -50,7 +41,24 @@ let messenger = new Messenger(env, 0);
 let get_length_beats = () => {
     // let this_device = new LiveApiJs('this_device');
 
-    let clip: Clip = utils.get_clip_on_this_device_at_index(0);
+    let track = new Track(
+        new TrackDao(
+            new LiveApiJs(
+                utils.get_path_this_track()
+            ),
+            messenger
+        )
+    );
+
+    track.load_clip_slots();
+
+    let clip_slot = track.get_clip_slot_at_index(0);
+
+    clip_slot.load_clip();
+
+    let clip = clip_slot.get_clip();
+
+    // let clip: Clip = utils.get_clip_on_this_device_at_index(0);
 
     return clip.get_end_marker() - clip.get_start_marker()
 
@@ -546,7 +554,6 @@ let expand_track = (path_track) => {
 
     track.load_clips();
 
-
     let clip = track.get_clip_at_index(0);
 
     // get first clip
@@ -562,9 +569,9 @@ let expand_track = (path_track) => {
     // TODO: put back in please
     // let notes_segments = get_notes_segments();
 
-    logger.log(JSON.stringify(notes_clip));
+    // logger.log(JSON.stringify(notes_clip));
 
-    return;
+    // return;
 
     let notes_segments = get_notes_segments();
 

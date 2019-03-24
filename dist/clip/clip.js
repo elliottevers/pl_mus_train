@@ -7,6 +7,8 @@ var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
     var Logger = logger_1.log.Logger;
+    // import ClipLive = live.ClipLive;
+    // import iLiveApiJs = live.iLiveApiJs;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;

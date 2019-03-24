@@ -23,10 +23,11 @@ if (env === 'max') {
 var song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
 var num_scenes = song.get_num_scenes();
 var scenes = [];
+var messenger = new Messenger(env, 0);
 for (var _i = 0, _a = _.range(0, num_scenes); _i < _a.length; _i++) {
     var i = _a[_i];
     var path_scene = ['live_set', 'scenes', Number(i)].join(' ');
-    var scene_2 = new Scene(new SceneDao(new live_1.live.LiveApiJs(path_scene)));
+    var scene_2 = new Scene(new SceneDao(new live_1.live.LiveApiJs(path_scene), messenger));
     scenes.push(scene_2);
 }
 var scene_iterator = new SceneIterator(scenes, true);

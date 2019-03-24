@@ -1,14 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var live_1 = require("../live/live");
-var clip_1 = require("../clip/clip");
-var logger_1 = require("../log/logger");
+var utils_1 = require("../utils/utils");
 var clip_slot;
 (function (clip_slot_1) {
-    var LiveApiJs = live_1.live.LiveApiJs;
-    var Clip = clip_1.clip.Clip;
-    var ClipDao = clip_1.clip.ClipDao;
-    var Logger = logger_1.log.Logger;
+    // import Logger = log.Logger;
     var ClipSlot = /** @class */ (function () {
         function ClipSlot(clip_slot_dao) {
             this.clip_slot_dao = clip_slot_dao;
@@ -55,10 +50,7 @@ var clip_slot;
             this.live_api.call("duplicate_clip_to", ['id', id].join(' '));
         };
         ClipSlotDao.prototype.get_clip = function () {
-            var logger = new Logger('max');
-            // logger.log(String(this.live_api.get('clip')));
-            // logger.log(this.live_api.get('clip').split(',').join(' '));
-            return new Clip(new ClipDao(new LiveApiJs(String(this.live_api.get('clip')).split(',').join(' ')), this.messenger));
+            return utils_1.utils.FactoryLive.clip_from_path(String(this.live_api.get('clip')).split(',').join(' '), this.messenger);
         };
         ClipSlotDao.prototype.get_path = function () {
             return this.live_api.get_path();

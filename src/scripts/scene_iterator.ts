@@ -49,13 +49,16 @@ let num_scenes = song.get_num_scenes();
 
 let scenes = [];
 
+let messenger = new Messenger(env, 0);
+
 for (let i of _.range(0, num_scenes)) {
     let path_scene = ['live_set', 'scenes', Number(i)].join(' ');
     let scene = new Scene(
         new SceneDao(
             new li.LiveApiJs(
                 path_scene
-            )
+            ),
+            messenger
         )
     );
     scenes.push(scene)

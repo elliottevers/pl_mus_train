@@ -1,21 +1,18 @@
-import {live as li, live} from "../live/live";
+import {live} from "../live/live";
 import {clip} from "../clip/clip";
 import {message} from "../message/messenger";
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
 import {clip_slot} from "../clip_slot/clip_slot";
-import {log} from "../log/logger";
+import {utils} from "../utils/utils";
 const _ = require('underscore');
 
 export namespace track {
     import LiveApiJs = live.LiveApiJs;
     import Clip = clip.Clip;
-    import ClipDao = clip.ClipDao;
     import Messenger = message.Messenger;
     import Note = note.Note;
     import ClipSlot = clip_slot.ClipSlot;
-    import ClipSlotDao = clip_slot.ClipSlotDao;
-    import Logger = log.Logger;
 
     // export let get_notes_on_track = (path_track) => {
     //     let index_track = Number(path_track.split(' ')[2]);
@@ -66,25 +63,27 @@ export namespace track {
         }
 
         public static get_clip_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): Clip {
-            return new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot), 'clip'].join(' ')
-                    ),
-                    messenger
-                )
-            );
+            // return new Clip(
+            //     new ClipDao(
+            //         new LiveApiJs(
+            //             ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot), 'clip'].join(' ')
+            //         ),
+            //         messenger
+            //     )
+            // );
+            return utils.FactoryLive.get_clip_at_index(index_track, index_clip_slot, messenger)
         }
 
         public static get_clip_slot_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): ClipSlot {
-            return new ClipSlot(
-                new ClipSlotDao(
-                    new LiveApiJs(
-                        ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot)].join(' ')
-                    ),
-                    messenger
-                )
-            );
+            // return new ClipSlot(
+            //     new ClipSlotDao(
+            //         new LiveApiJs(
+            //             ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot)].join(' ')
+            //         ),
+            //         messenger
+            //     )
+            // );
+            return utils.FactoryLive.get_clip_slot_at_index(index_track, index_clip_slot, messenger)
         }
 
         public get_index(): number {
@@ -232,7 +231,7 @@ export namespace track {
         public messenger: Messenger;
 
         constructor(live_api: LiveApiJs, messenger: Messenger) {
-            this.live_api = live_api
+            this.live_api = live_api;
             this.messenger = messenger;
         }
 
@@ -254,17 +253,17 @@ export namespace track {
                 }
             }
 
-            return clip_slots.map((id_clip_slot) => {
-                return new ClipSlot(
-                    new ClipSlotDao(
-                        new LiveApiJs(
-                            id_clip_slot
-                        ),
-                        this.messenger
-                    )
-                )
+            return clip_slots.map((list_id_clip_slot) => {
+                // return new ClipSlot(
+                //     new ClipSlotDao(
+                //         new LiveApiJs(
+                //             id_clip_slot
+                //         ),
+                //         this.messenger
+                //     )
+                // )
+                return utils.FactoryLive.get_clip_slot(list_id_clip_slot.join(' '))
             });
-
         }
 
         mute(val: boolean) {

@@ -1,13 +1,13 @@
 import TreeModel = require("tree-model");
 import {note as n} from "../note/note"
-import {clip} from "../clip/clip";
+import {clip as module_clip} from "../clip/clip";
 import {user_input} from "../control/user_input";
 
 declare let LiveAPI: any;
 
 export namespace live {
 
-    import Clip = clip.Clip;
+    import Clip = module_clip.Clip;
     import UserInputHandler = user_input.UserInputHandler;
 
     export interface iLiveApiJs {

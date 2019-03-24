@@ -1,8 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var live_1 = require("../live/live");
+var scene_1 = require("../scene/scene");
 var utils_1 = require("../utils/utils");
 var song;
 (function (song) {
+    var Scene = scene_1.scene.Scene;
+    var SceneDao = scene_1.scene.SceneDao;
+    var LiveApiJs = live_1.live.LiveApiJs;
     var Song = /** @class */ (function () {
         function Song(song_dao) {
             this.song_dao = song_dao;
@@ -11,10 +16,14 @@ var song;
                 this.set_path_deferlow('set_path_' + this.song_dao.key_route);
             }
         }
+        Song.prototype.load_scenes = function () {
+            this.scenes = this.song_dao.get_scenes();
+        };
         Song.prototype.get_scene_at_index = function (index) {
-            return;
+            return this.scenes[index];
         };
         Song.prototype.create_scene_at_index = function (index) {
+            this.song_dao.create_scene(index);
         };
         Song.prototype.set_session_record = function (int) {
             this.song_dao.set_session_record(int);
@@ -56,6 +65,8 @@ var song;
             this.deferlow = deferlow;
             this.key_route = key_route;
         }
+        SongDaoVirtual.prototype.create_scene = function (index) {
+        };
         SongDaoVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
             return;
         };
@@ -68,11 +79,13 @@ var song;
         SongDaoVirtual.prototype.get_scenes = function () {
             var data = [];
             for (var _i = 0, _a = this.scenes; _i < _a.length; _i++) {
-                var scene_1 = _a[_i];
+                var scene_2 = _a[_i];
                 data.push('id');
-                data.push(scene_1.get_id());
+                data.push(scene_2.get_id());
             }
             return data;
+        };
+        SongDaoVirtual.prototype.load_scenes = function () {
         };
         SongDaoVirtual.prototype.set_overdub = function (int) {
             return;
@@ -143,10 +156,26 @@ var song;
             this.song_live.set("is_playing", 0);
         };
         SongDao.prototype.get_scenes = function () {
-            return this.song_live.get("scenes");
+            var _this = this;
+            var data_scenes = this.song_live.get("scenes");
+            var scenes = [];
+            var scene = [];
+            for (var i_datum in data_scenes) {
+                var datum = data_scenes[Number(i_datum)];
+                scene.push(datum);
+                if (Number(i_datum) % 2 === 1) {
+                    scenes.push(scene);
+                }
+            }
+            return scenes.map(function (id_scene) {
+                return new Scene(new SceneDao(new LiveApiJs(id_scene), _this.messenger));
+            });
         };
         SongDao.prototype.get_path = function () {
             return 'live_set';
+        };
+        SongDao.prototype.create_scene = function (index) {
+            this.song_live.call('create_scene', String(index));
         };
         return SongDao;
     }());

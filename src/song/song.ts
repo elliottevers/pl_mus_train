@@ -2,15 +2,23 @@ import {message} from "../message/messenger";
 import {live} from "../live/live";
 import {scene} from "../scene/scene";
 import {utils} from "../utils/utils";
+import {track} from "../track/track";
 
 export namespace song {
     import Messenger = message.Messenger;
     import iLiveApiJs = live.iLiveApiJs;
     import Scene = scene.Scene;
+    import Track = track.Track;
+    import SceneDao = scene.SceneDao;
+    import LiveApiJs = live.LiveApiJs;
 
     export class Song {
 
         song_dao: iSongDao;
+
+        scenes: Scene[];
+
+        tracks: Track[];
 
         constructor(song_dao: iSongDao) {
             this.song_dao = song_dao;
@@ -20,12 +28,16 @@ export namespace song {
             }
         }
 
+        load_scenes(): void {
+            this.scenes = this.song_dao.get_scenes();
+        }
+
         get_scene_at_index(index: number): Scene {
-            return
+            return this.scenes[index]
         }
 
         create_scene_at_index(index: number) {
-
+            this.song_dao.create_scene(index)
         }
 
         set_session_record(int) {
@@ -80,6 +92,8 @@ export namespace song {
         get_path(): string
         set_path_deferlow(key_route_override: string, path_live: string): void
         is_async(): boolean
+        create_scene(index: number): void
+        // load_scenes(): void
     }
 
     export class SongDaoVirtual implements iSongDao {
@@ -98,6 +112,10 @@ export namespace song {
             }
             this.deferlow = deferlow;
             this.key_route = key_route;
+        }
+
+        public create_scene(index: number): void {
+
         }
 
         public set_path_deferlow(key_route_override: string, path_live: string): void {
@@ -119,6 +137,10 @@ export namespace song {
                 data.push(scene.get_id());
             }
             return data;
+        }
+
+        load_scenes(): void {
+
         }
 
         set_overdub(int: number) {
@@ -146,7 +168,7 @@ export namespace song {
 
     export class SongDao implements iSongDao {
 
-        private song_live: iLiveApiJs;
+        private song_live;
         private messenger: Messenger;
         private deferlow: boolean;
         public key_route: string;
@@ -211,11 +233,41 @@ export namespace song {
         }
 
         get_scenes(): any[] {
-            return this.song_live.get("scenes")
+            let data_scenes = this.song_live.get("scenes");
+
+            let scenes = [];
+
+            let scene = [];
+
+            for (let i_datum in data_scenes) {
+
+                let datum = data_scenes[Number(i_datum)];
+
+                scene.push(datum);
+
+                if (Number(i_datum) % 2 === 1) {
+                    scenes.push(scene)
+                }
+            }
+
+            return scenes.map((id_scene) => {
+                return new Scene(
+                    new SceneDao(
+                        new LiveApiJs(
+                            id_scene
+                        ),
+                        this.messenger
+                    )
+                )
+            });
         }
 
         get_path(): string {
             return 'live_set'
+        }
+
+        create_scene(index: number): void {
+            this.song_live.call('create_scene', String(index))
         }
     }
 }

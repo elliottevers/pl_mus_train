@@ -26,8 +26,9 @@ var scene;
     }());
     scene.SceneDaoVirtual = SceneDaoVirtual;
     var SceneDao = /** @class */ (function () {
-        function SceneDao(live_api) {
+        function SceneDao(live_api, messenger) {
             this.live_api = live_api;
+            this.messenger = messenger;
         }
         SceneDao.prototype.fire = function (force_legato) {
             this.live_api.call("fire", force_legato ? '1' : '0');
