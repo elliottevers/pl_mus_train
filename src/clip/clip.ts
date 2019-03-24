@@ -9,8 +9,6 @@ export namespace clip {
 
     import Messenger = message.Messenger;
     import Logger = log.Logger;
-    // import ClipLive = live.ClipLive;
-    // import iLiveApiJs = live.iLiveApiJs;
 
     export class Clip {
 
@@ -23,6 +21,19 @@ export namespace clip {
         constructor(clip_dao) {
             this.clip_dao = clip_dao;
             this.logger = new Logger('max')
+        }
+
+        public static from_path(path, messenger): Clip {
+            //@ts-ignore
+            import LiveApiJs = live.LiveApiJs;
+            return new Clip(
+                new ClipDao(
+                    new LiveApiJs(
+                        path
+                    ),
+                    messenger
+                )
+            )
         }
 
         public set_endpoints_loop(beat_start, beat_end) {

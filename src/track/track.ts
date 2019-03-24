@@ -5,6 +5,7 @@ import {note} from "../note/note";
 import TreeModel = require("tree-model");
 import {clip_slot} from "../clip_slot/clip_slot";
 import {utils} from "../utils/utils";
+import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace track {
@@ -13,6 +14,9 @@ export namespace track {
     import Messenger = message.Messenger;
     import Note = note.Note;
     import ClipSlot = clip_slot.ClipSlot;
+    import ClipSlotDao = clip_slot.ClipSlotDao;
+    import ClipDao = clip.ClipDao;
+    import Logger = log.Logger;
 
     // export let get_notes_on_track = (path_track) => {
     //     let index_track = Number(path_track.split(' ')[2]);
@@ -71,7 +75,14 @@ export namespace track {
             //         messenger
             //     )
             // );
-            return utils.FactoryLive.get_clip_at_index(index_track, index_clip_slot, messenger)
+            return new Clip(
+                new ClipDao(
+                    new LiveApiJs(
+                        ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot), 'clip'].join(' ')
+                    ),
+                    messenger
+                )
+            );
         }
 
         public static get_clip_slot_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): ClipSlot {
@@ -83,11 +94,20 @@ export namespace track {
             //         messenger
             //     )
             // );
-            return utils.FactoryLive.get_clip_slot_at_index(index_track, index_clip_slot, messenger)
+            return new ClipSlot(
+                new ClipSlotDao(
+                    new LiveApiJs(
+                        ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot)].join(' ')
+                    ),
+                    messenger
+                )
+            );
         }
 
         public get_index(): number {
-            return Number(this.track_dao.get_path().split(' ')[2])
+            // let logger = new Logger('max');
+            // logger.log(String(String(this.track_dao.get_path()).split(' ')[2]));
+            return Number(utils.cleanse_path(this.track_dao.get_path()).split(' ')[2])
         }
 
         public load_clip_slots(): void {
@@ -169,6 +189,8 @@ export namespace track {
         get_notes(): TreeModel.Node<Note>[] {
             let notes_amassed = [];
             for (let clip_slot of this.clip_slots) {
+                let logger = new Logger('max');
+                logger.log(JSON.stringify(clip_slot.get_clip().get_path()));
                 notes_amassed = notes_amassed.concat(
                     clip_slot.get_clip().get_notes_within_markers()
                 )
@@ -178,13 +200,14 @@ export namespace track {
 
         public get_path(): string {
             // TODO: implement
-            return
+            return this.track_dao.get_path()
         }
     }
 
     export interface iTrackDao {
         get_notes(): TreeModel.Node<Note>[]
         get_clip_slots(int: number)
+        get_path()
     }
 
     // TODO: please change everything in here
@@ -223,6 +246,10 @@ export namespace track {
         get_clip_slots() {
             return
         }
+
+        get_path(): string {
+            return
+        }
     }
 
     export class TrackDao implements iTrackDao {
@@ -249,9 +276,13 @@ export namespace track {
                 clip_slot.push(datum);
 
                 if (Number(i_datum) % 2 === 1) {
-                    clip_slots.push(clip_slot)
+                    clip_slots.push(clip_slot);
+                    clip_slot = [];
                 }
             }
+
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(clip_slots));
 
             return clip_slots.map((list_id_clip_slot) => {
                 // return new ClipSlot(
@@ -262,7 +293,15 @@ export namespace track {
                 //         this.messenger
                 //     )
                 // )
-                return utils.FactoryLive.get_clip_slot(list_id_clip_slot.join(' '))
+                // return utils.FactoryLive.get_clip_slot(list_id_clip_slot.join(' '))
+                return new ClipSlot(
+                    new ClipSlotDao(
+                        new LiveApiJs(
+                            list_id_clip_slot.join(' ')
+                        ),
+                        new Messenger('max', 0)
+                    )
+                )
             });
         }
 
@@ -277,6 +316,10 @@ export namespace track {
         // implement the amassing notes logic
         get_notes(): TreeModel.Node<Note>[] {
             return
+        }
+
+        get_path(): string {
+            return this.live_api.get_path()
         }
     }
 }

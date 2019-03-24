@@ -39,12 +39,12 @@ let messenger = new Messenger(env, 0);
 
 // get the first clip and use its start and end markers to determine the length of the entire song
 let get_length_beats = () => {
-    // let this_device = new LiveApiJs('this_device');
+    let this_device = new LiveApiJs('this_device');
 
     let track = new Track(
         new TrackDao(
             new LiveApiJs(
-                utils.get_path_this_track()
+                utils.get_path_track_from_path_device(this_device.get_path())
             ),
             messenger
         )
@@ -75,7 +75,7 @@ let get_length_beats = () => {
 };
 
 let expand_segments = () => {
-    // let this_device = new li.LiveApiJs('this_device');
+    let this_device = new li.LiveApiJs('this_device');
     //
     // let path_this_device = this_device.get_path();
     //
@@ -86,7 +86,7 @@ let expand_segments = () => {
     let track = new Track(
         new TrackDao(
             new LiveApiJs(
-                utils.get_path_this_track()
+                utils.get_path_track_from_path_device(this_device.get_path())
             ),
             messenger
         )
@@ -96,7 +96,7 @@ let expand_segments = () => {
 };
 
 let contract_segments = () => {
-    // let this_device = new li.LiveApiJs('this_device');
+    let this_device = new li.LiveApiJs('this_device');
     //
     // let path_this_device = this_device.get_path();
     //
@@ -107,7 +107,7 @@ let contract_segments = () => {
     let track = new Track(
         new TrackDao(
             new LiveApiJs(
-                utils.get_path_this_track()
+                utils.get_path_track_from_path_device(this_device.get_path())
             ),
             messenger
         )
@@ -279,12 +279,20 @@ let contract_track = (path_track) => {
 // TODO: we can't export this, because it could be called from a different track than the one the segments are on...
 // NB: assumes the device that calls this is on the track of segments
 let get_notes_segments = () => {
-    // let this_device = new li.LiveApiJs('this_device');
-    // let path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
-    let track_segments = utils.get_this_track();
+    let this_device = new li.LiveApiJs('this_device');
+
+    let track_segments = new Track(
+        new TrackDao(
+            new LiveApiJs(
+                utils.get_path_track_from_path_device(this_device.get_path())
+            ),
+            messenger
+        )
+    );
+
     track_segments.load_clips();
+
     return track_segments.get_notes();
-    // return get_notes_on_track(path_this_track)
 };
 
 // 'live_set view highlighted_clip_slot'
@@ -525,6 +533,8 @@ let expand_track = (path_track) => {
     //     )
     // );
 
+    // logger.log(path_track);
+
     let track = new Track(
         new TrackDao(
             new LiveApiJs(
@@ -575,6 +585,8 @@ let expand_track = (path_track) => {
 
     let notes_segments = get_notes_segments();
 
+    logger.log(JSON.stringify(notes_segments));
+
     let segments: Segment[] = [];
 
     for (let note of notes_segments) {
@@ -595,16 +607,16 @@ let expand_track = (path_track) => {
         )
     );
 
-    let song_write = new Song(
-        new SongDao(
-            new li.LiveApiJs(
-                'live_set'
-            ),
-            new Messenger(env, 0),
-            true,
-            'song'
-        )
-    );
+    // let song_write = new Song(
+    //     new SongDao(
+    //         new li.LiveApiJs(
+    //             'live_set'
+    //         ),
+    //         new Messenger(env, 0),
+    //         true,
+    //         'song'
+    //     )
+    // );
 
     // let song = new li.LiveApiJs(
     //     'live_set'
@@ -613,6 +625,8 @@ let expand_track = (path_track) => {
     // let logger = new Logger(env);
 
     let length_beats = get_length_beats();
+
+    song_read.load_scenes();
 
     for (let i_segment in segments) {
 
@@ -632,12 +646,25 @@ let expand_track = (path_track) => {
 
         if (!scene_exists) {
             // song.call('create_scene', String(Number(i_segment)))
-            song_write.create_scene_at_index(Number(i_segment))
+            song_read.create_scene_at_index(Number(i_segment))
         }
 
         // let clipslot = new li.LiveApiJs(
         //     path_live
         // );
+
+        // logger.log(JSON.stringify(track.get_index()));
+
+        // utils.cleanse_path(track.track_dao.get_path());
+        // let thing = String(track.track_dao.get_path()).split(' ').map((text) => {
+        //     return text.replace('\"', '')
+        // }).join(' ');
+        //
+        // // logger.log(JSON.stringify(String(track.track_dao.get_path()).split(' ')));
+        // logger.log(JSON.stringify(track.get_index()));
+        //
+        //
+        // return;
 
         let clip_slot = Track.get_clip_slot_at_index(
             track.get_index(),
@@ -645,8 +672,9 @@ let expand_track = (path_track) => {
             messenger
         );
 
+        clip_slot.load_clip();
+
         if (Number(i_segment) === 0) {
-            // clipslot.call('delete_clip');
             clip_slot.delete_clip()
         }
 
@@ -655,6 +683,14 @@ let expand_track = (path_track) => {
         clip_slot.load_clip();
 
         let clip = clip_slot.get_clip();
+
+        clip.set_endpoints_loop(
+            segment.get_endpoints_loop()[0],
+            segment.get_endpoints_loop()[1]
+        );
+
+        // logger.log(JSON.stringify(segment.get_endpoints_loop()[0]));
+        // logger.log(JSON.stringify(segment.get_endpoints_loop()[1]));
 
         // clipslot.call('create_clip', String(length_beats));
 
@@ -669,10 +705,10 @@ let expand_track = (path_track) => {
         //     )
         // );
 
-        clip.set_endpoints_loop(
-            segment.get_endpoints_loop()[0],
-            segment.get_endpoints_loop()[1]
-        );
+        // clip.set_endpoints_loop(
+        //     segment.get_endpoints_loop()[0],
+        //     segment.get_endpoints_loop()[1]
+        // );
 
         clip.set_endpoint_markers(
             segment.get_endpoints_loop()[0],

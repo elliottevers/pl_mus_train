@@ -24,8 +24,8 @@ if (env === 'max') {
 var messenger = new Messenger(env, 0);
 // get the first clip and use its start and end markers to determine the length of the entire song
 var get_length_beats = function () {
-    // let this_device = new LiveApiJs('this_device');
-    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_this_track()), messenger));
+    var this_device = new LiveApiJs('this_device');
+    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(this_device.get_path())), messenger));
     track.load_clip_slots();
     var clip_slot = track.get_clip_slot_at_index(0);
     clip_slot.load_clip();
@@ -44,25 +44,25 @@ var get_length_beats = function () {
     // return segments_first_clip.get_end_marker() - segments_first_clip.get_start_marker()
 };
 var expand_segments = function () {
-    // let this_device = new li.LiveApiJs('this_device');
+    var this_device = new live_1.live.LiveApiJs('this_device');
     //
     // let path_this_device = this_device.get_path();
     //
     // let list_this_device = path_this_device.split(' ');
     //
     // let index_this_track = Number(list_this_device[2]);
-    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_this_track()), messenger));
+    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(this_device.get_path())), messenger));
     expand_track(track.get_path());
 };
 var contract_segments = function () {
-    // let this_device = new li.LiveApiJs('this_device');
+    var this_device = new live_1.live.LiveApiJs('this_device');
     //
     // let path_this_device = this_device.get_path();
     //
     // let list_this_device = path_this_device.split(' ');
     //
     // let index_this_track = Number(list_this_device[2]);
-    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_this_track()), messenger));
+    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(this_device.get_path())), messenger));
     contract_track(track.get_path());
 };
 var expand_selected_track = function () {
@@ -201,12 +201,10 @@ var contract_track = function (path_track) {
 // TODO: we can't export this, because it could be called from a different track than the one the segments are on...
 // NB: assumes the device that calls this is on the track of segments
 var get_notes_segments = function () {
-    // let this_device = new li.LiveApiJs('this_device');
-    // let path_this_track = this_device.get_path().split(' ').slice(0, 3).join(' ');
-    var track_segments = utils_1.utils.get_this_track();
+    var this_device = new live_1.live.LiveApiJs('this_device');
+    var track_segments = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(this_device.get_path())), messenger));
     track_segments.load_clips();
     return track_segments.get_notes();
-    // return get_notes_on_track(path_this_track)
 };
 // 'live_set view highlighted_clip_slot'
 var test = function () {
@@ -358,6 +356,7 @@ var expand_track = function (path_track) {
     //         new Messenger(env, 0)
     //     )
     // );
+    // logger.log(path_track);
     var track = new Track(new TrackDao(new LiveApiJs(path_track), messenger));
     //
     // let clip_slot = new ClipSlot(
@@ -383,18 +382,29 @@ var expand_track = function (path_track) {
     // logger.log(JSON.stringify(notes_clip));
     // return;
     var notes_segments = get_notes_segments();
+    logger.log(JSON.stringify(notes_segments));
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
         segments.push(new Segment(note));
     }
     var song_read = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
-    var song_write = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), true, 'song'));
+    // let song_write = new Song(
+    //     new SongDao(
+    //         new li.LiveApiJs(
+    //             'live_set'
+    //         ),
+    //         new Messenger(env, 0),
+    //         true,
+    //         'song'
+    //     )
+    // );
     // let song = new li.LiveApiJs(
     //     'live_set'
     // );
     // let logger = new Logger(env);
     var length_beats = get_length_beats();
+    song_read.load_scenes();
     var _loop_1 = function (i_segment) {
         var segment_3 = segments[Number(i_segment)];
         // let path_clipslot = ['live_set', 'tracks', String(index_track), 'clip_slots', String(Number(i_segment))];
@@ -407,19 +417,33 @@ var expand_track = function (path_track) {
         var scene_exists = scene !== null;
         if (!scene_exists) {
             // song.call('create_scene', String(Number(i_segment)))
-            song_write.create_scene_at_index(Number(i_segment));
+            song_read.create_scene_at_index(Number(i_segment));
         }
         // let clipslot = new li.LiveApiJs(
         //     path_live
         // );
+        // logger.log(JSON.stringify(track.get_index()));
+        // utils.cleanse_path(track.track_dao.get_path());
+        // let thing = String(track.track_dao.get_path()).split(' ').map((text) => {
+        //     return text.replace('\"', '')
+        // }).join(' ');
+        //
+        // // logger.log(JSON.stringify(String(track.track_dao.get_path()).split(' ')));
+        // logger.log(JSON.stringify(track.get_index()));
+        //
+        //
+        // return;
         var clip_slot = Track.get_clip_slot_at_index(track.get_index(), Number(i_segment), messenger);
+        clip_slot.load_clip();
         if (Number(i_segment) === 0) {
-            // clipslot.call('delete_clip');
             clip_slot.delete_clip();
         }
         clip_slot.create_clip(length_beats);
         clip_slot.load_clip();
         var clip_1 = clip_slot.get_clip();
+        clip_1.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        // logger.log(JSON.stringify(segment.get_endpoints_loop()[0]));
+        // logger.log(JSON.stringify(segment.get_endpoints_loop()[1]));
         // clipslot.call('create_clip', String(length_beats));
         // let path_clip = path_clipslot.concat('clip').join(' ');
         //
@@ -431,7 +455,10 @@ var expand_track = function (path_track) {
         //         new Messenger(env, 0)
         //     )
         // );
-        clip_1.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        // clip.set_endpoints_loop(
+        //     segment.get_endpoints_loop()[0],
+        //     segment.get_endpoints_loop()[1]
+        // );
         clip_1.set_endpoint_markers(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
         var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
         clip_1.set_notes(notes_within_segment);

@@ -1,9 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var live_1 = require("../live/live");
+var clip_1 = require("../clip/clip");
+var messenger_1 = require("../message/messenger");
+var clip_slot_1 = require("../clip_slot/clip_slot");
 var utils_1 = require("../utils/utils");
+var logger_1 = require("../log/logger");
 var _ = require('underscore');
 var track;
 (function (track) {
+    var LiveApiJs = live_1.live.LiveApiJs;
+    var Clip = clip_1.clip.Clip;
+    var Messenger = messenger_1.message.Messenger;
+    var ClipSlot = clip_slot_1.clip_slot.ClipSlot;
+    var ClipSlotDao = clip_slot_1.clip_slot.ClipSlotDao;
+    var ClipDao = clip_1.clip.ClipDao;
+    var Logger = logger_1.log.Logger;
     // export let get_notes_on_track = (path_track) => {
     //     let index_track = Number(path_track.split(' ')[2]);
     //
@@ -55,7 +67,7 @@ var track;
             //         messenger
             //     )
             // );
-            return utils_1.utils.FactoryLive.get_clip_at_index(index_track, index_clip_slot, messenger);
+            return new Clip(new ClipDao(new LiveApiJs(['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot), 'clip'].join(' ')), messenger));
         };
         Track.get_clip_slot_at_index = function (index_track, index_clip_slot, messenger) {
             // return new ClipSlot(
@@ -66,10 +78,12 @@ var track;
             //         messenger
             //     )
             // );
-            return utils_1.utils.FactoryLive.get_clip_slot_at_index(index_track, index_clip_slot, messenger);
+            return new ClipSlot(new ClipSlotDao(new LiveApiJs(['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot)].join(' ')), messenger));
         };
         Track.prototype.get_index = function () {
-            return Number(this.track_dao.get_path().split(' ')[2]);
+            // let logger = new Logger('max');
+            // logger.log(String(String(this.track_dao.get_path()).split(' ')[2]));
+            return Number(utils_1.utils.cleanse_path(this.track_dao.get_path()).split(' ')[2]);
         };
         Track.prototype.load_clip_slots = function () {
             this.clip_slots = this.track_dao.get_clip_slots();
@@ -105,8 +119,8 @@ var track;
             // let logger = new Logger('max');
             // logger.log(JSON.stringify(this.clip_slots))
             for (var _i = 0, _a = this.clip_slots; _i < _a.length; _i++) {
-                var clip_slot_1 = _a[_i];
-                clip_slot_1.load_clip();
+                var clip_slot_2 = _a[_i];
+                clip_slot_2.load_clip();
                 // if (clip_slot.b_has_clip()) {
                 //     logger.log(JSON.stringify(clip_slot.get_clip().get_notes_within_markers()))
                 // }
@@ -114,8 +128,8 @@ var track;
         };
         Track.prototype.delete_clips = function () {
             for (var _i = 0, _a = this.clip_slots; _i < _a.length; _i++) {
-                var clip_slot_2 = _a[_i];
-                clip_slot_2.delete_clip();
+                var clip_slot_3 = _a[_i];
+                clip_slot_3.delete_clip();
             }
         };
         Track.prototype.create_clip_at_index = function (index, length_beats) {
@@ -139,14 +153,16 @@ var track;
         Track.prototype.get_notes = function () {
             var notes_amassed = [];
             for (var _i = 0, _a = this.clip_slots; _i < _a.length; _i++) {
-                var clip_slot_3 = _a[_i];
-                notes_amassed = notes_amassed.concat(clip_slot_3.get_clip().get_notes_within_markers());
+                var clip_slot_4 = _a[_i];
+                var logger = new Logger('max');
+                logger.log(JSON.stringify(clip_slot_4.get_clip().get_path()));
+                notes_amassed = notes_amassed.concat(clip_slot_4.get_clip().get_notes_within_markers());
             }
             return notes_amassed;
         };
         Track.prototype.get_path = function () {
             // TODO: implement
-            return;
+            return this.track_dao.get_path();
         };
         return Track;
     }());
@@ -164,12 +180,15 @@ var track;
         TrackDaoVirtual.prototype.get_notes = function () {
             var notes_amassed = [];
             for (var _i = 0, _a = this.clips; _i < _a.length; _i++) {
-                var clip_1 = _a[_i];
-                notes_amassed = notes_amassed.concat(clip_1.get_notes(clip_1.get_loop_bracket_lower(), 0, clip_1.get_loop_bracket_upper(), 128));
+                var clip_2 = _a[_i];
+                notes_amassed = notes_amassed.concat(clip_2.get_notes(clip_2.get_loop_bracket_lower(), 0, clip_2.get_loop_bracket_upper(), 128));
             }
             return notes_amassed;
         };
         TrackDaoVirtual.prototype.get_clip_slots = function () {
+            return;
+        };
+        TrackDaoVirtual.prototype.get_path = function () {
             return;
         };
         return TrackDaoVirtual;
@@ -189,8 +208,11 @@ var track;
                 clip_slot.push(datum);
                 if (Number(i_datum) % 2 === 1) {
                     clip_slots.push(clip_slot);
+                    clip_slot = [];
                 }
             }
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(clip_slots));
             return clip_slots.map(function (list_id_clip_slot) {
                 // return new ClipSlot(
                 //     new ClipSlotDao(
@@ -200,7 +222,8 @@ var track;
                 //         this.messenger
                 //     )
                 // )
-                return utils_1.utils.FactoryLive.get_clip_slot(list_id_clip_slot.join(' '));
+                // return utils.FactoryLive.get_clip_slot(list_id_clip_slot.join(' '))
+                return new ClipSlot(new ClipSlotDao(new LiveApiJs(list_id_clip_slot.join(' ')), new Messenger('max', 0)));
             });
         };
         TrackDao.prototype.mute = function (val) {
@@ -214,6 +237,9 @@ var track;
         // implement the amassing notes logic
         TrackDao.prototype.get_notes = function () {
             return;
+        };
+        TrackDao.prototype.get_path = function () {
+            return this.live_api.get_path();
         };
         return TrackDao;
     }());

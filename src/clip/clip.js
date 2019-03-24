@@ -2,18 +2,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
+var live_1 = require("../live/live");
 var logger_1 = require("../log/logger");
 var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
     var Logger = logger_1.log.Logger;
-    // import ClipLive = live.ClipLive;
-    // import iLiveApiJs = live.iLiveApiJs;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
             this.logger = new Logger('max');
         }
+        Clip.from_path = function (path, messenger) {
+            //@ts-ignore
+            var LiveApiJs = live_1.live.LiveApiJs;
+            return new Clip(new ClipDao(new LiveApiJs(path), messenger));
+        };
         Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
             if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
                 this.clip_dao.set_loop_bracket_upper(beat_end);

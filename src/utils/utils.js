@@ -2,98 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
 (function (utils) {
-    // import LiveApiJs = live.LiveApiJs;
-    var FactoryLive = /** @class */ (function () {
-        function FactoryLive() {
-        }
-        FactoryLive.get_clip_slot = function (id_clip_slot) {
-            // @ts-ignore
-            // import LiveApiJs = live.LiveApiJs;
-            // return new ClipSlot(
-            //     new ClipSlotDao(
-            //         new LiveApiJs(
-            //             id_clip_slot
-            //         ),
-            //         new Messenger('max', 0)
-            //     )
-            // )
-            return;
-        };
-        FactoryLive.get_clip_at_index = function (index_track, index_clip_slot, messenger) {
-            // @ts-ignore
-            // import LiveApiJs = live.LiveApiJs;
-            // return new Clip(
-            //     new ClipDao(
-            //         new LiveApiJs(
-            //             ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot), 'clip'].join(' ')
-            //         ),
-            //         messenger
-            //     )
-            // );
-            return;
-        };
-        FactoryLive.get_clip_slot_at_index = function (index_track, index_clip_slot, messenger) {
-            // @ts-ignore
-            // import LiveApiJs = live.LiveApiJs;
-            // return new ClipSlot(
-            //     new ClipSlotDao(
-            //         new LiveApiJs(
-            //             ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot)].join(' ')
-            //         ),
-            //         messenger
-            //     )
-            // );
-            return;
-        };
-        FactoryLive.clip_from_path = function (path, messenger) {
-            // @ts-ignore
-            // import LiveApiJs = live.LiveApiJs;
-            // return new Clip(
-            //     new ClipDao(
-            //         new LiveApiJs(
-            //             path
-            //         ),
-            //         messenger
-            //     )
-            // )
-            return;
-        };
-        return FactoryLive;
-    }());
-    utils.FactoryLive = FactoryLive;
+    // accepts a path directly from the DAO object
     utils.cleanse_path = function (path) {
-        return path.replace('/"', '');
+        // return path.replace('/"', '')
+        return String(path).split(' ').map(function (text) {
+            return text.replace('\"', '');
+        }).join(' ');
     };
-    //
-    // export let get_clip_on_this_device_at_index = (index: number): Clip => {
-    //     // TODO: implement
-    //     return
-    // };
-    utils.get_path_this_track = function () {
-        // @ts-ignore
-        // import LiveApiJs = live.LiveApiJs;
-        // let this_device = new LiveApiJs('this_device');
-        //
-        // let path_this_device = this_device.get_path();
-        //
-        // return path_this_device.split(' ').slice(0, 3).join(' ');
-        //
-        return;
-    };
-    utils.get_this_track = function () {
-        // @ts-ignore
-        // import LiveApiJs = live.LiveApiJs;
-        // let this_device = new LiveApiJs('this_device');
-        //
-        // return new Track(
-        //     new TrackDao(
-        //         new LiveApiJs(
-        //             ['id', String(this_device.get_id())].join(' ')
-        //         ),
-        //         new Messenger('max', 0)  // this only works in Max anyway...
-        //     )
-        // )
-        return;
+    utils.get_path_track_from_path_device = function (path) {
+        return path.split(' ').slice(0, 3).join(' ');
     };
     var PathLive = /** @class */ (function () {
         function PathLive() {
