@@ -4,6 +4,7 @@ import {message} from "../message/messenger";
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
 import {clip_slot} from "../clip_slot/clip_slot";
+import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace track {
@@ -13,6 +14,8 @@ export namespace track {
     import Messenger = message.Messenger;
     import Note = note.Note;
     import ClipSlot = clip_slot.ClipSlot;
+    import ClipSlotDao = clip_slot.ClipSlotDao;
+    import Logger = log.Logger;
 
     // export let get_notes_on_track = (path_track) => {
     //     let index_track = Number(path_track.split(' ')[2]);
@@ -56,7 +59,7 @@ export namespace track {
 
         public track_dao;
 
-        clip_slots: ClipSlot[];
+        clip_slots: ClipSlot[] = [];
 
         constructor(track_dao: iTrackDao) {
             this.track_dao = track_dao;
@@ -91,12 +94,43 @@ export namespace track {
             return
         }
 
-        public load_clip_slots() {
-
+        public load_clip_slots(): void {
+            this.clip_slots = this.track_dao.get_clip_slots();
+            let logger = new Logger('max');
+            logger.log(this.track_dao.get_clip_slots().length);
         }
 
-        public load_clips() {
+        // public load_clips(): void {
+        //     //
+        //     let id_pairs: string[][] = this.get_clip_slots();
+        //     for (let id_pair of id_pairs) {
+        //         let clip_slot = new ClipSlot(
+        //             new ClipSlotDao(
+        //                 new LiveApiJs(
+        //                     id_pair.join(' ')
+        //                 ),
+        //                 this.track_dao.messenger
+        //             )
+        //         );
+        //
+        //         if (clip_slot.b_has_clip()) {
+        //             this.clip
+        //         }
+        //     }
+        // }
 
+        load_clips() {
+            this.load_clip_slots();
+
+            let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.clip_slots))
+
+            for (let clip_slot of this.clip_slots) {
+                clip_slot.load_clip();
+                if (clip_slot.b_has_clip()) {
+                    logger.log(JSON.stringify(clip_slot.get_clip().get_notes_within_markers()))
+                }
+            }
         }
 
         public load() {
@@ -121,7 +155,8 @@ export namespace track {
 
         // TODO: should return null if the there aren't even that many scenes
         public get_clip_at_index(index: number): Clip {
-            return
+            let clip_slot = this.clip_slots[index];
+            return clip_slot.get_clip()
         }
 
         public get_num_clip_slots() {
@@ -154,6 +189,7 @@ export namespace track {
         get_clip_slots(int: number)
     }
 
+    // TODO: please change everything in here
     export class TrackDaoVirtual implements iTrackDao {
 
         num_clip_slots: number;
@@ -218,12 +254,14 @@ export namespace track {
     export class TrackDao implements iTrackDao {
 
         private live_api: LiveApiJs;
+        public messenger: Messenger;
 
-        constructor(live_api: LiveApiJs) {
+        constructor(live_api: LiveApiJs, messenger: Messenger) {
             this.live_api = live_api
+            this.messenger = messenger;
         }
 
-        get_clip_slots() {
+        get_clip_slots(): ClipSlot[] {
             let data_clip_slots = this.live_api.get("clip_slots");
 
             let clip_slots = [];
@@ -232,7 +270,7 @@ export namespace track {
 
             for (let i_datum in data_clip_slots) {
 
-                let datum = Number(i_datum);
+                let datum = data_clip_slots[Number(i_datum)];
 
                 clip_slot.push(datum);
 
@@ -241,7 +279,17 @@ export namespace track {
                 }
             }
 
-            return clip_slots
+            return clip_slots.map((id_clip_slot) => {
+                return new ClipSlot(
+                    new ClipSlotDao(
+                        new LiveApiJs(
+                            id_clip_slot
+                        ),
+                        this.messenger
+                    )
+                )
+            });
+
         }
 
         mute(val: boolean) {

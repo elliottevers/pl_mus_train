@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
+var logger_1 = require("../log/logger");
+var Logger = logger_1.log.Logger;
 var utils_1 = require("../utils/utils");
 var segment_1 = require("../segment/segment");
 var Segment = segment_1.segment.Segment;
@@ -45,7 +47,7 @@ var expand_segments = function () {
     // let list_this_device = path_this_device.split(' ');
     //
     // let index_this_track = Number(list_this_device[2]);
-    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_this_track())));
+    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_this_track()), messenger));
     expand_track(track.get_path());
 };
 var contract_segments = function () {
@@ -56,7 +58,7 @@ var contract_segments = function () {
     // let list_this_device = path_this_device.split(' ');
     //
     // let index_this_track = Number(list_this_device[2]);
-    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_this_track())));
+    var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_this_track()), messenger));
     contract_track(track.get_path());
 };
 var expand_selected_track = function () {
@@ -73,7 +75,7 @@ var contract_selected_track = function () {
 var contract_track = function (path_track) {
     // length of first clip
     var length_beats = get_length_beats();
-    var track = new Track(new TrackDao(new live_1.live.LiveApiJs(path_track)));
+    var track = new Track(new TrackDao(new live_1.live.LiveApiJs(path_track), messenger));
     // clip_slots and clips
     track.load();
     var notes = track.get_notes();
@@ -214,7 +216,7 @@ var contract_selected_audio_track = function () {
 // NB: we assume all training data starts on the first beat
 var contract_track_audio = function (path_track) {
     var length_beats = get_length_beats();
-    var track = new Track(new TrackDao(new live_1.live.LiveApiJs(path_track)));
+    var track = new Track(new TrackDao(new live_1.live.LiveApiJs(path_track), messenger));
     track.load();
     var clip_slots = track.get_clip_slots();
     for (var i_clip_slot_audio in clip_slots) {
@@ -263,7 +265,7 @@ var expand_track_audio = function (path_track) {
     // let track = new li.LiveApiJs(clipslot_audio.get_path().split(' ').slice(0, 3).join(' '));
     // let index_track = clipslot_audio.get_path().split(' ')[2];
     // let num_clipslots = track.get("clip_slots").length/2;
-    var track = new Track(new TrackDao(new LiveApiJs(path_track)));
+    var track = new Track(new TrackDao(new LiveApiJs(path_track), messenger));
     var clip_slot_audio = track.get_clip_slot_at_index(0);
     // TODO: we won't need to do this since we will be creating new ones anyway
     // track.load();
@@ -334,6 +336,7 @@ var expand_track_audio = function (path_track) {
 };
 // let notes_segments = io.Importer.import('segment');
 var expand_track = function (path_track) {
+    var logger = new Logger(env);
     //
     // let clipslot_highlighted = new li.LiveApiJs(
     //     path_clip_slot
@@ -351,12 +354,30 @@ var expand_track = function (path_track) {
     //         new Messenger(env, 0)
     //     )
     // );
-    var track = new Track(new TrackDao(new LiveApiJs(path_track)));
+    var track = new Track(new TrackDao(new LiveApiJs(path_track), messenger));
+    //
+    // let clip_slot = new ClipSlot(
+    //     new ClipSlotDao(
+    //         new LiveApiJs('id 15'),
+    //         messenger
+    //     )
+    // );
+    //
+    // clip_slot.load_clip();
+    //
+    // logger.log(JSON.stringify(clip_slot.b_has_clip()));
+    // logger.log(path_track);
+    // return;
+    // logger.log(JSON.stringify(track.track_dao.live_api.get('clip_slots')));
     track.load_clips();
     var clip = track.get_clip_at_index(0);
     // get first clip
     // get its notes
     var notes_clip = clip.get_notes(clip.get_loop_bracket_lower(), 0, clip.get_loop_bracket_upper(), 128);
+    // TODO: put back in please
+    // let notes_segments = get_notes_segments();
+    logger.log(JSON.stringify(notes_clip));
+    return;
     var notes_segments = get_notes_segments();
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {

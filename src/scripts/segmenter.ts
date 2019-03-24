@@ -22,6 +22,7 @@ import ClipSlot = clip_slot.ClipSlot;
 import ClipSlotDao = clip_slot.ClipSlotDao;
 import {scene as module_scen} from "../scene/scene";
 import Scene = module_scen.Scene;
+import {cli} from "../cli/cli";
 // import get_notes_on_track = track.get_notes_on_track;
 const _ = require('underscore');
 
@@ -78,7 +79,8 @@ let expand_segments = () => {
         new TrackDao(
             new LiveApiJs(
                 utils.get_path_this_track()
-            )
+            ),
+            messenger
         )
     );
 
@@ -98,7 +100,8 @@ let contract_segments = () => {
         new TrackDao(
             new LiveApiJs(
                 utils.get_path_this_track()
-            )
+            ),
+            messenger
         )
     );
 
@@ -128,7 +131,8 @@ let contract_track = (path_track) => {
         new TrackDao(
             new li.LiveApiJs(
                 path_track
-            )
+            ),
+            messenger
         )
     );
 
@@ -296,7 +300,8 @@ let contract_track_audio = (path_track) => {
 
     let track = new Track(
         new TrackDao(
-            new li.LiveApiJs(path_track)
+            new li.LiveApiJs(path_track),
+            messenger
         )
     );
 
@@ -371,7 +376,8 @@ let expand_track_audio = (path_track) => {
         new TrackDao(
             new LiveApiJs(
                 path_track
-            )
+            ),
+            messenger
         )
     );
 
@@ -491,6 +497,8 @@ let expand_track_audio = (path_track) => {
 // let notes_segments = io.Importer.import('segment');
 
 let expand_track = (path_track) => {
+
+    let logger = new Logger(env);
     //
     // let clipslot_highlighted = new li.LiveApiJs(
     //     path_clip_slot
@@ -513,11 +521,31 @@ let expand_track = (path_track) => {
         new TrackDao(
             new LiveApiJs(
                 path_track
-            )
+            ),
+            messenger
         )
     );
 
+    //
+    // let clip_slot = new ClipSlot(
+    //     new ClipSlotDao(
+    //         new LiveApiJs('id 15'),
+    //         messenger
+    //     )
+    // );
+    //
+    // clip_slot.load_clip();
+    //
+    // logger.log(JSON.stringify(clip_slot.b_has_clip()));
+    // logger.log(path_track);
+
+    // return;
+
+
+    // logger.log(JSON.stringify(track.track_dao.live_api.get('clip_slots')));
+
     track.load_clips();
+
 
     let clip = track.get_clip_at_index(0);
 
@@ -530,6 +558,13 @@ let expand_track = (path_track) => {
         clip.get_loop_bracket_upper(),
         128
     );
+
+    // TODO: put back in please
+    // let notes_segments = get_notes_segments();
+
+    logger.log(JSON.stringify(notes_clip));
+
+    return;
 
     let notes_segments = get_notes_segments();
 

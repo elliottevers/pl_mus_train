@@ -2,12 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
+var clip_slot_1 = require("../clip_slot/clip_slot");
+var logger_1 = require("../log/logger");
 var _ = require('underscore');
 var track;
 (function (track) {
     var LiveApiJs = live_1.live.LiveApiJs;
     var Clip = clip_1.clip.Clip;
     var ClipDao = clip_1.clip.ClipDao;
+    var ClipSlot = clip_slot_1.clip_slot.ClipSlot;
+    var ClipSlotDao = clip_slot_1.clip_slot.ClipSlotDao;
+    var Logger = logger_1.log.Logger;
     // export let get_notes_on_track = (path_track) => {
     //     let index_track = Number(path_track.split(' ')[2]);
     //
@@ -47,6 +52,7 @@ var track;
     // };
     var Track = /** @class */ (function () {
         function Track(track_dao) {
+            this.clip_slots = [];
             this.track_dao = track_dao;
         }
         Track.prototype.mute = function () {
@@ -67,8 +73,39 @@ var track;
             return;
         };
         Track.prototype.load_clip_slots = function () {
+            this.clip_slots = this.track_dao.get_clip_slots();
+            var logger = new Logger('max');
+            logger.log(this.track_dao.get_clip_slots().length);
         };
+        // public load_clips(): void {
+        //     //
+        //     let id_pairs: string[][] = this.get_clip_slots();
+        //     for (let id_pair of id_pairs) {
+        //         let clip_slot = new ClipSlot(
+        //             new ClipSlotDao(
+        //                 new LiveApiJs(
+        //                     id_pair.join(' ')
+        //                 ),
+        //                 this.track_dao.messenger
+        //             )
+        //         );
+        //
+        //         if (clip_slot.b_has_clip()) {
+        //             this.clip
+        //         }
+        //     }
+        // }
         Track.prototype.load_clips = function () {
+            this.load_clip_slots();
+            var logger = new Logger('max');
+            // logger.log(JSON.stringify(this.clip_slots))
+            for (var _i = 0, _a = this.clip_slots; _i < _a.length; _i++) {
+                var clip_slot_2 = _a[_i];
+                clip_slot_2.load_clip();
+                if (clip_slot_2.b_has_clip()) {
+                    logger.log(JSON.stringify(clip_slot_2.get_clip().get_notes_within_markers()));
+                }
+            }
         };
         Track.prototype.load = function () {
         };
@@ -84,7 +121,8 @@ var track;
         };
         // TODO: should return null if the there aren't even that many scenes
         Track.prototype.get_clip_at_index = function (index) {
-            return;
+            var clip_slot = this.clip_slots[index];
+            return clip_slot.get_clip();
         };
         Track.prototype.get_num_clip_slots = function () {
             return this.get_clip_slots().length;
@@ -96,8 +134,8 @@ var track;
         Track.prototype.get_notes = function () {
             var notes_amassed = [];
             for (var _i = 0, _a = this.clip_slots; _i < _a.length; _i++) {
-                var clip_slot_1 = _a[_i];
-                notes_amassed = notes_amassed.concat(clip_slot_1.get_clip().get_notes_within_markers());
+                var clip_slot_3 = _a[_i];
+                notes_amassed = notes_amassed.concat(clip_slot_3.get_clip().get_notes_within_markers());
             }
             return notes_amassed;
         };
@@ -108,6 +146,7 @@ var track;
         return Track;
     }());
     track.Track = Track;
+    // TODO: please change everything in here
     var TrackDaoVirtual = /** @class */ (function () {
         function TrackDaoVirtual(clips) {
             this.clips = clips;
@@ -156,21 +195,25 @@ var track;
     }());
     track.TrackDaoVirtual = TrackDaoVirtual;
     var TrackDao = /** @class */ (function () {
-        function TrackDao(live_api) {
+        function TrackDao(live_api, messenger) {
             this.live_api = live_api;
+            this.messenger = messenger;
         }
         TrackDao.prototype.get_clip_slots = function () {
+            var _this = this;
             var data_clip_slots = this.live_api.get("clip_slots");
             var clip_slots = [];
             var clip_slot = [];
             for (var i_datum in data_clip_slots) {
-                var datum = Number(i_datum);
+                var datum = data_clip_slots[Number(i_datum)];
                 clip_slot.push(datum);
                 if (Number(i_datum) % 2 === 1) {
                     clip_slots.push(clip_slot);
                 }
             }
-            return clip_slots;
+            return clip_slots.map(function (id_clip_slot) {
+                return new ClipSlot(new ClipSlotDao(new LiveApiJs(id_clip_slot), _this.messenger));
+            });
         };
         TrackDao.prototype.mute = function (val) {
             if (val) {

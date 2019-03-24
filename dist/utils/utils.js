@@ -3,12 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
 var utils;
 (function (utils) {
-    var LiveApiJs = live_1.live.LiveApiJs;
+    utils.cleanse_path = function (path) {
+        return path.replace('/"', '');
+    };
     utils.get_clip_on_this_device_at_index = function (index) {
         // TODO: implement
         return;
     };
     utils.get_path_this_track = function () {
+        // @ts-ignore
+        var LiveApiJs = live_1.live.LiveApiJs;
         var this_device = new LiveApiJs('this_device');
         var path_this_device = this_device.get_path();
         return path_this_device.split(' ').slice(0, 3).join(' ');

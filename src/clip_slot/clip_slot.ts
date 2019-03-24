@@ -1,22 +1,27 @@
 import {live} from "../live/live";
 import {clip} from "../clip/clip";
+import {message} from "../message/messenger";
+import {log} from "../log/logger";
 
 export namespace clip_slot {
     import LiveApiJs = live.LiveApiJs;
     import Clip = clip.Clip;
+    import ClipDao = clip.ClipDao;
+    import Messenger = message.Messenger;
+    import Logger = log.Logger;
 
     export class ClipSlot {
 
         clip: Clip;
 
-        clip_slot_dao: ClipSlotDao;
+        clip_slot_dao: iClipSlotDao;
 
-        constructor() {
-
+        constructor(clip_slot_dao: iClipSlotDao) {
+            this.clip_slot_dao = clip_slot_dao;
         }
 
         b_has_clip(): boolean {
-            return false
+            return this.clip !== null
         }
 
         delete_clip() {
@@ -36,11 +41,11 @@ export namespace clip_slot {
         }
 
         load_clip(): void {
-
+            this.clip = this.clip_slot_dao.get_clip();
         }
 
         get_clip(): Clip {
-            return
+            return this.clip
         }
     }
 
@@ -52,14 +57,20 @@ export namespace clip_slot {
 
         duplicate_clip_to(id: number)
 
+        get_clip(): Clip
+
+        get_path()
+
     }
 
     export class ClipSlotDao implements iClipSlotDao {
 
         private live_api: LiveApiJs;
+        private messenger: Messenger;
 
-        constructor(live_api: LiveApiJs) {
+        constructor(live_api: LiveApiJs, messenger: Messenger) {
             this.live_api = live_api
+            this.messenger = messenger;
         }
 
         delete_clip() {
@@ -72,6 +83,24 @@ export namespace clip_slot {
 
         duplicate_clip_to(id: number) {
             this.live_api.call("duplicate_clip_to", ['id', id].join(' '));
+        }
+
+        get_clip(): Clip {
+            let logger = new Logger('max');
+            // logger.log(String(this.live_api.get('clip')));
+            // logger.log(this.live_api.get('clip').split(',').join(' '));
+            return new Clip(
+                new ClipDao(
+                    new LiveApiJs(
+                        String(this.live_api.get('clip')).split(',').join(' ')
+                    ),
+                    this.messenger
+                )
+            )
+        }
+
+        get_path(): string {
+            return
         }
     }
 }
