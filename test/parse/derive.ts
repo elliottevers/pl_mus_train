@@ -4,10 +4,8 @@ import {user_input} from "../../src/control/user_input";
 import UserInputHandler = user_input.UserInputHandler;
 import {message} from "../../src/message/messenger";
 import Messenger = message.Messenger;
-import {live as li, live} from "../../src/live/live";
+import {live} from "../../src/live/live";
 import LiveClipVirtual = live.LiveClipVirtual;
-import {segment} from "../../src/segment/segment";
-import Segment = segment.Segment;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
 import {algorithm} from "../../src/train/algorithm";
@@ -20,9 +18,17 @@ import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
 import {modes_control, modes_texture} from "../../src/constants/constants";
 import VOCAL = modes_control.VOCAL;
-import Parse = algorithm.Parse;
 import MONOPHONY = modes_texture.MONOPHONY;
 import Derive = algorithm.Derive;
+import {track} from "../../src/track/track";
+import TrackDaoVirtual = track.TrackDaoVirtual;
+import {song as module_song} from "../../src/song/song";
+import SongDaoVirtual = module_song.SongDaoVirtual;
+import {scene as module_scene} from "../../src/scene/scene";
+import Scene = module_scene.Scene;
+import Song = module_song.Song;
+import SceneDaoVirtual = module_scene.SceneDaoVirtual;
+import Track = track.Track;
 
 
 let tree: TreeModel = new TreeModel();
@@ -205,6 +211,7 @@ let note_4_2 = tree.parse(
     }
 );
 
+
 let notes_segments = [note_2_1, note_2_2, note_2_3];
 
 
@@ -223,104 +230,159 @@ let env: string = 'node_for_max';
 
 let messenger = new Messenger(env, 0, 'render_derive');
 
-let algorithm_train = new Derive(
-    user_input_handler
-);
-
-let window_local = new MatrixWindow(
-    384,
-    384,
-    messenger,
-    algorithm_train
-);
+let algorithm_train = new Derive();
 
 algorithm_train.set_depth(
     3
 );
 
-// stubs
-let song = {
-    set_overdub: (int) => {},
-    set_session_record: (int) => {},
-    stop: () => {}
-};
+let window_local = new MatrixWindow(
+    384,
+    384,
+    messenger
+);
 
-let clip_user_input = {
-    fire: () => {},
-    stop: () => {},
-    set_endpoints_loop: (former, latter) => {}
-};
 
-let clip_user_input_synchronous = {
-    fire: () => {},
-    stop: () => {},
-    set_endpoints_loop: (former, latter) => {}
-};
+let scene, scenes;
 
-let scene = {
-    fire: () => {},
-    // stop: () => {},
-    // set_endpoints_loop: (former, latter) => {}
-};
+scenes = [];
 
-// let notes_segments = [
-//     note_2_1,
-//     note_2_2,
-//     note_2_3
-// ];
+// first scene
+scene = new Scene(
+    new SceneDaoVirtual(
 
-let notes_target_clip = [
-    // TODO: make sure we don't do anything with these notes when deriving
-    // OTHER THAN mute the target track we're deriving
-];
-
-let segments: Segment[] = [];
-
-for (let note of notes_segments) {
-    let segment = new Segment(
-        note
-    );
-
-    // @ts-ignore
-    segment.set_scene(scene);
-
-    segments.push(
-        segment
     )
+);
+
+scenes.push(scene);
 
 
-    // let note = notes_segments[Number(i_note)];
-    // let path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
-    // let segment_local = new Segment(
-    //     note
-    // );
-    // segment_local.set_scene(
-    //     new Scene(
-    //         new SceneDao(
-    //             new li.LiveApiJs(
-    //                 path_scene
-    //             )
-    //         )
-    //     )
-    // );
-}
+// second scene
+scene = new Scene(
+    new SceneDaoVirtual(
+
+    )
+);
+
+scenes.push(scene);
+
+
+// third scene
+scene = new Scene(
+    new SceneDaoVirtual(
+
+    )
+);
+
+scenes.push(scene);
+
+let song = new Song(
+    new SongDaoVirtual(
+        scenes
+    )
+);
+
+
+// USER INPUT CLIP - HAS THE SEGMENTS
+
+let clip_dao_virtual, clip_user_input;
+
+let clips_user_input = [];
+
+
+// first segment
+clip_dao_virtual = new LiveClipVirtual([note_2_1]);
+
+clip_dao_virtual.beat_start = 0;
+
+clip_dao_virtual.beat_end = 16;
+
+clip_user_input = new Clip(
+    clip_dao_virtual
+);
+
+clips_user_input.push(clip_user_input);
+
+
+
+// second segment
+clip_dao_virtual = new LiveClipVirtual([note_2_2]);
+
+clip_dao_virtual.beat_start = 16;
+
+clip_dao_virtual.beat_end = 48;
+
+clip_user_input = new Clip(
+    clip_dao_virtual
+);
+
+clips_user_input.push(clip_user_input);
+
+
+
+// third segment
+clip_dao_virtual = new LiveClipVirtual([note_2_3]);
+
+clip_dao_virtual.beat_start = 48;
+
+clip_dao_virtual.beat_end = 64;
+
+clip_user_input = new Clip(
+    clip_dao_virtual
+);
+
+clips_user_input.push(clip_user_input);
+
+
+
+let track_user_input = new Track(
+    new TrackDaoVirtual(
+        clips_user_input
+    )
+);
+
+// TARGET CLIP
+
+let clips_target = [];
+
+let clip_target;
+
+
+// these shouldn't matter for deriving
+clip_dao_virtual = new LiveClipVirtual(
+    []
+);
+
+clip_dao_virtual.beat_start = 0;
+
+clip_dao_virtual.beat_end = 64;
+
+clip_target = new Clip(
+    clip_dao_virtual
+);
+
+clips_target.push(clip_target);
+
+let track_target = new Track(
+    new TrackDaoVirtual(
+        clips_target
+    )
+);
 
 
 let trainer_local = new Trainer(
     window_local,
     user_input_handler,
     algorithm_train,
-    clip_user_input,
-    clip_user_input_synchronous,
-    notes_target_clip,
+    track_target,
+    track_user_input,
     song,
-    segments,
     messenger
 );
 
 // test case - 2 segments, 2 notes a piece
 
-trainer_local.init(
+trainer_local.commence(
 
 );
 
