@@ -53,6 +53,7 @@ var trainer;
             // );
             this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track);
             this.struct_train = this.trainable.create_struct_train(this.window, this.segments, this.track_target, this.user_input_handler, this.struct_train);
+            this.struct_train = this.trainable.preprocess_struct_train(this.struct_train, this.segments, this.notes_target_track);
             // this.trainable.initialize(
             //     this.window,
             //     this.segments,

@@ -168,6 +168,12 @@ export namespace trainer {
                 this.struct_train
             );
 
+            this.struct_train = this.trainable.preprocess_struct_train(
+                this.struct_train,
+                this.segments,
+                this.notes_target_track
+            );
+
             // this.trainable.initialize(
             //     this.window,
             //     this.segments,

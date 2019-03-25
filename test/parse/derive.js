@@ -92,10 +92,10 @@ var mode_texture = MONOPHONY;
 var mode_control = VOCAL;
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
 var env = 'node_for_max';
-env = 'node';
+// env = 'node';
 var messenger = new Messenger(env, 0, 'render_derive');
 var algorithm_train = new Derive();
-algorithm_train.set_depth(3);
+algorithm_train.set_depth(4);
 var window_local = new MatrixWindow(384, 384, messenger);
 var scene, scenes;
 scenes = [];
@@ -153,22 +153,10 @@ var trainer_local = new Trainer(window_local, user_input_handler, algorithm_trai
 // test case - 2 segments, 2 notes a piece
 trainer_local.commence();
 trainer_local.accept_input([note_3_1, note_3_2]);
-// trainer_local.accept_input(
-//     [note_3_3, note_3_4]
-// );
-//
-//
-// trainer_local.accept_input(
-//     [note_3_5, note_3_6]
-// );
-//
-// trainer_local.accept_input(
-//     [note_4_1]
-// );
-//
-// trainer_local.accept_input(
-//     [note_4_2]
-// );
+trainer_local.accept_input([note_3_3, note_3_4]);
+trainer_local.accept_input([note_3_5, note_3_6]);
+trainer_local.accept_input([note_4_1]);
+trainer_local.accept_input([note_4_2]);
 trainer_local.render_window();
 // trainer_local_parse.clear_window(
 //

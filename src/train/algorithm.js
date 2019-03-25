@@ -84,6 +84,12 @@ var algorithm;
         Targeted.prototype.warrants_advance = function (notes_user_input, subtarget_current) {
             return utils_1.utils.remainder(notes_user_input[0].model.note.pitch, 12) === utils_1.utils.remainder(subtarget_current.note.model.note.pitch, 12);
         };
+        Targeted.prototype.preprocess_struct_train = function (struct_train, segments, notes_target_track) {
+            return this.preprocess_struct_targets(struct_train, segments, notes_target_track);
+        };
+        Targeted.prototype.preprocess_struct_targets = function (struct_targets, segments, notes_target_track) {
+            return struct_targets;
+        };
         Targeted.prototype.create_matrix_targets = function (user_input_handler, segments, notes_target_track) {
             var matrix_targets = FactoryMatrixObjectives.create_matrix_objectives(this, segments);
             var _loop_1 = function (i_segment) {
@@ -139,6 +145,9 @@ var algorithm;
         function Parsed() {
             this.b_parsed = true;
             this.b_targeted = false;
+            // preprocess_struct_train(struct_train: trainer.StructTrain, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]): trainer.StructTrain {
+            //     return undefined;
+            // }
         }
         Parsed.prototype.update_struct = function (notes_input_user, struct_train, trainable, iterator_matrix_train) {
             var struct_parse = struct_train;
@@ -163,9 +172,9 @@ var algorithm;
                 return coord[0] + 1;
             }
         };
-        Parsed.prototype.create_matrix_targets = function (user_input_handler, segments, notes_target_track) {
-            return [];
-        };
+        // create_matrix_targets(user_input_handler: UserInputHandler, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
+        //     return []
+        // }
         Parsed.prototype.create_struct_parse = function (segments) {
             return new StructParse(FactoryMatrixObjectives.create_matrix_objectives(this, segments));
         };
@@ -179,6 +188,9 @@ var algorithm;
         };
         Parsed.prototype.get_notes_in_region = function (target, segment) {
             return [segment.get_note()];
+        };
+        Parsed.prototype.preprocess_struct_train = function (struct_train, segments, notes_target_track) {
+            return this.preprocess_struct_parse(struct_train, segments, notes_target_track);
         };
         Parsed.prototype.pause = function (song, scene_current) {
             song.set_overdub(0);
@@ -201,8 +213,6 @@ var algorithm;
             song.set_overdub(1);
             song.set_session_record(1);
             scene_current.fire(false);
-        };
-        Parsed.prototype.update_roots = function (coords_roots_previous, coords_notes_to_grow, coord_notes_current) {
         };
         Parsed.prototype.warrants_advance = function (notes_user_input, subtarget_current) {
             return true;
@@ -462,7 +472,7 @@ var algorithm;
         // adding the leaf notes to the actual parse tree
         // DO NOT set the root or the segments as nodes immediately below that - do that at the end
         // set the leaf notes as the notes in the target track
-        Parse.prototype.initialize_parse = function (struct_parse, segments, notes_target_track) {
+        Parse.prototype.preprocess_struct_parse = function (struct_parse, segments, notes_target_track) {
             // this is to set the leaves as the notes of the target clip
             var _loop_4 = function (i_segment) {
                 var segment_4 = segments[Number(i_segment)];
@@ -474,6 +484,7 @@ var algorithm;
             for (var i_segment in segments) {
                 _loop_4(i_segment);
             }
+            return struct_parse;
         };
         Parse.prototype.finish_parse = function (struct_parse, segments) {
             // make connections with segments
@@ -506,7 +517,7 @@ var algorithm;
         Derive.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             return;
         };
-        Derive.prototype.initialize_parse = function (struct_parse, segments) {
+        Derive.prototype.preprocess_struct_parse = function (struct_parse, segments) {
             // add the root to the tree immediately
             struct_parse.set_root(ParseTree.create_root_from_segments(segments));
             for (var i_segment in segments) {
@@ -515,6 +526,7 @@ var algorithm;
                 var coord_current_virtual = [0, Number(i_segment)];
                 struct_parse.add([note_4], coord_current_virtual, this);
             }
+            return struct_parse;
         };
         Derive.prototype.initialize_render = function (window, segments, notes_target_track) {
             // first layer (root)
@@ -530,6 +542,9 @@ var algorithm;
         };
         Derive.prototype.finish_parse = function (struct_parse, segments) {
             return;
+        };
+        Derive.prototype.update_roots = function (coords_roots_previous, coords_notes_previous, coord_notes_current) {
+            return coords_notes_previous;
         };
         return Derive;
     }(Parsed));

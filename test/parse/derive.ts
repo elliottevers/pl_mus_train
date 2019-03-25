@@ -227,7 +227,7 @@ let user_input_handler = new UserInputHandler(
 );
 
 let env: string = 'node_for_max';
-env = 'node';
+// env = 'node';
 
 
 let messenger = new Messenger(env, 0, 'render_derive');
@@ -235,7 +235,7 @@ let messenger = new Messenger(env, 0, 'render_derive');
 let algorithm_train = new Derive();
 
 algorithm_train.set_depth(
-    3
+    4
 );
 
 let window_local = new MatrixWindow(
@@ -411,23 +411,21 @@ trainer_local.accept_input(
     [note_3_1, note_3_2]
 );
 
-// trainer_local.accept_input(
-//     [note_3_3, note_3_4]
-// );
-//
-//
-// trainer_local.accept_input(
-//     [note_3_5, note_3_6]
-// );
-//
-// trainer_local.accept_input(
-//     [note_4_1]
-// );
-//
-// trainer_local.accept_input(
-//     [note_4_2]
-// );
+trainer_local.accept_input(
+    [note_3_3, note_3_4]
+);
 
+trainer_local.accept_input(
+    [note_3_5, note_3_6]
+);
+
+trainer_local.accept_input(
+    [note_4_1]
+);
+
+trainer_local.accept_input(
+    [note_4_2]
+);
 
 trainer_local.render_window(
 
