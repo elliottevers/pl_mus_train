@@ -18,6 +18,7 @@ export namespace track {
     import ClipDao = clip.ClipDao;
     import Logger = log.Logger;
     import ClipSlotDaoVirtual = clip_slot.ClipSlotDaoVirtual;
+    import iLiveApiJs = live.iLiveApiJs;
 
     // export let get_notes_on_track = (path_track) => {
     //     let index_track = Number(path_track.split(' ')[2]);
@@ -249,12 +250,31 @@ export namespace track {
 
     export class TrackDao implements iTrackDao {
 
-        private live_api: LiveApiJs;
-        public messenger: Messenger;
+        live_api;
+        messenger: Messenger;
+        deferlow: boolean;
+        key_route: string;
+        env: string;
 
-        constructor(live_api: LiveApiJs, messenger: Messenger) {
+        constructor(live_api: iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
             this.live_api = live_api;
             this.messenger = messenger;
+            if (deferlow && !key_route) {
+                throw new Error('key route not specified when using deferlow');
+            }
+            this.deferlow = deferlow;
+            this.key_route = key_route;
+            this.env = env;
+        }
+
+        set_path_deferlow(key_route_override: string, path_live: string): void {
+            let mess: any[] = [key_route_override];
+
+            for (let word of utils.PathLive.to_message(path_live)) {
+                mess.push(word)
+            }
+
+            this.messenger.message(mess)
         }
 
         get_clip_slots(): ClipSlot[] {

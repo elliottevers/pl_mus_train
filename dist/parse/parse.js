@@ -26,10 +26,10 @@ var parse;
         ParseTree.prototype.get_root = function () {
             return this.root;
         };
-        ParseTree.prototype.set_root = function (root) {
-            this.root = root;
-            this.coords_roots = [[-1]];
-        };
+        // public set_root(root: TreeModel.Node<n.NoteRenderable>): void {
+        //     this.root = root;
+        //     this.coords_roots.push([-1])
+        // }
         ParseTree.create_root_from_segments = function (segments) {
             var note_segment_last = segments[segments.length - 1].get_note();
             var note_segment_first = segments[0].get_note();
@@ -109,8 +109,11 @@ var parse;
         // };
         StructParse.prototype.set_root = function (note) {
             var coord_root = [-1];
-            this.regions_renderable.push(coord_root);
+            // this.root = NoteRenderable.from_note(note, coord_root)
+            // this.set_root(NoteRenderable.from_note(note, coord_root))
             this.root = NoteRenderable.from_note(note, coord_root);
+            this.regions_renderable.push(coord_root);
+            this.coords_roots.push(coord_root);
         };
         StructParse.prototype.get_regions_renderable = function () {
             return this.regions_renderable;

@@ -1,9 +1,11 @@
-import {live as li} from "../live/live";
+import {live, live as li} from "../live/live";
 import {message} from "../message/messenger";
+import {utils} from "../utils/utils";
 
 export namespace scene {
 
     import Messenger = message.Messenger;
+    import iLiveApiJs = live.iLiveApiJs;
 
     export class Scene {
 
@@ -34,16 +36,45 @@ export namespace scene {
     }
 
     export class SceneDao implements iSceneDao {
-        live_api: li.LiveApiJs;
+        live_api;
         messenger: Messenger;
+        deferlow: boolean;
+        key_route: string;
+        env: string;
 
-        constructor(live_api: li.LiveApiJs, messenger: Messenger) {
+        constructor(live_api: iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
             this.live_api = live_api;
             this.messenger = messenger;
+            if (deferlow && !key_route) {
+                throw new Error('key route not specified when using deferlow');
+            }
+            this.deferlow = deferlow;
+            this.key_route = key_route;
+            this.env = env;
+        }
+
+        set_path_deferlow(key_route_override: string, path_live: string): void {
+            let mess: any[] = [key_route_override];
+
+            for (let word of utils.PathLive.to_message(path_live)) {
+                mess.push(word)
+            }
+
+            this.messenger.message(mess)
         }
 
         public fire(force_legato: boolean) {
-            this.live_api.call("fire", force_legato ? '1' : '0')
+            // if (this.deferlow) {
+            //     this.messenger.message([this.key_route, "set", "loop_end", beat]);
+            // } else {
+            //     this.clip_live.set('loop_end', beat);
+            // }
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "call", "fire", force_legato ? '1' : '0']);
+            } else {
+                this.live_api.call("fire", force_legato ? '1' : '0')
+
+            }
         }
     }
 

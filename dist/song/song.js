@@ -57,13 +57,13 @@ var song;
     song.Song = Song;
     var SongDaoVirtual = /** @class */ (function () {
         // constructor(scenes: Scene[], messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
-        function SongDaoVirtual(scenes, messenger, deferlow, key_route, env) {
+        function SongDaoVirtual(scenes) {
             this.scenes = scenes;
-            if (deferlow && !key_route) {
-                throw new Error('key route not specified when using deferlow');
-            }
-            this.deferlow = deferlow;
-            this.key_route = key_route;
+            // if (deferlow && !key_route) {
+            //     throw new Error('key route not specified when using deferlow');
+            // }
+            // this.deferlow = deferlow;
+            // this.key_route = key_route;
         }
         SongDaoVirtual.prototype.create_scene = function (index) {
         };
@@ -71,7 +71,8 @@ var song;
             return;
         };
         SongDaoVirtual.prototype.is_async = function () {
-            return this.deferlow;
+            // return this.deferlow
+            return false;
         };
         SongDaoVirtual.prototype.get_path = function () {
             return 'live_set';

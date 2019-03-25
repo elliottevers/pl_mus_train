@@ -44,6 +44,34 @@ var clip_slot;
         return ClipSlot;
     }());
     clip_slot_1.ClipSlot = ClipSlot;
+    var ClipSlotDaoVirtual = /** @class */ (function () {
+        function ClipSlotDaoVirtual(clip) {
+            this.clip = clip;
+        }
+        ClipSlotDaoVirtual.prototype.create_clip = function (length_beats) {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.delete_clip = function () {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.duplicate_clip_to = function (id) {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.get_clip = function () {
+            return this.clip;
+        };
+        ClipSlotDaoVirtual.prototype.get_id = function () {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.get_path = function () {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.has_clip = function () {
+            return true;
+        };
+        return ClipSlotDaoVirtual;
+    }());
+    clip_slot_1.ClipSlotDaoVirtual = ClipSlotDaoVirtual;
     var ClipSlotDao = /** @class */ (function () {
         function ClipSlotDao(live_api, messenger) {
             this.live_api = live_api;

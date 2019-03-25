@@ -420,6 +420,7 @@ var algorithm;
         };
         // TODO: we don't need the target track - we should 1) transfer all notes over to user input track and 2) mute the track
         Parse.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
+            // transfer notes from target track to user input track
             for (var i_segment in segments) {
                 var clip_target = track_target.get_clip_at_index(Number(i_segment));
                 var clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
@@ -427,6 +428,8 @@ var algorithm;
                 clip_user_input.remove_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
                 clip_user_input.set_notes(notes);
             }
+            // mute target track
+            track_target.mute();
         };
         // add the root up to which we're going to parse
         // add the segments as the layer below
@@ -513,8 +516,8 @@ var algorithm;
         Derive.prototype.grow_layer = function (notes_user_input_renderable, notes_to_grow) {
             ParseTree.add_layer(notes_to_grow, notes_user_input_renderable, -1);
         };
-        // TODO: verify that the segments should already be here so we don't have to do anything
         Derive.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
+            track_target.mute();
             return;
         };
         Derive.prototype.preprocess_struct_parse = function (struct_parse, segments) {

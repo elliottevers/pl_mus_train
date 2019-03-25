@@ -678,6 +678,7 @@ export namespace algorithm {
 
         // TODO: we don't need the target track - we should 1) transfer all notes over to user input track and 2) mute the track
         initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
+            // transfer notes from target track to user input track
             for (let i_segment in segments) {
 
                 let clip_target = track_target.get_clip_at_index(Number(i_segment));
@@ -702,6 +703,9 @@ export namespace algorithm {
                     notes
                 )
             }
+
+            // mute target track
+            track_target.mute()
         }
 
         // add the root up to which we're going to parse
@@ -839,8 +843,10 @@ export namespace algorithm {
             )
         }
 
-        // TODO: verify that the segments should already be here so we don't have to do anything
         initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
+
+            track_target.mute();
+
             return
         }
 

@@ -183,10 +183,24 @@ var track;
     }());
     track.TrackDaoVirtual = TrackDaoVirtual;
     var TrackDao = /** @class */ (function () {
-        function TrackDao(live_api, messenger) {
+        function TrackDao(live_api, messenger, deferlow, key_route, env) {
             this.live_api = live_api;
             this.messenger = messenger;
+            if (deferlow && !key_route) {
+                throw new Error('key route not specified when using deferlow');
+            }
+            this.deferlow = deferlow;
+            this.key_route = key_route;
+            this.env = env;
         }
+        TrackDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            var mess = [key_route_override];
+            for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
+                var word = _a[_i];
+                mess.push(word);
+            }
+            this.messenger.message(mess);
+        };
         TrackDao.prototype.get_clip_slots = function () {
             var data_clip_slots = this.live_api.get("clip_slots");
             var clip_slots = [];

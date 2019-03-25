@@ -144,7 +144,10 @@ var iterate;
             switch (trainable.get_name()) {
                 case algorithm_1.algorithm.DETECT: {
                     for (var i = 0; i < 1; i++) {
-                        matrix_data[i] = new Array(segments.length);
+                        matrix_data.push([]);
+                        for (var i_segment in segments) {
+                            matrix_data[i][Number(i_segment)] = [];
+                        }
                     }
                     break;
                 }
@@ -154,16 +157,23 @@ var iterate;
                     }
                     break;
                 }
+                // depth - 1, since depth includes root... actually this might be against convention
                 case algorithm_1.algorithm.PARSE: {
-                    for (var i = 0; i < trainable.get_depth(); i++) {
+                    for (var i = 0; i < trainable.get_depth() - 1; i++) {
                         matrix_data[i] = new Array(segments.length);
                     }
                     break;
                 }
                 case algorithm_1.algorithm.DERIVE: {
-                    for (var i = 0; i < trainable.get_depth(); i++) {
-                        matrix_data[i] = new Array(segments.length);
+                    for (var i = 0; i < trainable.get_depth() - 1; i++) {
+                        matrix_data.push([]);
+                        for (var i_segment in segments) {
+                            matrix_data[i][Number(i_segment)] = [];
+                        }
                     }
+                    // for (let i=0; i < trainable.get_depth(); i++) {
+                    //     matrix_data[i] = new Array(segments.length);
+                    // }
                     break;
                 }
                 default: {

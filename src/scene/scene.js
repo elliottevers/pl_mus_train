@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var utils_1 = require("../utils/utils");
 var scene;
 (function (scene) {
     var Scene = /** @class */ (function () {
@@ -26,12 +27,36 @@ var scene;
     }());
     scene.SceneDaoVirtual = SceneDaoVirtual;
     var SceneDao = /** @class */ (function () {
-        function SceneDao(live_api, messenger) {
+        function SceneDao(live_api, messenger, deferlow, key_route, env) {
             this.live_api = live_api;
             this.messenger = messenger;
+            if (deferlow && !key_route) {
+                throw new Error('key route not specified when using deferlow');
+            }
+            this.deferlow = deferlow;
+            this.key_route = key_route;
+            this.env = env;
         }
+        SceneDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            var mess = [key_route_override];
+            for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
+                var word = _a[_i];
+                mess.push(word);
+            }
+            this.messenger.message(mess);
+        };
         SceneDao.prototype.fire = function (force_legato) {
-            this.live_api.call("fire", force_legato ? '1' : '0');
+            // if (this.deferlow) {
+            //     this.messenger.message([this.key_route, "set", "loop_end", beat]);
+            // } else {
+            //     this.clip_live.set('loop_end', beat);
+            // }
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "call", "fire", force_legato ? '1' : '0']);
+            }
+            else {
+                this.live_api.call("fire", force_legato ? '1' : '0');
+            }
         };
         return SceneDao;
     }());
