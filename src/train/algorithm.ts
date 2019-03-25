@@ -45,6 +45,7 @@ export namespace algorithm {
     import Scene = scene.Scene;
     import UserInputHandler = user_input.UserInputHandler;
     import Clip = clip.Clip;
+    import HistoryUserInput = history.HistoryUserInput;
 
 
     interface Temporal {
@@ -66,13 +67,48 @@ export namespace algorithm {
         get_name(): string
         get_depth(): number
         coord_to_index_clip(coord: number[]): number
-        initialize(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[], user_input_handler: UserInputHandler): void
+
+        initialize(
+            window: Window,
+            segments: Segment[],
+            track_target: Track,
+            user_input_handler: UserInputHandler,
+            struct_parse: StructParse
+        ): void
+
         terminate(struct_parse: StructParse, segments: Segment[])
+
         unpause(song: Song, scene_current: Scene)
+
         pause(song: Song, scene_current: Scene)
-        create_matrix_targets(user_input_handler: UserInputHandler, segments: Segment[], notes_target_track: TreeModel.Node<Note>[])
+
+        create_matrix_targets(
+            user_input_handler: UserInputHandler,
+            segments: Segment[],
+            notes_target_track: TreeModel.Node<Note>[]
+        )
+
         create_struct_parse(segments: Segment[]): StructParse
-        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][])
+
+        update_struct(
+            notes_input_user: TreeModel.Node<Note>[],
+            struct_parse: StructParse,
+            trainable: Trainable,
+            iterator_matrix_train: MatrixIterator
+        ): StructParse
+
+        initialize_tracks(
+            segments: segment.Segment[],
+            track_target: track.Track,
+            track_user_input: track.Track,
+            matrix_target: TargetIterator[][]
+        )
+
+        update_history_user_input(
+            input_postprocessed: TreeModel.Node<Note>[],
+            history_user_input: HistoryUserInput,
+            iterator_matrix_train: MatrixIterator
+        ): HistoryUserInput
 
         warrants_advance(
             notes_user_input: TreeModel.Node<Note>[],
@@ -102,6 +138,18 @@ export namespace algorithm {
 
     // logic common to detect and predict
     abstract class Targeted implements Targetable {
+
+        update_history_user_input(
+            input_postprocessed: TreeModel.Node<note.Note>[],
+            history_user_input: history.HistoryUserInput,
+            iterator_matrix_train: iterate.MatrixIterator
+        ): history.HistoryUserInput {
+            history_user_input.concat(
+                input_postprocessed,
+                iterator_matrix_train.get_coord_current()
+            );
+            return history_user_input
+        }
 
         public b_parsed: boolean = false;
         public b_targeted: boolean = true;
@@ -202,9 +250,20 @@ export namespace algorithm {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current)
         }
 
-        initialize(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[], user_input_handler: UserInputHandler) {
+        initialize(
+            window: Window,
+            segments: Segment[],
+            track_target: Track,
+            user_input_handler: UserInputHandler,
+            struct_parse: StructParse
+        ) {
+            let notes_target_track = track_target.get_notes();
             this.create_matrix_targets(user_input_handler, segments, notes_target_track);
             this.initialize_render(window, segments, notes_target_track)
+        }
+
+        update_struct(notes_input_user: TreeModel.Node<note.Note>[], struct_parse: parse.StructParse, trainable: Trainable, iterator_matrix_train: iterate.MatrixIterator): parse.StructParse {
+            return struct_parse;
         }
     }
 
@@ -219,9 +278,32 @@ export namespace algorithm {
 
         depth: number;
 
+        update_struct(notes_input_user: TreeModel.Node<Note>[], struct_parse: StructParse, trainable: Parsable, iterator_matrix_train: MatrixIterator): StructParse {
+
+            struct_parse.add(
+                notes_input_user,
+                iterator_matrix_train.get_coord_current(),
+                trainable
+            );
+
+            return struct_parse
+        }
+
         public abstract initialize_render(window: Window, segments: Segment[], notes_track_target: TreeModel.Node<Note>[])
 
         public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: target.TargetIterator[][])
+
+        public update_history_user_input(
+            input_postprocessed: TreeModel.Node<Note>[],
+            history_user_input: HistoryUserInput,
+            iterator_matrix_train: MatrixIterator
+        ): HistoryUserInput {
+            history_user_input.concat(
+                input_postprocessed,
+                iterator_matrix_train.get_coord_current()
+            );
+            return history_user_input
+        }
 
         public get_depth(): number {
             return this.depth
@@ -270,8 +352,14 @@ export namespace algorithm {
 
         public abstract grow_layer(notes_user_input_renderable, notes_to_grow)
 
-        initialize() {
-            // TODO: add logic
+        initialize(
+            window: Window,
+            segments: Segment[],
+            track_target: Track,
+            user_input_handler: UserInputHandler,
+            struct_parse: StructParse
+        ) {
+            this.initialize_parse(struct_parse, segments, track_target)
         }
 
         public abstract initialize_parse(struct_parse, segments, track_target)

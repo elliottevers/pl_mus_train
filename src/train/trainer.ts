@@ -144,8 +144,9 @@ export namespace trainer {
             this.trainable.initialize(
                 this.window,
                 this.segments,
-                this.notes_target_track,
-                this.user_input_handler
+                this.track_target,
+                this.user_input_handler,
+                this.struct_parse
             );
 
             // TODO: figure out getting notes from the target track
@@ -324,10 +325,23 @@ export namespace trainer {
 
                 let input_postprocessed = this.trainable.postprocess_user_input(notes_input_user, this.subtarget_current);
 
-                this.history_user_input.concat(
+                this.history_user_input = this.trainable.update_history_user_input(
                     input_postprocessed,
-                    this.iterator_matrix_train.get_coord_current()
+                    this.history_user_input,
+                    this.iterator_matrix_train
                 );
+
+                this.struct_parse = this.trainable.update_struct(
+                    input_postprocessed,
+                    this.struct_parse,
+                    this.trainable,
+                    this.iterator_matrix_train
+                );
+
+                // this.history_user_input.concat(
+                //     input_postprocessed,
+                //     this.iterator_matrix_train.get_coord_current()
+                // );
 
                 this.window.add_notes_to_clip(
                     input_postprocessed,

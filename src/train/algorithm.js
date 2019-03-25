@@ -43,6 +43,10 @@ var algorithm;
             this.b_parsed = false;
             this.b_targeted = true;
         }
+        Targeted.prototype.update_history_user_input = function (input_postprocessed, history_user_input, iterator_matrix_train) {
+            history_user_input.concat(input_postprocessed, iterator_matrix_train.get_coord_current());
+            return history_user_input;
+        };
         Targeted.prototype.get_depth = function () {
             return 1;
         };
@@ -104,9 +108,13 @@ var algorithm;
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current);
         };
-        Targeted.prototype.initialize = function (window, segments, notes_target_track, user_input_handler) {
+        Targeted.prototype.initialize = function (window, segments, track_target, user_input_handler, struct_parse) {
+            var notes_target_track = track_target.get_notes();
             this.create_matrix_targets(user_input_handler, segments, notes_target_track);
             this.initialize_render(window, segments, notes_target_track);
+        };
+        Targeted.prototype.update_struct = function (notes_input_user, struct_parse, trainable, iterator_matrix_train) {
+            return struct_parse;
         };
         return Targeted;
     }());
@@ -116,6 +124,14 @@ var algorithm;
             this.b_parsed = true;
             this.b_targeted = false;
         }
+        Parsed.prototype.update_struct = function (notes_input_user, struct_parse, trainable, iterator_matrix_train) {
+            struct_parse.add(notes_input_user, iterator_matrix_train.get_coord_current(), trainable);
+            return struct_parse;
+        };
+        Parsed.prototype.update_history_user_input = function (input_postprocessed, history_user_input, iterator_matrix_train) {
+            history_user_input.concat(input_postprocessed, iterator_matrix_train.get_coord_current());
+            return history_user_input;
+        };
         Parsed.prototype.get_depth = function () {
             return this.depth;
         };
@@ -147,8 +163,8 @@ var algorithm;
         Parsed.prototype.get_notes_in_region = function (target, segment) {
             return [segment.get_note()];
         };
-        Parsed.prototype.initialize = function () {
-            // TODO: add logic
+        Parsed.prototype.initialize = function (window, segments, track_target, user_input_handler, struct_parse) {
+            this.initialize_parse(struct_parse, segments, track_target);
         };
         Parsed.prototype.pause = function (song, scene_current) {
             song.set_overdub(0);

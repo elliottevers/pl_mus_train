@@ -185,7 +185,6 @@ export namespace iterate {
                         for (let i_segment in segments) {
                             matrix_data[i][Number(i_segment)] = []
                         }
-                        // matrix_data[i] = new Array(segments.length);
                     }
                     break;
                 }
@@ -203,8 +202,14 @@ export namespace iterate {
                 }
                 case algo.DERIVE: {
                     for (let i=0; i < trainable.get_depth(); i++) {
-                        matrix_data[i] = new Array(segments.length);
+                        matrix_data.push([]);
+                        for (let i_segment in segments) {
+                            matrix_data[i][Number(i_segment)] = []
+                        }
                     }
+                    // for (let i=0; i < trainable.get_depth(); i++) {
+                    //     matrix_data[i] = new Array(segments.length);
+                    // }
                     break;
                 }
                 default: {

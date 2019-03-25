@@ -29,6 +29,8 @@ import Scene = module_scene.Scene;
 import Song = module_song.Song;
 import SceneDaoVirtual = module_scene.SceneDaoVirtual;
 import Track = track.Track;
+import {segment} from "../../src/segment/segment";
+import Segment = segment.Segment;
 
 
 let tree: TreeModel = new TreeModel();
@@ -225,7 +227,7 @@ let user_input_handler = new UserInputHandler(
 );
 
 let env: string = 'node_for_max';
-// env = 'node';
+env = 'node';
 
 
 let messenger = new Messenger(env, 0, 'render_derive');
@@ -370,6 +372,24 @@ let track_target = new Track(
 );
 
 
+track_target.load_clips();
+
+track_user_input.load_clips();
+
+let segments = Segment.from_notes(
+    track_user_input.get_notes()
+);
+
+// assign scenes to segments
+for (let segment of segments) {
+    segment.set_scene(
+        new Scene(
+            new SceneDaoVirtual()
+        )
+    )
+}
+
+
 let trainer_local = new Trainer(
     window_local,
     user_input_handler,
@@ -377,6 +397,7 @@ let trainer_local = new Trainer(
     track_target,
     track_user_input,
     song,
+    segments,
     messenger
 );
 
@@ -390,22 +411,22 @@ trainer_local.accept_input(
     [note_3_1, note_3_2]
 );
 
-trainer_local.accept_input(
-    [note_3_3, note_3_4]
-);
-
-
-trainer_local.accept_input(
-    [note_3_5, note_3_6]
-);
-
-trainer_local.accept_input(
-    [note_4_1]
-);
-
-trainer_local.accept_input(
-    [note_4_2]
-);
+// trainer_local.accept_input(
+//     [note_3_3, note_3_4]
+// );
+//
+//
+// trainer_local.accept_input(
+//     [note_3_5, note_3_6]
+// );
+//
+// trainer_local.accept_input(
+//     [note_4_1]
+// );
+//
+// trainer_local.accept_input(
+//     [note_4_2]
+// );
 
 
 trainer_local.render_window(

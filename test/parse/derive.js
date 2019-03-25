@@ -28,6 +28,8 @@ var Scene = scene_1.scene.Scene;
 var Song = song_1.song.Song;
 var SceneDaoVirtual = scene_1.scene.SceneDaoVirtual;
 var Track = track_1.track.Track;
+var segment_1 = require("../../src/segment/segment");
+var Segment = segment_1.segment.Segment;
 var tree = new TreeModel();
 // let notes_segments;
 var note_2_1 = tree.parse({
@@ -90,7 +92,7 @@ var mode_texture = MONOPHONY;
 var mode_control = VOCAL;
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
 var env = 'node_for_max';
-// env = 'node';
+env = 'node';
 var messenger = new Messenger(env, 0, 'render_derive');
 var algorithm_train = new Derive();
 algorithm_train.set_depth(3);
@@ -139,14 +141,34 @@ clip_dao_virtual.beat_end = 64;
 clip_target = new Clip(clip_dao_virtual);
 clips_target.push(clip_target);
 var track_target = new Track(new TrackDaoVirtual(clips_target));
-var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, track_target, track_user_input, song, messenger);
+track_target.load_clips();
+track_user_input.load_clips();
+var segments = Segment.from_notes(track_user_input.get_notes());
+// assign scenes to segments
+for (var _i = 0, segments_1 = segments; _i < segments_1.length; _i++) {
+    var segment_2 = segments_1[_i];
+    segment_2.set_scene(new Scene(new SceneDaoVirtual()));
+}
+var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, track_target, track_user_input, song, segments, messenger);
 // test case - 2 segments, 2 notes a piece
 trainer_local.commence();
 trainer_local.accept_input([note_3_1, note_3_2]);
-trainer_local.accept_input([note_3_3, note_3_4]);
-trainer_local.accept_input([note_3_5, note_3_6]);
-trainer_local.accept_input([note_4_1]);
-trainer_local.accept_input([note_4_2]);
+// trainer_local.accept_input(
+//     [note_3_3, note_3_4]
+// );
+//
+//
+// trainer_local.accept_input(
+//     [note_3_5, note_3_6]
+// );
+//
+// trainer_local.accept_input(
+//     [note_4_1]
+// );
+//
+// trainer_local.accept_input(
+//     [note_4_2]
+// );
 trainer_local.render_window();
 // trainer_local_parse.clear_window(
 //
