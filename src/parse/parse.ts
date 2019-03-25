@@ -23,10 +23,10 @@ export namespace parse {
             return this.root
         }
 
-        public set_root(root: TreeModel.Node<n.NoteRenderable>): void {
-            this.root = root;
-            this.coords_roots = [[-1]]
-        }
+        // public set_root(root: TreeModel.Node<n.NoteRenderable>): void {
+        //     this.root = root;
+        //     this.coords_roots.push([-1])
+        // }
 
         public static create_root_from_segments(segments): TreeModel.Node<n.NoteRenderable> {
             let note_segment_last = segments[segments.length - 1].get_note();
@@ -131,8 +131,11 @@ export namespace parse {
 
         public set_root(note) {
             let coord_root = [-1];
+            // this.root = NoteRenderable.from_note(note, coord_root)
+            // this.set_root(NoteRenderable.from_note(note, coord_root))
+            this.root = NoteRenderable.from_note(note, coord_root);
             this.regions_renderable.push(coord_root);
-            this.root = NoteRenderable.from_note(note, coord_root)
+            this.coords_roots.push(coord_root)
         }
 
         public get_regions_renderable(): number[][] {

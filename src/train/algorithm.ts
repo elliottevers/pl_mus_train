@@ -902,7 +902,7 @@ export namespace algorithm {
         }
 
         update_roots(coords_roots_previous: number[][], coords_notes_previous: number[][], coord_notes_current: number[]) {
-            return coords_notes_previous
+            return coords_roots_previous
         }
     }
 }

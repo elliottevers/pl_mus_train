@@ -544,7 +544,7 @@ var algorithm;
             return;
         };
         Derive.prototype.update_roots = function (coords_roots_previous, coords_notes_previous, coord_notes_current) {
-            return coords_notes_previous;
+            return coords_roots_previous;
         };
         return Derive;
     }(Parsed));
