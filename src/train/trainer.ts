@@ -253,12 +253,14 @@ export namespace trainer {
 
         private advance_subtarget() {
 
+            let matrix_targets = this.struct_train as StructTargets;
+
             let have_not_begun: boolean = (!this.iterator_matrix_train.b_started);
 
             if (have_not_begun) {
                 this.iterator_matrix_train.next();
 
-                this.iterator_target_current = this.matrix_targets[0][0];
+                this.iterator_target_current = matrix_targets[0][0];
 
                 this.iterator_target_current.next();
 
@@ -296,7 +298,7 @@ export namespace trainer {
 
                     let coord_next = obj_next_coord.value;
 
-                    this.iterator_target_current = this.matrix_targets[coord_next[0]][coord_next[1]];
+                    this.iterator_target_current = matrix_targets[coord_next[0]][coord_next[1]];
 
                     let obj_next_target_twice_nested = this.iterator_target_current.next();
 

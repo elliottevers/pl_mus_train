@@ -98,10 +98,10 @@ export namespace algorithm {
 
         update_struct(
             notes_input_user: TreeModel.Node<Note>[],
-            struct_parse: StructParse,
+            struct_train: StructTrain,
             trainable: Trainable,
             iterator_matrix_train: MatrixIterator
-        ): StructParse
+        ): StructTrain
 
         initialize_tracks(
             segments: segment.Segment[],
@@ -273,8 +273,8 @@ export namespace algorithm {
         //     )
         // }
 
-        update_struct(notes_input_user: TreeModel.Node<note.Note>[], struct_parse: parse.StructParse, trainable: Trainable, iterator_matrix_train: iterate.MatrixIterator): parse.StructParse {
-            return struct_parse;
+        update_struct(notes_input_user: TreeModel.Node<note.Note>[], struct_train: StructTrain, trainable: Trainable, iterator_matrix_train: iterate.MatrixIterator): StructTrain {
+            return struct_train;
         }
 
         create_struct_train(window: window.Window, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
@@ -296,12 +296,14 @@ export namespace algorithm {
 
         depth: number;
 
-        update_struct(notes_input_user: TreeModel.Node<Note>[], struct_parse: StructParse, trainable: Parsable, iterator_matrix_train: MatrixIterator): StructParse {
+        update_struct(notes_input_user: TreeModel.Node<Note>[], struct_train: StructTrain, trainable: Trainable, iterator_matrix_train: MatrixIterator): StructTrain {
+
+            let struct_parse = struct_train as StructParse;
 
             struct_parse.add(
                 notes_input_user,
                 iterator_matrix_train.get_coord_current(),
-                trainable
+                trainable as Parsable
             );
 
             return struct_parse
@@ -424,7 +426,7 @@ export namespace algorithm {
         }
 
         create_struct_train(window: window.Window, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
-            return undefined;
+            return this.create_struct_parse(segments);
         }
     }
 

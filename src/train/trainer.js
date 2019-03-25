@@ -112,10 +112,11 @@ var trainer;
             this.next_segment();
         };
         Trainer.prototype.advance_subtarget = function () {
+            var matrix_targets = this.struct_train;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {
                 this.iterator_matrix_train.next();
-                this.iterator_target_current = this.matrix_targets[0][0];
+                this.iterator_target_current = matrix_targets[0][0];
                 this.iterator_target_current.next();
                 this.target_current = this.iterator_target_current.current();
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
@@ -135,7 +136,7 @@ var trainer;
                         return;
                     }
                     var coord_next = obj_next_coord.value;
-                    this.iterator_target_current = this.matrix_targets[coord_next[0]][coord_next[1]];
+                    this.iterator_target_current = matrix_targets[coord_next[0]][coord_next[1]];
                     var obj_next_target_twice_nested = this.iterator_target_current.next();
                     this.target_current = obj_next_target_twice_nested.value;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();

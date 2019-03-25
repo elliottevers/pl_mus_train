@@ -123,8 +123,8 @@ var algorithm;
         //         notes_target_track
         //     )
         // }
-        Targeted.prototype.update_struct = function (notes_input_user, struct_parse, trainable, iterator_matrix_train) {
-            return struct_parse;
+        Targeted.prototype.update_struct = function (notes_input_user, struct_train, trainable, iterator_matrix_train) {
+            return struct_train;
         };
         Targeted.prototype.create_struct_train = function (window, segments, track_target, user_input_handler, struct_train) {
             var notes_target_track = track_target.get_notes();
@@ -140,7 +140,8 @@ var algorithm;
             this.b_parsed = true;
             this.b_targeted = false;
         }
-        Parsed.prototype.update_struct = function (notes_input_user, struct_parse, trainable, iterator_matrix_train) {
+        Parsed.prototype.update_struct = function (notes_input_user, struct_train, trainable, iterator_matrix_train) {
+            var struct_parse = struct_train;
             struct_parse.add(notes_input_user, iterator_matrix_train.get_coord_current(), trainable);
             return struct_parse;
         };
@@ -207,7 +208,7 @@ var algorithm;
             return true;
         };
         Parsed.prototype.create_struct_train = function (window, segments, track_target, user_input_handler, struct_train) {
-            return undefined;
+            return this.create_struct_parse(segments);
         };
         return Parsed;
     }());
