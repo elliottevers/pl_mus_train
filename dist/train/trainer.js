@@ -77,6 +77,8 @@ var trainer;
             // this.struct_parse = this.trainable.create_struct_parse(
             //     this.segments
             // );
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(this.segments));
             this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
         }
         Trainer.prototype.clear_window = function () {

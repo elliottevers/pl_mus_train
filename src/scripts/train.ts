@@ -374,8 +374,8 @@ let pause = () => {
     trainer.pause()
 };
 
-let resume = () => {
-    trainer.resume()
+let unpause = () => {
+    trainer.unpause()
 };
 
 let user_input_command = (command: string) => {
@@ -583,7 +583,7 @@ if (typeof Global !== "undefined") {
     Global.train.initialize = initialize;
     Global.train.commence = commence;
     Global.train.pause = pause;
-    Global.train.resume = resume;
+    Global.train.unpause = unpause;
     Global.train.user_input_command = user_input_command;
     Global.train.user_input_midi = user_input_midi;
     Global.train.set_segments = set_segments;

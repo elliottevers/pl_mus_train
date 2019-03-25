@@ -201,6 +201,10 @@ export namespace trainer {
             //     this.segments
             // );
 
+            let logger = new Logger('max');
+
+            logger.log(JSON.stringify(this.segments));
+
             this.trainable.initialize_tracks(
                 this.segments,
                 this.track_target,

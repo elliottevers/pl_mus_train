@@ -223,8 +223,8 @@ var commence = function () {
 var pause = function () {
     trainer.pause();
 };
-var resume = function () {
-    trainer.resume();
+var unpause = function () {
+    trainer.unpause();
 };
 var user_input_command = function (command) {
     var logger = new Logger(env);
@@ -339,7 +339,7 @@ if (typeof Global !== "undefined") {
     Global.train.initialize = initialize;
     Global.train.commence = commence;
     Global.train.pause = pause;
-    Global.train.resume = resume;
+    Global.train.unpause = unpause;
     Global.train.user_input_command = user_input_command;
     Global.train.user_input_midi = user_input_midi;
     Global.train.set_segments = set_segments;
