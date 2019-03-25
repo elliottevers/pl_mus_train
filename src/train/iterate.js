@@ -144,7 +144,11 @@ var iterate;
             switch (trainable.get_name()) {
                 case algorithm_1.algorithm.DETECT: {
                     for (var i = 0; i < 1; i++) {
-                        matrix_data[i] = new Array(segments.length);
+                        matrix_data.push([]);
+                        for (var i_segment in segments) {
+                            matrix_data[i][Number(i_segment)] = [];
+                        }
+                        // matrix_data[i] = new Array(segments.length);
                     }
                     break;
                 }

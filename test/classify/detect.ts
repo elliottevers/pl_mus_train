@@ -215,7 +215,7 @@ let user_input_handler = new UserInputHandler(
 );
 
 let env: string = 'node_for_max';
-env = 'node';
+// env = 'node';
 
 
 let messenger = new Messenger(env, 0, 'render_detect');

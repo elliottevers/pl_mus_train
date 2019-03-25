@@ -322,40 +322,40 @@ export namespace window {
         public get_messages_render_clips(trainable: Trainable, struct_parse: StructParse): any[][] {
             let messages = [];
 
-            let b_targeted = (struct_parse === null);
+            // let b_targeted = (struct_parse === null);
 
             // make abstraction that gets the renderable regions
 
-            struct_parse.get_regions_renderable();
-
-            for (let coord of struct_parse.get_regions_renderable()) {
-                messages.push(
-                    this.get_messages_render_clip(
-                        trainable.coord_to_index_clip(
-                            coord
-                        )
-                    )
-                )
-            }
-
-            // if (b_targeted) {
+            // struct_parse.get_regions_renderable();
             //
-            //     let index_clip = 0;
-            //
+            // for (let coord of struct_parse.get_regions_renderable()) {
             //     messages.push(
-            //         this.get_messages_render_clip(index_clip)
-            //     )
-            // } else {
-            //     for (let coord of parse_matrix.get_regions_renderable()) {
-            //         messages.push(
-            //             this.get_messages_render_clip(
-            //                 this.algorithm.coord_to_index_clip(
-            //                     coord
-            //                 )
+            //         this.get_messages_render_clip(
+            //             trainable.coord_to_index_clip(
+            //                 coord
             //             )
             //         )
-            //     }
+            //     )
             // }
+
+            if (trainable.b_targeted) {
+
+                let index_clip = 0;
+
+                messages.push(
+                    this.get_messages_render_clip(index_clip)
+                )
+            } else {
+                for (let coord of struct_parse.get_regions_renderable()) {
+                    messages.push(
+                        this.get_messages_render_clip(
+                            trainable.coord_to_index_clip(
+                                coord
+                            )
+                        )
+                    )
+                }
+            }
 
             return messages
         }

@@ -244,31 +244,29 @@ var window;
         };
         MatrixWindow.prototype.get_messages_render_clips = function (trainable, struct_parse) {
             var messages = [];
-            var b_targeted = (struct_parse === null);
+            // let b_targeted = (struct_parse === null);
             // make abstraction that gets the renderable regions
-            struct_parse.get_regions_renderable();
-            for (var _i = 0, _a = struct_parse.get_regions_renderable(); _i < _a.length; _i++) {
-                var coord = _a[_i];
-                messages.push(this.get_messages_render_clip(trainable.coord_to_index_clip(coord)));
-            }
-            // if (b_targeted) {
+            // struct_parse.get_regions_renderable();
             //
-            //     let index_clip = 0;
-            //
+            // for (let coord of struct_parse.get_regions_renderable()) {
             //     messages.push(
-            //         this.get_messages_render_clip(index_clip)
-            //     )
-            // } else {
-            //     for (let coord of parse_matrix.get_regions_renderable()) {
-            //         messages.push(
-            //             this.get_messages_render_clip(
-            //                 this.algorithm.coord_to_index_clip(
-            //                     coord
-            //                 )
+            //         this.get_messages_render_clip(
+            //             trainable.coord_to_index_clip(
+            //                 coord
             //             )
             //         )
-            //     }
+            //     )
             // }
+            if (trainable.b_targeted) {
+                var index_clip = 0;
+                messages.push(this.get_messages_render_clip(index_clip));
+            }
+            else {
+                for (var _i = 0, _a = struct_parse.get_regions_renderable(); _i < _a.length; _i++) {
+                    var coord = _a[_i];
+                    messages.push(this.get_messages_render_clip(trainable.coord_to_index_clip(coord)));
+                }
+            }
             return messages;
         };
         MatrixWindow.prototype.get_message_render_region_past = function (interval_current) {
