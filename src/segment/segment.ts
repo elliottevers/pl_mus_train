@@ -18,8 +18,8 @@ export namespace segment {
         beat_end: number;
         scene: Scene;
         clip: Clip; // used as storage with an interface similar to Live
-        clip_user_input_sync: Clip;
-        clip_user_input_async: Clip;
+        clip_user_input: Clip;
+        // clip_user_input_async: Clip;
 
         constructor(note: TreeModel.Node<n.Note>) {
             this.beat_start = note.model.note.beat_start;
@@ -41,13 +41,13 @@ export namespace segment {
             return segments
         }
 
-        public set_clip_user_input_sync(clip: Clip) {
-            this.clip_user_input_sync = clip;
+        public set_clip_user_input(clip: Clip) {
+            this.clip_user_input = clip;
         }
 
-        public set_clip_user_input_async(clip: Clip) {
-            this.clip_user_input_async = clip;
-        }
+        // public set_clip_user_input_async(clip: Clip) {
+        //     this.clip_user_input_async = clip;
+        // }
 
         public get_note(): TreeModel.Node<n.Note> {
             return this.clip.get_notes(

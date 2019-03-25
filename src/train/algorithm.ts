@@ -246,7 +246,7 @@ export namespace algorithm {
         private static stream_subtarget_bounds(messenger: message.Messenger, subtarget_current: Subtarget, segment_current: Segment) {
             let ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
             let ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper])
+            messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true)
         }
 
         stream_bounds(messenger: message.Messenger, subtarget_current: Subtarget, segment_current: Segment): void {
@@ -374,7 +374,7 @@ export namespace algorithm {
         }
 
         private static stream_segment_bounds(messenger: Messenger) {
-            messenger.message(['bounds', 0, 1])
+            messenger.message(['bounds', 0, 1], true)
         }
 
         terminate(struct_train: StructTrain, segments: Segment[]) {
@@ -530,14 +530,14 @@ export namespace algorithm {
                 // TODO: this won't work for polyphony
                 for (let note of targeted_notes_in_segment) {
 
-                    segment.clip_user_input_async.remove_notes(
+                    segment.clip_user_input.remove_notes(
                         note.model.note.beat_start,
                         0,
                         note.model.note.get_beat_end(),
                         128
                     );
 
-                    segment.clip_user_input_async.set_notes(
+                    segment.clip_user_input.set_notes(
                         [note]
                     )
                 }

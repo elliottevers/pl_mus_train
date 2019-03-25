@@ -163,8 +163,17 @@ var set_segments = function () {
         var segment_2 = segments[Number(i_segment)];
         segment_2.set_scene(new Scene(new SceneDao(new LiveApiJs(path_scene), new Messenger(env, 0), true, 'scene')));
         var path_this_track = utils_1.utils.get_path_track_from_path_device(utils_1.utils.cleanse_path(this_device.get_path()));
-        segment_2.set_clip_user_input_sync(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')), new Messenger(env, 0))));
-        segment_2.set_clip_user_input_async(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')), new Messenger(env, 0), true, 'clip_user_input')));
+        // segment.set_clip_user_input_sync(
+        //     new Clip(
+        //         new ClipDao(
+        //             new LiveApiJs(
+        //                 path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
+        //             ),
+        //             new Messenger(env, 0)
+        //         )
+        //     )
+        // );
+        segment_2.set_clip_user_input(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')), new Messenger(env, 0), true, 'clip_user_input')));
         //
         // segments.push(
         //     segment

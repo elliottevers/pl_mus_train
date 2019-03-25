@@ -74,7 +74,7 @@ export namespace clip {
 
         set_path_deferlow(key_route): void {
             this.clip_dao.set_path_deferlow(
-                key_route,
+                'set_path_' + key_route,
                 this.get_path()
             )
         }

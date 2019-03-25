@@ -14,6 +14,12 @@ var scene;
             // TODO: implement
             return;
         };
+        Scene.prototype.set_path_deferlow = function (key_route) {
+            this.scene_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
+        };
+        Scene.prototype.get_path = function () {
+            return this.scene_dao.get_path();
+        };
         return Scene;
     }());
     scene.Scene = Scene;
@@ -22,6 +28,9 @@ var scene;
         }
         SceneDaoVirtual.prototype.fire = function (force_legato) {
             return;
+        };
+        SceneDaoVirtual.prototype.get_path = function () {
+            return "";
         };
         return SceneDaoVirtual;
     }());
@@ -57,6 +66,9 @@ var scene;
             else {
                 this.live_api.call("fire", force_legato ? '1' : '0');
             }
+        };
+        SceneDao.prototype.get_path = function () {
+            return utils_1.utils.cleanse_path(this.live_api.get_path());
         };
         return SceneDao;
     }());

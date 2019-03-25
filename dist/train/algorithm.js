@@ -104,7 +104,7 @@ var algorithm;
         Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current) {
             var ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0]) / (segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
             var ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0]) / (segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper]);
+            messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true);
         };
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current);
@@ -178,7 +178,7 @@ var algorithm;
             Parsed.stream_segment_bounds(messenger);
         };
         Parsed.stream_segment_bounds = function (messenger) {
-            messenger.message(['bounds', 0, 1]);
+            messenger.message(['bounds', 0, 1], true);
         };
         Parsed.prototype.terminate = function (struct_train, segments) {
             this.finish_parse(struct_train, segments);
@@ -299,8 +299,8 @@ var algorithm;
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
                     var note_3 = targeted_notes_in_segment_1[_i];
-                    segment_2.clip_user_input_async.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
-                    segment_2.clip_user_input_async.set_notes([note_3]);
+                    segment_2.clip_user_input.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
+                    segment_2.clip_user_input.set_notes([note_3]);
                 }
             }
         };

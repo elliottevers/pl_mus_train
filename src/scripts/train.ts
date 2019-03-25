@@ -228,18 +228,18 @@ let set_segments = () => {
             )
         );
 
-        segment.set_clip_user_input_sync(
-            new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
-                    ),
-                    new Messenger(env, 0)
-                )
-            )
-        );
+        // segment.set_clip_user_input_sync(
+        //     new Clip(
+        //         new ClipDao(
+        //             new LiveApiJs(
+        //                 path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
+        //             ),
+        //             new Messenger(env, 0)
+        //         )
+        //     )
+        // );
 
-        segment.set_clip_user_input_async(
+        segment.set_clip_user_input(
             new Clip(
                 new ClipDao(
                     new LiveApiJs(

@@ -52,8 +52,8 @@ export namespace trainer {
 
         private window: MatrixWindow;
         public trainable: Trainable; // TODO: type
-        public clip_user_input_async: Clip;
-        public clip_user_input_sync: Clip;
+        public clip_user_input: Clip;
+        // public clip_user_input_sync: Clip;
         // private clip_target: Clip;
         private notes_target_track: TreeModel.Node<Note>[];
         private track_target: Track;
@@ -342,11 +342,13 @@ export namespace trainer {
         next_segment() {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
 
+            this.segment_current.scene.set_path_deferlow('scene');
+
             this.segment_current.scene.fire(true);
 
-            this.clip_user_input_sync = this.segment_current.clip_user_input_sync;
+            this.clip_user_input = this.segment_current.clip_user_input;
 
-            this.clip_user_input_async = this.segment_current.clip_user_input_async;
+            this.clip_user_input.set_path_deferlow('clip_user_input');
 
             this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current)
         }

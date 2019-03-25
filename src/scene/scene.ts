@@ -23,15 +23,31 @@ export namespace scene {
             // TODO: implement
             return
         }
+
+        set_path_deferlow(key_route): void {
+            this.scene_dao.set_path_deferlow(
+                'set_path_' + key_route,
+                this.get_path()
+            )
+        }
+
+        public get_path(): string {
+            return this.scene_dao.get_path()
+        }
     }
 
     export interface iSceneDao {
         fire(force_legato: boolean)
+        get_path(): string
     }
 
     export class SceneDaoVirtual implements iSceneDao {
         fire(force_legato: boolean) {
             return
+        }
+
+        get_path(): string {
+            return "";
         }
     }
 
@@ -75,6 +91,10 @@ export namespace scene {
                 this.live_api.call("fire", force_legato ? '1' : '0')
 
             }
+        }
+
+        get_path(): string {
+            return utils.cleanse_path(this.live_api.get_path());
         }
     }
 

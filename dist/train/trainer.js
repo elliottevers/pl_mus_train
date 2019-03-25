@@ -158,9 +158,10 @@ var trainer;
         };
         Trainer.prototype.next_segment = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+            this.segment_current.scene.set_path_deferlow('scene');
             this.segment_current.scene.fire(true);
-            this.clip_user_input_sync = this.segment_current.clip_user_input_sync;
-            this.clip_user_input_async = this.segment_current.clip_user_input_async;
+            this.clip_user_input = this.segment_current.clip_user_input;
+            this.clip_user_input.set_path_deferlow('clip_user_input');
             this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
         };
         Trainer.prototype.accept_input = function (notes_input_user) {

@@ -20,25 +20,25 @@ export namespace message {
             return this.key_route;
         }
 
-        message(message: any[]) {
+        message(message: any[], override?: boolean) {
 
             switch (this.env) {
                 case 'max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_max(message);
                     break;
                 }
                 case 'node': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node(message);
                     break;
                 }
                 case 'node_for_max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node_for_max(message);

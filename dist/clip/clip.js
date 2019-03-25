@@ -51,7 +51,7 @@ var clip;
             return this.clip_dao.get_path();
         };
         Clip.prototype.set_path_deferlow = function (key_route) {
-            this.clip_dao.set_path_deferlow(key_route, this.get_path());
+            this.clip_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
         };
         Clip.prototype.get_num_measures = function () {
             return (this.get_end_marker() - this.get_start_marker()) / 4;

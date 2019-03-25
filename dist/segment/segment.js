@@ -7,6 +7,7 @@ var segment;
     var Clip = clip_1.clip.Clip;
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var Segment = /** @class */ (function () {
+        // clip_user_input_async: Clip;
         function Segment(note) {
             this.beat_start = note.model.note.beat_start;
             this.beat_end = note.model.note.get_beat_end();
@@ -24,12 +25,12 @@ var segment;
             }
             return segments;
         };
-        Segment.prototype.set_clip_user_input_sync = function (clip) {
-            this.clip_user_input_sync = clip;
+        Segment.prototype.set_clip_user_input = function (clip) {
+            this.clip_user_input = clip;
         };
-        Segment.prototype.set_clip_user_input_async = function (clip) {
-            this.clip_user_input_async = clip;
-        };
+        // public set_clip_user_input_async(clip: Clip) {
+        //     this.clip_user_input_async = clip;
+        // }
         Segment.prototype.get_note = function () {
             return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128)[0];
         };

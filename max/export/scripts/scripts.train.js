@@ -52,7 +52,7 @@ var clip;
             return this.clip_dao.get_path();
         };
         Clip.prototype.set_path_deferlow = function (key_route) {
-            this.clip_dao.set_path_deferlow(key_route, this.get_path());
+            this.clip_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
         };
         Clip.prototype.get_num_measures = function () {
             return (this.get_end_marker() - this.get_start_marker()) / 4;
@@ -888,24 +888,24 @@ var message;
         Messenger.prototype.get_key_route = function () {
             return this.key_route;
         };
-        Messenger.prototype.message = function (message) {
+        Messenger.prototype.message = function (message, override) {
             switch (this.env) {
                 case 'max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_max(message);
                     break;
                 }
                 case 'node': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node(message);
                     break;
                 }
                 case 'node_for_max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node_for_max(message);
@@ -1670,6 +1670,12 @@ var scene;
             // TODO: implement
             return;
         };
+        Scene.prototype.set_path_deferlow = function (key_route) {
+            this.scene_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
+        };
+        Scene.prototype.get_path = function () {
+            return this.scene_dao.get_path();
+        };
         return Scene;
     }());
     scene.Scene = Scene;
@@ -1678,6 +1684,9 @@ var scene;
         }
         SceneDaoVirtual.prototype.fire = function (force_legato) {
             return;
+        };
+        SceneDaoVirtual.prototype.get_path = function () {
+            return "";
         };
         return SceneDaoVirtual;
     }());
@@ -1713,6 +1722,9 @@ var scene;
             else {
                 this.live_api.call("fire", force_legato ? '1' : '0');
             }
+        };
+        SceneDao.prototype.get_path = function () {
+            return utils_1.utils.cleanse_path(this.live_api.get_path());
         };
         return SceneDao;
     }());
@@ -1928,8 +1940,17 @@ var set_segments = function () {
         var segment_2 = segments[Number(i_segment)];
         segment_2.set_scene(new Scene(new SceneDao(new LiveApiJs(path_scene), new Messenger(env, 0), true, 'scene')));
         var path_this_track = utils_1.utils.get_path_track_from_path_device(utils_1.utils.cleanse_path(this_device.get_path()));
-        segment_2.set_clip_user_input_sync(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')), new Messenger(env, 0))));
-        segment_2.set_clip_user_input_async(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')), new Messenger(env, 0), true, 'clip_user_input')));
+        // segment.set_clip_user_input_sync(
+        //     new Clip(
+        //         new ClipDao(
+        //             new LiveApiJs(
+        //                 path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
+        //             ),
+        //             new Messenger(env, 0)
+        //         )
+        //     )
+        // );
+        segment_2.set_clip_user_input(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')), new Messenger(env, 0), true, 'clip_user_input')));
         //
         // segments.push(
         //     segment
@@ -2117,6 +2138,7 @@ var segment;
     var Clip = clip_1.clip.Clip;
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var Segment = /** @class */ (function () {
+        // clip_user_input_async: Clip;
         function Segment(note) {
             this.beat_start = note.model.note.beat_start;
             this.beat_end = note.model.note.get_beat_end();
@@ -2134,12 +2156,12 @@ var segment;
             }
             return segments;
         };
-        Segment.prototype.set_clip_user_input_sync = function (clip) {
-            this.clip_user_input_sync = clip;
+        Segment.prototype.set_clip_user_input = function (clip) {
+            this.clip_user_input = clip;
         };
-        Segment.prototype.set_clip_user_input_async = function (clip) {
-            this.clip_user_input_async = clip;
-        };
+        // public set_clip_user_input_async(clip: Clip) {
+        //     this.clip_user_input_async = clip;
+        // }
         Segment.prototype.get_note = function () {
             return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128)[0];
         };
@@ -3263,7 +3285,7 @@ var algorithm;
         Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current) {
             var ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0]) / (segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
             var ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0]) / (segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper]);
+            messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true);
         };
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current);
@@ -3337,7 +3359,7 @@ var algorithm;
             Parsed.stream_segment_bounds(messenger);
         };
         Parsed.stream_segment_bounds = function (messenger) {
-            messenger.message(['bounds', 0, 1]);
+            messenger.message(['bounds', 0, 1], true);
         };
         Parsed.prototype.terminate = function (struct_train, segments) {
             this.finish_parse(struct_train, segments);
@@ -3458,8 +3480,8 @@ var algorithm;
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
                     var note_3 = targeted_notes_in_segment_1[_i];
-                    segment_2.clip_user_input_async.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
-                    segment_2.clip_user_input_async.set_notes([note_3]);
+                    segment_2.clip_user_input.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
+                    segment_2.clip_user_input.set_notes([note_3]);
                 }
             }
         };
@@ -4004,9 +4026,10 @@ var trainer;
         };
         Trainer.prototype.next_segment = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+            this.segment_current.scene.set_path_deferlow('scene');
             this.segment_current.scene.fire(true);
-            this.clip_user_input_sync = this.segment_current.clip_user_input_sync;
-            this.clip_user_input_async = this.segment_current.clip_user_input_async;
+            this.clip_user_input = this.segment_current.clip_user_input;
+            this.clip_user_input.set_path_deferlow('clip_user_input');
             this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
