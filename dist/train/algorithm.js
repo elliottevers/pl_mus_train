@@ -116,6 +116,8 @@ var algorithm;
             var notes_target_track = track_target.get_notes();
             return this.create_matrix_targets(user_input_handler, segments, notes_target_track);
         };
+        Targeted.prototype.set_depth = function () {
+        };
         return Targeted;
     }());
     // logic common to parse and derive

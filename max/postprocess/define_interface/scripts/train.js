@@ -1,5 +1,5 @@
-var load = Global.train.load;
-var save = Global.train.save;
+var load_session = Global.train.load_session;
+var save_session = Global.train.save_session;
 var initialize = Global.train.initialize;
 var commence = Global.train.commence;
 var pause = Global.train.pause;

@@ -12,9 +12,6 @@ import {clip as c, clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
 import {algorithm} from "../../src/train/algorithm";
 import Detect = algorithm.Detect;
-import {freeze, thaw} from "../../src/serialize/serialize";
-import TrainFreezer = freeze.TrainFreezer;
-import TrainThawer = thaw.TrainThawer;
 import {window} from "../../src/render/window";
 import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
@@ -32,6 +29,10 @@ import {scene as module_scene} from "../../src/scene/scene";
 import SceneDao = module_scene.SceneDao;
 import SceneDaoVirtual = module_scene.SceneDaoVirtual;
 import Scene = module_scene.Scene;
+import {freeze} from "../../src/serialize/freeze";
+import TrainFreezer = freeze.TrainFreezer;
+import {thaw} from "../../src/serialize/thaw";
+import TrainThawer = thaw.TrainThawer;
 
 
 

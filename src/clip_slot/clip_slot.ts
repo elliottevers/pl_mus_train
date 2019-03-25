@@ -26,9 +26,6 @@ export namespace clip_slot {
         }
 
         b_has_clip(): boolean {
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.clip));
-            // return this.clip !== null
             return this.clip_slot_dao.has_clip()
         }
 
@@ -118,7 +115,6 @@ export namespace clip_slot {
     export class ClipSlotDao implements iClipSlotDao {
 
         private live_api: LiveApiJs;
-        // private live_api;
         private messenger: Messenger;
 
         constructor(live_api: LiveApiJs, messenger: Messenger) {
@@ -143,12 +139,8 @@ export namespace clip_slot {
         }
 
         get_clip(): Clip {
-            // return utils.FactoryLive.clip_from_path(
-            //     String(this.live_api.get('clip')).split(',').join(' '),
-            //     this.messenger
-            // )
-            // let logger = new Logger('max');
-            // logger.log(utils.cleanse_id(this.live_api.get('clip')));
+            let logger = new Logger('max');
+            logger.log(utils.cleanse_id(this.live_api.get('clip')));
             return new Clip(
                 new ClipDao(
                     new LiveApiJs(

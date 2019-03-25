@@ -1,5 +1,4 @@
 "use strict";
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
@@ -64,11 +63,11 @@ var track_target, track_user_input;
 var set_mode_texture = function (option) {
     switch (option) {
         case POLYPHONY: {
-            mode_texture = option;
+            mode_texture = POLYPHONY;
             break;
         }
         case MONOPHONY: {
-            mode_texture = option;
+            mode_texture = MONOPHONY;
             break;
         }
         default: {
@@ -79,11 +78,11 @@ var set_mode_texture = function (option) {
 var set_mode_control = function (option) {
     switch (option) {
         case VOCAL: {
-            mode_control = option;
+            mode_control = VOCAL;
             break;
         }
         case INSTRUMENTAL: {
-            mode_control = option;
+            mode_control = INSTRUMENTAL;
             break;
         }
         default: {
@@ -92,7 +91,6 @@ var set_mode_control = function (option) {
     }
 };
 var set_algorithm_train = function (option) {
-    user_input_handler = new UserInputHandler(mode_texture, mode_control);
     switch (option) {
         case FREESTYLE: {
             // algorithm_train = new Freestyle(
@@ -129,18 +127,48 @@ var set_segments = function () {
     // TODO: this assumes the trainer device is on the same track as the segmenter
     // TODO: put back
     var this_device = new LiveApiJs('this_device');
-    var this_track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.cleanse_path(_this.get_path())), new Messenger(env, 0)));
-    var notes_segments = this_track.get_notes();
-    var segments = [];
-    for (var i_note in notes_segments) {
-        var note_2 = notes_segments[Number(i_note)];
-        var path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
-        var segment_2 = new Segment(note_2);
+    // let this_track = new Track(
+    //     new TrackDao(
+    //         new LiveApiJs(
+    //             utils.cleanse_path(this_device.get_path())
+    //         ),
+    //         new Messenger(env, 0)
+    //     )
+    // );
+    var path_this_device = utils_1.utils.cleanse_path(this_device.get_path());
+    //
+    // let logger = new Logger(env);
+    //
+    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_this_device)));
+    var this_track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(path_this_device)), new Messenger(env, 0)));
+    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_this_device)));
+    this_track.load_clips();
+    // let notes_segments = this_track.get_notes();
+    // let segments = [];
+    // track_target.load_clips();
+    //
+    // track_user_input.load_clips();
+    var segments = Segment.from_notes(this_track.get_notes());
+    // assign scenes to segments
+    //     for (let segment of segments) {
+    //         segment.set_scene(
+    //             new Scene(
+    //                 new SceneDaoVirtual()
+    //             )
+    //         )
+    //     }
+    for (var i_segment in segments) {
+        // let note = notes_segments[Number(i_note)];
+        var path_scene = ['live_set', 'scenes', Number(i_segment)].join(' ');
+        var segment_2 = segments[Number(i_segment)];
         segment_2.set_scene(new Scene(new SceneDao(new LiveApiJs(path_scene), new Messenger(env, 0), true, 'scene')));
         var path_this_track = utils_1.utils.get_path_track_from_path_device(utils_1.utils.cleanse_path(this_device.get_path()));
-        segment_2.set_clip_user_input_sync(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')), new Messenger(env, 0))));
-        segment_2.set_clip_user_input_async(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')), new Messenger(env, 0), true, 'clip_user_input')));
-        segments.push(segment_2);
+        segment_2.set_clip_user_input_sync(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')), new Messenger(env, 0))));
+        segment_2.set_clip_user_input_async(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')), new Messenger(env, 0), true, 'clip_user_input')));
+        //
+        // segments.push(
+        //     segment
+        // )
     }
     messenger_num_segments.message([segments.length]);
     segments_train = segments;
@@ -151,24 +179,37 @@ var test = function () {
 var set_track_target = function () {
     // @ts-ignore
     var list_path_device_target = Array.prototype.slice.call(arguments);
-    var path_device_target = utils_1.utils.cleanse_path(list_path_device_target.join());
+    var path_device_target = utils_1.utils.cleanse_path(list_path_device_target.join(' '));
+    var logger = new Logger(env);
+    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_device_target)));
     track_target = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(path_device_target)), new Messenger(env, 0), true, 'track_target'));
+    track_target.load_clips();
+    // logger.log(JSON.stringify(track_target.get_notes()));
     messenger_monitor_target.message([track_target.get_index()]);
 };
 var set_track_user_input = function () {
     var this_device = new LiveApiJs('this_device');
     var path_this_track = utils_1.utils.get_path_track_from_path_device(utils_1.utils.cleanse_path(this_device.get_path()));
     track_user_input = new Track(new TrackDao(new LiveApiJs(path_this_track), new Messenger(env, 0), true, 'track_user_input'));
+    track_user_input.load_clips();
 };
 var initialize = function () {
     set_segments();
     set_track_user_input();
+    // let logger = new Logger(env);
+    // logger.log(JSON.stringify(segments_train));
     song = new Song(new SongDao(new LiveApiJs('live_set'), new Messenger(env, 0), true, 'song'));
-    trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, new Messenger(env, 0));
-    trainer.render_window();
+    user_input_handler = new UserInputHandler(mode_texture, mode_control);
+    // logger.log(JSON.stringify(segments_train))
+    //
+    // return
+    trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render);
+    logger.log('trainer initialized');
+    // trainer.render_window();
 };
 var commence = function () {
     trainer.commence();
+    trainer.render_window();
 };
 var pause = function () {
     trainer.pause();
@@ -237,6 +278,16 @@ var user_input_midi = function (pitch, velocity) {
     switch (algorithm_train.get_name()) {
         case DETECT: {
             var tree = new TreeModel();
+            var note_2 = tree.parse({
+                id: -1,
+                note: new Note(pitch, -Infinity, Infinity, velocity, 0),
+                children: []
+            });
+            trainer.accept_input([note_2]);
+            break;
+        }
+        case PREDICT: {
+            var tree = new TreeModel();
             var note_3 = tree.parse({
                 id: -1,
                 note: new Note(pitch, -Infinity, Infinity, velocity, 0),
@@ -245,27 +296,17 @@ var user_input_midi = function (pitch, velocity) {
             trainer.accept_input([note_3]);
             break;
         }
-        case PREDICT: {
-            var tree = new TreeModel();
-            var note_4 = tree.parse({
-                id: -1,
-                note: new Note(pitch, -Infinity, Infinity, velocity, 0),
-                children: []
-            });
-            trainer.accept_input([note_4]);
-            break;
-        }
         default: {
             logger.log('command not supported for this type of algorithm');
         }
     }
 };
-var load = function () {
+var load_session = function () {
     // TODO: logic to determine, from project folder, name of file
     var freezer = new TrainFreezer(env);
     freezer.freeze(trainer, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
 };
-var save = function () {
+var save_session = function () {
     // TODO: logic to determine, from project folder, name of file
     var config = {
         'window': window,
@@ -284,8 +325,8 @@ var save = function () {
 };
 if (typeof Global !== "undefined") {
     Global.train = {};
-    Global.train.load = load;
-    Global.train.save = save;
+    Global.train.load_session = load_session;
+    Global.train.save_session = save_session;
     Global.train.initialize = initialize;
     Global.train.commence = commence;
     Global.train.pause = pause;

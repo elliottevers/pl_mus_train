@@ -75,11 +75,11 @@ let track_target: Track, track_user_input: Track;
 let set_mode_texture = (option) => {
     switch (option) {
         case POLYPHONY: {
-            mode_texture = option;
+            mode_texture = POLYPHONY;
             break;
         }
         case MONOPHONY: {
-            mode_texture = option;
+            mode_texture = MONOPHONY;
             break;
         }
         default: {
@@ -91,11 +91,11 @@ let set_mode_texture = (option) => {
 let set_mode_control = (option) => {
     switch (option) {
         case VOCAL: {
-            mode_control = option;
+            mode_control = VOCAL;
             break;
         }
         case INSTRUMENTAL: {
-            mode_control = option;
+            mode_control = INSTRUMENTAL;
             break;
         }
         default: {
@@ -105,11 +105,6 @@ let set_mode_control = (option) => {
 };
 
 let set_algorithm_train = (option) => {
-
-    user_input_handler = new UserInputHandler(
-        mode_texture,
-        mode_control
-    );
 
     switch (option) {
         case FREESTYLE: {
@@ -158,27 +153,61 @@ let set_segments = () => {
     // TODO: put back
     let this_device = new LiveApiJs('this_device');
 
+    // let this_track = new Track(
+    //     new TrackDao(
+    //         new LiveApiJs(
+    //             utils.cleanse_path(this_device.get_path())
+    //         ),
+    //         new Messenger(env, 0)
+    //     )
+    // );
+
+    let path_this_device = utils.cleanse_path(this_device.get_path());
+    //
+    // let logger = new Logger(env);
+    //
+    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_this_device)));
+
     let this_track = new Track(
         new TrackDao(
             new LiveApiJs(
-                utils.cleanse_path(this.get_path())
+                utils.get_path_track_from_path_device(path_this_device)
             ),
             new Messenger(env, 0)
         )
     );
 
-    let notes_segments = this_track.get_notes();
+    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_this_device)));
 
-    let segments = [];
+    this_track.load_clips();
 
-    for (let i_note in notes_segments) {
-        let note = notes_segments[Number(i_note)];
+    // let notes_segments = this_track.get_notes();
 
-        let path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
+    // let segments = [];
 
-        let segment = new Segment(
-            note
-        );
+    // track_target.load_clips();
+    //
+    // track_user_input.load_clips();
+
+    let segments = Segment.from_notes(
+        this_track.get_notes()
+    );
+
+// assign scenes to segments
+//     for (let segment of segments) {
+//         segment.set_scene(
+//             new Scene(
+//                 new SceneDaoVirtual()
+//             )
+//         )
+//     }
+
+    for (let i_segment in segments) {
+        // let note = notes_segments[Number(i_note)];
+
+        let path_scene = ['live_set', 'scenes', Number(i_segment)].join(' ');
+
+        let segment = segments[Number(i_segment)];
 
         segment.set_scene(
             new Scene(
@@ -203,7 +232,7 @@ let set_segments = () => {
             new Clip(
                 new ClipDao(
                     new LiveApiJs(
-                        path_this_track.split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')
+                        path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
                     ),
                     new Messenger(env, 0)
                 )
@@ -214,7 +243,7 @@ let set_segments = () => {
             new Clip(
                 new ClipDao(
                     new LiveApiJs(
-                        path_this_track.split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')
+                        path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
                     ),
                     new Messenger(env, 0),
                     true,
@@ -222,10 +251,10 @@ let set_segments = () => {
                 )
             )
         );
-
-        segments.push(
-            segment
-        )
+        //
+        // segments.push(
+        //     segment
+        // )
 
     }
 
@@ -243,7 +272,11 @@ let set_track_target = () => {
     // @ts-ignore
     let list_path_device_target = Array.prototype.slice.call(arguments);
 
-    let path_device_target = utils.cleanse_path(list_path_device_target.join());
+    let path_device_target = utils.cleanse_path(list_path_device_target.join(' '));
+
+    let logger = new Logger(env);
+
+    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_device_target)));
 
     track_target = new Track(
         new TrackDao(
@@ -255,6 +288,10 @@ let set_track_target = () => {
             'track_target'
         )
     );
+
+    track_target.load_clips();
+
+    // logger.log(JSON.stringify(track_target.get_notes()));
 
     messenger_monitor_target.message([track_target.get_index()])
 };
@@ -278,6 +315,8 @@ let set_track_user_input = () => {
             'track_user_input'
         )
     );
+
+    track_user_input.load_clips()
 };
 
 let initialize = () => {
@@ -285,6 +324,9 @@ let initialize = () => {
     set_segments();
 
     set_track_user_input();
+
+    // let logger = new Logger(env);
+    // logger.log(JSON.stringify(segments_train));
 
     song = new Song(
         new SongDao(
@@ -297,6 +339,15 @@ let initialize = () => {
         )
     );
 
+    user_input_handler = new UserInputHandler(
+        mode_texture,
+        mode_control
+    );
+
+    // logger.log(JSON.stringify(segments_train))
+    //
+    // return
+
     trainer = new Trainer(
         window,
         user_input_handler,
@@ -305,14 +356,18 @@ let initialize = () => {
         track_user_input,
         song,
         segments_train,
-        new Messenger(env, 0)
+        messenger_render
     );
 
-    trainer.render_window();
+    logger.log('trainer initialized')
+
+    // trainer.render_window();
 };
 
 let commence = () => {
     trainer.commence();
+
+    trainer.render_window()
 };
 
 let pause = () => {
@@ -477,7 +532,7 @@ let user_input_midi = (pitch: number, velocity: number) => {
     }
 };
 
-let load = () => {
+let load_session = () => {
 
     // TODO: logic to determine, from project folder, name of file
 
@@ -491,7 +546,7 @@ let load = () => {
     );
 };
 
-let save = () => {
+let save_session = () => {
 
     // TODO: logic to determine, from project folder, name of file
 
@@ -523,8 +578,8 @@ let save = () => {
 
 if (typeof Global !== "undefined") {
     Global.train = {};
-    Global.train.load = load;
-    Global.train.save = save;
+    Global.train.load_session = load_session;
+    Global.train.save_session = save_session;
     Global.train.initialize = initialize;
     Global.train.commence = commence;
     Global.train.pause = pause;

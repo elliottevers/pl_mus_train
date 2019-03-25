@@ -40,6 +40,8 @@ var trainer;
             //     track_target.get_path()
             // );
             this.notes_target_track = track_target.get_notes();
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.notes_target_track));
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_objectives(this.trainable, this.segments));
             this.window.initialize_clips(this.trainable, this.segments);

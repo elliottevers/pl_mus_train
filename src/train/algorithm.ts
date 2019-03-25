@@ -69,6 +69,7 @@ export namespace algorithm {
 
         get_name(): string
         get_depth(): number
+        set_depth(depth: number): void
         coord_to_index_clip(coord: number[]): number
 
         create_struct_train(
@@ -259,6 +260,10 @@ export namespace algorithm {
         create_struct_train(window: window.Window, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
             let notes_target_track = track_target.get_notes();
             return this.create_matrix_targets(user_input_handler, segments, notes_target_track);
+        }
+
+        set_depth(): void {
+
         }
     }
 

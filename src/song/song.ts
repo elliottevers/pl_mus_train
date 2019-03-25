@@ -23,9 +23,9 @@ export namespace song {
         constructor(song_dao: iSongDao) {
             this.song_dao = song_dao;
             // automatically set path at time of instantiation
-            if (this.song_dao.is_async()) {
-                this.set_path_deferlow('set_path_' + this.song_dao.key_route)
-            }
+            // if (this.song_dao.is_async()) {
+            //     this.set_path_deferlow('set_path_' + this.song_dao.key_route)
+            // }
         }
 
         load_scenes(): void {

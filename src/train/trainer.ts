@@ -42,6 +42,7 @@ export namespace trainer {
     import MatrixWindow = window.MatrixWindow;
     import Scene = scene.Scene;
     import SceneDao = scene.SceneDao;
+    import Logger = log.Logger;
 
     export type StructTargets = TargetIterator[][];
 
@@ -124,6 +125,9 @@ export namespace trainer {
             // );
 
             this.notes_target_track = track_target.get_notes();
+
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.notes_target_track));
 
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
                 this.trainable,
