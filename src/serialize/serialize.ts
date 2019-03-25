@@ -166,6 +166,7 @@ export namespace thaw {
                 config['track_target'],
                 config['track_user_input'],
                 config['song'],
+                config['segments'],
                 config['messenger']
             );
 

@@ -43,6 +43,10 @@ export namespace trainer {
     import Scene = scene.Scene;
     import SceneDao = scene.SceneDao;
 
+    export type StructTargets = TargetIterator[][];
+
+    export type StructTrain = StructParse | StructTargets;
+
     export class Trainer {
 
         private window: MatrixWindow;
@@ -57,8 +61,9 @@ export namespace trainer {
         private segments: Segment[];
         private messenger: Messenger;
 
-        public struct_parse: StructParse;
+        // public struct_parse: StructParse;
         public history_user_input: HistoryUserInput;
+        public struct_train: StructTrain;
 
         private counter_user_input: number;
         private limit_user_input: number;
@@ -68,7 +73,7 @@ export namespace trainer {
         public target_current: Target;
         private subtarget_current: Subtarget;
 
-        private matrix_targets: TargetIterator[][];
+        // private matrix_targets: TargetIterator[][];
         public iterator_matrix_train: MatrixIterator;
         private iterator_target_current: TargetIterator;
         private iterator_subtarget_current: SubtargetIterator;
@@ -141,30 +146,56 @@ export namespace trainer {
                 this.segments[this.segments.length - 1].beat_end
             );
 
-            this.trainable.initialize(
-                this.window,
-                this.segments,
-                this.track_target,
-                this.user_input_handler,
-                this.struct_parse
-            );
+            // this.trainable.initialize(
+            //     this.window,
+            //     this.segments,
+            //     this.track_target,
+            //     this.user_input_handler,
+            //     this.struct_parse
+            // );
 
-            // TODO: figure out getting notes from the target track
-            this.matrix_targets = this.trainable.create_matrix_targets(
-                this.user_input_handler,
+            this.window = this.trainable.initialize_render(
+                this.window,
                 this.segments,
                 this.notes_target_track
             );
 
-            this.struct_parse = this.trainable.create_struct_parse(
-                this.segments
+            this.struct_train = this.trainable.create_struct_train(
+                this.window,
+                this.segments,
+                this.track_target,
+                this.user_input_handler,
+                this.struct_train
             );
+
+            // this.trainable.initialize(
+            //     this.window,
+            //     this.segments,
+            //     this.track_target,
+            //     this.user_input_handler,
+            //     this.struct_train
+            // );
+
+            // TODO: figure out getting notes from the target track
+            // this.matrix_targets = this.trainable.create_matrix_targets(
+            //     this.user_input_handler,
+            //     this.segments,
+            //     this.notes_target_track
+            // );
+
+            // this.struct_train = this.trainable.create_struct_train(
+            //
+            // );
+
+            // this.struct_parse = this.trainable.create_struct_parse(
+            //     this.segments
+            // );
 
             this.trainable.initialize_tracks(
                 this.segments,
                 this.track_target,
                 this.track_user_input,
-                this.matrix_targets
+                this.struct_train
             )
         }
 
@@ -176,8 +207,8 @@ export namespace trainer {
             this.window.render(
                 this.iterator_matrix_train,
                 this.trainable,
-                this.target_current,
-                this.struct_parse,
+                // this.target_current,
+                this.struct_train,
                 // this.segment_current
             )
         }
@@ -210,7 +241,7 @@ export namespace trainer {
 
             if (obj_next_coord.done) {
 
-                this.trainable.terminate(this.struct_parse, this.segments);
+                this.trainable.terminate(this.struct_train, this.segments);
 
                 this.trainable.pause(this.song, this.segment_current.scene);
 
@@ -256,7 +287,7 @@ export namespace trainer {
 
                     if (obj_next_coord.done) {
 
-                        this.trainable.terminate(this.struct_parse, this.segments);
+                        this.trainable.terminate(this.struct_train, this.segments);
 
                         this.trainable.pause(this.song, this.segment_current.scene);
 
@@ -331,9 +362,9 @@ export namespace trainer {
                     this.iterator_matrix_train
                 );
 
-                this.struct_parse = this.trainable.update_struct(
+                this.struct_train = this.trainable.update_struct(
                     input_postprocessed,
-                    this.struct_parse,
+                    this.struct_train,
                     this.trainable,
                     this.iterator_matrix_train
                 );

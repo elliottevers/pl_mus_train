@@ -44,17 +44,43 @@ var trainer;
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_objectives(this.trainable, this.segments));
             this.window.initialize_clips(this.trainable, this.segments);
             this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
-            this.trainable.initialize(this.window, this.segments, this.track_target, this.user_input_handler, this.struct_parse);
+            // this.trainable.initialize(
+            //     this.window,
+            //     this.segments,
+            //     this.track_target,
+            //     this.user_input_handler,
+            //     this.struct_parse
+            // );
+            this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track);
+            this.struct_train = this.trainable.create_struct_train(this.window, this.segments, this.track_target, this.user_input_handler, this.struct_train);
+            // this.trainable.initialize(
+            //     this.window,
+            //     this.segments,
+            //     this.track_target,
+            //     this.user_input_handler,
+            //     this.struct_train
+            // );
             // TODO: figure out getting notes from the target track
-            this.matrix_targets = this.trainable.create_matrix_targets(this.user_input_handler, this.segments, this.notes_target_track);
-            this.struct_parse = this.trainable.create_struct_parse(this.segments);
-            this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.matrix_targets);
+            // this.matrix_targets = this.trainable.create_matrix_targets(
+            //     this.user_input_handler,
+            //     this.segments,
+            //     this.notes_target_track
+            // );
+            // this.struct_train = this.trainable.create_struct_train(
+            //
+            // );
+            // this.struct_parse = this.trainable.create_struct_parse(
+            //     this.segments
+            // );
+            this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
         }
         Trainer.prototype.clear_window = function () {
             this.window.clear();
         };
         Trainer.prototype.render_window = function () {
-            this.window.render(this.iterator_matrix_train, this.trainable, this.target_current, this.struct_parse);
+            this.window.render(this.iterator_matrix_train, this.trainable, 
+            // this.target_current,
+            this.struct_train);
         };
         Trainer.prototype.unpause = function () {
             this.trainable.unpause(this.song, this.segment_current.scene);
@@ -79,7 +105,7 @@ var trainer;
         Trainer.prototype.advance_segment = function () {
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
-                this.trainable.terminate(this.struct_parse, this.segments);
+                this.trainable.terminate(this.struct_train, this.segments);
                 this.trainable.pause(this.song, this.segment_current.scene);
                 return;
             }
@@ -104,7 +130,7 @@ var trainer;
                 if (obj_next_target.done) {
                     var obj_next_coord = this.iterator_matrix_train.next();
                     if (obj_next_coord.done) {
-                        this.trainable.terminate(this.struct_parse, this.segments);
+                        this.trainable.terminate(this.struct_train, this.segments);
                         this.trainable.pause(this.song, this.segment_current.scene);
                         return;
                     }
@@ -145,7 +171,7 @@ var trainer;
             if (this.trainable.warrants_advance(notes_input_user, this.subtarget_current)) {
                 var input_postprocessed = this.trainable.postprocess_user_input(notes_input_user, this.subtarget_current);
                 this.history_user_input = this.trainable.update_history_user_input(input_postprocessed, this.history_user_input, this.iterator_matrix_train);
-                this.struct_parse = this.trainable.update_struct(input_postprocessed, this.struct_parse, this.trainable, this.iterator_matrix_train);
+                this.struct_train = this.trainable.update_struct(input_postprocessed, this.struct_train, this.trainable, this.iterator_matrix_train);
                 // this.history_user_input.concat(
                 //     input_postprocessed,
                 //     this.iterator_matrix_train.get_coord_current()

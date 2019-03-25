@@ -130,7 +130,7 @@ var thaw;
         TrainThawer.prototype.thaw = function (filepath, config) {
             var trainer;
             var matrix_deserialized = from_json(filepath, config['env']);
-            trainer = new Trainer(config['window'], config['user_input_handler'], config['trainable'], config['track_target'], config['track_user_input'], config['song'], config['messenger']);
+            trainer = new Trainer(config['window'], config['user_input_handler'], config['trainable'], config['track_target'], config['track_user_input'], config['song'], config['segments'], config['messenger']);
             trainer.init(true);
             switch (config['algorithm'].get_name()) {
                 case DETECT: {

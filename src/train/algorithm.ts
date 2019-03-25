@@ -16,6 +16,7 @@ import {live} from "../live/live";
 import {scene} from "../scene/scene";
 import {utils} from "../utils/utils";
 import {song} from "../song/song";
+import {trainer} from "./trainer";
 const _ = require('underscore');
 
 export namespace algorithm {
@@ -46,6 +47,8 @@ export namespace algorithm {
     import UserInputHandler = user_input.UserInputHandler;
     import Clip = clip.Clip;
     import HistoryUserInput = history.HistoryUserInput;
+    import StructTrain = trainer.StructTrain;
+    import MatrixWindow = window.MatrixWindow;
 
 
     interface Temporal {
@@ -54,7 +57,7 @@ export namespace algorithm {
     }
 
     interface Renderable {
-        initialize_render(window: Window, segments: Segment[], notes_track_target: TreeModel.Node<Note>[])
+        initialize_render(window: MatrixWindow, segments: Segment[], notes_track_target: TreeModel.Node<Note>[]): MatrixWindow
         get_notes_in_region(target: Target, segment: Segment): TreeModel.Node<Note>[]
     }
 
@@ -68,15 +71,18 @@ export namespace algorithm {
         get_depth(): number
         coord_to_index_clip(coord: number[]): number
 
-        initialize(
+        create_struct_train(
             window: Window,
             segments: Segment[],
             track_target: Track,
             user_input_handler: UserInputHandler,
-            struct_parse: StructParse
-        ): void
+            struct_train: StructTrain
+        ): StructTrain
 
-        terminate(struct_parse: StructParse, segments: Segment[])
+        terminate(
+            struct_train: StructTrain,
+            segments: Segment[]
+        )
 
         unpause(song: Song, scene_current: Scene)
 
@@ -88,7 +94,7 @@ export namespace algorithm {
             notes_target_track: TreeModel.Node<Note>[]
         )
 
-        create_struct_parse(segments: Segment[]): StructParse
+        // create_struct_parse(segments: Segment[]): StructParse
 
         update_struct(
             notes_input_user: TreeModel.Node<Note>[],
@@ -101,7 +107,8 @@ export namespace algorithm {
             segments: segment.Segment[],
             track_target: track.Track,
             track_user_input: track.Track,
-            matrix_target: TargetIterator[][]
+            // matrix_target: TargetIterator[][]
+            struct_train: StructTrain
         )
 
         update_history_user_input(
@@ -157,7 +164,7 @@ export namespace algorithm {
 
         public abstract get_name()
 
-        public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: target.TargetIterator[][])
+        public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain)
 
         public abstract determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget
 
@@ -169,9 +176,9 @@ export namespace algorithm {
             return 0;
         }
 
-        create_struct_parse(segments: Segment[]) {
-            return null
-        }
+        // create_struct_parse(segments: Segment[]) {
+        //     return null
+        // }
 
         public determine_region_present(notes_target_next: TreeModel.Node<Note>): number[] {
             return [
@@ -186,7 +193,7 @@ export namespace algorithm {
             })
         }
 
-        public abstract initialize_render(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[])
+        public abstract initialize_render(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): MatrixWindow
 
         unpause(song: Song, scene_current: Scene) {
             // not forcing legato so that it starts immediately
@@ -200,7 +207,7 @@ export namespace algorithm {
         public abstract postprocess_subtarget(subtarget: Subtarget)
 
         // TODO: verify that we don't need to do anything
-        terminate() {
+        terminate(struct_train: StructTrain, segments: Segment[]) {
             return
         }
 
@@ -250,20 +257,31 @@ export namespace algorithm {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current)
         }
 
-        initialize(
-            window: Window,
-            segments: Segment[],
-            track_target: Track,
-            user_input_handler: UserInputHandler,
-            struct_parse: StructParse
-        ) {
-            let notes_target_track = track_target.get_notes();
-            this.create_matrix_targets(user_input_handler, segments, notes_target_track);
-            this.initialize_render(window, segments, notes_target_track)
-        }
+        // initialize(
+        //     window: Window,
+        //     segments: Segment[],
+        //     track_target: Track,
+        //     user_input_handler: UserInputHandler,
+        //     struct_parse: StructParse
+        // ) {
+        //     let notes_target_track = track_target.get_notes();
+        //     // this.create_matrix_targets(user_input_handler, segments, notes_target_track);
+        //     this.initialize_render(
+        //         window,
+        //         segments,
+        //         notes_target_track
+        //     )
+        // }
 
         update_struct(notes_input_user: TreeModel.Node<note.Note>[], struct_parse: parse.StructParse, trainable: Trainable, iterator_matrix_train: iterate.MatrixIterator): parse.StructParse {
             return struct_parse;
+        }
+
+        create_struct_train(window: window.Window, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
+            let notes_target_track = track_target.get_notes();
+            // let matrix_targets = this.create_matrix_targets(user_input_handler, segments, notes_target_track);
+            // this.initialize_render(window, segments, notes_target_track);
+            return this.create_matrix_targets(user_input_handler, segments, notes_target_track);
         }
     }
 
@@ -289,9 +307,9 @@ export namespace algorithm {
             return struct_parse
         }
 
-        public abstract initialize_render(window: Window, segments: Segment[], notes_track_target: TreeModel.Node<Note>[])
+        public abstract initialize_render(window: Window, segments: Segment[], notes_track_target: TreeModel.Node<Note>[]): MatrixWindow
 
-        public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: target.TargetIterator[][])
+        public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain)
 
         public update_history_user_input(
             input_postprocessed: TreeModel.Node<Note>[],
@@ -352,15 +370,15 @@ export namespace algorithm {
 
         public abstract grow_layer(notes_user_input_renderable, notes_to_grow)
 
-        initialize(
-            window: Window,
-            segments: Segment[],
-            track_target: Track,
-            user_input_handler: UserInputHandler,
-            struct_parse: StructParse
-        ) {
-            this.initialize_parse(struct_parse, segments, track_target)
-        }
+        // initialize(
+        //     window: Window,
+        //     segments: Segment[],
+        //     track_target: Track,
+        //     user_input_handler: UserInputHandler,
+        //     struct_parse: StructParse
+        // ) {
+        //     this.initialize_parse(struct_parse, segments, track_target)
+        // }
 
         public abstract initialize_parse(struct_parse, segments, track_target)
 
@@ -385,8 +403,8 @@ export namespace algorithm {
             messenger.message(['bounds', 0, 1])
         }
 
-        terminate(struct_parse: StructParse, segments: Segment[]) {
-            this.finish_parse(struct_parse, segments)
+        terminate(struct_train: StructTrain, segments: Segment[]) {
+            this.finish_parse(struct_train as StructParse, segments)
         }
 
         unpause(song: Song, scene_current: Scene) {
@@ -403,6 +421,10 @@ export namespace algorithm {
 
         warrants_advance(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current: target.Subtarget): boolean {
             return true;
+        }
+
+        create_struct_train(window: window.Window, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
+            return undefined;
         }
     }
 
@@ -461,11 +483,11 @@ export namespace algorithm {
         }
 
         // TODO: verify that we don't have to do anything here
-        initialize_render(window: window.Window, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
-            return
+        initialize_render(window: window.MatrixWindow, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]): MatrixWindow {
+            return window
         }
 
-        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
+        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
             return
         }
     }
@@ -526,17 +548,19 @@ export namespace algorithm {
         }
 
         // TODO: verify that we don't have to do anythiing here
-        initialize_render(window: window.Window, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
-            return
+        initialize_render(window: window.MatrixWindow, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
+            return window
         }
 
         // NB: we only have to initialize clips in the target track
-        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
+        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
+
+            let matrix_targets = struct_train;
 
             for (let i_segment in segments) {
                 let segment = segments[Number(i_segment)];
 
-                let targeted_notes_in_segment = matrix_target[0][Number(i_segment)].get_notes();
+                let targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
 
                 // TODO: this won't work for polyphony
                 for (let note of targeted_notes_in_segment) {
@@ -644,7 +668,7 @@ export namespace algorithm {
         }
 
         // TODO: we don't need the target track - we should 1) transfer all notes over to user input track and 2) mute the track
-        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
+        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
             for (let i_segment in segments) {
 
                 let clip_target = track_target.get_clip_at_index(Number(i_segment));
@@ -674,7 +698,7 @@ export namespace algorithm {
         // add the root up to which we're going to parse
         // add the segments as the layer below
         // add the leaf notes
-        initialize_render(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]) {
+        initialize_render(window: MatrixWindow, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): MatrixWindow {
             // first layer
             window.add_note_to_clip_root(
                 StructParse.create_root_from_segments(
@@ -710,6 +734,8 @@ export namespace algorithm {
                     this
                 )
             }
+
+            return window
         }
 
         update_roots(coords_roots_previous: number[][], coords_notes_previous: number[][], coord_notes_current: number[]) {
@@ -803,7 +829,7 @@ export namespace algorithm {
         }
 
         // TODO: verify that the segments should already be here so we don't have to do anything
-        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, matrix_target: TargetIterator[][]) {
+        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
             return
         }
 
@@ -831,7 +857,7 @@ export namespace algorithm {
             }
         }
 
-        initialize_render(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]) {
+        initialize_render(window: MatrixWindow, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): MatrixWindow {
             // first layer (root)
             window.add_note_to_clip_root(
                 StructParse.create_root_from_segments(
@@ -854,6 +880,8 @@ export namespace algorithm {
                     this
                 );
             }
+
+            return window
         }
 
         finish_parse(struct_parse: StructParse, segments: Segment[]): void {

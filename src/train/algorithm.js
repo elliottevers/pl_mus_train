@@ -53,9 +53,9 @@ var algorithm;
         Targeted.prototype.coord_to_index_clip = function (coord) {
             return 0;
         };
-        Targeted.prototype.create_struct_parse = function (segments) {
-            return null;
-        };
+        // create_struct_parse(segments: Segment[]) {
+        //     return null
+        // }
         Targeted.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
@@ -75,7 +75,7 @@ var algorithm;
             return [subtarget_current.note];
         };
         // TODO: verify that we don't need to do anything
-        Targeted.prototype.terminate = function () {
+        Targeted.prototype.terminate = function (struct_train, segments) {
             return;
         };
         Targeted.prototype.pause = function (song, scene_current) {
@@ -108,13 +108,29 @@ var algorithm;
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current);
         };
-        Targeted.prototype.initialize = function (window, segments, track_target, user_input_handler, struct_parse) {
-            var notes_target_track = track_target.get_notes();
-            this.create_matrix_targets(user_input_handler, segments, notes_target_track);
-            this.initialize_render(window, segments, notes_target_track);
-        };
+        // initialize(
+        //     window: Window,
+        //     segments: Segment[],
+        //     track_target: Track,
+        //     user_input_handler: UserInputHandler,
+        //     struct_parse: StructParse
+        // ) {
+        //     let notes_target_track = track_target.get_notes();
+        //     // this.create_matrix_targets(user_input_handler, segments, notes_target_track);
+        //     this.initialize_render(
+        //         window,
+        //         segments,
+        //         notes_target_track
+        //     )
+        // }
         Targeted.prototype.update_struct = function (notes_input_user, struct_parse, trainable, iterator_matrix_train) {
             return struct_parse;
+        };
+        Targeted.prototype.create_struct_train = function (window, segments, track_target, user_input_handler, struct_train) {
+            var notes_target_track = track_target.get_notes();
+            // let matrix_targets = this.create_matrix_targets(user_input_handler, segments, notes_target_track);
+            // this.initialize_render(window, segments, notes_target_track);
+            return this.create_matrix_targets(user_input_handler, segments, notes_target_track);
         };
         return Targeted;
     }());
@@ -163,9 +179,6 @@ var algorithm;
         Parsed.prototype.get_notes_in_region = function (target, segment) {
             return [segment.get_note()];
         };
-        Parsed.prototype.initialize = function (window, segments, track_target, user_input_handler, struct_parse) {
-            this.initialize_parse(struct_parse, segments, track_target);
-        };
         Parsed.prototype.pause = function (song, scene_current) {
             song.set_overdub(0);
             song.set_session_record(0);
@@ -180,8 +193,8 @@ var algorithm;
         Parsed.stream_segment_bounds = function (messenger) {
             messenger.message(['bounds', 0, 1]);
         };
-        Parsed.prototype.terminate = function (struct_parse, segments) {
-            this.finish_parse(struct_parse, segments);
+        Parsed.prototype.terminate = function (struct_train, segments) {
+            this.finish_parse(struct_train, segments);
         };
         Parsed.prototype.unpause = function (song, scene_current) {
             song.set_overdub(1);
@@ -192,6 +205,9 @@ var algorithm;
         };
         Parsed.prototype.warrants_advance = function (notes_user_input, subtarget_current) {
             return true;
+        };
+        Parsed.prototype.create_struct_train = function (window, segments, track_target, user_input_handler, struct_train) {
+            return undefined;
         };
         return Parsed;
     }());
@@ -236,9 +252,9 @@ var algorithm;
         };
         // TODO: verify that we don't have to do anything here
         Detect.prototype.initialize_render = function (window, segments, notes_target_track) {
-            return;
+            return window;
         };
-        Detect.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
+        Detect.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             return;
         };
         return Detect;
@@ -293,13 +309,14 @@ var algorithm;
         };
         // TODO: verify that we don't have to do anythiing here
         Predict.prototype.initialize_render = function (window, segments, notes_target_track) {
-            return;
+            return window;
         };
         // NB: we only have to initialize clips in the target track
-        Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
+        Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
+            var matrix_targets = struct_train;
             for (var i_segment in segments) {
                 var segment_2 = segments[Number(i_segment)];
-                var targeted_notes_in_segment = matrix_target[0][Number(i_segment)].get_notes();
+                var targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
                     var note_3 = targeted_notes_in_segment_1[_i];
@@ -391,7 +408,7 @@ var algorithm;
             ParseTree.add_layer(notes_user_input_renderable, notes_to_grow, -1);
         };
         // TODO: we don't need the target track - we should 1) transfer all notes over to user input track and 2) mute the track
-        Parse.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
+        Parse.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             for (var i_segment in segments) {
                 var clip_target = track_target.get_clip_at_index(Number(i_segment));
                 var clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
@@ -421,6 +438,7 @@ var algorithm;
             for (var i_segment in segments) {
                 _loop_2(i_segment);
             }
+            return window;
         };
         Parse.prototype.update_roots = function (coords_roots_previous, coords_notes_previous, coord_notes_current) {
             var coords_roots_new = [];
@@ -484,7 +502,7 @@ var algorithm;
             ParseTree.add_layer(notes_to_grow, notes_user_input_renderable, -1);
         };
         // TODO: verify that the segments should already be here so we don't have to do anything
-        Derive.prototype.initialize_tracks = function (segments, track_target, track_user_input, matrix_target) {
+        Derive.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             return;
         };
         Derive.prototype.initialize_parse = function (struct_parse, segments) {
@@ -507,6 +525,7 @@ var algorithm;
                 // second layer
                 window.add_notes_to_clip([note_segment], coord_current_virtual_second_layer, this);
             }
+            return window;
         };
         Derive.prototype.finish_parse = function (struct_parse, segments) {
             return;

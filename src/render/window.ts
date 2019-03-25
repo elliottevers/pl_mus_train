@@ -10,7 +10,7 @@ import {iterate} from "../train/iterate";
 import {parse} from "../parse/parse";
 import {log} from "../log/logger";
 import {target} from "../target/target";
-import {trainer as module_trainer} from "../train/trainer";
+import {trainer, trainer as module_trainer} from "../train/trainer";
 
 export namespace window {
 
@@ -27,6 +27,8 @@ export namespace window {
     import Target = target.Target;
     import Trainer = module_trainer.Trainer;
     import Trainable = algorithm.Trainable;
+    import StructTrain = trainer.StructTrain;
+    import StructTargets = trainer.StructTargets;
 
     const red = [255, 0, 0];
     const white = [255, 255, 255];
@@ -195,8 +197,9 @@ export namespace window {
         public render(
             iterator_matrix_train: MatrixIterator,
             trainable: Trainable,
-            target_current: Target, // only for detect/predict
-            struct_parse: StructParse, // only for parse/derive
+            struct_train: StructTrain
+            // target_current: Target, // only for detect/predict
+            // struct_parse: StructParse, // only for parse/derive
             // segment_current: Segment
         ) {
 
@@ -216,46 +219,46 @@ export namespace window {
             this.render_regions(
                 iterator_matrix_train,
                 trainable,
-                target_current,
-                struct_parse
+                struct_train
+                // target_current,
+                // struct_parse
             );
 
             this.render_clips(
                 trainable,
-                struct_parse
+                struct_train
+                // struct_parse
             );
 
             this.render_trees(
-                struct_parse,
+                // struct_parse,
+                struct_train,
                 trainable
             );
         }
 
-        public render_trees(struct_parse: StructParse, trainable: Trainable) {
-            let messages_render_trees = this.get_messages_render_trees(struct_parse, trainable);
+        public render_trees(struct_train: StructTrain, trainable: Trainable) {
+            let messages_render_trees = this.get_messages_render_trees(struct_train, trainable);
             for (let message_tree of messages_render_trees) {
                 this.messenger.message(message_tree)
             }
         }
 
-        public get_messages_render_trees(struct_parse: StructParse, trainable: Trainable) {
+        public get_messages_render_trees(struct_train: StructTrain, trainable: Trainable) {
 
-            if (struct_parse === null) {
+            if (trainable.b_targeted) {
                 return []
             }
+
+            let struct_parse = struct_train as StructParse;
 
             let color: number[];
             let messages: any[] = [];
             let message: any[];
 
             for (let coord of struct_parse.coords_roots) {
-                let roots_parse_tree;
 
-                // if (coord[0] === -1) {
-                //     roots_parse_tree = [struct_parse.get_root()]
-                // } else {
-                //     roots_parse_tree = struct_parse.get_notes_at_coord(coord);
-                // }
+                let roots_parse_tree;
 
                 roots_parse_tree = struct_parse.get_notes_at_coord(coord);
 
@@ -310,8 +313,8 @@ export namespace window {
             ]
         };
 
-        public render_clips(trainable: Trainable, struct_parse: StructParse) {
-            let messages_render_clips = this.get_messages_render_clips(trainable, struct_parse);
+        public render_clips(trainable: Trainable, struct_train: StructTrain) {
+            let messages_render_clips = this.get_messages_render_clips(trainable, struct_train);
             for (let messages_notes of messages_render_clips) {
                 for (let message_note of messages_notes) {
                     this.messenger.message(message_note);
@@ -319,7 +322,7 @@ export namespace window {
             }
         }
 
-        public get_messages_render_clips(trainable: Trainable, struct_parse: StructParse): any[][] {
+        public get_messages_render_clips(trainable: Trainable, struct_train: StructTrain): any[][] {
             let messages = [];
 
             // let b_targeted = (struct_parse === null);
@@ -346,6 +349,9 @@ export namespace window {
                     this.get_messages_render_clip(index_clip)
                 )
             } else {
+
+                let struct_parse = struct_train as StructParse;
+
                 for (let coord of struct_parse.get_regions_renderable()) {
                     messages.push(
                         this.get_messages_render_clip(
@@ -396,38 +402,53 @@ export namespace window {
         public render_regions(
             iterator_matrix_train: MatrixIterator,
             trainable: Trainable,
-            target_current: Target,
-            struct_parse: StructParse
+            // target_current: Target,
+            // struct_parse: StructParse
+            struct_train: StructTrain
         ) {
 
-            let notes, coord;
+            // let notes;
+
+            let coord_current = iterator_matrix_train.get_coord_current();
 
             let interval_current;
 
             // prediction/detection need the current target, while parse/derive need the current segment
             if (trainable.b_targeted) {
-                let notes_target_current = target_current.get_notes();
+
+                let struct_targets = struct_train as StructTargets;
+
+                let note = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
+
+                // iterator_subtarget.subtargets.
+
+                // let notes_target_current = target_current.get_notes();
 
                 interval_current = trainable.determine_region_present(
-                    [target_current.iterator_subtarget.current().note]
+                    [note]
                 );
+
             } else {
+
+                let struct_parse = struct_train as StructParse;
+
                 if (iterator_matrix_train.done) {
                     interval_current = [
                         struct_parse.get_root().model.note.beat_start,
                         struct_parse.get_root().model.note.get_beat_end()
                     ]
                 } else {
-                    coord = iterator_matrix_train.get_coord_current();
+                    // coord = iterator_matrix_train.get_coord_current();
 
-                    let coord_segment = [0, coord[1]];
+                    let coord_segment = [0, coord_current[1]];
 
-                    notes = struct_parse.get_notes_at_coord(coord_segment);
+                    // let notes = struct_parse.get_notes_at_coord(coord_segment);
 
                     interval_current = trainable.determine_region_present(
-                        notes
+                        struct_parse.get_notes_at_coord(coord_segment)
                     );
                 }
+
             }
 
             let quadruplet_region_past = this.get_message_render_region_past(interval_current);
