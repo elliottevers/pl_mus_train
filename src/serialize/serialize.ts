@@ -273,7 +273,30 @@ export namespace thaw {
 
                     break;
                 }
+                // go until we find a segment without user input
                 case DERIVE: {
+                    let input_left = true;
+
+                    while (input_left) {
+
+                        // if (trainer.iterator_matrix_train.done) {
+                        //     input_left = false;
+                        //     continue
+                        // }
+                        let coord_current = trainer.iterator_matrix_train.get_coord_current();
+
+                        if (matrix_deserialized[coord_current[0]][coord_current[1]].length === 0) {
+                            input_left = false;
+                            continue
+                        }
+
+                        trainer.accept_input(
+                            matrix_deserialized[coord_current[0]][coord_current[1]]
+                        );
+                    }
+
+                    trainer.pause();
+
                     break;
                 }
             }

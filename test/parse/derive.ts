@@ -14,8 +14,8 @@ import TrainFreezer = freeze.TrainFreezer;
 import TrainThawer = thaw.TrainThawer;
 import {window} from "../../src/render/window";
 import MatrixWindow = window.MatrixWindow;
-import {trainer} from "../../src/train/trainer";
-import Trainer = trainer.Trainer;
+import {trainer as module_trainer} from "../../src/train/trainer";
+import Trainer = module_trainer.Trainer;
 import {modes_control, modes_texture} from "../../src/constants/constants";
 import VOCAL = modes_control.VOCAL;
 import MONOPHONY = modes_texture.MONOPHONY;
@@ -431,42 +431,40 @@ trainer_local.render_window(
 
 );
 
+trainer_local.clear_window(
 
-// trainer_local_parse.clear_window(
-//
-// );
-//
-// let freezer_parse = new TrainFreezer(
-//     env_parse
-// );
-//
-// freezer_parse.freeze(
-//     trainer_local_parse,
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
-// );
-//
-// let thawer_parse = new TrainThawer(
-//     env_parse
-// );
-//
-// let config_parse = {
-//     'window': window_local_parse,
-//     'user_input_handler': user_input_handler_parse,
-//     'algorithm': algorithm_train_parse,
-//     'clip_user_input': clip_user_input_parse,
-//     'clip_user_input_synchronous': clip_user_input_parse_synchronous,
-//     'clip_target': clip_target_virtual_parse,
-//     'song': song_parse,
-//     'segments': segments_parse,
-//     'messenger': messenger_parse,
-//     'env': env_parse
-// };
-//
-// let train_thawed_parse = thawer_parse.thaw(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
-//     config_parse
-// );
-//
-// train_thawed_parse.render_window(
-//
-// );
+);
+
+let freezer_parse = new TrainFreezer(
+    env
+);
+
+freezer_parse.freeze(
+    trainer_local,
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
+);
+
+let thawer_parse = new TrainThawer(
+    env
+);
+
+let config_parse = {
+    'window': window_local,
+    'user_input_handler': user_input_handler,
+    'trainable': algorithm_train,
+    'track_target': track_target,
+    'track_user_input': track_user_input,
+    'song': song,
+    'segments': segments,
+    'messenger': messenger,
+    'env': env
+};
+
+let train_thawed_parse = thawer_parse.thaw(
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
+    config_parse
+);
+
+train_thawed_parse.render_window(
+
+);

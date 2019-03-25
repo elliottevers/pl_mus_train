@@ -410,7 +410,6 @@ trainer_local.render_window(
 
 );
 
-
 trainer_local.clear_window(
 
 );
