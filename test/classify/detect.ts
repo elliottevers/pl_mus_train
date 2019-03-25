@@ -411,46 +411,40 @@ trainer_local.render_window(
 );
 
 
+trainer_local.clear_window(
 
+);
 
+let freezer = new TrainFreezer(
+    env
+);
 
+freezer.freeze(
+    trainer_local,
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json'
+);
 
-// trainer_local.clear_window(
-//
-// );
-//
-// let freezer = new TrainFreezer(
-//     env
-// );
-//
-// freezer.freeze(
-//     trainer_local,
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json'
-// );
-//
-// let thawer = new TrainThawer(
-//     env
-// );
-//
-// let config = {
-//     'window': window_local,
-//     'user_input_handler': user_input_handler,
-//     'algorithm': algorithm_train,
-//     'clip_user_input': clip_user_input,
-//     'clip_user_input_synchronous': clip_user_input_synchronous,
-//     'notes_target': notes_target_clip,
-//     // 'clip_target': clip_target,
-//     'song': song,
-//     'segments': segments,
-//     'messenger': messenger,
-//     'env': env
-// };
-//
-// let train_thawed = thawer.thaw(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
-//     config
-// );
-//
-// train_thawed.render_window(
-//
-// );
+let thawer = new TrainThawer(
+    env
+);
+
+let config = {
+    'window': window_train,
+    'user_input_handler': user_input_handler,
+    'trainable': algorithm_train,
+    'track_target': track_target,
+    'track_user_input': track_user_input,
+    'song': song,
+    'segments': segments,
+    'messenger': messenger,
+    'env': env
+};
+
+let train_thawed = thawer.thaw(
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
+    config
+);
+
+train_thawed.render_window(
+
+);

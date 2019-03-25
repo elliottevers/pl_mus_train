@@ -61,7 +61,6 @@ export namespace serialize {
         return sequence_target_serialized;
     };
 
-    // TODO: deserialize
     export let deserialize_target_sequence = (sequence_target_serialized) => {
         let sequence_target_deserialized = sequence_target_serialized;
 
@@ -74,6 +73,31 @@ export namespace serialize {
         }
         return sequence_target_deserialized;
     };
+
+    // export let serialize_note_sequence = (sequence_target) => {
+    //     let sequence_target_serialized = sequence_target;
+    //     for (let i_target in sequence_target) {
+    //         let subtargets = sequence_target[Number(i_target)].iterator_subtarget.subtargets;
+    //         for (let i_subtarget in subtargets) {
+    //             let subtarget = subtargets[Number(i_subtarget)];
+    //             sequence_target_serialized[Number(i_target)][Number(i_subtarget)] = serialize_subtarget(subtarget)
+    //         }
+    //     }
+    //     return sequence_target_serialized;
+    // };
+    //
+    // export let deserialize_note_sequence = (sequence_target_serialized) => {
+    //     let sequence_target_deserialized = sequence_target_serialized;
+    //
+    //     for (let i_target in sequence_target_serialized) {
+    //         let subtargets = sequence_target_serialized[Number(i_target)].get_subtargets();
+    //         for (let i_subtarget in subtargets) {
+    //             let subtarget = subtargets[Number(i_subtarget)];
+    //             sequence_target_deserialized[Number(i_target)][Number(i_subtarget)] = deserialize_subtarget(subtarget)
+    //         }
+    //     }
+    //     return sequence_target_deserialized;
+    // };
 }
 
 export namespace freeze {
@@ -101,7 +125,10 @@ export namespace freeze {
                 case DETECT: {
                     for (let i_row in trainer.history_user_input.matrix_data) {
                         for (let i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
-                            data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
+                            // data_serializable[Number(i_row)][Number(i_col)] = serialize_target_sequence(
+                            //     trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]
+                            // )
+                            data_serializable[Number(i_row)][Number(i_col)] = serialize_sequence_note(
                                 trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]
                             )
                         }
@@ -170,11 +197,11 @@ export namespace thaw {
                 config['messenger']
             );
 
-            trainer.init(
-                true
+            trainer.commence(
+                // true
             );
 
-            switch (config['algorithm'].get_name()) {
+            switch (config['trainable'].get_name()) {
                 case DETECT: {
                     let notes = [];
                     // TODO: this is only valid for forward iteration
@@ -183,14 +210,18 @@ export namespace thaw {
                             if (col === null) {
                                 continue;
                             }
-                            for (let sequence_target of col) {
-                                for (let note of sequence_target.iterator_subtarget.subtargets) {
-                                    notes.push(note)
-                                }
+                            // for (let sequence_target of col) {
+                            //     for (let note of sequence_target.iterator_subtarget.subtargets) {
+                            //         notes.push(note)
+                            //     }
+                            // }
+                            for (let note_serialized of col) {
+                                notes.push(deserialize_note(note_serialized))
                             }
                         }
                     }
-                    let notes_parsed = notes.map((obj)=>{return JSON.parse(obj.note)});
+                    // let notes_parsed = notes.map((obj)=>{return JSON.parse(obj.note)});
+                    let notes_parsed = notes;
 
                     let tree: TreeModel = new TreeModel();
 
@@ -199,11 +230,11 @@ export namespace thaw {
                             {
                                 id: -1, // TODO: hashing scheme for clip id and beat start
                                 note: new Note(
-                                    note_parsed.note.pitch,
-                                    note_parsed.note.beat_start,
-                                    note_parsed.note.beats_duration,
-                                    note_parsed.note.velocity,
-                                    note_parsed.note.muted
+                                    note_parsed.model.note.pitch,
+                                    note_parsed.model.note.beat_start,
+                                    note_parsed.model.note.beats_duration,
+                                    note_parsed.model.note.velocity,
+                                    note_parsed.model.note.muted
                                 ),
                                 children: [
 
