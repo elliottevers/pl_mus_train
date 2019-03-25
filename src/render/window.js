@@ -58,7 +58,7 @@ var window;
             var list_clips = [];
             var beat_start_song = segments[0].beat_start;
             var beat_end_song = segments[segments.length - 1].beat_end;
-            for (var i in _.range(0, trainable.get_depth() + 1)) {
+            for (var i in _.range(0, trainable.get_depth())) {
                 var clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
@@ -299,7 +299,7 @@ var window;
             // prediction/detection need the current target, while parse/derive need the current segment
             if (trainable.b_targeted) {
                 var notes_target_current = target_current.get_notes();
-                interval_current = trainable.determine_region_present(notes_target_current);
+                interval_current = trainable.determine_region_present([target_current.iterator_subtarget.current().note]);
             }
             else {
                 if (iterator_matrix_train.done) {

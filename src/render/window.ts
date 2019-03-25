@@ -80,7 +80,7 @@ export namespace window {
             let beat_start_song = segments[0].beat_start;
             let beat_end_song = segments[segments.length - 1].beat_end;
 
-            for (let i in _.range(0, trainable.get_depth() + 1)) {
+            for (let i in _.range(0, trainable.get_depth())) {
                 let clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
@@ -409,7 +409,7 @@ export namespace window {
                 let notes_target_current = target_current.get_notes();
 
                 interval_current = trainable.determine_region_present(
-                    notes_target_current
+                    [target_current.iterator_subtarget.current().note]
                 );
             } else {
                 if (iterator_matrix_train.done) {

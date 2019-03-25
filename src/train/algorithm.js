@@ -193,7 +193,8 @@ var algorithm;
                     chords_monophonified.push(Harmony.monophonify(note_group));
                 }
                 // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
-                return [chords_monophonified[chords_monophonified.length / 2]];
+                // return [chords_monophonified[chords_monophonified.length/2]]
+                return chords_monophonified;
             }
             else if (user_input_handler.mode_texture === MONOPHONY) {
                 var notes_grouped_trivial = [];
@@ -204,7 +205,8 @@ var algorithm;
                 // return notes_grouped_trivial
                 // TODO: let's put more weight towards the center of the measure
                 // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
-                return [notes_grouped_trivial[notes_grouped_trivial.length / 2]];
+                // return [notes_grouped_trivial[notes_grouped_trivial.length/2]]
+                return notes_grouped_trivial;
             }
             else {
                 throw ['texture mode', user_input_handler.mode_texture, 'not supported'].join(' ');
