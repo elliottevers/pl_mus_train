@@ -3870,6 +3870,7 @@ var iterate;
 Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
 var iterate_1 = require("./iterate");
+var logger_1 = require("../log/logger");
 // import {get_notes_on_track} from "../scripts/segmenter";
 var _ = require('underscore');
 var l = require('lodash');
@@ -3878,6 +3879,7 @@ var trainer;
     var HistoryUserInput = history_1.history.HistoryUserInput;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
+    var Logger = logger_1.log.Logger;
     var Trainer = /** @class */ (function () {
         function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, segments, messenger) {
             this.window = window;
@@ -3983,6 +3985,7 @@ var trainer;
             this.next_segment();
         };
         Trainer.prototype.advance_subtarget = function () {
+            var logger = new Logger('max');
             var matrix_targets = this.struct_train;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {
@@ -3993,7 +3996,9 @@ var trainer;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
                 this.iterator_subtarget_current.next();
                 this.subtarget_current = this.iterator_subtarget_current.current();
+                logger.log(JSON.stringify(this.subtarget_current));
                 this.next_segment();
+                // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
                 return;
             }
             var obj_next_subtarget = this.iterator_subtarget_current.next();
@@ -4013,16 +4018,21 @@ var trainer;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
                     this.subtarget_current = obj_next_subtarget_twice_nested.value;
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+                    logger.log(JSON.stringify(this.subtarget_current));
                     this.next_segment();
+                    // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
                     return;
                 }
                 this.target_current = obj_next_target.value;
                 var obj_next_subtarget_once_nested = this.target_current.iterator_subtarget.next();
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
+                logger.log(JSON.stringify(this.subtarget_current));
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
+            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
         };
         Trainer.prototype.next_segment = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
@@ -4059,7 +4069,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../history/history":5,"./iterate":24,"lodash":29,"underscore":32}],26:[function(require,module,exports){
+},{"../history/history":5,"../log/logger":8,"./iterate":24,"lodash":29,"underscore":32}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;

@@ -263,6 +263,8 @@ export namespace trainer {
 
         private advance_subtarget() {
 
+            let logger = new Logger('max');
+
             let matrix_targets = this.struct_train as StructTargets;
 
             let have_not_begun: boolean = (!this.iterator_matrix_train.b_started);
@@ -282,7 +284,11 @@ export namespace trainer {
 
                 this.subtarget_current = this.iterator_subtarget_current.current();
 
+                logger.log(JSON.stringify(this.subtarget_current));
+
                 this.next_segment();
+
+                // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
 
                 return
             }
@@ -320,7 +326,11 @@ export namespace trainer {
 
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
+                    logger.log(JSON.stringify(this.subtarget_current));
+
                     this.next_segment();
+
+                    // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
 
                     return
                 }
@@ -331,12 +341,18 @@ export namespace trainer {
 
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
 
+                logger.log(JSON.stringify(this.subtarget_current));
+
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
+
+                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
 
                 return
             }
 
             this.subtarget_current = obj_next_subtarget.value;
+
+            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
         }
 
         next_segment() {
