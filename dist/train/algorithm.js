@@ -53,9 +53,6 @@ var algorithm;
         Targeted.prototype.coord_to_index_clip = function (coord) {
             return 0;
         };
-        // create_struct_parse(segments: Segment[]) {
-        //     return null
-        // }
         Targeted.prototype.determine_region_present = function (notes_target_next) {
             return [
                 notes_target_next[0].model.note.beat_start,
@@ -99,8 +96,6 @@ var algorithm;
                 matrix_targets[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             };
             var this_1 = this;
-            // TODO: use 'filter' here
-            // this.clip_target.load_notes_within_markers();
             for (var i_segment in segments) {
                 _loop_1(i_segment);
             }
@@ -114,28 +109,11 @@ var algorithm;
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current);
         };
-        // initialize(
-        //     window: Window,
-        //     segments: Segment[],
-        //     track_target: Track,
-        //     user_input_handler: UserInputHandler,
-        //     struct_parse: StructParse
-        // ) {
-        //     let notes_target_track = track_target.get_notes();
-        //     // this.create_matrix_targets(user_input_handler, segments, notes_target_track);
-        //     this.initialize_render(
-        //         window,
-        //         segments,
-        //         notes_target_track
-        //     )
-        // }
         Targeted.prototype.update_struct = function (notes_input_user, struct_train, trainable, iterator_matrix_train) {
             return struct_train;
         };
         Targeted.prototype.create_struct_train = function (window, segments, track_target, user_input_handler, struct_train) {
             var notes_target_track = track_target.get_notes();
-            // let matrix_targets = this.create_matrix_targets(user_input_handler, segments, notes_target_track);
-            // this.initialize_render(window, segments, notes_target_track);
             return this.create_matrix_targets(user_input_handler, segments, notes_target_track);
         };
         return Targeted;
@@ -145,9 +123,6 @@ var algorithm;
         function Parsed() {
             this.b_parsed = true;
             this.b_targeted = false;
-            // preprocess_struct_train(struct_train: trainer.StructTrain, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]): trainer.StructTrain {
-            //     return undefined;
-            // }
         }
         Parsed.prototype.update_struct = function (notes_input_user, struct_train, trainable, iterator_matrix_train) {
             var struct_parse = struct_train;
@@ -172,9 +147,6 @@ var algorithm;
                 return coord[0] + 1;
             }
         };
-        // create_matrix_targets(user_input_handler: UserInputHandler, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
-        //     return []
-        // }
         Parsed.prototype.create_struct_parse = function (segments) {
             return new StructParse(FactoryMatrixObjectives.create_matrix_objectives(this, segments));
         };
@@ -235,8 +207,6 @@ var algorithm;
                     var note_group = chords_grouped_1[_i];
                     chords_monophonified.push(Harmony.monophonify(note_group));
                 }
-                // return [chords_monophonified[Math.floor(Math.random() * chords_monophonified.length)]];
-                // return [chords_monophonified[chords_monophonified.length/2]]
                 return chords_monophonified;
             }
             else if (user_input_handler.mode_texture === MONOPHONY) {
@@ -245,10 +215,6 @@ var algorithm;
                     var note_2 = notes_segment_next_1[_a];
                     notes_grouped_trivial.push([note_2]);
                 }
-                // return notes_grouped_trivial
-                // TODO: let's put more weight towards the center of the measure
-                // return notes_grouped_trivial[Math.floor(Math.random() * notes_grouped_trivial.length)];
-                // return [notes_grouped_trivial[notes_grouped_trivial.length/2]]
                 return notes_grouped_trivial;
             }
             else {
@@ -331,78 +297,10 @@ var algorithm;
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
                     var note_3 = targeted_notes_in_segment_1[_i];
-                    // clip = track_target.get_clip_at_interval(
-                    //     [note.model.note.beat_start, note.model.note.get_beat_end()]
-                    // );
                     segment_2.clip_user_input_async.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
                     segment_2.clip_user_input_async.set_notes([note_3]);
                 }
             }
-            // TODO: get the subtargets that are currently in each segment and mute them
-            //     for (let target of sequence_targets) {
-            //         for (let subtarget of target) {
-            //
-            //             let subtarget_processed = this.postprocess_subtarget(
-            //                 subtarget
-            //             );
-            //
-            //             clip_target_track.remove_notes(
-            //                 subtarget_processed.model.note.beat_start,
-            //                 0,
-            //                 subtarget_processed.model.note.get_beat_end(),
-            //                 128
-            //             );
-            //
-            //             clip_target_track.set_notes(
-            //                 [subtarget_processed]
-            //             )
-            //         }
-            //     }
-            //
-            //     for (let i_segment in segments) {
-            //
-            //         let index_clip_slot_current = Number(i_segment);
-            //
-            //         let api_clip_target_synchronous = new ApiJs(
-            //             track_target.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
-            //         );
-            //
-            //         let api_clip_user_input_synchronous = new ApiJs(
-            //             track_user_input.track_dao.get_path().split(' ').concat(['clip_slots', index_clip_slot_current, 'clip']).join(' ')
-            //         );
-            //
-            //         let clip_target = new Clip(
-            //             new ClipDao(
-            //                 api_clip_target_synchronous,
-            //                 new Messenger('max', 0)
-            //             )
-            //         );
-            //
-            //         let clip_user_input = new Clip(
-            //             new ClipDao(
-            //                 api_clip_user_input_synchronous,
-            //                 new Messenger('max', 0)
-            //             )
-            //         );
-            //
-            //         let notes = clip_target.get_notes(
-            //             clip_target.get_loop_bracket_lower(),
-            //             0,
-            //             clip_target.get_loop_bracket_upper(),
-            //             128
-            //         );
-            //
-            //         clip_user_input.remove_notes(
-            //             clip_target.get_loop_bracket_lower(),
-            //             0,
-            //             clip_target.get_loop_bracket_upper(),
-            //             128
-            //         );
-            //
-            //         clip_user_input.set_notes(
-            //             notes
-            //         )
-            //     }
         };
         return Predict;
     }(Targeted));

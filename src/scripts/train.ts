@@ -1,52 +1,33 @@
-import {message as m, message} from "../message/messenger";
+import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {map} from "../control/map";
-import FretMapper = map.FretMapper;
-import {trainer as tr} from "../train/trainer";
-import Trainer = tr.Trainer;
-import {freeze, thaw} from "../serialize/serialize";
-import TrainThawer = thaw.TrainThawer;
-import {algorithm} from "../train/algorithm";
-import Detect = algorithm.Detect;
-import {live as li, live} from "../live/live";
-import {segment as module_segment} from "../segment/segment";
-import Segment = module_segment.Segment;
+import {live} from "../live/live";
 import {modes_control, modes_texture} from "../constants/constants";
 import INSTRUMENTAL = modes_control.INSTRUMENTAL;
-import {clip} from "../clip/clip";
-import Clip = clip.Clip;
-import {user_input} from "../control/user_input";
-import UserInputHandler = user_input.UserInputHandler;
 import POLYPHONY = modes_texture.POLYPHONY;
-import TrainFreezer = freeze.TrainFreezer;
-import {window as w} from "../render/window";
-import MatrixWindow = w.MatrixWindow;
 import LiveApiJs = live.LiveApiJs;
 import {log} from "../log/logger";
 import Logger = log.Logger;
 import MONOPHONY = modes_texture.MONOPHONY;
 import VOCAL = modes_control.VOCAL;
-import {utils} from "../utils/utils";
-import DETECT = algorithm.DETECT;
-import PREDICT = algorithm.PREDICT;
-import PARSE = algorithm.PARSE;
-import DERIVE = algorithm.DERIVE;
-import Predict = algorithm.Predict;
-import Derive = algorithm.Derive;
-import Parse = algorithm.Parse;
-import FREESTYLE = algorithm.FREESTYLE;
 import {song as sng} from "../song/song";
 import Song = sng.Song;
 import SongDao = sng.SongDao;
-import {note as n} from "../note/note";
-import TreeModel = require("tree-model");
-import {scene} from "../scene/scene";
-import SceneDao = scene.SceneDao;
-import Scene = scene.Scene;
-import ClipDao = clip.ClipDao;
 import {track} from "../track/track";
-import TrackDao = track.TrackDao;
 import Track = track.Track;
+import {freeze} from "../serialize/freeze";
+import TrainFreezer = freeze.TrainFreezer;
+import {thaw} from "../serialize/thaw";
+import TrainThawer = thaw.TrainThawer;
+import {trainer as module_trainer} from "../train/trainer";
+import Trainer = module_trainer.Trainer;
+import {algorithm} from "../train/algorithm";
+import PARSE = algorithm.PARSE;
+import PREDICT = algorithm.PREDICT;
+import DERIVE = algorithm.DERIVE;
+import DETECT = algorithm.DETECT;
+import TreeModel = require("tree-model");
+import {note} from "../note/note";
+import Note = note.Note;
 
 
 declare let autowatch: any;
@@ -105,186 +86,191 @@ let set_mode_control = (option) => {
     }
 };
 
-let set_algorithm_train = (option) => {
-
-    user_input_handler = new UserInputHandler(
-        mode_texture,
-        mode_control
-    );
-
-    switch (option) {
-        case FREESTYLE: {
-            // algorithm_train = new Freestyle(
-            //     user_input_handler
-            // );
-            break;
-        }
-        case DETECT: {
-            algorithm_train = new Detect();
-            break;
-        }
-        case PREDICT: {
-            algorithm_train = new Predict();
-            break;
-        }
-        case PARSE: {
-            algorithm_train = new Parse();
-            break;
-        }
-        case DERIVE: {
-            algorithm_train = new Derive();
-            break;
-        }
-        default: {
-            post('error setting algorithm')
-        }
-    }
-
-    window = new MatrixWindow(
-        384,
-        384,
-        messenger_render
-    );
-};
-
-let set_depth_tree = (depth) => {
-    algorithm_train.set_depth(
-        depth
-    );
-};
-
-let set_segments = () => {
-
-    // TODO: this assumes the trainer device is on the same track as the segmenter
-    // let notes_segments = get_notes_segments();
-
-    let this_device = new li.LiveApiJs('this_device');
-
-    let this_track = new Track(
-        new TrackDao(
-            new LiveApiJs(
-                utils.cleanse_path(this.get_path())
-            ),
-            new Messenger(env, 0)
-        )
-    );
-
-    let notes_segments = this_track.get_notes();
-
-    let segments = [];
-
-    for (let i_note in notes_segments) {
-        let note = notes_segments[Number(i_note)];
-
-        let path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
-
-        let segment = new Segment(
-            note
-        );
-
-        segment.set_scene(
-            new Scene(
-                new SceneDao(
-                    new li.LiveApiJs(
-                        path_scene
-                    ),
-                    new Messenger(env, 0),
-                    true,
-                    'scene'
-                )
-            )
-        );
-
-        let path_this_track = utils.get_path_track_from_path_device(
-            utils.cleanse_path(
-                this_device.get_path()
-            )
-        );
-
-        segment.set_clip_user_input_sync(
-            new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        path_this_track.split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')
-                    ),
-                    new Messenger(env, 0)
-                )
-            )
-        );
-
-        segment.set_clip_user_input_async(
-            new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        path_this_track.split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')
-                    ),
-                    new Messenger(env, 0),
-                    true,
-                    'clip_user_input'
-                )
-            )
-        );
-
-        segments.push(
-            segment
-        )
-
-    }
-
-    messenger_num_segments.message([segments.length]);
-
-    segments_train = segments
-};
-
-let test = () => {
-
-};
-
-// const _ = require('underscore');
-
-// TODO: send this via bus based on options in radio
-let set_track_target = () => {
-    // @ts-ignore
-    let list_path_device_target = Array.prototype.slice.call(arguments);
-
-    let path_device_target = utils.cleanse_path(list_path_device_target.join());
-
-    track_target = new Track(
-        new TrackDao(
-            new LiveApiJs(
-                utils.get_path_track_from_path_device(path_device_target)
-            ),
-            new Messenger(env, 0),
-            true,
-            'track_target'
-        )
-    );
-
-    messenger_monitor_target.message([track_target.get_index()])
-};
+// let set_algorithm_train = (option) => {
+//
+//     user_input_handler = new UserInputHandler(
+//         mode_texture,
+//         mode_control
+//     );
+//
+//     switch (option) {
+//         case FREESTYLE: {
+//             // algorithm_train = new Freestyle(
+//             //     user_input_handler
+//             // );
+//             break;
+//         }
+//         case DETECT: {
+//             algorithm_train = new Detect();
+//             break;
+//         }
+//         case PREDICT: {
+//             algorithm_train = new Predict();
+//             break;
+//         }
+//         case PARSE: {
+//             algorithm_train = new Parse();
+//             break;
+//         }
+//         case DERIVE: {
+//             algorithm_train = new Derive();
+//             break;
+//         }
+//         default: {
+//             post('error setting algorithm')
+//         }
+//     }
+//
+//     window = new MatrixWindow(
+//         384,
+//         384,
+//         messenger_render
+//     );
+// };
+//
+// let set_depth_tree = (depth) => {
+//     algorithm_train.set_depth(
+//         depth
+//     );
+// };
+//
+// let set_segments = () => {
+//
+//     // TODO: this assumes the trainer device is on the same track as the segmenter
+//     // TODO: put back
+//     let this_device = new li.LiveApiJs('this_device');
+//
+//     let this_track = new Track(
+//         new TrackDao(
+//             new LiveApiJs(
+//                 utils.cleanse_path(this.get_path())
+//             ),
+//             new Messenger(env, 0)
+//         )
+//     );
+//
+//     let notes_segments = this_track.get_notes();
+//
+//     let segments = [];
+//
+//     for (let i_note in notes_segments) {
+//         let note = notes_segments[Number(i_note)];
+//
+//         let path_scene = ['live_set', 'scenes', Number(i_note)].join(' ');
+//
+//         let segment = new Segment(
+//             note
+//         );
+//
+//         segment.set_scene(
+//             new Scene(
+//                 new SceneDao(
+//                     new li.LiveApiJs(
+//                         path_scene
+//                     ),
+//                     new Messenger(env, 0),
+//                     true,
+//                     'scene'
+//                 )
+//             )
+//         );
+//
+//         let path_this_track = utils.get_path_track_from_path_device(
+//             utils.cleanse_path(
+//                 this_device.get_path()
+//             )
+//         );
+//
+//         segment.set_clip_user_input_sync(
+//             new Clip(
+//                 new ClipDao(
+//                     new LiveApiJs(
+//                         path_this_track.split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')
+//                     ),
+//                     new Messenger(env, 0)
+//                 )
+//             )
+//         );
+//
+//         segment.set_clip_user_input_async(
+//             new Clip(
+//                 new ClipDao(
+//                     new LiveApiJs(
+//                         path_this_track.split(' ').concat(['clip_slots', i_note, 'clip']).join(' ')
+//                     ),
+//                     new Messenger(env, 0),
+//                     true,
+//                     'clip_user_input'
+//                 )
+//             )
+//         );
+//
+//         segments.push(
+//             segment
+//         )
+//
+//     }
+//
+//     messenger_num_segments.message([segments.length]);
+//
+//     segments_train = segments
+// };
+//
+// let test = () => {
+//
+// };
+//
+// // const _ = require('underscore');
+//
+// // TODO: send this via bus based on options in radio
+// let set_track_target = () => {
+//     // @ts-ignore
+//     let list_path_device_target = Array.prototype.slice.call(arguments);
+//
+//     let path_device_target = utils.cleanse_path(list_path_device_target.join());
+//
+//     track_target = new Track(
+//         new TrackDao(
+//             new LiveApiJs(
+//                 utils.get_path_track_from_path_device(path_device_target)
+//             ),
+//             new Messenger(env, 0),
+//             true,
+//             'track_target'
+//         )
+//     );
+//
+//     messenger_monitor_target.message([track_target.get_index()])
+// };
+//
+// let set_track_user_input = () => {
+//     let this_device = new li.LiveApiJs('this_device');
+//
+//     let path_this_track = utils.get_path_track_from_path_device(
+//         utils.cleanse_path(
+//             this_device.get_path()
+//         )
+//     );
+//
+//     track_user_input = new Track(
+//         new TrackDao(
+//             new LiveApiJs(
+//                 path_this_track
+//             ),
+//             new Messenger(env, 0),
+//             true,
+//             'track_user_input'
+//         )
+//     );
+// };
 
 let initialize = () => {
-    let this_device = new li.LiveApiJs('this_device');
 
-    let path_this_track = utils.get_path_track_from_path_device(
-        utils.cleanse_path(
-            this_device.get_path()
-        )
-    );
+    // set_segments();
+    //
+    // set_track_user_input();
 
-    track_user_input = new Track(
-        new TrackDao(
-            new LiveApiJs(
-                path_this_track
-            ),
-            new Messenger(env, 0),
-            true,
-            'track_user_input'
-        )
-    );
-
-
-    let song = new Song(
+    song = new Song(
         new SongDao(
             new LiveApiJs(
                 'live_set'
@@ -310,15 +296,15 @@ let initialize = () => {
 };
 
 let commence = () => {
-    trainer.commence();
+    // trainer.commence();
 };
 
 let pause = () => {
-    trainer.pause()
+    // trainer.pause()
 };
 
 let resume = () => {
-    trainer.resume()
+    // trainer.resume()
 };
 
 let user_input_command = (command: string) => {
@@ -430,7 +416,7 @@ let user_input_midi = (pitch: number, velocity: number) => {
             let note = tree.parse(
                 {
                     id: -1,
-                    note: new n.Note(
+                    note: new Note(
                         pitch,
                         -Infinity,
                         Infinity,
@@ -452,7 +438,7 @@ let user_input_midi = (pitch: number, velocity: number) => {
             let note = tree.parse(
                 {
                     id: -1,
-                    note: new n.Note(
+                    note: new Note(
                         pitch,
                         -Infinity,
                         Infinity,
@@ -529,10 +515,11 @@ if (typeof Global !== "undefined") {
     Global.train.resume = resume;
     Global.train.user_input_command = user_input_command;
     Global.train.user_input_midi = user_input_midi;
-    Global.train.set_segments = set_segments;
-    Global.train.set_track_target = set_track_target;
-    Global.train.set_depth_tree = set_depth_tree;
-    Global.train.set_algorithm_train = set_algorithm_train;
-    Global.train.set_mode_control = set_mode_control;
-    Global.train.set_mode_texture = set_mode_texture;
+    // Global.train.set_segments = set_segments;
+    // Global.train.set_track_user_input = set_track_user_input;
+    // Global.train.set_track_target = set_track_target;
+    // Global.train.set_depth_tree = set_depth_tree;
+    // Global.train.set_algorithm_train = set_algorithm_train;
+    // Global.train.set_mode_control = set_mode_control;
+    // Global.train.set_mode_texture = set_mode_texture;
 }

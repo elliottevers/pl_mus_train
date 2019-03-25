@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
+// declare let LiveAPI: any;
 var live;
 (function (live) {
     var Clip = clip_1.clip.Clip;
