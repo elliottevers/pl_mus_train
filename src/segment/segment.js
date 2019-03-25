@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var segment;
-(function (segment) {
+(function (segment_1) {
     var Clip = clip_1.clip.Clip;
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var Segment = /** @class */ (function () {
@@ -14,7 +14,15 @@ var segment;
             this.clip = new Clip(clip_dao_virtual);
         }
         Segment.from_notes = function (notes) {
-            return;
+            var segments = [];
+            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                var note_1 = notes_1[_i];
+                var segment_2 = new Segment(note_1);
+                segment_2.beat_start = note_1.model.note.beat_start;
+                segment_2.beat_end = note_1.model.note.get_beat_end();
+                segments.push(segment_2);
+            }
+            return segments;
         };
         Segment.prototype.set_clip_user_input_sync = function (clip) {
             this.clip_user_input_sync = clip;
@@ -40,7 +48,7 @@ var segment;
         };
         return Segment;
     }());
-    segment.Segment = Segment;
+    segment_1.Segment = Segment;
     var SegmentIterator = /** @class */ (function () {
         function SegmentIterator(segments, direction_forward) {
             this.segments = segments;
@@ -83,6 +91,6 @@ var segment;
         };
         return SegmentIterator;
     }());
-    segment.SegmentIterator = SegmentIterator;
+    segment_1.SegmentIterator = SegmentIterator;
 })(segment = exports.segment || (exports.segment = {}));
 //# sourceMappingURL=segment.js.map

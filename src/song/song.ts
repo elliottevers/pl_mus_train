@@ -98,20 +98,20 @@ export namespace song {
 
     export class SongDaoVirtual implements iSongDao {
 
-        private deferlow: boolean;
+        // private deferlow: boolean;
         public key_route: string;
 
         scenes: Scene[];
 
         // constructor(scenes: Scene[], messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
-        constructor(scenes: Scene[], messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
+        constructor(scenes: Scene[]) {
             this.scenes = scenes;
 
-            if (deferlow && !key_route) {
-                throw new Error('key route not specified when using deferlow');
-            }
-            this.deferlow = deferlow;
-            this.key_route = key_route;
+            // if (deferlow && !key_route) {
+            //     throw new Error('key route not specified when using deferlow');
+            // }
+            // this.deferlow = deferlow;
+            // this.key_route = key_route;
         }
 
         public create_scene(index: number): void {
@@ -123,7 +123,8 @@ export namespace song {
         }
 
         public is_async(): boolean {
-            return this.deferlow
+            // return this.deferlow
+            return false
         }
 
         get_path(): string {

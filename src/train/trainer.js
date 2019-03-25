@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
-var segment_1 = require("../segment/segment");
 var iterate_1 = require("./iterate");
 // import {get_notes_on_track} from "../scripts/segmenter";
 var _ = require('underscore');
@@ -9,20 +8,32 @@ var l = require('lodash');
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
-    var Segment = segment_1.segment.Segment;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
     var Trainer = /** @class */ (function () {
-        function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, 
-        // segments: Segment[],
-        messenger) {
+        function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, segments, messenger) {
             this.window = window;
             this.trainable = trainable;
-            // this.notes_target = notes_target;
             this.track_target = track_target;
+            this.track_user_input = track_user_input;
             this.song = song;
+            this.user_input_handler = user_input_handler;
+            this.segments = segments;
             // TODO: pull notes from clip user input track and transform into segments
-            this.segments = Segment.from_notes(this.track_user_input.get_notes());
+            // this.segments = Segment.from_notes(
+            //     this.track_user_input.get_notes()
+            // );
+            //
+            // // assign scenes to segments
+            // for (let segment of this.segments) {
+            //     segment.set_scene(
+            //         new Scene(
+            //             new SceneDao(
+            //
+            //             )
+            //         )
+            //     )
+            // }
             // this.segments = segments;
             this.messenger = messenger;
             // this.notes_target_track = track.get_notes_on_track(

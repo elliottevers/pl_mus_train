@@ -17,6 +17,7 @@ export namespace track {
     import ClipSlotDao = clip_slot.ClipSlotDao;
     import ClipDao = clip.ClipDao;
     import Logger = log.Logger;
+    import ClipSlotDaoVirtual = clip_slot.ClipSlotDaoVirtual;
 
     // export let get_notes_on_track = (path_track) => {
     //     let index_track = Number(path_track.split(' ')[2]);
@@ -67,14 +68,6 @@ export namespace track {
         }
 
         public static get_clip_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): Clip {
-            // return new Clip(
-            //     new ClipDao(
-            //         new LiveApiJs(
-            //             ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot), 'clip'].join(' ')
-            //         ),
-            //         messenger
-            //     )
-            // );
             return new Clip(
                 new ClipDao(
                     new LiveApiJs(
@@ -86,14 +79,6 @@ export namespace track {
         }
 
         public static get_clip_slot_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): ClipSlot {
-            // return new ClipSlot(
-            //     new ClipSlotDao(
-            //         new LiveApiJs(
-            //             ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot)].join(' ')
-            //         ),
-            //         messenger
-            //     )
-            // );
             return new ClipSlot(
                 new ClipSlotDao(
                     new LiveApiJs(
@@ -105,18 +90,11 @@ export namespace track {
         }
 
         public get_index(): number {
-            // let logger = new Logger('max');
-            // logger.log(String(String(this.track_dao.get_path()).split(' ')[2]));
             return Number(this.track_dao.get_path().split(' ')[2])
         }
 
         public load_clip_slots(): void {
             this.clip_slots = this.track_dao.get_clip_slots();
-            // for (let clip_slot of this.clip_slots) {
-            //     clip_slot.load_clip();
-            // }
-            // let logger = new Logger('max');
-            // logger.log(this.track_dao.get_clip_slots().length);
         }
 
         public mute() {
@@ -153,9 +131,7 @@ export namespace track {
             // logger.log(JSON.stringify(this.clip_slots))
 
             for (let clip_slot of this.clip_slots) {
-                if (clip_slot.b_has_clip()) {
-                    clip_slot.load_clip();
-                }
+                clip_slot.load_clip();
                 // clip_slot.load_clip()
                 // if (clip_slot.b_has_clip()) {
                 //     logger.log(JSON.stringify(clip_slot.get_clip().get_notes_within_markers()))
@@ -251,8 +227,19 @@ export namespace track {
             return notes_amassed;
         }
 
-        get_clip_slots() {
-            return
+        // only return as many clip slots as there are clips
+        get_clip_slots(): ClipSlot[] {
+            let clip_slots = [];
+            for (let clip of this.clips) {
+                clip_slots.push(
+                    new ClipSlot(
+                        new ClipSlotDaoVirtual(
+                            clip
+                        )
+                    )
+                )
+            }
+            return clip_slots
         }
 
         get_path(): string {
@@ -289,19 +276,7 @@ export namespace track {
                 }
             }
 
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(clip_slots));
-
             return clip_slots.map((list_id_clip_slot) => {
-                // return new ClipSlot(
-                //     new ClipSlotDao(
-                //         new LiveApiJs(
-                //             id_clip_slot
-                //         ),
-                //         this.messenger
-                //     )
-                // )
-                // return utils.FactoryLive.get_clip_slot(list_id_clip_slot.join(' '))
                 return new ClipSlot(
                     new ClipSlotDao(
                         new LiveApiJs(
@@ -320,11 +295,6 @@ export namespace track {
                 this.live_api.call('mute', '0')
             }
         }
-
-        // // implement the amassing notes logic
-        // get_notes(): TreeModel.Node<Note>[] {
-        //     return
-        // }
 
         get_path(): string {
             return utils.cleanse_path(this.live_api.get_path())

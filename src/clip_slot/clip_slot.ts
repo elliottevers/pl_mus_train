@@ -12,6 +12,7 @@ export namespace clip_slot {
     import Messenger = message.Messenger;
     import ClipDao = clip.ClipDao;
     import Logger = log.Logger;
+    import LiveClipVirtual = live.LiveClipVirtual;
     // import Logger = log.Logger;
 
     export class ClipSlot {
@@ -75,6 +76,43 @@ export namespace clip_slot {
 
         create_clip(length_beats: number): void
 
+    }
+
+    export class ClipSlotDaoVirtual implements iClipSlotDao {
+
+        private clip: Clip;
+
+        constructor(clip: Clip) {
+            this.clip = clip;
+        }
+
+        create_clip(length_beats: number): void {
+            throw 'error'
+        }
+
+        delete_clip() {
+            throw 'error'
+        }
+
+        duplicate_clip_to(id: number) {
+            throw 'error'
+        }
+
+        get_clip(): clip.Clip {
+            return this.clip
+        }
+
+        get_id() {
+            throw 'error'
+        }
+
+        get_path() {
+            throw 'error'
+        }
+
+        has_clip() {
+            return true
+        }
     }
 
     export class ClipSlotDao implements iClipSlotDao {

@@ -29,7 +29,16 @@ export namespace segment {
         }
 
         public static from_notes(notes: TreeModel.Node<Note>[]): Segment[] {
-            return
+            let segments = [];
+            for (let note of notes) {
+                let segment = new Segment(note);
+                segment.beat_start = note.model.note.beat_start;
+                segment.beat_end = note.model.note.get_beat_end();
+                segments.push(
+                    segment
+                )
+            }
+            return segments
         }
 
         public set_clip_user_input_sync(clip: Clip) {

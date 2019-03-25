@@ -15,6 +15,7 @@ import {utils} from "../utils/utils";
 import {live} from "../live/live";
 import {track} from "../track/track";
 import {user_input} from "../control/user_input";
+import {scene} from "../scene/scene";
 // import {get_notes_on_track} from "../scripts/segmenter";
 const _ = require('underscore');
 const l = require('lodash');
@@ -39,6 +40,8 @@ export namespace trainer {
     import UserInputHandler = user_input.UserInputHandler;
     import Song = song.Song;
     import MatrixWindow = window.MatrixWindow;
+    import Scene = scene.Scene;
+    import SceneDao = scene.SceneDao;
 
     export class Trainer {
 
@@ -79,18 +82,34 @@ export namespace trainer {
             track_target: Track,
             track_user_input: Track,
             song: Song,
-            // segments: Segment[],
+            segments: Segment[],
             messenger: Messenger
         ) {
             this.window = window;
             this.trainable = trainable;
-            // this.notes_target = notes_target;
             this.track_target = track_target;
+            this.track_user_input = track_user_input;
             this.song = song;
+
+            this.user_input_handler = user_input_handler;
+
+            this.segments = segments;
+
             // TODO: pull notes from clip user input track and transform into segments
-            this.segments = Segment.from_notes(
-                this.track_user_input.get_notes()
-            );
+            // this.segments = Segment.from_notes(
+            //     this.track_user_input.get_notes()
+            // );
+            //
+            // // assign scenes to segments
+            // for (let segment of this.segments) {
+            //     segment.set_scene(
+            //         new Scene(
+            //             new SceneDao(
+            //
+            //             )
+            //         )
+            //     )
+            // }
 
             // this.segments = segments;
             this.messenger = messenger;
