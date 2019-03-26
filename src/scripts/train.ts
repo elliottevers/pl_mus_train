@@ -153,20 +153,7 @@ let set_segments = () => {
     // TODO: put back
     let this_device = new LiveApiJs('this_device');
 
-    // let this_track = new Track(
-    //     new TrackDao(
-    //         new LiveApiJs(
-    //             utils.cleanse_path(this_device.get_path())
-    //         ),
-    //         new Messenger(env, 0)
-    //     )
-    // );
-
     let path_this_device = utils.cleanse_path(this_device.get_path());
-    //
-    // let logger = new Logger(env);
-    //
-    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_this_device)));
 
     let this_track = new Track(
         new TrackDao(
@@ -177,33 +164,13 @@ let set_segments = () => {
         )
     );
 
-    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_this_device)));
-
     this_track.load_clips();
-
-    // let notes_segments = this_track.get_notes();
-
-    // let segments = [];
-
-    // track_target.load_clips();
-    //
-    // track_user_input.load_clips();
 
     let segments = Segment.from_notes(
         this_track.get_notes()
     );
 
-// assign scenes to segments
-//     for (let segment of segments) {
-//         segment.set_scene(
-//             new Scene(
-//                 new SceneDaoVirtual()
-//             )
-//         )
-//     }
-
     for (let i_segment in segments) {
-        // let note = notes_segments[Number(i_note)];
 
         let path_scene = ['live_set', 'scenes', Number(i_segment)].join(' ');
 
@@ -228,17 +195,6 @@ let set_segments = () => {
             )
         );
 
-        // segment.set_clip_user_input_sync(
-        //     new Clip(
-        //         new ClipDao(
-        //             new LiveApiJs(
-        //                 path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
-        //             ),
-        //             new Messenger(env, 0)
-        //         )
-        //     )
-        // );
-
         segment.set_clip_user_input(
             new Clip(
                 new ClipDao(
@@ -251,11 +207,6 @@ let set_segments = () => {
                 )
             )
         );
-        //
-        // segments.push(
-        //     segment
-        // )
-
     }
 
     messenger_num_segments.message([segments.length]);
@@ -274,10 +225,6 @@ let set_track_target = () => {
 
     let path_device_target = utils.cleanse_path(list_path_device_target.join(' '));
 
-    let logger = new Logger(env);
-
-    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_device_target)));
-
     track_target = new Track(
         new TrackDao(
             new LiveApiJs(
@@ -292,8 +239,6 @@ let set_track_target = () => {
     track_target.set_path_deferlow('track_target');
 
     track_target.load_clips();
-
-    // logger.log(JSON.stringify(track_target.get_notes()));
 
     messenger_monitor_target.message([track_target.get_index()])
 };
@@ -557,18 +502,6 @@ let load_session = () => {
         'env': env
     };
 
-    // let config = {
-    //     'window': window_train,
-    //     'user_input_handler': user_input_handler,
-    //     'trainable': algorithm_train,
-    //     'track_target': track_target,
-    //     'track_user_input': track_user_input,
-    //     'song': song,
-    //     'segments': segments,
-    //     'messenger': messenger,
-    //     'env': env
-    // };
-
     let thawer = new TrainThawer(
         env
     );
@@ -589,9 +522,6 @@ let load_session = () => {
     }
 
     trainer.virtualized = false;
-    // train_thawed.render_window(
-    //
-    // );
 };
 
 if (typeof Global !== "undefined") {
