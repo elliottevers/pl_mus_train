@@ -76,8 +76,8 @@ export namespace file {
                 let a;
 
                 if (f.isopen) {
-                    post("reading file");
-                    // @ts-ignore
+                    post("reading json");
+                    //@ts-ignore
                     while ((a = f.readline()) != null) {
                         matrix_deserialized = JSON.parse(a) as any;
                     }

@@ -618,8 +618,8 @@ var file;
                 var f = new File(filepath, "read", "JSON");
                 var a = void 0;
                 if (f.isopen) {
-                    post("reading file");
-                    // @ts-ignore
+                    post("reading json");
+                    //@ts-ignore
                     while ((a = f.readline()) != null) {
                         matrix_deserialized = JSON.parse(a);
                     }
@@ -2093,12 +2093,12 @@ var user_input_midi = function (pitch, velocity) {
         }
     }
 };
-var load_session = function () {
+var save_session = function () {
     // TODO: logic to determine, from project folder, name of file
     var freezer = new TrainFreezer(env);
     freezer.freeze(trainer, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
 };
-var save_session = function () {
+var load_session = function () {
     // TODO: logic to determine, from project folder, name of file
     var config = {
         'window': window,
@@ -2111,6 +2111,17 @@ var save_session = function () {
         'messenger': messenger_render,
         'env': env
     };
+    // let config = {
+    //     'window': window_train,
+    //     'user_input_handler': user_input_handler,
+    //     'trainable': algorithm_train,
+    //     'track_target': track_target,
+    //     'track_user_input': track_user_input,
+    //     'song': song,
+    //     'segments': segments,
+    //     'messenger': messenger,
+    //     'env': env
+    // };
     var thawer = new TrainThawer(env);
     var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', config);
     train_thawed.render_window();
@@ -2386,6 +2397,7 @@ var algorithm_1 = require("../train/algorithm");
 var TreeModel = require("tree-model");
 var serialize_1 = require("./serialize");
 var note_1 = require("../note/note");
+var logger_1 = require("../log/logger");
 var thaw;
 (function (thaw) {
     var Trainer = trainer_1.trainer.Trainer;
@@ -2396,6 +2408,7 @@ var thaw;
     var deserialize_note = serialize_1.serialize.deserialize_note;
     var Note = note_1.note.Note;
     var DERIVE = algorithm_1.algorithm.DERIVE;
+    var Logger = logger_1.log.Logger;
     var TrainThawer = /** @class */ (function () {
         function TrainThawer(env) {
             this.env = env;
@@ -2403,10 +2416,10 @@ var thaw;
         TrainThawer.prototype.thaw = function (filepath, config) {
             var trainer;
             var matrix_deserialized = from_json(filepath, config['env']);
+            var logger = new Logger(config['env']);
+            logger.log(JSON.stringify(matrix_deserialized));
             trainer = new Trainer(config['window'], config['user_input_handler'], config['trainable'], config['track_target'], config['track_user_input'], config['song'], config['segments'], config['messenger']);
-            trainer.commence(
-            // true
-            );
+            trainer.advance();
             switch (config['trainable'].get_name()) {
                 case DETECT: {
                     var notes = [];
@@ -2418,18 +2431,12 @@ var thaw;
                             if (col === null) {
                                 continue;
                             }
-                            // for (let sequence_target of col) {
-                            //     for (let note of sequence_target.iterator_subtarget.subtargets) {
-                            //         notes.push(note)
-                            //     }
-                            // }
                             for (var _b = 0, col_1 = col; _b < col_1.length; _b++) {
                                 var note_serialized = col_1[_b];
                                 notes.push(deserialize_note(note_serialized));
                             }
                         }
                     }
-                    // let notes_parsed = notes.map((obj)=>{return JSON.parse(obj.note)});
                     var notes_parsed = notes;
                     var tree = new TreeModel();
                     for (var _c = 0, notes_parsed_1 = notes_parsed; _c < notes_parsed_1.length; _c++) {
@@ -2441,7 +2448,7 @@ var thaw;
                         });
                         trainer.accept_input([note_recovered]);
                     }
-                    trainer.pause();
+                    // trainer.pause();
                     break;
                 }
                 case PREDICT: {
@@ -2458,17 +2465,13 @@ var thaw;
                             input_left = false;
                         }
                     }
-                    trainer.pause();
+                    // trainer.pause();
                     break;
                 }
                 // go until we find a segment without user input
                 case DERIVE: {
                     var input_left = true;
                     while (input_left) {
-                        // if (trainer.iterator_matrix_train.done) {
-                        //     input_left = false;
-                        //     continue
-                        // }
                         var coord_current = trainer.iterator_matrix_train.get_coord_current();
                         if (matrix_deserialized[coord_current[0]][coord_current[1]].length === 0) {
                             input_left = false;
@@ -2476,7 +2479,7 @@ var thaw;
                         }
                         trainer.accept_input(matrix_deserialized[coord_current[0]][coord_current[1]]);
                     }
-                    trainer.pause();
+                    // trainer.pause();
                     break;
                 }
             }
@@ -2487,7 +2490,7 @@ var thaw;
     thaw.TrainThawer = TrainThawer;
 })(thaw = exports.thaw || (exports.thaw = {}));
 
-},{"../io/file":6,"../note/note":11,"../train/algorithm":23,"../train/trainer":25,"./serialize":18,"tree-model":31}],20:[function(require,module,exports){
+},{"../io/file":6,"../log/logger":8,"../note/note":11,"../train/algorithm":23,"../train/trainer":25,"./serialize":18,"tree-model":31}],20:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -3254,9 +3257,6 @@ var algorithm;
             return matrix_targets;
         };
         Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current, segments) {
-            // let ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            // let ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            // messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true)
             messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
             messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
             messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);

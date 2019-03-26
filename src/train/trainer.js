@@ -3,9 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
 var iterate_1 = require("./iterate");
 var logger_1 = require("../log/logger");
-// import {get_notes_on_track} from "../scripts/segmenter";
-var _ = require('underscore');
-var l = require('lodash');
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
@@ -21,65 +18,16 @@ var trainer;
             this.song = song;
             this.user_input_handler = user_input_handler;
             this.segments = segments;
-            // TODO: pull notes from clip user input track and transform into segments
-            // this.segments = Segment.from_notes(
-            //     this.track_user_input.get_notes()
-            // );
-            //
-            // // assign scenes to segments
-            // for (let segment of this.segments) {
-            //     segment.set_scene(
-            //         new Scene(
-            //             new SceneDao(
-            //
-            //             )
-            //         )
-            //     )
-            // }
-            // this.segments = segments;
             this.messenger = messenger;
-            // this.notes_target_track = track.get_notes_on_track(
-            //     track_target.get_path()
-            // );
             this.notes_target_track = track_target.get_notes();
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.notes_target_track));
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_objectives(this.trainable, this.segments));
             this.window.initialize_clips(this.trainable, this.segments);
             this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
-            // this.trainable.initialize(
-            //     this.window,
-            //     this.segments,
-            //     this.track_target,
-            //     this.user_input_handler,
-            //     this.struct_parse
-            // );
             this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track);
             this.history_user_input = this.trainable.preprocess_history_user_input(this.history_user_input, this.segments);
             this.struct_train = this.trainable.create_struct_train(this.window, this.segments, this.track_target, this.user_input_handler, this.struct_train);
             this.struct_train = this.trainable.preprocess_struct_train(this.struct_train, this.segments, this.notes_target_track);
-            // this.trainable.initialize(
-            //     this.window,
-            //     this.segments,
-            //     this.track_target,
-            //     this.user_input_handler,
-            //     this.struct_train
-            // );
-            // TODO: figure out getting notes from the target track
-            // this.matrix_targets = this.trainable.create_matrix_targets(
-            //     this.user_input_handler,
-            //     this.segments,
-            //     this.notes_target_track
-            // );
-            // this.struct_train = this.trainable.create_struct_train(
-            //
-            // );
-            // this.struct_parse = this.trainable.create_struct_parse(
-            //     this.segments
-            // );
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.segments));
             this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
         }
         Trainer.prototype.clear_window = function () {
@@ -191,10 +139,6 @@ var trainer;
                 var input_postprocessed = this.trainable.postprocess_user_input(notes_input_user, this.subtarget_current);
                 this.history_user_input = this.trainable.update_history_user_input(input_postprocessed, this.history_user_input, this.iterator_matrix_train);
                 this.struct_train = this.trainable.update_struct(input_postprocessed, this.struct_train, this.trainable, this.iterator_matrix_train);
-                // this.history_user_input.concat(
-                //     input_postprocessed,
-                //     this.iterator_matrix_train.get_coord_current()
-                // );
                 this.window.add_notes_to_clip(input_postprocessed, this.iterator_matrix_train.get_coord_current(), this.trainable);
                 this.advance();
                 this.render_window();

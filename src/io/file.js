@@ -71,8 +71,8 @@ var file;
                 var f = new File(filepath, "read", "JSON");
                 var a = void 0;
                 if (f.isopen) {
-                    post("reading file");
-                    // @ts-ignore
+                    post("reading json");
+                    //@ts-ignore
                     while ((a = f.readline()) != null) {
                         matrix_deserialized = JSON.parse(a);
                     }

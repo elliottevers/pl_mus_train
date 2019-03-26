@@ -6,6 +6,7 @@ var algorithm_1 = require("../train/algorithm");
 var TreeModel = require("tree-model");
 var serialize_1 = require("./serialize");
 var note_1 = require("../note/note");
+var logger_1 = require("../log/logger");
 var thaw;
 (function (thaw) {
     var Trainer = trainer_1.trainer.Trainer;
@@ -16,6 +17,7 @@ var thaw;
     var deserialize_note = serialize_1.serialize.deserialize_note;
     var Note = note_1.note.Note;
     var DERIVE = algorithm_1.algorithm.DERIVE;
+    var Logger = logger_1.log.Logger;
     var TrainThawer = /** @class */ (function () {
         function TrainThawer(env) {
             this.env = env;
@@ -23,10 +25,10 @@ var thaw;
         TrainThawer.prototype.thaw = function (filepath, config) {
             var trainer;
             var matrix_deserialized = from_json(filepath, config['env']);
+            var logger = new Logger(config['env']);
+            logger.log(JSON.stringify(matrix_deserialized));
             trainer = new Trainer(config['window'], config['user_input_handler'], config['trainable'], config['track_target'], config['track_user_input'], config['song'], config['segments'], config['messenger']);
-            trainer.commence(
-            // true
-            );
+            trainer.advance();
             switch (config['trainable'].get_name()) {
                 case DETECT: {
                     var notes = [];
@@ -38,18 +40,12 @@ var thaw;
                             if (col === null) {
                                 continue;
                             }
-                            // for (let sequence_target of col) {
-                            //     for (let note of sequence_target.iterator_subtarget.subtargets) {
-                            //         notes.push(note)
-                            //     }
-                            // }
                             for (var _b = 0, col_1 = col; _b < col_1.length; _b++) {
                                 var note_serialized = col_1[_b];
                                 notes.push(deserialize_note(note_serialized));
                             }
                         }
                     }
-                    // let notes_parsed = notes.map((obj)=>{return JSON.parse(obj.note)});
                     var notes_parsed = notes;
                     var tree = new TreeModel();
                     for (var _c = 0, notes_parsed_1 = notes_parsed; _c < notes_parsed_1.length; _c++) {
@@ -61,7 +57,7 @@ var thaw;
                         });
                         trainer.accept_input([note_recovered]);
                     }
-                    trainer.pause();
+                    // trainer.pause();
                     break;
                 }
                 case PREDICT: {
@@ -78,17 +74,13 @@ var thaw;
                             input_left = false;
                         }
                     }
-                    trainer.pause();
+                    // trainer.pause();
                     break;
                 }
                 // go until we find a segment without user input
                 case DERIVE: {
                     var input_left = true;
                     while (input_left) {
-                        // if (trainer.iterator_matrix_train.done) {
-                        //     input_left = false;
-                        //     continue
-                        // }
                         var coord_current = trainer.iterator_matrix_train.get_coord_current();
                         if (matrix_deserialized[coord_current[0]][coord_current[1]].length === 0) {
                             input_left = false;
@@ -96,7 +88,7 @@ var thaw;
                         }
                         trainer.accept_input(matrix_deserialized[coord_current[0]][coord_current[1]]);
                     }
-                    trainer.pause();
+                    // trainer.pause();
                     break;
                 }
             }

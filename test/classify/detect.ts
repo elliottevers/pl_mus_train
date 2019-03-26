@@ -216,7 +216,7 @@ let user_input_handler = new UserInputHandler(
 );
 
 let env: string = 'node_for_max';
-// env = 'node';
+env = 'node';
 
 
 let messenger = new Messenger(env, 0, 'render_detect');
@@ -362,11 +362,25 @@ let segments = Segment.from_notes(
 );
 
 // assign scenes to segments
-for (let segment of segments) {
+// for (let segment of segments) {
+//     segment.set_scene(
+//         new Scene(
+//             new SceneDaoVirtual()
+//         )
+//     )
+// }
+
+for (let i_segment in segments) {
+    let segment = segments[Number(i_segment)];
+
     segment.set_scene(
         new Scene(
             new SceneDaoVirtual()
         )
+    );
+
+    segment.set_clip_user_input(
+        clips_user_input[Number(i_segment)]
     )
 }
 
@@ -395,26 +409,26 @@ trainer_local.accept_input(
     [note_target_1_subtarget_2]
 );
 
-trainer_local.accept_input(
-    [note_target_2_subtarget_1]
-);
-
-trainer_local.accept_input(
-    [note_target_2_subtarget_2]
-);
-
-trainer_local.accept_input(
-    [note_target_3_subtarget_1]
-);
-
-trainer_local.render_window(
-
-);
-
-trainer_local.clear_window(
-
-);
-
+// trainer_local.accept_input(
+//     [note_target_2_subtarget_1]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_2_subtarget_2]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_3_subtarget_1]
+// );
+//
+// trainer_local.render_window(
+//
+// );
+//
+// trainer_local.clear_window(
+//
+// );
+//
 let freezer = new TrainFreezer(
     env
 );
@@ -448,3 +462,5 @@ let train_thawed = thawer.thaw(
 train_thawed.render_window(
 
 );
+
+let testing = 1

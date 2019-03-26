@@ -4,6 +4,7 @@ import {algorithm} from "../train/algorithm";
 import TreeModel = require("tree-model");
 import {serialize} from "./serialize";
 import {note} from "../note/note";
+import {log} from "../log/logger";
 
 export namespace thaw {
     import Trainer = trainer.Trainer;
@@ -14,6 +15,7 @@ export namespace thaw {
     import deserialize_note = serialize.deserialize_note;
     import Note = note.Note;
     import DERIVE = algorithm.DERIVE;
+    import Logger = log.Logger;
 
     export class TrainThawer {
         env: string;
@@ -28,6 +30,10 @@ export namespace thaw {
 
             let matrix_deserialized = from_json(filepath, config['env']);
 
+            let logger = new Logger(config['env']);
+
+            logger.log(JSON.stringify(matrix_deserialized));
+
             trainer =  new Trainer(
                 config['window'],
                 config['user_input_handler'],
@@ -39,8 +45,8 @@ export namespace thaw {
                 config['messenger']
             );
 
-            trainer.commence(
-                // true
+            trainer.advance(
+
             );
 
             switch (config['trainable'].get_name()) {
@@ -52,17 +58,12 @@ export namespace thaw {
                             if (col === null) {
                                 continue;
                             }
-                            // for (let sequence_target of col) {
-                            //     for (let note of sequence_target.iterator_subtarget.subtargets) {
-                            //         notes.push(note)
-                            //     }
-                            // }
                             for (let note_serialized of col) {
                                 notes.push(deserialize_note(note_serialized))
                             }
                         }
                     }
-                    // let notes_parsed = notes.map((obj)=>{return JSON.parse(obj.note)});
+
                     let notes_parsed = notes;
 
                     let tree: TreeModel = new TreeModel();
@@ -88,7 +89,7 @@ export namespace thaw {
                         );
                     }
 
-                    trainer.pause();
+                    // trainer.pause();
 
                     break;
                 }
@@ -111,7 +112,7 @@ export namespace thaw {
                         }
                     }
 
-                    trainer.pause();
+                    // trainer.pause();
 
                     break;
                 }
@@ -121,10 +122,6 @@ export namespace thaw {
 
                     while (input_left) {
 
-                        // if (trainer.iterator_matrix_train.done) {
-                        //     input_left = false;
-                        //     continue
-                        // }
                         let coord_current = trainer.iterator_matrix_train.get_coord_current();
 
                         if (matrix_deserialized[coord_current[0]][coord_current[1]].length === 0) {
@@ -137,7 +134,7 @@ export namespace thaw {
                         );
                     }
 
-                    trainer.pause();
+                    // trainer.pause();
 
                     break;
                 }

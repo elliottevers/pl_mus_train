@@ -89,7 +89,7 @@ var mode_texture = POLYPHONY;
 var mode_control = INSTRUMENTAL;
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
 var env = 'node_for_max';
-// env = 'node';
+env = 'node';
 var messenger = new Messenger(env, 0, 'render_detect');
 var algorithm_train = new Detect();
 var window_train = new MatrixWindow(384, 384, messenger);
@@ -143,20 +143,43 @@ track_target.load_clips();
 track_user_input.load_clips();
 var segments = Segment.from_notes(track_user_input.get_notes());
 // assign scenes to segments
-for (var _i = 0, segments_1 = segments; _i < segments_1.length; _i++) {
-    var segment_2 = segments_1[_i];
+// for (let segment of segments) {
+//     segment.set_scene(
+//         new Scene(
+//             new SceneDaoVirtual()
+//         )
+//     )
+// }
+for (var i_segment in segments) {
+    var segment_2 = segments[Number(i_segment)];
     segment_2.set_scene(new Scene(new SceneDaoVirtual()));
+    segment_2.set_clip_user_input(clips_user_input[Number(i_segment)]);
 }
 var trainer_local = new Trainer(window_train, user_input_handler, algorithm_train, track_target, track_user_input, song, segments, messenger);
 // test case - 2 segments, 2 notes a piece
 trainer_local.commence();
 trainer_local.accept_input([note_target_1_subtarget_1]);
 trainer_local.accept_input([note_target_1_subtarget_2]);
-trainer_local.accept_input([note_target_2_subtarget_1]);
-trainer_local.accept_input([note_target_2_subtarget_2]);
-trainer_local.accept_input([note_target_3_subtarget_1]);
-trainer_local.render_window();
-trainer_local.clear_window();
+// trainer_local.accept_input(
+//     [note_target_2_subtarget_1]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_2_subtarget_2]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_3_subtarget_1]
+// );
+//
+// trainer_local.render_window(
+//
+// );
+//
+// trainer_local.clear_window(
+//
+// );
+//
 var freezer = new TrainFreezer(env);
 freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
 var thawer = new TrainThawer(env);
@@ -173,4 +196,5 @@ var config = {
 };
 var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', config);
 train_thawed.render_window();
+var testing = 1;
 //# sourceMappingURL=detect.js.map

@@ -538,7 +538,7 @@ let user_input_midi = (pitch: number, velocity: number) => {
     }
 };
 
-let load_session = () => {
+let save_session = () => {
 
     // TODO: logic to determine, from project folder, name of file
 
@@ -552,7 +552,7 @@ let load_session = () => {
     );
 };
 
-let save_session = () => {
+let load_session = () => {
 
     // TODO: logic to determine, from project folder, name of file
 
@@ -567,6 +567,18 @@ let save_session = () => {
         'messenger': messenger_render,
         'env': env
     };
+
+    // let config = {
+    //     'window': window_train,
+    //     'user_input_handler': user_input_handler,
+    //     'trainable': algorithm_train,
+    //     'track_target': track_target,
+    //     'track_user_input': track_user_input,
+    //     'song': song,
+    //     'segments': segments,
+    //     'messenger': messenger,
+    //     'env': env
+    // };
 
     let thawer = new TrainThawer(
         env

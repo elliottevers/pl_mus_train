@@ -11,14 +11,8 @@ import {clip} from "../clip/clip";
 import {iterate} from "./iterate";
 import {log} from "../log/logger";
 import {window} from "../render/window";
-import {utils} from "../utils/utils";
-import {live} from "../live/live";
 import {track} from "../track/track";
 import {user_input} from "../control/user_input";
-import {scene} from "../scene/scene";
-// import {get_notes_on_track} from "../scripts/segmenter";
-const _ = require('underscore');
-const l = require('lodash');
 
 export namespace trainer {
 
@@ -40,8 +34,6 @@ export namespace trainer {
     import UserInputHandler = user_input.UserInputHandler;
     import Song = song.Song;
     import MatrixWindow = window.MatrixWindow;
-    import Scene = scene.Scene;
-    import SceneDao = scene.SceneDao;
     import Logger = log.Logger;
 
     export type StructTargets = TargetIterator[][];
@@ -53,8 +45,7 @@ export namespace trainer {
         private window: MatrixWindow;
         public trainable: Trainable; // TODO: type
         public clip_user_input: Clip;
-        // public clip_user_input_sync: Clip;
-        // private clip_target: Clip;
+
         private notes_target_track: TreeModel.Node<Note>[];
         private track_target: Track;
         private track_user_input: Track;
@@ -62,7 +53,6 @@ export namespace trainer {
         private segments: Segment[];
         private messenger: Messenger;
 
-        // public struct_parse: StructParse;
         public history_user_input: HistoryUserInput;
         public struct_train: StructTrain;
 
@@ -74,7 +64,6 @@ export namespace trainer {
         public target_current: Target;
         private subtarget_current: Subtarget;
 
-        // private matrix_targets: TargetIterator[][];
         public iterator_matrix_train: MatrixIterator;
         private iterator_target_current: TargetIterator;
         private iterator_subtarget_current: SubtargetIterator;
@@ -101,33 +90,9 @@ export namespace trainer {
 
             this.segments = segments;
 
-            // TODO: pull notes from clip user input track and transform into segments
-            // this.segments = Segment.from_notes(
-            //     this.track_user_input.get_notes()
-            // );
-            //
-            // // assign scenes to segments
-            // for (let segment of this.segments) {
-            //     segment.set_scene(
-            //         new Scene(
-            //             new SceneDao(
-            //
-            //             )
-            //         )
-            //     )
-            // }
-
-            // this.segments = segments;
             this.messenger = messenger;
 
-            // this.notes_target_track = track.get_notes_on_track(
-            //     track_target.get_path()
-            // );
-
             this.notes_target_track = track_target.get_notes();
-
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.notes_target_track));
 
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
                 this.trainable,
@@ -149,14 +114,6 @@ export namespace trainer {
             this.window.set_length_beats(
                 this.segments[this.segments.length - 1].beat_end
             );
-
-            // this.trainable.initialize(
-            //     this.window,
-            //     this.segments,
-            //     this.track_target,
-            //     this.user_input_handler,
-            //     this.struct_parse
-            // );
 
             this.window = this.trainable.initialize_render(
                 this.window,
@@ -182,33 +139,6 @@ export namespace trainer {
                 this.segments,
                 this.notes_target_track
             );
-
-            // this.trainable.initialize(
-            //     this.window,
-            //     this.segments,
-            //     this.track_target,
-            //     this.user_input_handler,
-            //     this.struct_train
-            // );
-
-            // TODO: figure out getting notes from the target track
-            // this.matrix_targets = this.trainable.create_matrix_targets(
-            //     this.user_input_handler,
-            //     this.segments,
-            //     this.notes_target_track
-            // );
-
-            // this.struct_train = this.trainable.create_struct_train(
-            //
-            // );
-
-            // this.struct_parse = this.trainable.create_struct_parse(
-            //     this.segments
-            // );
-
-            // let logger = new Logger('max');
-
-            // logger.log(JSON.stringify(this.segments));
 
             this.trainable.initialize_tracks(
                 this.segments,
@@ -411,11 +341,6 @@ export namespace trainer {
                     this.trainable,
                     this.iterator_matrix_train
                 );
-
-                // this.history_user_input.concat(
-                //     input_postprocessed,
-                //     this.iterator_matrix_train.get_coord_current()
-                // );
 
                 this.window.add_notes_to_clip(
                     input_postprocessed,
