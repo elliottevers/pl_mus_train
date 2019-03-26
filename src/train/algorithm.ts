@@ -16,6 +16,7 @@ import {scene} from "../scene/scene";
 import {utils} from "../utils/utils";
 import {song} from "../song/song";
 import {trainer} from "./trainer";
+import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace algorithm {
@@ -49,11 +50,21 @@ export namespace algorithm {
     import StructTrain = trainer.StructTrain;
     import MatrixWindow = window.MatrixWindow;
     import StructTargets = trainer.StructTargets;
+    import Logger = log.Logger;
 
 
     interface Temporal {
-        determine_region_present(notes_next)
-        stream_bounds(messenger: message.Messenger, subtarget_current: Subtarget, segment_current: Segment): void
+        determine_region_present(
+            notes_next: TreeModel.Node<Note>[],
+            segment_current: Segment
+        )
+
+        stream_bounds(
+            messenger: message.Messenger,
+            subtarget_current: Subtarget,
+            segment_current: Segment,
+            segments: Segment[]
+        ): void
     }
 
     interface Renderable {
@@ -85,11 +96,26 @@ export namespace algorithm {
             segments: Segment[]
         )
 
-        unpause(song: Song, scene_current: Scene)
+        advance_scene(
+            scene_current: Scene,
+            song: Song
+        )
 
-        pause(song: Song, scene_current: Scene)
+        unpause(
+            song: Song,
+            scene_current: Scene
+        )
 
-        preprocess_struct_train(struct_train: StructTrain, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): StructTrain
+        pause(
+            song: Song,
+            scene_current: Scene
+        )
+
+        preprocess_struct_train(
+            struct_train: StructTrain,
+            segments: Segment[],
+            notes_target_track: TreeModel.Node<Note>[]
+        ): StructTrain
 
         update_struct(
             notes_input_user: TreeModel.Node<Note>[],
@@ -171,7 +197,7 @@ export namespace algorithm {
             return 0;
         }
 
-        public determine_region_present(notes_target_next: TreeModel.Node<Note>): number[] {
+        public determine_region_present(notes_target_next: TreeModel.Node<Note>[], segment_current: Segment): number[] {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[0].model.note.get_beat_end()
@@ -243,14 +269,19 @@ export namespace algorithm {
             return matrix_targets
         }
 
-        private static stream_subtarget_bounds(messenger: message.Messenger, subtarget_current: Subtarget, segment_current: Segment) {
-            let ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            let ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true)
+        private static stream_subtarget_bounds(messenger: message.Messenger, subtarget_current: Subtarget, segment_current: Segment, segments: Segment[]) {
+            // let ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
+            // let ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
+            // messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true)
         }
 
-        stream_bounds(messenger: message.Messenger, subtarget_current: Subtarget, segment_current: Segment): void {
-            Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current)
+        stream_bounds(
+            messenger: message.Messenger,
+            subtarget_current: Subtarget,
+            segment_current: Segment,
+            segments: Segment[]
+        ): void {
+            Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current, segments)
         }
 
         update_struct(notes_input_user: TreeModel.Node<note.Note>[], struct_train: StructTrain, trainable: Trainable, iterator_matrix_train: iterate.MatrixIterator): StructTrain {
@@ -264,6 +295,10 @@ export namespace algorithm {
 
         set_depth(): void {
 
+        }
+
+        advance_scene(scene_current: scene.Scene, song: song.Song) {
+            scene_current.fire(true);
         }
     }
 
@@ -332,10 +367,16 @@ export namespace algorithm {
             )
         }
 
-        determine_region_present(notes_target_next): number[] {
+        determine_region_present(notes_target_next: TreeModel.Node<Note>[], segment_current: Segment): number[] {
+            // return [
+            //     notes_target_next[0].model.note.beat_start,
+            //     notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+            // ]
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(segment_current));
             return [
-                notes_target_next[0].model.note.beat_start,
-                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+                segment_current.beat_start,
+                segment_current.beat_end
             ]
         }
 
@@ -358,6 +399,7 @@ export namespace algorithm {
         public abstract preprocess_struct_parse(struct_parse, segments, track_target)
 
         pause(song: Song, scene_current: Scene) {
+
             song.set_overdub(0);
 
             song.set_session_record(0);
@@ -369,11 +411,25 @@ export namespace algorithm {
             return notes_user_input;
         }
 
-        stream_bounds(messenger: message.Messenger, subtarget_current: target.Subtarget, segment_current: segment.Segment): void {
-            Parsed.stream_segment_bounds(messenger)
+        stream_bounds(
+            messenger: message.Messenger,
+            subtarget_current: target.Subtarget,
+            segment_current: segment.Segment,
+            segments: Segment[]
+        ): void {
+            Parsed.stream_segment_bounds(messenger, subtarget_current, segment_current, segments)
         }
 
-        private static stream_segment_bounds(messenger: Messenger) {
+        private static stream_segment_bounds(
+            messenger: message.Messenger,
+            subtarget_current: target.Subtarget,
+            segment_current: segment.Segment,
+            segments: Segment[]
+        ) {
+            // route offset_beats_current_segment duration_beats_current_segment duration_training_data
+            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
+            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
+            messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
             messenger.message(['bounds', 0, 1], true)
         }
 
@@ -397,6 +453,15 @@ export namespace algorithm {
 
         create_struct_train(window: window.Window, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
             return this.create_struct_parse(segments);
+        }
+
+        advance_scene(scene_current: scene.Scene, song: song.Song) {
+
+            song.set_overdub(1);
+
+            song.set_session_record(1);
+
+            scene_current.fire(true);
         }
     }
 
@@ -731,10 +796,7 @@ export namespace algorithm {
         }
 
         initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
-
             track_target.mute();
-
-            return
         }
 
         preprocess_struct_parse(struct_parse: StructParse, segments: Segment[]): StructParse {

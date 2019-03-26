@@ -9,9 +9,6 @@ import LiveClipVirtual = live.LiveClipVirtual;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
 import {algorithm} from "../../src/train/algorithm";
-import {freeze, thaw} from "../../src/serialize/serialize";
-import TrainFreezer = freeze.TrainFreezer;
-import TrainThawer = thaw.TrainThawer;
 import {window} from "../../src/render/window";
 import MatrixWindow = window.MatrixWindow;
 import {trainer as module_trainer} from "../../src/train/trainer";
@@ -31,6 +28,10 @@ import SceneDaoVirtual = module_scene.SceneDaoVirtual;
 import Track = track.Track;
 import {segment} from "../../src/segment/segment";
 import Segment = segment.Segment;
+import {freeze} from "../../src/serialize/freeze";
+import TrainFreezer = freeze.TrainFreezer;
+import {thaw} from "../../src/serialize/thaw";
+import TrainThawer = thaw.TrainThawer;
 
 
 let tree: TreeModel = new TreeModel();

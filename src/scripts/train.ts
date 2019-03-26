@@ -289,6 +289,8 @@ let set_track_target = () => {
         )
     );
 
+    track_target.set_path_deferlow('track_target');
+
     track_target.load_clips();
 
     // logger.log(JSON.stringify(track_target.get_notes()));
@@ -427,7 +429,7 @@ let user_input_command = (command: string) => {
         case DERIVE: {
             switch(command) {
                 case 'confirm': {
-                    let notes = trainer.clip_user_input_synchronous.get_notes(
+                    let notes = trainer.clip_user_input.get_notes(
                         trainer.segment_current.beat_start,
                         0,
                         trainer.segment_current.beat_end - trainer.segment_current.beat_start,
@@ -444,6 +446,10 @@ let user_input_command = (command: string) => {
                     let notes = trainer.history_user_input.get(
                         [coords_current[0] - 1, coords_current[1]]
                     );
+
+                    let logger = new Logger('max');
+
+                    logger.log(JSON.stringify(notes));
 
                     trainer.clip_user_input.set_notes(
                         notes

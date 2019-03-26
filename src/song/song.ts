@@ -218,7 +218,11 @@ export namespace song {
         }
 
         set_overdub(int) {
-            this.song_live.set("overdub", int);
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "overdub", String(int)]);
+            } else {
+                this.song_live.set("overdub", int);
+            }
         }
 
         set_tempo(int) {

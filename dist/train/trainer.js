@@ -77,8 +77,8 @@ var trainer;
             // this.struct_parse = this.trainable.create_struct_parse(
             //     this.segments
             // );
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(this.segments));
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.segments));
             this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
         }
         Trainer.prototype.clear_window = function () {
@@ -87,7 +87,7 @@ var trainer;
         Trainer.prototype.render_window = function () {
             this.window.render(this.iterator_matrix_train, this.trainable, 
             // this.target_current,
-            this.struct_train);
+            this.struct_train, this.segment_current);
         };
         Trainer.prototype.unpause = function () {
             this.trainable.unpause(this.song, this.segment_current.scene);
@@ -108,6 +108,7 @@ var trainer;
         };
         Trainer.prototype.commence = function () {
             this.advance();
+            // this.render_window();
         };
         Trainer.prototype.advance_segment = function () {
             var obj_next_coord = this.iterator_matrix_train.next();
@@ -162,19 +163,19 @@ var trainer;
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
                 logger.log(JSON.stringify(this.subtarget_current));
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
-                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
+                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
-            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
+            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
         };
         Trainer.prototype.next_segment = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             this.segment_current.scene.set_path_deferlow('scene');
-            this.segment_current.scene.fire(true);
+            this.trainable.advance_scene(this.segment_current.scene, this.song);
             this.clip_user_input = this.segment_current.clip_user_input;
             this.clip_user_input.set_path_deferlow('clip_user_input');
-            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
+            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;

@@ -1457,11 +1457,10 @@ var window;
         function MatrixWindow(height, width, messenger) {
             return _super.call(this, height, width, messenger) || this;
         }
-        MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train
+        MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train, 
         // target_current: Target, // only for detect/predict
         // struct_parse: StructParse, // only for parse/derive
-        // segment_current: Segment
-        ) {
+        segment_current) {
             this.clear();
             // TODO: compensate for this logic
             // if (this.algorithm.b_targeted()) {
@@ -1473,7 +1472,7 @@ var window;
             //     target_current,
             //     segment_current
             // );
-            this.render_regions(iterator_matrix_train, trainable, struct_train
+            this.render_regions(iterator_matrix_train, trainable, struct_train, segment_current
             // target_current,
             // struct_parse
             );
@@ -1607,7 +1606,7 @@ var window;
         MatrixWindow.prototype.render_regions = function (iterator_matrix_train, trainable, 
         // target_current: Target,
         // struct_parse: StructParse
-        struct_train) {
+        struct_train, segment_current) {
             // let notes;
             var coord_current = iterator_matrix_train.get_coord_current();
             var interval_current;
@@ -1617,7 +1616,7 @@ var window;
                 var note_2 = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
                 // iterator_subtarget.subtargets.
                 // let notes_target_current = target_current.get_notes();
-                interval_current = trainable.determine_region_present([note_2]);
+                interval_current = trainable.determine_region_present([note_2], segment_current);
             }
             else {
                 var struct_parse = struct_train;
@@ -1631,7 +1630,7 @@ var window;
                     // coord = iterator_matrix_train.get_coord_current();
                     var coord_segment = [0, coord_current[1]];
                     // let notes = struct_parse.get_notes_at_coord(coord_segment);
-                    interval_current = trainable.determine_region_present(struct_parse.get_notes_at_coord(coord_segment));
+                    interval_current = trainable.determine_region_present(struct_parse.get_notes_at_coord(coord_segment), segment_current);
                 }
             }
             var quadruplet_region_past = this.get_message_render_region_past(interval_current);
@@ -1969,6 +1968,7 @@ var set_track_target = function () {
     var logger = new Logger(env);
     // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_device_target)));
     track_target = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(path_device_target)), new Messenger(env, 0), true, 'track_target'));
+    track_target.set_path_deferlow('track_target');
     track_target.load_clips();
     // logger.log(JSON.stringify(track_target.get_notes()));
     messenger_monitor_target.message([track_target.get_index()]);
@@ -2033,19 +2033,21 @@ var user_input_command = function (command) {
         case DERIVE: {
             switch (command) {
                 case 'confirm': {
-                    var notes = trainer.clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var notes = trainer.clip_user_input.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     trainer.accept_input(notes);
                     break;
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
                     var notes = trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]);
+                    var logger_2 = new Logger('max');
+                    logger_2.log(JSON.stringify(notes));
                     trainer.clip_user_input.set_notes(notes);
                     break;
                 }
                 case 'erase': {
-                    var logger_2 = new Logger(env);
-                    logger_2.log(JSON.stringify(trainer.segment_current));
+                    var logger_3 = new Logger(env);
+                    logger_3.log(JSON.stringify(trainer.segment_current));
                     trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     break;
                 }
@@ -2629,7 +2631,12 @@ var song;
             // }
         };
         SongDao.prototype.set_overdub = function (int) {
-            this.song_live.set("overdub", int);
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "overdub", String(int)]);
+            }
+            else {
+                this.song_live.set("overdub", int);
+            }
         };
         SongDao.prototype.set_tempo = function (int) {
             this.song_live.set("tempo", int);
@@ -3020,6 +3027,9 @@ var track;
         Track.prototype.unmute = function () {
             this.track_dao.mute(false);
         };
+        Track.prototype.set_path_deferlow = function (key_route) {
+            this.track_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
+        };
         // public load_clips(): void {
         //     //
         //     let id_pairs: string[][] = this.get_clip_slots();
@@ -3162,12 +3172,33 @@ var track;
                 return new ClipSlot(new ClipSlotDao(new LiveApiJs(list_id_clip_slot.join(' ')), new Messenger('max', 0)));
             });
         };
+        // TODO: use deferlow
         TrackDao.prototype.mute = function (val) {
-            if (val) {
-                this.live_api.call('mute', '1');
+            if (this.deferlow) {
+                if (val) {
+                    this.messenger.message([
+                        this.key_route,
+                        "set",
+                        "solo",
+                        "0"
+                    ]);
+                }
+                else {
+                    this.messenger.message([
+                        this.key_route,
+                        "set",
+                        "solo",
+                        "1"
+                    ]);
+                }
             }
             else {
-                this.live_api.call('mute', '0');
+                if (val) {
+                    this.live_api.set('solo', '0');
+                }
+                else {
+                    this.live_api.set('solo', '1');
+                }
             }
         };
         TrackDao.prototype.get_path = function () {
@@ -3234,7 +3265,7 @@ var algorithm;
         Targeted.prototype.coord_to_index_clip = function (coord) {
             return 0;
         };
-        Targeted.prototype.determine_region_present = function (notes_target_next) {
+        Targeted.prototype.determine_region_present = function (notes_target_next, segment_current) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[0].model.note.get_beat_end()
@@ -3282,13 +3313,13 @@ var algorithm;
             }
             return matrix_targets;
         };
-        Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current) {
-            var ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0]) / (segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            var ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0]) / (segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true);
+        Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current, segments) {
+            // let ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
+            // let ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
+            // messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true)
         };
-        Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
-            Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current);
+        Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current, segments) {
+            Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current, segments);
         };
         Targeted.prototype.update_struct = function (notes_input_user, struct_train, trainable, iterator_matrix_train) {
             return struct_train;
@@ -3298,6 +3329,9 @@ var algorithm;
             return this.create_matrix_targets(user_input_handler, segments, notes_target_track);
         };
         Targeted.prototype.set_depth = function () {
+        };
+        Targeted.prototype.advance_scene = function (scene_current, song) {
+            scene_current.fire(true);
         };
         return Targeted;
     }());
@@ -3333,10 +3367,16 @@ var algorithm;
         Parsed.prototype.create_struct_parse = function (segments) {
             return new StructParse(FactoryMatrixObjectives.create_matrix_objectives(this, segments));
         };
-        Parsed.prototype.determine_region_present = function (notes_target_next) {
+        Parsed.prototype.determine_region_present = function (notes_target_next, segment_current) {
+            // return [
+            //     notes_target_next[0].model.note.beat_start,
+            //     notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+            // ]
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(segment_current));
             return [
-                notes_target_next[0].model.note.beat_start,
-                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+                segment_current.beat_start,
+                segment_current.beat_end
             ];
         };
         Parsed.prototype.finish_parse = function (struct_parse, segments) {
@@ -3355,10 +3395,14 @@ var algorithm;
         Parsed.prototype.postprocess_user_input = function (notes_user_input, subtarget_current) {
             return notes_user_input;
         };
-        Parsed.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
-            Parsed.stream_segment_bounds(messenger);
+        Parsed.prototype.stream_bounds = function (messenger, subtarget_current, segment_current, segments) {
+            Parsed.stream_segment_bounds(messenger, subtarget_current, segment_current, segments);
         };
-        Parsed.stream_segment_bounds = function (messenger) {
+        Parsed.stream_segment_bounds = function (messenger, subtarget_current, segment_current, segments) {
+            // route offset_beats_current_segment duration_beats_current_segment duration_training_data
+            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
+            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
+            messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
             messenger.message(['bounds', 0, 1], true);
         };
         Parsed.prototype.terminate = function (struct_train, segments) {
@@ -3374,6 +3418,11 @@ var algorithm;
         };
         Parsed.prototype.create_struct_train = function (window, segments, track_target, user_input_handler, struct_train) {
             return this.create_struct_parse(segments);
+        };
+        Parsed.prototype.advance_scene = function (scene_current, song) {
+            song.set_overdub(1);
+            song.set_session_record(1);
+            scene_current.fire(true);
         };
         return Parsed;
     }());
@@ -3599,7 +3648,6 @@ var algorithm;
         };
         Derive.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             track_target.mute();
-            return;
         };
         Derive.prototype.preprocess_struct_parse = function (struct_parse, segments) {
             // add the root to the tree immediately
@@ -3945,8 +3993,8 @@ var trainer;
             // this.struct_parse = this.trainable.create_struct_parse(
             //     this.segments
             // );
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(this.segments));
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(this.segments));
             this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
         }
         Trainer.prototype.clear_window = function () {
@@ -3955,7 +4003,7 @@ var trainer;
         Trainer.prototype.render_window = function () {
             this.window.render(this.iterator_matrix_train, this.trainable, 
             // this.target_current,
-            this.struct_train);
+            this.struct_train, this.segment_current);
         };
         Trainer.prototype.unpause = function () {
             this.trainable.unpause(this.song, this.segment_current.scene);
@@ -3976,6 +4024,7 @@ var trainer;
         };
         Trainer.prototype.commence = function () {
             this.advance();
+            // this.render_window();
         };
         Trainer.prototype.advance_segment = function () {
             var obj_next_coord = this.iterator_matrix_train.next();
@@ -4030,19 +4079,19 @@ var trainer;
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
                 logger.log(JSON.stringify(this.subtarget_current));
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
-                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
+                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
-            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
+            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
         };
         Trainer.prototype.next_segment = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             this.segment_current.scene.set_path_deferlow('scene');
-            this.segment_current.scene.fire(true);
+            this.trainable.advance_scene(this.segment_current.scene, this.song);
             this.clip_user_input = this.segment_current.clip_user_input;
             this.clip_user_input.set_path_deferlow('clip_user_input');
-            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
+            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;

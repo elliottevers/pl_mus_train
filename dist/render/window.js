@@ -153,11 +153,10 @@ var window;
         function MatrixWindow(height, width, messenger) {
             return _super.call(this, height, width, messenger) || this;
         }
-        MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train
+        MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train, 
         // target_current: Target, // only for detect/predict
         // struct_parse: StructParse, // only for parse/derive
-        // segment_current: Segment
-        ) {
+        segment_current) {
             this.clear();
             // TODO: compensate for this logic
             // if (this.algorithm.b_targeted()) {
@@ -169,7 +168,7 @@ var window;
             //     target_current,
             //     segment_current
             // );
-            this.render_regions(iterator_matrix_train, trainable, struct_train
+            this.render_regions(iterator_matrix_train, trainable, struct_train, segment_current
             // target_current,
             // struct_parse
             );
@@ -303,7 +302,7 @@ var window;
         MatrixWindow.prototype.render_regions = function (iterator_matrix_train, trainable, 
         // target_current: Target,
         // struct_parse: StructParse
-        struct_train) {
+        struct_train, segment_current) {
             // let notes;
             var coord_current = iterator_matrix_train.get_coord_current();
             var interval_current;
@@ -313,7 +312,7 @@ var window;
                 var note_2 = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
                 // iterator_subtarget.subtargets.
                 // let notes_target_current = target_current.get_notes();
-                interval_current = trainable.determine_region_present([note_2]);
+                interval_current = trainable.determine_region_present([note_2], segment_current);
             }
             else {
                 var struct_parse = struct_train;
@@ -327,7 +326,7 @@ var window;
                     // coord = iterator_matrix_train.get_coord_current();
                     var coord_segment = [0, coord_current[1]];
                     // let notes = struct_parse.get_notes_at_coord(coord_segment);
-                    interval_current = trainable.determine_region_present(struct_parse.get_notes_at_coord(coord_segment));
+                    interval_current = trainable.determine_region_present(struct_parse.get_notes_at_coord(coord_segment), segment_current);
                 }
             }
             var quadruplet_region_past = this.get_message_render_region_past(interval_current);

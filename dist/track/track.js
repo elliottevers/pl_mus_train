@@ -75,6 +75,9 @@ var track;
         Track.prototype.unmute = function () {
             this.track_dao.mute(false);
         };
+        Track.prototype.set_path_deferlow = function (key_route) {
+            this.track_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
+        };
         // public load_clips(): void {
         //     //
         //     let id_pairs: string[][] = this.get_clip_slots();
@@ -217,12 +220,33 @@ var track;
                 return new ClipSlot(new ClipSlotDao(new LiveApiJs(list_id_clip_slot.join(' ')), new Messenger('max', 0)));
             });
         };
+        // TODO: use deferlow
         TrackDao.prototype.mute = function (val) {
-            if (val) {
-                this.live_api.call('mute', '1');
+            if (this.deferlow) {
+                if (val) {
+                    this.messenger.message([
+                        this.key_route,
+                        "set",
+                        "solo",
+                        "0"
+                    ]);
+                }
+                else {
+                    this.messenger.message([
+                        this.key_route,
+                        "set",
+                        "solo",
+                        "1"
+                    ]);
+                }
             }
             else {
-                this.live_api.call('mute', '0');
+                if (val) {
+                    this.live_api.set('solo', '0');
+                }
+                else {
+                    this.live_api.set('solo', '1');
+                }
             }
         };
         TrackDao.prototype.get_path = function () {

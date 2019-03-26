@@ -139,8 +139,8 @@ export namespace clip_slot {
         }
 
         get_clip(): Clip {
-            let logger = new Logger('max');
-            logger.log(utils.cleanse_id(this.live_api.get('clip')));
+            // let logger = new Logger('max');
+            // logger.log(utils.cleanse_id(this.live_api.get('clip')));
             return new Clip(
                 new ClipDao(
                     new LiveApiJs(

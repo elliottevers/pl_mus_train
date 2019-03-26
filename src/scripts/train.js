@@ -192,6 +192,7 @@ var set_track_target = function () {
     var logger = new Logger(env);
     // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_device_target)));
     track_target = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(path_device_target)), new Messenger(env, 0), true, 'track_target'));
+    track_target.set_path_deferlow('track_target');
     track_target.load_clips();
     // logger.log(JSON.stringify(track_target.get_notes()));
     messenger_monitor_target.message([track_target.get_index()]);
@@ -256,19 +257,21 @@ var user_input_command = function (command) {
         case DERIVE: {
             switch (command) {
                 case 'confirm': {
-                    var notes = trainer.clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var notes = trainer.clip_user_input.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     trainer.accept_input(notes);
                     break;
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
                     var notes = trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]);
+                    var logger_2 = new Logger('max');
+                    logger_2.log(JSON.stringify(notes));
                     trainer.clip_user_input.set_notes(notes);
                     break;
                 }
                 case 'erase': {
-                    var logger_2 = new Logger(env);
-                    logger_2.log(JSON.stringify(trainer.segment_current));
+                    var logger_3 = new Logger(env);
+                    logger_3.log(JSON.stringify(trainer.segment_current));
                     trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     break;
                 }

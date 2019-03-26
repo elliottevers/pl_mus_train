@@ -145,7 +145,12 @@ var song;
             // }
         };
         SongDao.prototype.set_overdub = function (int) {
-            this.song_live.set("overdub", int);
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "overdub", String(int)]);
+            }
+            else {
+                this.song_live.set("overdub", int);
+            }
         };
         SongDao.prototype.set_tempo = function (int) {
             this.song_live.set("tempo", int);

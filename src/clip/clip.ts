@@ -8,7 +8,6 @@ import {utils} from "../utils/utils";
 export namespace clip {
 
     import Messenger = message.Messenger;
-    import Logger = log.Logger;
 
     export class Clip {
 
@@ -16,11 +15,8 @@ export namespace clip {
 
         private notes: TreeModel.Node<n.Note>[];
 
-        private logger: Logger;
-
         constructor(clip_dao) {
             this.clip_dao = clip_dao;
-            this.logger = new Logger('max')
         }
 
         public static from_path(path, messenger): Clip {

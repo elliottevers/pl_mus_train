@@ -197,10 +197,10 @@ export namespace window {
         public render(
             iterator_matrix_train: MatrixIterator,
             trainable: Trainable,
-            struct_train: StructTrain
+            struct_train: StructTrain,
             // target_current: Target, // only for detect/predict
             // struct_parse: StructParse, // only for parse/derive
-            // segment_current: Segment
+            segment_current: Segment
         ) {
 
             this.clear();
@@ -219,7 +219,8 @@ export namespace window {
             this.render_regions(
                 iterator_matrix_train,
                 trainable,
-                struct_train
+                struct_train,
+                segment_current
                 // target_current,
                 // struct_parse
             );
@@ -404,7 +405,8 @@ export namespace window {
             trainable: Trainable,
             // target_current: Target,
             // struct_parse: StructParse
-            struct_train: StructTrain
+            struct_train: StructTrain,
+            segment_current: Segment
         ) {
 
             // let notes;
@@ -425,7 +427,8 @@ export namespace window {
                 // let notes_target_current = target_current.get_notes();
 
                 interval_current = trainable.determine_region_present(
-                    [note]
+                    [note],
+                    segment_current
                 );
 
             } else {
@@ -445,7 +448,8 @@ export namespace window {
                     // let notes = struct_parse.get_notes_at_coord(coord_segment);
 
                     interval_current = trainable.determine_region_present(
-                        struct_parse.get_notes_at_coord(coord_segment)
+                        struct_parse.get_notes_at_coord(coord_segment),
+                        segment_current
                     );
                 }
 

@@ -53,7 +53,7 @@ var algorithm;
         Targeted.prototype.coord_to_index_clip = function (coord) {
             return 0;
         };
-        Targeted.prototype.determine_region_present = function (notes_target_next) {
+        Targeted.prototype.determine_region_present = function (notes_target_next, segment_current) {
             return [
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[0].model.note.get_beat_end()
@@ -101,13 +101,13 @@ var algorithm;
             }
             return matrix_targets;
         };
-        Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current) {
-            var ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0]) / (segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            var ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0]) / (segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
-            messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true);
+        Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current, segments) {
+            // let ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
+            // let ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
+            // messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true)
         };
-        Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
-            Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current);
+        Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current, segments) {
+            Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current, segments);
         };
         Targeted.prototype.update_struct = function (notes_input_user, struct_train, trainable, iterator_matrix_train) {
             return struct_train;
@@ -117,6 +117,9 @@ var algorithm;
             return this.create_matrix_targets(user_input_handler, segments, notes_target_track);
         };
         Targeted.prototype.set_depth = function () {
+        };
+        Targeted.prototype.advance_scene = function (scene_current, song) {
+            scene_current.fire(true);
         };
         return Targeted;
     }());
@@ -152,10 +155,16 @@ var algorithm;
         Parsed.prototype.create_struct_parse = function (segments) {
             return new StructParse(FactoryMatrixObjectives.create_matrix_objectives(this, segments));
         };
-        Parsed.prototype.determine_region_present = function (notes_target_next) {
+        Parsed.prototype.determine_region_present = function (notes_target_next, segment_current) {
+            // return [
+            //     notes_target_next[0].model.note.beat_start,
+            //     notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+            // ]
+            // let logger = new Logger('max');
+            // logger.log(JSON.stringify(segment_current));
             return [
-                notes_target_next[0].model.note.beat_start,
-                notes_target_next[notes_target_next.length - 1].model.note.get_beat_end()
+                segment_current.beat_start,
+                segment_current.beat_end
             ];
         };
         Parsed.prototype.finish_parse = function (struct_parse, segments) {
@@ -174,10 +183,14 @@ var algorithm;
         Parsed.prototype.postprocess_user_input = function (notes_user_input, subtarget_current) {
             return notes_user_input;
         };
-        Parsed.prototype.stream_bounds = function (messenger, subtarget_current, segment_current) {
-            Parsed.stream_segment_bounds(messenger);
+        Parsed.prototype.stream_bounds = function (messenger, subtarget_current, segment_current, segments) {
+            Parsed.stream_segment_bounds(messenger, subtarget_current, segment_current, segments);
         };
-        Parsed.stream_segment_bounds = function (messenger) {
+        Parsed.stream_segment_bounds = function (messenger, subtarget_current, segment_current, segments) {
+            // route offset_beats_current_segment duration_beats_current_segment duration_training_data
+            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
+            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
+            messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
             messenger.message(['bounds', 0, 1], true);
         };
         Parsed.prototype.terminate = function (struct_train, segments) {
@@ -193,6 +206,11 @@ var algorithm;
         };
         Parsed.prototype.create_struct_train = function (window, segments, track_target, user_input_handler, struct_train) {
             return this.create_struct_parse(segments);
+        };
+        Parsed.prototype.advance_scene = function (scene_current, song) {
+            song.set_overdub(1);
+            song.set_session_record(1);
+            scene_current.fire(true);
         };
         return Parsed;
     }());
@@ -418,7 +436,6 @@ var algorithm;
         };
         Derive.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             track_target.mute();
-            return;
         };
         Derive.prototype.preprocess_struct_parse = function (struct_parse, segments) {
             // add the root to the tree immediately

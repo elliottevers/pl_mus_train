@@ -106,6 +106,13 @@ export namespace track {
             this.track_dao.mute(false);
         }
 
+        set_path_deferlow(key_route): void {
+            this.track_dao.set_path_deferlow(
+                'set_path_' + key_route,
+                this.get_path()
+            )
+        }
+
         // public load_clips(): void {
         //     //
         //     let id_pairs: string[][] = this.get_clip_slots();
@@ -308,11 +315,34 @@ export namespace track {
             });
         }
 
+        // TODO: use deferlow
         mute(val: boolean) {
-            if (val) {
-                this.live_api.call('mute', '1')
+            if (this.deferlow) {
+                if (val) {
+                    this.messenger.message(
+                        [
+                            this.key_route,
+                            "set",
+                            "solo",
+                            "0"
+                        ]
+                    );
+                } else {
+                    this.messenger.message(
+                        [
+                            this.key_route,
+                            "set",
+                            "solo",
+                            "1"
+                        ]
+                    );
+                }
             } else {
-                this.live_api.call('mute', '0')
+                if (val) {
+                    this.live_api.set('solo', '0')
+                } else {
+                    this.live_api.set('solo', '1')
+                }
             }
         }
 
