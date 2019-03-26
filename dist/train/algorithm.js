@@ -105,6 +105,15 @@ var algorithm;
             // let ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
             // let ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
             // messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true)
+            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
+            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
+            messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
+            var length_segment = segment_current.get_note().model.note.get_beat_end() - segment_current.get_note().model.note.beat_start;
+            messenger.message([
+                'bounds',
+                subtarget_current.note.model.note.beat_start / length_segment,
+                subtarget_current.note.model.note.get_beat_end() / length_segment
+            ], true);
         };
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current, segments) {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current, segments);

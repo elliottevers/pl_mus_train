@@ -121,7 +121,7 @@ var trainer;
             this.next_segment();
         };
         Trainer.prototype.advance_subtarget = function () {
-            var logger = new Logger('node');
+            var logger = new Logger('max');
             var matrix_targets = this.struct_train;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {

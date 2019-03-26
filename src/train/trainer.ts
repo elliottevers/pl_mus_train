@@ -273,7 +273,7 @@ export namespace trainer {
 
         private advance_subtarget() {
 
-            let logger = new Logger('node');
+            let logger = new Logger('max');
 
             let matrix_targets = this.struct_train as StructTargets;
 

@@ -2971,43 +2971,6 @@ var track;
     var ClipSlotDao = clip_slot_1.clip_slot.ClipSlotDao;
     var ClipDao = clip_1.clip.ClipDao;
     var ClipSlotDaoVirtual = clip_slot_1.clip_slot.ClipSlotDaoVirtual;
-    // export let get_notes_on_track = (path_track) => {
-    //     let index_track = Number(path_track.split(' ')[2]);
-    //
-    //     let track = new Track(
-    //         new TrackDao(
-    //             new li.LiveApiJs(path_track)
-    //         )
-    //     );
-    //
-    //     let num_clip_slots = track.get_num_clip_slots();
-    //
-    //     let notes_amassed = [];
-    //
-    //     for (let i_clipslot of _.range(0, num_clip_slots)) {
-    //         let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
-    //
-    //         let clip = new Clip(
-    //             new ClipDao(
-    //                 new li.LiveApiJs(
-    //                     path_clipslot.split(' ').concat(['clip']).join(' ')
-    //                 ),
-    //                 new Messenger('max', 0)
-    //             )
-    //         );
-    //
-    //         notes_amassed = notes_amassed.concat(
-    //             clip.get_notes(
-    //                 clip.get_loop_bracket_lower(),
-    //                 0,
-    //                 clip.get_loop_bracket_upper(),
-    //                 128
-    //             )
-    //         );
-    //     }
-    //
-    //     return notes_amassed
-    // };
     var Track = /** @class */ (function () {
         function Track(track_dao) {
             this.clip_slots = [];
@@ -3034,35 +2997,11 @@ var track;
         Track.prototype.set_path_deferlow = function (key_route) {
             this.track_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
         };
-        // public load_clips(): void {
-        //     //
-        //     let id_pairs: string[][] = this.get_clip_slots();
-        //     for (let id_pair of id_pairs) {
-        //         let clip_slot = new ClipSlot(
-        //             new ClipSlotDao(
-        //                 new LiveApiJs(
-        //                     id_pair.join(' ')
-        //                 ),
-        //                 this.track_dao.messenger
-        //             )
-        //         );
-        //
-        //         if (clip_slot.b_has_clip()) {
-        //             this.clip
-        //         }
-        //     }
-        // }
         Track.prototype.load_clips = function () {
             this.load_clip_slots();
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.clip_slots))
             for (var _i = 0, _a = this.clip_slots; _i < _a.length; _i++) {
                 var clip_slot_2 = _a[_i];
                 clip_slot_2.load_clip();
-                // clip_slot.load_clip()
-                // if (clip_slot.b_has_clip()) {
-                //     logger.log(JSON.stringify(clip_slot.get_clip().get_notes_within_markers()))
-                // }
             }
         };
         Track.prototype.delete_clips = function () {
@@ -3115,9 +3054,6 @@ var track;
         }
         TrackDaoVirtual.prototype.mute = function () {
         };
-        // get_num_clip_slots(): number {
-        //     return this.num_clip_slots;
-        // }
         TrackDaoVirtual.prototype.get_notes = function () {
             var notes_amassed = [];
             for (var _i = 0, _a = this.clips; _i < _a.length; _i++) {
@@ -3321,6 +3257,15 @@ var algorithm;
             // let ratio_bound_lower = (subtarget_current.note.model.note.beat_start - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
             // let ratio_bound_upper = (subtarget_current.note.model.note.get_beat_end() - segment_current.get_endpoints_loop()[0])/(segment_current.get_endpoints_loop()[1] - segment_current.get_endpoints_loop()[0]);
             // messenger.message(['bounds', ratio_bound_lower, ratio_bound_upper], true)
+            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
+            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
+            messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
+            var length_segment = segment_current.get_note().model.note.get_beat_end() - segment_current.get_note().model.note.beat_start;
+            messenger.message([
+                'bounds',
+                subtarget_current.note.model.note.beat_start / length_segment,
+                subtarget_current.note.model.note.get_beat_end() / length_segment
+            ], true);
         };
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current, segments) {
             Targeted.stream_subtarget_bounds(messenger, subtarget_current, segment_current, segments);
@@ -4051,7 +3996,7 @@ var trainer;
             this.next_segment();
         };
         Trainer.prototype.advance_subtarget = function () {
-            var logger = new Logger('node');
+            var logger = new Logger('max');
             var matrix_targets = this.struct_train;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {

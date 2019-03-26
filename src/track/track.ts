@@ -20,44 +20,6 @@ export namespace track {
     import ClipSlotDaoVirtual = clip_slot.ClipSlotDaoVirtual;
     import iLiveApiJs = live.iLiveApiJs;
 
-    // export let get_notes_on_track = (path_track) => {
-    //     let index_track = Number(path_track.split(' ')[2]);
-    //
-    //     let track = new Track(
-    //         new TrackDao(
-    //             new li.LiveApiJs(path_track)
-    //         )
-    //     );
-    //
-    //     let num_clip_slots = track.get_num_clip_slots();
-    //
-    //     let notes_amassed = [];
-    //
-    //     for (let i_clipslot of _.range(0, num_clip_slots)) {
-    //         let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
-    //
-    //         let clip = new Clip(
-    //             new ClipDao(
-    //                 new li.LiveApiJs(
-    //                     path_clipslot.split(' ').concat(['clip']).join(' ')
-    //                 ),
-    //                 new Messenger('max', 0)
-    //             )
-    //         );
-    //
-    //         notes_amassed = notes_amassed.concat(
-    //             clip.get_notes(
-    //                 clip.get_loop_bracket_lower(),
-    //                 0,
-    //                 clip.get_loop_bracket_upper(),
-    //                 128
-    //             )
-    //         );
-    //     }
-    //
-    //     return notes_amassed
-    // };
-
     export class Track {
 
         public track_dao;
@@ -113,37 +75,11 @@ export namespace track {
             )
         }
 
-        // public load_clips(): void {
-        //     //
-        //     let id_pairs: string[][] = this.get_clip_slots();
-        //     for (let id_pair of id_pairs) {
-        //         let clip_slot = new ClipSlot(
-        //             new ClipSlotDao(
-        //                 new LiveApiJs(
-        //                     id_pair.join(' ')
-        //                 ),
-        //                 this.track_dao.messenger
-        //             )
-        //         );
-        //
-        //         if (clip_slot.b_has_clip()) {
-        //             this.clip
-        //         }
-        //     }
-        // }
-
         public load_clips() {
             this.load_clip_slots();
 
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.clip_slots))
-
             for (let clip_slot of this.clip_slots) {
                 clip_slot.load_clip();
-                // clip_slot.load_clip()
-                // if (clip_slot.b_has_clip()) {
-                //     logger.log(JSON.stringify(clip_slot.get_clip().get_notes_within_markers()))
-                // }
             }
         }
 
@@ -215,10 +151,6 @@ export namespace track {
         mute() {
 
         }
-
-        // get_num_clip_slots(): number {
-        //     return this.num_clip_slots;
-        // }
 
         get_notes(): TreeModel.Node<Note>[] {
             let notes_amassed = [];
