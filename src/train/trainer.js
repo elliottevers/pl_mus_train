@@ -10,7 +10,8 @@ var trainer;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
     var Logger = logger_1.log.Logger;
     var Trainer = /** @class */ (function () {
-        function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, segments, messenger) {
+        function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, segments, messenger, virtualized) {
+            this.virtualized = false;
             this.window = window;
             this.trainable = trainable;
             this.track_target = track_target;
@@ -19,6 +20,9 @@ var trainer;
             this.user_input_handler = user_input_handler;
             this.segments = segments;
             this.messenger = messenger;
+            this.virtualized = virtualized;
+            var logger = new Logger('max');
+            logger.log(JSON.stringify(this.segments));
             this.notes_target_track = track_target.get_notes();
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_objectives(this.trainable, this.segments));
@@ -31,18 +35,24 @@ var trainer;
             this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
         }
         Trainer.prototype.clear_window = function () {
-            this.window.clear();
+            if (!this.virtualized) {
+                this.window.clear();
+            }
         };
         Trainer.prototype.render_window = function () {
-            this.window.render(this.iterator_matrix_train, this.trainable, 
-            // this.target_current,
-            this.struct_train, this.segment_current);
+            if (!this.virtualized) {
+                this.window.render(this.iterator_matrix_train, this.trainable, this.struct_train, this.segment_current);
+            }
         };
         Trainer.prototype.unpause = function () {
-            this.trainable.unpause(this.song, this.segment_current.scene);
+            if (!this.virtualized) {
+                this.trainable.unpause(this.song, this.segment_current.scene);
+            }
         };
         Trainer.prototype.pause = function () {
-            this.trainable.pause(this.song, this.segment_current.scene);
+            if (!this.virtualized) {
+                this.trainable.pause(this.song, this.segment_current.scene);
+            }
         };
         Trainer.prototype.advance = function () {
             if (this.trainable.b_parsed) {
@@ -57,13 +67,17 @@ var trainer;
         };
         Trainer.prototype.commence = function () {
             this.advance();
-            // this.render_window();
+        };
+        Trainer.prototype.shut_down = function () {
+            if (!this.virtualized) {
+                this.trainable.terminate(this.struct_train, this.segments);
+                this.trainable.pause(this.song, this.segment_current.scene);
+            }
         };
         Trainer.prototype.advance_segment = function () {
             var obj_next_coord = this.iterator_matrix_train.next();
             if (obj_next_coord.done) {
-                this.trainable.terminate(this.struct_train, this.segments);
-                this.trainable.pause(this.song, this.segment_current.scene);
+                this.shut_down();
                 return;
             }
             this.next_segment();
@@ -91,8 +105,7 @@ var trainer;
                 if (obj_next_target.done) {
                     var obj_next_coord = this.iterator_matrix_train.next();
                     if (obj_next_coord.done) {
-                        this.trainable.terminate(this.struct_train, this.segments);
-                        this.trainable.pause(this.song, this.segment_current.scene);
+                        this.shut_down();
                         return;
                     }
                     var coord_next = obj_next_coord.value;
@@ -112,19 +125,29 @@ var trainer;
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
                 logger.log(JSON.stringify(this.subtarget_current));
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
-                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
+                this.stream_bounds();
                 return;
             }
             this.subtarget_current = obj_next_subtarget.value;
-            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
+            this.stream_bounds();
+        };
+        Trainer.prototype.stream_bounds = function () {
+            if (!this.virtualized) {
+                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
+            }
+        };
+        Trainer.prototype.advance_scene = function () {
+            if (!this.virtualized) {
+                this.trainable.advance_scene(this.segment_current.scene, this.song);
+                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
+            }
         };
         Trainer.prototype.next_segment = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             this.segment_current.scene.set_path_deferlow('scene');
-            this.trainable.advance_scene(this.segment_current.scene, this.song);
             this.clip_user_input = this.segment_current.clip_user_input;
             this.clip_user_input.set_path_deferlow('clip_user_input');
-            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
+            this.advance_scene();
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;

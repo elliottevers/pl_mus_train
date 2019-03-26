@@ -22,26 +22,46 @@ var thaw;
         function TrainThawer(env) {
             this.env = env;
         }
+        TrainThawer.prototype.thaw_notes = function (filepath, env) {
+            var matrix_deserialized = from_json(filepath, env);
+            var notes = [];
+            // TODO: this is only valid for forward iteration
+            for (var _i = 0, matrix_deserialized_1 = matrix_deserialized; _i < matrix_deserialized_1.length; _i++) {
+                var row = matrix_deserialized_1[_i];
+                for (var _a = 0, row_1 = row; _a < row_1.length; _a++) {
+                    var col = row_1[_a];
+                    if (col === null) {
+                        continue;
+                    }
+                    for (var _b = 0, col_1 = col; _b < col_1.length; _b++) {
+                        var note_serialized = col_1[_b];
+                        notes.push(deserialize_note(note_serialized));
+                    }
+                }
+            }
+            // let notes_parsed = notes;
+            return notes;
+        };
         TrainThawer.prototype.thaw = function (filepath, config) {
             var trainer;
             var matrix_deserialized = from_json(filepath, config['env']);
             var logger = new Logger(config['env']);
             logger.log(JSON.stringify(matrix_deserialized));
-            trainer = new Trainer(config['window'], config['user_input_handler'], config['trainable'], config['track_target'], config['track_user_input'], config['song'], config['segments'], config['messenger']);
+            trainer = new Trainer(config['window'], config['user_input_handler'], config['trainable'], config['track_target'], config['track_user_input'], config['song'], config['segments'], config['messenger'], true);
             trainer.advance();
             switch (config['trainable'].get_name()) {
                 case DETECT: {
                     var notes = [];
                     // TODO: this is only valid for forward iteration
-                    for (var _i = 0, matrix_deserialized_1 = matrix_deserialized; _i < matrix_deserialized_1.length; _i++) {
-                        var row = matrix_deserialized_1[_i];
-                        for (var _a = 0, row_1 = row; _a < row_1.length; _a++) {
-                            var col = row_1[_a];
+                    for (var _i = 0, matrix_deserialized_2 = matrix_deserialized; _i < matrix_deserialized_2.length; _i++) {
+                        var row = matrix_deserialized_2[_i];
+                        for (var _a = 0, row_2 = row; _a < row_2.length; _a++) {
+                            var col = row_2[_a];
                             if (col === null) {
                                 continue;
                             }
-                            for (var _b = 0, col_1 = col; _b < col_1.length; _b++) {
-                                var note_serialized = col_1[_b];
+                            for (var _b = 0, col_2 = col; _b < col_2.length; _b++) {
+                                var note_serialized = col_2[_b];
                                 notes.push(deserialize_note(note_serialized));
                             }
                         }
@@ -92,6 +112,7 @@ var thaw;
                     break;
                 }
             }
+            trainer.virtualized = false;
             return trainer;
         };
         return TrainThawer;

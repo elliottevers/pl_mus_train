@@ -1,7 +1,6 @@
 export namespace file {
 
     export let to_json = (string_json, filename: string, env: string) => {
-        // console.log(env);
         switch (env) {
             case 'node_for_max': {
                 console.log('writing json');

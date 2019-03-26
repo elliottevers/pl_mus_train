@@ -206,16 +206,9 @@ var set_track_user_input = function () {
 var initialize = function () {
     set_segments();
     set_track_user_input();
-    // let logger = new Logger(env);
-    // logger.log(JSON.stringify(segments_train));
     song = new Song(new SongDao(new LiveApiJs('live_set'), new Messenger(env, 0), true, 'song'));
     user_input_handler = new UserInputHandler(mode_texture, mode_control);
-    // logger.log(JSON.stringify(segments_train))
-    //
-    // return
     trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render);
-    logger.log('trainer initialized');
-    // trainer.render_window();
 };
 var commence = function () {
     trainer.commence();
@@ -343,8 +336,18 @@ var load_session = function () {
     //     'env': env
     // };
     var thawer = new TrainThawer(env);
-    var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', config);
-    train_thawed.render_window();
+    var notes_thawed = thawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', env);
+    logger.log('loaded thawed notes');
+    logger.log(JSON.stringify(notes_thawed));
+    commence();
+    for (var _i = 0, notes_thawed_1 = notes_thawed; _i < notes_thawed_1.length; _i++) {
+        var note_4 = notes_thawed_1[_i];
+        trainer.accept_input([note_4]);
+    }
+    trainer.virtualized = false;
+    // train_thawed.render_window(
+    //
+    // );
 };
 if (typeof Global !== "undefined") {
     Global.train = {};

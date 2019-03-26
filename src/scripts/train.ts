@@ -327,9 +327,6 @@ let initialize = () => {
 
     set_track_user_input();
 
-    // let logger = new Logger(env);
-    // logger.log(JSON.stringify(segments_train));
-
     song = new Song(
         new SongDao(
             new LiveApiJs(
@@ -346,10 +343,6 @@ let initialize = () => {
         mode_control
     );
 
-    // logger.log(JSON.stringify(segments_train))
-    //
-    // return
-
     trainer = new Trainer(
         window,
         user_input_handler,
@@ -360,10 +353,6 @@ let initialize = () => {
         segments_train,
         messenger_render
     );
-
-    logger.log('trainer initialized')
-
-    // trainer.render_window();
 };
 
 let commence = () => {
@@ -584,14 +573,25 @@ let load_session = () => {
         env
     );
 
-    let train_thawed = thawer.thaw(
+    let notes_thawed = thawer.thaw_notes(
         '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
-        config
+        env
     );
 
-    train_thawed.render_window(
+    logger.log('loaded thawed notes');
 
-    );
+    logger.log(JSON.stringify(notes_thawed));
+
+    commence();
+
+    for (let note of notes_thawed) {
+        trainer.accept_input([note])
+    }
+
+    trainer.virtualized = false;
+    // train_thawed.render_window(
+    //
+    // );
 };
 
 if (typeof Global !== "undefined") {

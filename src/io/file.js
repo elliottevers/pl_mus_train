@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var file;
 (function (file) {
     file.to_json = function (string_json, filename, env) {
-        // console.log(env);
         switch (env) {
             case 'node_for_max': {
                 console.log('writing json');

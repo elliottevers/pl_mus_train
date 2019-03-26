@@ -24,6 +24,27 @@ export namespace thaw {
             this.env = env;
         }
 
+        public thaw_notes(filepath: string, env: string): TreeModel.Node<Note>[] {
+            let matrix_deserialized = from_json(filepath, env);
+
+            let notes = [];
+            // TODO: this is only valid for forward iteration
+            for (let row of matrix_deserialized) {
+                for (let col of row) {
+                    if (col === null) {
+                        continue;
+                    }
+                    for (let note_serialized of col) {
+                        notes.push(deserialize_note(note_serialized))
+                    }
+                }
+            }
+
+            // let notes_parsed = notes;
+
+            return notes
+        }
+
         public thaw(filepath: string, config): Trainer {
 
             let trainer;
@@ -42,7 +63,8 @@ export namespace thaw {
                 config['track_user_input'],
                 config['song'],
                 config['segments'],
-                config['messenger']
+                config['messenger'],
+                true
             );
 
             trainer.advance(
@@ -140,6 +162,7 @@ export namespace thaw {
                 }
             }
 
+            trainer.virtualized = false;
 
             return trainer;
         }

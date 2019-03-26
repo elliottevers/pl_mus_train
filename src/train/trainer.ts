@@ -70,6 +70,8 @@ export namespace trainer {
 
         private user_input_handler: UserInputHandler;
 
+        public virtualized: boolean = false;
+
         constructor(
             window: MatrixWindow,
             user_input_handler: UserInputHandler,
@@ -78,19 +80,22 @@ export namespace trainer {
             track_user_input: Track,
             song: Song,
             segments: Segment[],
-            messenger: Messenger
+            messenger: Messenger,
+            virtualized?: boolean
         ) {
             this.window = window;
             this.trainable = trainable;
             this.track_target = track_target;
             this.track_user_input = track_user_input;
             this.song = song;
-
             this.user_input_handler = user_input_handler;
-
             this.segments = segments;
-
             this.messenger = messenger;
+            this.virtualized = virtualized;
+
+            let logger = new Logger('max');
+
+            logger.log(JSON.stringify(this.segments));
 
             this.notes_target_track = track_target.get_notes();
 
@@ -149,25 +154,32 @@ export namespace trainer {
         }
 
         public clear_window() {
-            this.window.clear()
+            if (!this.virtualized) {
+                this.window.clear()
+            }
         }
 
         public render_window() {
-            this.window.render(
-                this.iterator_matrix_train,
-                this.trainable,
-                // this.target_current,
-                this.struct_train,
-                this.segment_current
-            )
+            if (!this.virtualized) {
+                this.window.render(
+                    this.iterator_matrix_train,
+                    this.trainable,
+                    this.struct_train,
+                    this.segment_current
+                )
+            }
         }
 
         public unpause() {
-            this.trainable.unpause(this.song, this.segment_current.scene)
+            if (!this.virtualized) {
+                this.trainable.unpause(this.song, this.segment_current.scene)
+            }
         }
 
         public pause() {
-            this.trainable.pause(this.song, this.segment_current.scene)
+            if (!this.virtualized) {
+                this.trainable.pause(this.song, this.segment_current.scene)
+            }
         }
 
         private advance() {
@@ -182,7 +194,14 @@ export namespace trainer {
 
         public commence() {
             this.advance();
-            // this.render_window();
+        }
+
+        private shut_down() {
+            if (!this.virtualized) {
+                this.trainable.terminate(this.struct_train, this.segments);
+
+                this.trainable.pause(this.song, this.segment_current.scene);
+            }
         }
 
         private advance_segment() {
@@ -191,9 +210,7 @@ export namespace trainer {
 
             if (obj_next_coord.done) {
 
-                this.trainable.terminate(this.struct_train, this.segments);
-
-                this.trainable.pause(this.song, this.segment_current.scene);
+                this.shut_down();
 
                 return
             }
@@ -245,9 +262,7 @@ export namespace trainer {
 
                     if (obj_next_coord.done) {
 
-                        this.trainable.terminate(this.struct_train, this.segments);
-
-                        this.trainable.pause(this.song, this.segment_current.scene);
+                        this.shut_down();
 
                         return
                     }
@@ -285,14 +300,37 @@ export namespace trainer {
 
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
-                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
+                this.stream_bounds();
 
                 return
             }
 
             this.subtarget_current = obj_next_subtarget.value;
 
-            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
+            this.stream_bounds();
+        }
+
+        private stream_bounds() {
+            if (!this.virtualized) {
+                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
+            }
+        }
+
+        private advance_scene() {
+            if (!this.virtualized) {
+
+                this.trainable.advance_scene(
+                    this.segment_current.scene,
+                    this.song
+                );
+
+                this.trainable.stream_bounds(
+                    this.messenger,
+                    this.subtarget_current,
+                    this.segment_current,
+                    this.segments
+                )
+            }
         }
 
         next_segment() {
@@ -300,16 +338,11 @@ export namespace trainer {
 
             this.segment_current.scene.set_path_deferlow('scene');
 
-            this.trainable.advance_scene(
-                this.segment_current.scene,
-                this.song
-            );
-
             this.clip_user_input = this.segment_current.clip_user_input;
 
             this.clip_user_input.set_path_deferlow('clip_user_input');
 
-            this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments)
+            this.advance_scene()
         }
 
         accept_input(notes_input_user: TreeModel.Node<n.Note>[]) {
