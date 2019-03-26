@@ -149,13 +149,15 @@ track_target.load_clips();
 track_user_input.load_clips();
 var segments = Segment.from_notes(track_user_input.get_notes());
 // assign scenes to segments
-for (var _i = 0, segments_1 = segments; _i < segments_1.length; _i++) {
-    var segment_2 = segments_1[_i];
+for (var i_segment in segments) {
+    var segment_2 = segments[Number(i_segment)];
     segment_2.set_scene(new Scene(new SceneDaoVirtual()));
+    segment_2.set_clip_user_input(clips_user_input[Number(i_segment)]);
 }
 var trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, track_target, track_user_input, song, segments, messenger);
 // test case - 2 segments, 2 notes a piece
 trainer_local.commence();
+trainer_local.render_window();
 trainer_local.accept_input([note_3_1, note_3_2]);
 trainer_local.accept_input([note_3_3, note_3_4]);
 trainer_local.accept_input([note_3_5, note_3_6]);

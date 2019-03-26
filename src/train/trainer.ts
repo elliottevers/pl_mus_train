@@ -164,6 +164,11 @@ export namespace trainer {
                 this.notes_target_track
             );
 
+            this.history_user_input = this.trainable.preprocess_history_user_input(
+                this.history_user_input,
+                this.segments
+            );
+
             this.struct_train = this.trainable.create_struct_train(
                 this.window,
                 this.segments,

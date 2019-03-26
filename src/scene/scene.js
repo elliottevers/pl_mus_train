@@ -32,6 +32,9 @@ var scene;
         SceneDaoVirtual.prototype.get_path = function () {
             return "";
         };
+        SceneDaoVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            return;
+        };
         return SceneDaoVirtual;
     }());
     scene.SceneDaoVirtual = SceneDaoVirtual;

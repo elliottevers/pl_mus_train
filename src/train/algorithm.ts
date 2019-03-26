@@ -83,6 +83,11 @@ export namespace algorithm {
         set_depth(depth: number): void
         coord_to_index_clip(coord: number[]): number
 
+        preprocess_history_user_input(
+            history_user_input: HistoryUserInput,
+            segments: Segment[]
+        ): HistoryUserInput
+
         create_struct_train(
             window: Window,
             segments: Segment[],
@@ -300,6 +305,10 @@ export namespace algorithm {
         advance_scene(scene_current: scene.Scene, song: song.Song) {
             scene_current.fire(true);
         }
+
+        preprocess_history_user_input(history_user_input: history.HistoryUserInput, segments: segment.Segment[]): HistoryUserInput {
+            return history_user_input
+        }
     }
 
     // logic common to parse and derive
@@ -462,6 +471,17 @@ export namespace algorithm {
             song.set_session_record(1);
 
             scene_current.fire(true);
+        }
+
+        preprocess_history_user_input(history_user_input: history.HistoryUserInput, segments: segment.Segment[]): HistoryUserInput {
+            for (let i_segment in segments) {
+                let segment = segments[Number(i_segment)];
+                history_user_input.concat(
+                    [segment.get_note()],
+                    [0, Number(i_segment)]
+                )
+            }
+            return history_user_input
         }
     }
 

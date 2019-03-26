@@ -56,6 +56,7 @@ var trainer;
             //     this.struct_parse
             // );
             this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track);
+            this.history_user_input = this.trainable.preprocess_history_user_input(this.history_user_input, this.segments);
             this.struct_train = this.trainable.create_struct_train(this.window, this.segments, this.track_target, this.user_input_handler, this.struct_train);
             this.struct_train = this.trainable.preprocess_struct_train(this.struct_train, this.segments, this.notes_target_track);
             // this.trainable.initialize(
@@ -120,7 +121,7 @@ var trainer;
             this.next_segment();
         };
         Trainer.prototype.advance_subtarget = function () {
-            var logger = new Logger('max');
+            var logger = new Logger('node');
             var matrix_targets = this.struct_train;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {

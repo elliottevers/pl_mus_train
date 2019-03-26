@@ -130,6 +130,12 @@ var live;
         LiveClipVirtual.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
             return;
         };
+        LiveClipVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            return;
+        };
+        LiveClipVirtual.prototype.get_path = function () {
+            return '';
+        };
         return LiveClipVirtual;
     }());
     live.LiveClipVirtual = LiveClipVirtual;

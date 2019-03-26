@@ -217,7 +217,6 @@ let note_4_2 = tree.parse(
 
 let notes_segments = [note_2_1, note_2_2, note_2_3];
 
-
 let mode_texture = MONOPHONY;
 
 let mode_control = VOCAL;
@@ -382,11 +381,17 @@ let segments = Segment.from_notes(
 );
 
 // assign scenes to segments
-for (let segment of segments) {
+for (let i_segment in segments) {
+    let segment = segments[Number(i_segment)];
+
     segment.set_scene(
         new Scene(
             new SceneDaoVirtual()
         )
+    );
+
+    segment.set_clip_user_input(
+        clips_user_input[Number(i_segment)]
     )
 }
 
@@ -404,9 +409,9 @@ let trainer_local = new Trainer(
 
 // test case - 2 segments, 2 notes a piece
 
-trainer_local.commence(
+trainer_local.commence();
 
-);
+trainer_local.render_window();
 
 trainer_local.accept_input(
     [note_3_1, note_3_2]

@@ -29,5 +29,9 @@ export namespace history {
         get(coord: number[]): any {
             return this.matrix_data[coord[0]][coord[1]];
         }
+
+        // set(coord: number[]): void {
+        //     return
+        // }
     }
 }

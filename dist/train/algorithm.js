@@ -121,6 +121,9 @@ var algorithm;
         Targeted.prototype.advance_scene = function (scene_current, song) {
             scene_current.fire(true);
         };
+        Targeted.prototype.preprocess_history_user_input = function (history_user_input, segments) {
+            return history_user_input;
+        };
         return Targeted;
     }());
     // logic common to parse and derive
@@ -211,6 +214,13 @@ var algorithm;
             song.set_overdub(1);
             song.set_session_record(1);
             scene_current.fire(true);
+        };
+        Parsed.prototype.preprocess_history_user_input = function (history_user_input, segments) {
+            for (var i_segment in segments) {
+                var segment_2 = segments[Number(i_segment)];
+                history_user_input.concat([segment_2.get_note()], [0, Number(i_segment)]);
+            }
+            return history_user_input;
         };
         return Parsed;
     }());
@@ -312,13 +322,13 @@ var algorithm;
         Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             var matrix_targets = struct_train;
             for (var i_segment in segments) {
-                var segment_2 = segments[Number(i_segment)];
+                var segment_3 = segments[Number(i_segment)];
                 var targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
                     var note_3 = targeted_notes_in_segment_1[_i];
-                    segment_2.clip_user_input.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
-                    segment_2.clip_user_input.set_notes([note_3]);
+                    segment_3.clip_user_input.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
+                    segment_3.clip_user_input.set_notes([note_3]);
                 }
             }
         };
@@ -356,10 +366,10 @@ var algorithm;
             // first layer
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             var _loop_2 = function (i_segment) {
-                var segment_3 = segments[Number(i_segment)];
-                var note_segment = segment_3.get_note();
+                var segment_4 = segments[Number(i_segment)];
+                var note_segment = segment_4.get_note();
                 var coord_current_virtual_second_layer = [0, Number(i_segment)];
-                var notes_leaves = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
+                var notes_leaves = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_4.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_4.get_endpoints_loop()[1]; });
                 var coord_current_virtual_leaves = [this_2.get_depth() - 1, Number(i_segment)];
                 // second layer
                 window.add_notes_to_clip([note_segment], coord_current_virtual_second_layer, this_2);
@@ -396,8 +406,8 @@ var algorithm;
         Parse.prototype.preprocess_struct_parse = function (struct_parse, segments, notes_target_track) {
             // this is to set the leaves as the notes of the target clip
             var _loop_4 = function (i_segment) {
-                var segment_4 = segments[Number(i_segment)];
-                var notes = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_4.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_4.get_endpoints_loop()[1]; });
+                var segment_5 = segments[Number(i_segment)];
+                var notes = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_5.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_5.get_endpoints_loop()[1]; });
                 var coord_current_virtual_leaf = [this_3.get_depth() - 1, Number(i_segment)];
                 struct_parse.add(notes, coord_current_virtual_leaf, this_3);
             };
@@ -410,8 +420,8 @@ var algorithm;
         Parse.prototype.finish_parse = function (struct_parse, segments) {
             // make connections with segments
             for (var i_segment in segments) {
-                var segment_5 = segments[Number(i_segment)];
-                struct_parse.add([segment_5.get_note()], [0, Number(i_segment)], this);
+                var segment_6 = segments[Number(i_segment)];
+                struct_parse.add([segment_6.get_note()], [0, Number(i_segment)], this);
             }
             struct_parse.set_root(StructParse.create_root_from_segments(segments));
             // make connections with root
@@ -441,8 +451,8 @@ var algorithm;
             // add the root to the tree immediately
             struct_parse.set_root(ParseTree.create_root_from_segments(segments));
             for (var i_segment in segments) {
-                var segment_6 = segments[Number(i_segment)];
-                var note_4 = segment_6.get_note();
+                var segment_7 = segments[Number(i_segment)];
+                var note_4 = segment_7.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
                 struct_parse.add([note_4], coord_current_virtual, this);
             }
@@ -452,8 +462,8 @@ var algorithm;
             // first layer (root)
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             for (var i_segment in segments) {
-                var segment_7 = segments[Number(i_segment)];
-                var note_segment = segment_7.get_note();
+                var segment_8 = segments[Number(i_segment)];
+                var note_segment = segment_8.get_note();
                 var coord_current_virtual_second_layer = [0, Number(i_segment)];
                 // second layer
                 window.add_notes_to_clip([note_segment], coord_current_virtual_second_layer, this);

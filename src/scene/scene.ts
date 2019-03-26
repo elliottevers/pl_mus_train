@@ -49,6 +49,10 @@ export namespace scene {
         get_path(): string {
             return "";
         }
+
+        set_path_deferlow(key_route_override: string, path_live: string): void {
+            return
+        }
     }
 
     export class SceneDao implements iSceneDao {

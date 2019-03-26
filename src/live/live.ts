@@ -1,6 +1,7 @@
 import TreeModel = require("tree-model");
 import {note as n} from "../note/note"
 import {clip as module_clip} from "../clip/clip";
+import {utils} from "../utils/utils";
 
 // declare let LiveAPI: any;
 
@@ -193,6 +194,14 @@ export namespace live {
 
         remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void {
             return
+        }
+
+        set_path_deferlow(key_route_override: string, path_live: string): void {
+            return
+        }
+
+        get_path() {
+            return ''
         }
     }
 

@@ -3,15 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
 var live_1 = require("../live/live");
-var logger_1 = require("../log/logger");
 var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
-    var Logger = logger_1.log.Logger;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
-            this.logger = new Logger('max');
         }
         Clip.from_path = function (path, messenger) {
             //@ts-ignore
