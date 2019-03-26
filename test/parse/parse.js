@@ -28,6 +28,12 @@ var scene_1 = require("../../src/scene/scene");
 var Scene = scene_1.scene.Scene;
 var Song = song_1.song.Song;
 var SceneDaoVirtual = scene_1.scene.SceneDaoVirtual;
+var segment_1 = require("../../src/segment/segment");
+var Segment = segment_1.segment.Segment;
+var freeze_1 = require("../../src/serialize/freeze");
+var TrainFreezer = freeze_1.freeze.TrainFreezer;
+var thaw_1 = require("../../src/serialize/thaw");
+var TrainThawer = thaw_1.thaw.TrainThawer;
 var tree = new TreeModel();
 var segment_note_1_parse = tree.parse({
     id: -1,
@@ -170,27 +176,24 @@ clip_dao_virtual.beat_end = 8;
 clip_target = new Clip(clip_dao_virtual);
 clips_target.push(clip_target);
 var track_target = new Track(new TrackDaoVirtual(clips_target));
-var trainer_local_parse = new Trainer(window_local_parse, user_input_handler_parse, algorithm_train_parse, track_target, track_user_input, song_parse, messenger_parse);
+track_target.load_clips();
+track_user_input.load_clips();
+var segments = Segment.from_notes(track_user_input.get_notes());
+// assign scenes to segments
+for (var i_segment in segments) {
+    var segment_2 = segments[Number(i_segment)];
+    segment_2.set_scene(new Scene(new SceneDaoVirtual()));
+    segment_2.set_clip_user_input(clips_user_input[Number(i_segment)]);
+}
+var trainer_local_parse = new Trainer(window_local_parse, user_input_handler_parse, algorithm_train_parse, track_target, track_user_input, song_parse, segments, messenger_parse);
 // test case - 2 segments, 2 notes a piece
 trainer_local_parse.commence();
 trainer_local_parse.accept_input([note_melody_parsed_1, note_melody_parsed_2]);
 trainer_local_parse.accept_input([note_melody_parsed_3, note_melody_parsed_4]);
-// trainer_local_parse.render_window(
-//
-// );
-// trainer_local_parse.clear_window(
-//
-// );
-//
-// let freezer_parse = new TrainFreezer(
-//     env_parse
-// );
-//
-// freezer_parse.freeze(
-//     trainer_local_parse,
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
-// );
-//
+trainer_local_parse.render_window();
+trainer_local_parse.clear_window();
+var freezer_parse = new TrainFreezer(env_parse);
+freezer_parse.freeze(trainer_local_parse, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json');
 // let thawer_parse = new TrainThawer(
 //     env_parse
 // );
@@ -199,11 +202,10 @@ trainer_local_parse.accept_input([note_melody_parsed_3, note_melody_parsed_4]);
 //     'window': window_local_parse,
 //     'user_input_handler': user_input_handler_parse,
 //     'algorithm': algorithm_train_parse,
-//     'clip_user_input': clip_user_input_parse,
-//     'clip_user_input_synchronous': clip_user_input_parse_synchronous,
-//     'clip_target': clip_target_virtual_parse,
+//     'track_target': track_target,
+//     'track_user_input': track_user_input,
 //     'song': song_parse,
-//     'segments': segments_parse,
+//     'segments': segments,
 //     'messenger': messenger_parse,
 //     'env': env_parse
 // };
@@ -216,4 +218,14 @@ trainer_local_parse.accept_input([note_melody_parsed_3, note_melody_parsed_4]);
 // train_thawed_parse.render_window(
 //
 // );
+// TODO: batch up the notes into the segments
+trainer_local_parse = new Trainer(window_local_parse, user_input_handler_parse, algorithm_train_parse, track_target, track_user_input, song_parse, segments, messenger_parse, true);
+var notes_thawed = TrainThawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json', env_parse);
+trainer_local_parse.commence();
+for (var _i = 0, notes_thawed_1 = notes_thawed; _i < notes_thawed_1.length; _i++) {
+    var note = notes_thawed_1[_i];
+    trainer_local_parse.accept_input([note]);
+}
+trainer_local_parse.virtualized = false;
+trainer_local_parse.render_window();
 //# sourceMappingURL=parse.js.map

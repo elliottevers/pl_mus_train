@@ -18,13 +18,11 @@ export namespace thaw {
     import Logger = log.Logger;
 
     export class TrainThawer {
-        env: string;
 
-        constructor(env: string) {
-            this.env = env;
+        constructor() {
         }
 
-        public thaw_notes(filepath: string, env: string): TreeModel.Node<Note>[] {
+        public static thaw_notes(filepath: string, env: string): TreeModel.Node<Note>[] {
             let matrix_deserialized = from_json(filepath, env);
 
             let notes = [];

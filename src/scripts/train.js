@@ -269,17 +269,17 @@ var save_session = function () {
 };
 var load_session = function () {
     // TODO: logic to determine, from project folder, name of file
-    var config = {
-        'window': window,
-        'user_input_handler': user_input_handler,
-        'trainable': algorithm_train,
-        'track_target': track_target,
-        'track_user_input': track_user_input,
-        'song': song,
-        'segments': segments_train,
-        'messenger': messenger_render,
-        'env': env
-    };
+    // let config = {
+    //     'window': window,
+    //     'user_input_handler': user_input_handler,
+    //     'trainable': algorithm_train,
+    //     'track_target': track_target,
+    //     'track_user_input': track_user_input,
+    //     'song': song,
+    //     'segments': segments_train,
+    //     'messenger': messenger_render,
+    //     'env': env
+    // };
     var thawer = new TrainThawer(env);
     var notes_thawed = thawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', env);
     logger.log('loaded thawed notes');

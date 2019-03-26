@@ -19,10 +19,9 @@ var thaw;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var Logger = logger_1.log.Logger;
     var TrainThawer = /** @class */ (function () {
-        function TrainThawer(env) {
-            this.env = env;
+        function TrainThawer() {
         }
-        TrainThawer.prototype.thaw_notes = function (filepath, env) {
+        TrainThawer.thaw_notes = function (filepath, env) {
             var matrix_deserialized = from_json(filepath, env);
             var notes = [];
             // TODO: this is only valid for forward iteration

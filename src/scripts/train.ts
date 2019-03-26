@@ -490,17 +490,17 @@ let load_session = () => {
 
     // TODO: logic to determine, from project folder, name of file
 
-    let config = {
-        'window': window,
-        'user_input_handler': user_input_handler,
-        'trainable': algorithm_train,
-        'track_target': track_target,
-        'track_user_input': track_user_input,
-        'song': song,
-        'segments': segments_train,
-        'messenger': messenger_render,
-        'env': env
-    };
+    // let config = {
+    //     'window': window,
+    //     'user_input_handler': user_input_handler,
+    //     'trainable': algorithm_train,
+    //     'track_target': track_target,
+    //     'track_user_input': track_user_input,
+    //     'song': song,
+    //     'segments': segments_train,
+    //     'messenger': messenger_render,
+    //     'env': env
+    // };
 
     let thawer = new TrainThawer(
         env

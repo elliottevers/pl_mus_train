@@ -9,9 +9,6 @@ import LiveClipVirtual = live.LiveClipVirtual;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
 import {algorithm} from "../../src/train/algorithm";
-import {freeze, thaw} from "../../src/serialize/serialize";
-import TrainFreezer = freeze.TrainFreezer;
-import TrainThawer = thaw.TrainThawer;
 import {window} from "../../src/render/window";
 import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
@@ -29,6 +26,12 @@ import SongDaoVirtual = module_song.SongDaoVirtual;
 import Scene = module_scene.Scene;
 import Song = module_song.Song;
 import Track = track.Track;
+import {segment} from "../../src/segment/segment";
+import Segment = segment.Segment;
+import {freeze} from "../../src/serialize/freeze";
+import TrainFreezer = freeze.TrainFreezer;
+import {thaw} from "../../src/serialize/thaw";
+import TrainThawer = thaw.TrainThawer;
 
 
 let tree: TreeModel = new TreeModel();
@@ -344,6 +347,29 @@ let track_target = new Track(
     )
 );
 
+track_target.load_clips();
+
+track_user_input.load_clips();
+
+let segments = Segment.from_notes(
+    track_user_input.get_notes()
+);
+
+// assign scenes to segments
+for (let i_segment in segments) {
+    let segment = segments[Number(i_segment)];
+
+    segment.set_scene(
+        new Scene(
+            new SceneDaoVirtual()
+        )
+    );
+
+    segment.set_clip_user_input(
+        clips_user_input[Number(i_segment)]
+    )
+}
+
 let trainer_local = new Trainer(
     window_train,
     user_input_handler,
@@ -351,6 +377,7 @@ let trainer_local = new Trainer(
     track_target,
     track_user_input,
     song,
+    segments,
     messenger
 );
 
@@ -384,25 +411,25 @@ trainer_local.render_window(
 
 );
 
-// trainer_local.clear_window(
-//
-// );
-//
-// let freezer = new TrainFreezer(
-//     env
-// );
-//
-// freezer.freeze(
-//     trainer_local,
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json'
-// );
-//
+trainer_local.clear_window(
+
+);
+
+let freezer = new TrainFreezer(
+    env
+);
+
+freezer.freeze(
+    trainer_local,
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json'
+);
+
 // let thawer = new TrainThawer(
 //     env
 // );
 //
 // let config = {
-//     'window': window_local,
+//     'window': window_train,
 //     'user_input_handler': user_input_handler,
 //     'algorithm': algorithm_train,
 //     'clip_user_input': clip_user_input,
@@ -421,3 +448,30 @@ trainer_local.render_window(
 // train_thawed.render_window(
 //
 // );
+
+trainer_local = new Trainer(
+    window_train,
+    user_input_handler,
+    algorithm_train,
+    track_target,
+    track_user_input,
+    song,
+    segments,
+    messenger,
+    true
+);
+
+let notes_thawed = TrainThawer.thaw_notes(
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json',
+    env
+);
+
+trainer_local.commence();
+
+for (let note of notes_thawed) {
+    trainer_local.accept_input([note])
+}
+
+trainer_local.virtualized = false;
+
+trainer_local.render_window();

@@ -160,41 +160,44 @@ var trainer_local = new Trainer(window_train, user_input_handler, algorithm_trai
 trainer_local.commence();
 trainer_local.accept_input([note_target_1_subtarget_1]);
 trainer_local.accept_input([note_target_1_subtarget_2]);
-// trainer_local.accept_input(
-//     [note_target_2_subtarget_1]
-// );
-//
-// trainer_local.accept_input(
-//     [note_target_2_subtarget_2]
-// );
-//
-// trainer_local.accept_input(
-//     [note_target_3_subtarget_1]
-// );
-//
-// trainer_local.render_window(
-//
-// );
-//
-// trainer_local.clear_window(
-//
-// );
-//
+trainer_local.accept_input([note_target_2_subtarget_1]);
+trainer_local.accept_input([note_target_2_subtarget_2]);
+trainer_local.accept_input([note_target_3_subtarget_1]);
+trainer_local.render_window();
+trainer_local.clear_window();
 var freezer = new TrainFreezer(env);
 freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
-var thawer = new TrainThawer(env);
-var config = {
-    'window': window_train,
-    'user_input_handler': user_input_handler,
-    'trainable': algorithm_train,
-    'track_target': track_target,
-    'track_user_input': track_user_input,
-    'song': song,
-    'segments': segments,
-    'messenger': messenger,
-    'env': env
-};
-var train_thawed = thawer.thaw('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', config);
-train_thawed.render_window();
-var testing = 1;
+// let thawer = new TrainThawer(
+//     env
+// );
+//
+// let config = {
+//     'window': window_train,
+//     'user_input_handler': user_input_handler,
+//     'trainable': algorithm_train,
+//     'track_target': track_target,
+//     'track_user_input': track_user_input,
+//     'song': song,
+//     'segments': segments,
+//     'messenger': messenger,
+//     'env': env
+// };
+//
+// let train_thawed = thawer.thaw(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
+//     config
+// );
+//
+// train_thawed.render_window(
+//
+// );
+trainer_local = new Trainer(window_train, user_input_handler, algorithm_train, track_target, track_user_input, song, segments, messenger, true);
+var notes_thawed = TrainThawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', env);
+trainer_local.commence();
+for (var _i = 0, notes_thawed_1 = notes_thawed; _i < notes_thawed_1.length; _i++) {
+    var note = notes_thawed_1[_i];
+    trainer_local.accept_input([note]);
+}
+trainer_local.virtualized = false;
+trainer_local.render_window();
 //# sourceMappingURL=detect.js.map

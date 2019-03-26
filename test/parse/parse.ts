@@ -9,9 +9,6 @@ import LiveClipVirtual = live.LiveClipVirtual;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
 import {algorithm} from "../../src/train/algorithm";
-import {freeze, thaw} from "../../src/serialize/serialize";
-import TrainFreezer = freeze.TrainFreezer;
-import TrainThawer = thaw.TrainThawer;
 import {window} from "../../src/render/window";
 import MatrixWindow = window.MatrixWindow;
 import {trainer} from "../../src/train/trainer";
@@ -29,6 +26,12 @@ import {scene as module_scene} from "../../src/scene/scene";
 import Scene = module_scene.Scene;
 import Song = song.Song;
 import SceneDaoVirtual = module_scene.SceneDaoVirtual;
+import {segment} from "../../src/segment/segment";
+import Segment = segment.Segment;
+import {freeze} from "../../src/serialize/freeze";
+import TrainFreezer = freeze.TrainFreezer;
+import {thaw} from "../../src/serialize/thaw";
+import TrainThawer = thaw.TrainThawer;
 
 
 let tree: TreeModel = new TreeModel();
@@ -349,14 +352,6 @@ let window_local_parse = new MatrixWindow(
 );
 
 
-
-
-
-
-
-
-
-
 let scene, scenes;
 
 scenes = [];
@@ -482,6 +477,29 @@ let track_target = new Track(
 
 
 
+track_target.load_clips();
+
+track_user_input.load_clips();
+
+let segments = Segment.from_notes(
+    track_user_input.get_notes()
+);
+
+// assign scenes to segments
+for (let i_segment in segments) {
+    let segment = segments[Number(i_segment)];
+
+    segment.set_scene(
+        new Scene(
+            new SceneDaoVirtual()
+        )
+    );
+
+    segment.set_clip_user_input(
+        clips_user_input[Number(i_segment)]
+    )
+}
+
 let trainer_local_parse = new Trainer(
     window_local_parse,
     user_input_handler_parse,
@@ -489,6 +507,7 @@ let trainer_local_parse = new Trainer(
     track_target,
     track_user_input,
     song_parse,
+    segments,
     messenger_parse
 );
 
@@ -506,24 +525,24 @@ trainer_local_parse.accept_input(
     [note_melody_parsed_3, note_melody_parsed_4]
 );
 
-// trainer_local_parse.render_window(
-//
-// );
+trainer_local_parse.render_window(
+
+);
 
 
-// trainer_local_parse.clear_window(
-//
-// );
-//
-// let freezer_parse = new TrainFreezer(
-//     env_parse
-// );
-//
-// freezer_parse.freeze(
-//     trainer_local_parse,
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
-// );
-//
+trainer_local_parse.clear_window(
+
+);
+
+let freezer_parse = new TrainFreezer(
+    env_parse
+);
+
+freezer_parse.freeze(
+    trainer_local_parse,
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
+);
+
 // let thawer_parse = new TrainThawer(
 //     env_parse
 // );
@@ -532,11 +551,10 @@ trainer_local_parse.accept_input(
 //     'window': window_local_parse,
 //     'user_input_handler': user_input_handler_parse,
 //     'algorithm': algorithm_train_parse,
-//     'clip_user_input': clip_user_input_parse,
-//     'clip_user_input_synchronous': clip_user_input_parse_synchronous,
-//     'clip_target': clip_target_virtual_parse,
+//     'track_target': track_target,
+//     'track_user_input': track_user_input,
 //     'song': song_parse,
-//     'segments': segments_parse,
+//     'segments': segments,
 //     'messenger': messenger_parse,
 //     'env': env_parse
 // };
@@ -549,3 +567,32 @@ trainer_local_parse.accept_input(
 // train_thawed_parse.render_window(
 //
 // );
+
+
+// TODO: batch up the notes into the segments
+trainer_local_parse = new Trainer(
+    window_local_parse,
+    user_input_handler_parse,
+    algorithm_train_parse,
+    track_target,
+    track_user_input,
+    song_parse,
+    segments,
+    messenger_parse,
+    true
+);
+
+let notes_thawed = TrainThawer.thaw_notes(
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
+    env_parse
+);
+
+trainer_local_parse.commence();
+
+for (let note of notes_thawed) {
+    trainer_local_parse.accept_input([note])
+}
+
+trainer_local_parse.virtualized = false;
+
+trainer_local_parse.render_window();

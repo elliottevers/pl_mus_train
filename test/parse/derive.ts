@@ -447,30 +447,59 @@ let freezer_parse = new TrainFreezer(
 
 freezer_parse.freeze(
     trainer_local,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json'
 );
 
-let thawer_parse = new TrainThawer(
+// let thawer_parse = new TrainThawer(
+//     env
+// );
+//
+// let config_parse = {
+//     'window': window_local,
+//     'user_input_handler': user_input_handler,
+//     'trainable': algorithm_train,
+//     'track_target': track_target,
+//     'track_user_input': track_user_input,
+//     'song': song,
+//     'segments': segments,
+//     'messenger': messenger,
+//     'env': env
+// };
+//
+// let train_thawed_parse = thawer_parse.thaw(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
+//     config_parse
+// );
+//
+// train_thawed_parse.render_window(
+//
+// );
+
+// TODO: batch these notes up and input them as segment groups
+
+trainer_local = new Trainer(
+    window_local,
+    user_input_handler,
+    algorithm_train,
+    track_target,
+    track_user_input,
+    song,
+    segments,
+    messenger,
+    true
+);
+
+let notes_thawed = TrainThawer.thaw_notes(
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json',
     env
 );
 
-let config_parse = {
-    'window': window_local,
-    'user_input_handler': user_input_handler,
-    'trainable': algorithm_train,
-    'track_target': track_target,
-    'track_user_input': track_user_input,
-    'song': song,
-    'segments': segments,
-    'messenger': messenger,
-    'env': env
-};
+trainer_local.commence();
 
-let train_thawed_parse = thawer_parse.thaw(
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
-    config_parse
-);
+for (let note of notes_thawed) {
+    trainer_local.accept_input([note])
+}
 
-train_thawed_parse.render_window(
+trainer_local.virtualized = false;
 
-);
+trainer_local.render_window();
