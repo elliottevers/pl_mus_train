@@ -22,10 +22,6 @@ export namespace song {
 
         constructor(song_dao: iSongDao) {
             this.song_dao = song_dao;
-            // automatically set path at time of instantiation
-            // if (this.song_dao.is_async()) {
-            //     this.set_path_deferlow('set_path_' + this.song_dao.key_route)
-            // }
         }
 
         load_scenes(): void {
@@ -70,7 +66,7 @@ export namespace song {
 
         set_path_deferlow(key_route): void {
             this.song_dao.set_path_deferlow(
-                key_route,
+                'set_path_' + key_route,
                 this.get_path()
             )
         }
@@ -91,7 +87,7 @@ export namespace song {
         get_scenes(): any[]
         get_path(): string
         set_path_deferlow(key_route_override: string, path_live: string): void
-        is_async(): boolean
+        // is_async(): boolean
         create_scene(index: number): void
         // load_scenes(): void
     }
@@ -115,7 +111,7 @@ export namespace song {
         }
 
         public create_scene(index: number): void {
-
+            return
         }
 
         public set_path_deferlow(key_route_override: string, path_live: string): void {
@@ -176,7 +172,6 @@ export namespace song {
         private env: string;
 
         constructor(song_live: iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
-        // constructor(song_live: iLiveApiJs, patcher: Patcher, deferlow?: boolean, key_route?: string, env?: string) {
             this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -208,20 +203,19 @@ export namespace song {
             if (this.deferlow) {
                 this.messenger.message([this.key_route, "set", "session_record", String(int)]);
             } else {
-                this.song_live.set("session_record", String(int));
+                // this.song_live.set("session_record", String(int));
+                this.song_live.set("session_record", int);
+
             }
-            // if (this.deferlow) {
-            //     this.patcher.getnamed('song').message('set', 'session_record', String(int))
-            // } else {
-            //
-            // }
         }
 
         set_overdub(int) {
             if (this.deferlow) {
                 this.messenger.message([this.key_route, "set", "overdub", String(int)]);
             } else {
+                // this.song_live.set("overdub", int);
                 this.song_live.set("overdub", int);
+
             }
         }
 

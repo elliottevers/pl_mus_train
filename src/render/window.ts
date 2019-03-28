@@ -198,41 +198,24 @@ export namespace window {
             iterator_matrix_train: MatrixIterator,
             trainable: Trainable,
             struct_train: StructTrain,
-            // target_current: Target, // only for detect/predict
-            // struct_parse: StructParse, // only for parse/derive
             segment_current: Segment
         ) {
 
-            this.clear();
-
-            // TODO: compensate for this logic
-            // if (this.algorithm.b_targeted()) {
-            //     notes = this.target_current.iterator_subtarget.subtargets.map((subtarget) => {
-            //         return subtarget.note
-            //     })
-            // }
-            // let notes_in_region = trainable.get_notes_in_region(
-            //     target_current,
-            //     segment_current
-            // );
+            // this.clear();
 
             this.render_regions(
                 iterator_matrix_train,
                 trainable,
                 struct_train,
                 segment_current
-                // target_current,
-                // struct_parse
             );
 
             this.render_clips(
                 trainable,
                 struct_train
-                // struct_parse
             );
 
             this.render_trees(
-                // struct_parse,
                 struct_train,
                 trainable
             );

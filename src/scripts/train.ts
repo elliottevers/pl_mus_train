@@ -263,15 +263,12 @@ let set_track_user_input = () => {
         )
     );
 
+    track_user_input.set_path_deferlow('track_user_input');
+
     track_user_input.load_clips()
 };
 
-let initialize = () => {
-
-    set_segments();
-
-    set_track_user_input();
-
+let set_song = () => {
     song = new Song(
         new SongDao(
             new LiveApiJs(
@@ -282,6 +279,17 @@ let initialize = () => {
             'song'
         )
     );
+
+    song.set_path_deferlow('song');
+};
+
+let initialize = () => {
+
+    set_segments();
+
+    set_track_user_input();
+
+    set_song();
 
     user_input_handler = new UserInputHandler(
         mode_texture,
@@ -502,11 +510,9 @@ let load_session = () => {
     //     'env': env
     // };
 
-    let thawer = new TrainThawer(
-        env
-    );
+    let thawer = new TrainThawer();
 
-    let notes_thawed = thawer.thaw_notes(
+    let notes_thawed = TrainThawer.thaw_notes(
         '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
         env
     );

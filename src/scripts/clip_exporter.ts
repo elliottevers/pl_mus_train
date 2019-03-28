@@ -1,10 +1,7 @@
 import {message as m, message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live, live as li} from "../live/live";
+import {live as li} from "../live/live";
 import {clip as c} from "../clip/clip";
-import LiveApiJs = live.LiveApiJs;
-import {log} from "../log/logger";
-import Logger = log.Logger;
 import {io} from "../io/io";
 import Exporter = io.Exporter;
 import {utils} from "../utils/utils";
@@ -26,6 +23,8 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
+
+let messenger = new Messenger(env, 0);
 
 let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
 
@@ -58,37 +57,6 @@ let set_tempo = () => {
     );
 };
 
-// let add = (name_part) => {
-//
-//     let song = new li.LiveApiJs(
-//         'live_set'
-//     );
-//
-//     let clip_highlighted = new li.LiveApiJs(
-//         'live_set view highlighted_clip_slot clip'
-//     );
-//
-//     let clip = new c.Clip(
-//         new c.ClipDao(
-//             clip_highlighted,
-//             new m.Messenger(env, 0),
-//             false
-//         )
-//     );
-//
-//     let notes = clip.get_notes(
-//         0,
-//         0,
-//         clip_highlighted.get("length"),
-//         128
-//     );
-//
-//     exporter.set_notes(
-//         name_part,
-//         notes
-//     );
-// };
-
 let export_part = (name_part) => {
 
     let clip_highlighted = new li.LiveApiJs(
@@ -115,7 +83,9 @@ let export_part = (name_part) => {
         notes
     );
 
-    part_names.addItem(name_part)
+    part_names.addItem(name_part);
+
+    messenger.message(['part_exported', 'bang'])
 };
 
 let remove = (name_part) => {
@@ -139,28 +109,11 @@ let export_clips = () => {
         clips_to_export
     );
 
-    let messenger = new Messenger(env, 0);
-
     messenger.message(['clips_exported', 'bang'])
 };
 
 let test = () => {
 
-    // let song = new li.LiveApiJs(
-    //     'live_set'
-    // );
-    //
-    // let clip_highlighted = new li.LiveApiJs(
-    //     'live_set view highlighted_clip_slot clip'
-    // );
-    //
-    // let length_clip = clip_highlighted.get("length");
-    //
-    // let tempo = song.get("tempo");
-    //
-    // let logger = new Logger(env);
-    //
-    // logger.log(clip_highlighted.get_id())
 };
 
 if (typeof Global !== "undefined") {

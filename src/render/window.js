@@ -153,31 +153,11 @@ var window;
         function MatrixWindow(height, width, messenger) {
             return _super.call(this, height, width, messenger) || this;
         }
-        MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train, 
-        // target_current: Target, // only for detect/predict
-        // struct_parse: StructParse, // only for parse/derive
-        segment_current) {
-            this.clear();
-            // TODO: compensate for this logic
-            // if (this.algorithm.b_targeted()) {
-            //     notes = this.target_current.iterator_subtarget.subtargets.map((subtarget) => {
-            //         return subtarget.note
-            //     })
-            // }
-            // let notes_in_region = trainable.get_notes_in_region(
-            //     target_current,
-            //     segment_current
-            // );
-            this.render_regions(iterator_matrix_train, trainable, struct_train, segment_current
-            // target_current,
-            // struct_parse
-            );
-            this.render_clips(trainable, struct_train
-            // struct_parse
-            );
-            this.render_trees(
-            // struct_parse,
-            struct_train, trainable);
+        MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train, segment_current) {
+            // this.clear();
+            this.render_regions(iterator_matrix_train, trainable, struct_train, segment_current);
+            this.render_clips(trainable, struct_train);
+            this.render_trees(struct_train, trainable);
         };
         MatrixWindow.prototype.render_trees = function (struct_train, trainable) {
             var messages_render_trees = this.get_messages_render_trees(struct_train, trainable);

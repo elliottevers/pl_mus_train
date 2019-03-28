@@ -1457,31 +1457,11 @@ var window;
         function MatrixWindow(height, width, messenger) {
             return _super.call(this, height, width, messenger) || this;
         }
-        MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train, 
-        // target_current: Target, // only for detect/predict
-        // struct_parse: StructParse, // only for parse/derive
-        segment_current) {
-            this.clear();
-            // TODO: compensate for this logic
-            // if (this.algorithm.b_targeted()) {
-            //     notes = this.target_current.iterator_subtarget.subtargets.map((subtarget) => {
-            //         return subtarget.note
-            //     })
-            // }
-            // let notes_in_region = trainable.get_notes_in_region(
-            //     target_current,
-            //     segment_current
-            // );
-            this.render_regions(iterator_matrix_train, trainable, struct_train, segment_current
-            // target_current,
-            // struct_parse
-            );
-            this.render_clips(trainable, struct_train
-            // struct_parse
-            );
-            this.render_trees(
-            // struct_parse,
-            struct_train, trainable);
+        MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train, segment_current) {
+            // this.clear();
+            this.render_regions(iterator_matrix_train, trainable, struct_train, segment_current);
+            this.render_clips(trainable, struct_train);
+            this.render_trees(struct_train, trainable);
         };
         MatrixWindow.prototype.render_trees = function (struct_train, trainable) {
             var messages_render_trees = this.get_messages_render_trees(struct_train, trainable);
@@ -1906,57 +1886,16 @@ var set_segments = function () {
     // TODO: this assumes the trainer device is on the same track as the segmenter
     // TODO: put back
     var this_device = new LiveApiJs('this_device');
-    // let this_track = new Track(
-    //     new TrackDao(
-    //         new LiveApiJs(
-    //             utils.cleanse_path(this_device.get_path())
-    //         ),
-    //         new Messenger(env, 0)
-    //     )
-    // );
     var path_this_device = utils_1.utils.cleanse_path(this_device.get_path());
-    //
-    // let logger = new Logger(env);
-    //
-    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_this_device)));
     var this_track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(path_this_device)), new Messenger(env, 0)));
-    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_this_device)));
     this_track.load_clips();
-    // let notes_segments = this_track.get_notes();
-    // let segments = [];
-    // track_target.load_clips();
-    //
-    // track_user_input.load_clips();
     var segments = Segment.from_notes(this_track.get_notes());
-    // assign scenes to segments
-    //     for (let segment of segments) {
-    //         segment.set_scene(
-    //             new Scene(
-    //                 new SceneDaoVirtual()
-    //             )
-    //         )
-    //     }
     for (var i_segment in segments) {
-        // let note = notes_segments[Number(i_note)];
         var path_scene = ['live_set', 'scenes', Number(i_segment)].join(' ');
         var segment_2 = segments[Number(i_segment)];
         segment_2.set_scene(new Scene(new SceneDao(new LiveApiJs(path_scene), new Messenger(env, 0), true, 'scene')));
         var path_this_track = utils_1.utils.get_path_track_from_path_device(utils_1.utils.cleanse_path(this_device.get_path()));
-        // segment.set_clip_user_input_sync(
-        //     new Clip(
-        //         new ClipDao(
-        //             new LiveApiJs(
-        //                 path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
-        //             ),
-        //             new Messenger(env, 0)
-        //         )
-        //     )
-        // );
         segment_2.set_clip_user_input(new Clip(new ClipDao(new LiveApiJs(path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')), new Messenger(env, 0), true, 'clip_user_input')));
-        //
-        // segments.push(
-        //     segment
-        // )
     }
     messenger_num_segments.message([segments.length]);
     segments_train = segments;
@@ -1968,24 +1907,26 @@ var set_track_target = function () {
     // @ts-ignore
     var list_path_device_target = Array.prototype.slice.call(arguments);
     var path_device_target = utils_1.utils.cleanse_path(list_path_device_target.join(' '));
-    var logger = new Logger(env);
-    // logger.log(JSON.stringify(utils.get_path_track_from_path_device(path_device_target)));
     track_target = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(path_device_target)), new Messenger(env, 0), true, 'track_target'));
     track_target.set_path_deferlow('track_target');
     track_target.load_clips();
-    // logger.log(JSON.stringify(track_target.get_notes()));
     messenger_monitor_target.message([track_target.get_index()]);
 };
 var set_track_user_input = function () {
     var this_device = new LiveApiJs('this_device');
     var path_this_track = utils_1.utils.get_path_track_from_path_device(utils_1.utils.cleanse_path(this_device.get_path()));
     track_user_input = new Track(new TrackDao(new LiveApiJs(path_this_track), new Messenger(env, 0), true, 'track_user_input'));
+    track_user_input.set_path_deferlow('track_user_input');
     track_user_input.load_clips();
+};
+var set_song = function () {
+    song = new Song(new SongDao(new LiveApiJs('live_set'), new Messenger(env, 0), true, 'song'));
+    song.set_path_deferlow('song');
 };
 var initialize = function () {
     set_segments();
     set_track_user_input();
-    song = new Song(new SongDao(new LiveApiJs('live_set'), new Messenger(env, 0), true, 'song'));
+    set_song();
     user_input_handler = new UserInputHandler(mode_texture, mode_control);
     trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render);
 };
@@ -2092,30 +2033,19 @@ var save_session = function () {
 };
 var load_session = function () {
     // TODO: logic to determine, from project folder, name of file
-    var config = {
-        'window': window,
-        'user_input_handler': user_input_handler,
-        'trainable': algorithm_train,
-        'track_target': track_target,
-        'track_user_input': track_user_input,
-        'song': song,
-        'segments': segments_train,
-        'messenger': messenger_render,
-        'env': env
-    };
     // let config = {
-    //     'window': window_train,
+    //     'window': window,
     //     'user_input_handler': user_input_handler,
     //     'trainable': algorithm_train,
     //     'track_target': track_target,
     //     'track_user_input': track_user_input,
     //     'song': song,
-    //     'segments': segments,
-    //     'messenger': messenger,
+    //     'segments': segments_train,
+    //     'messenger': messenger_render,
     //     'env': env
     // };
-    var thawer = new TrainThawer(env);
-    var notes_thawed = thawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', env);
+    var thawer = new TrainThawer();
+    var notes_thawed = TrainThawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', env);
     logger.log('loaded thawed notes');
     logger.log(JSON.stringify(notes_thawed));
     commence();
@@ -2124,9 +2054,6 @@ var load_session = function () {
         trainer.accept_input([note_4]);
     }
     trainer.virtualized = false;
-    // train_thawed.render_window(
-    //
-    // );
 };
 if (typeof Global !== "undefined") {
     Global.train = {};
@@ -2412,10 +2339,9 @@ var thaw;
     var DERIVE = algorithm_1.algorithm.DERIVE;
     var Logger = logger_1.log.Logger;
     var TrainThawer = /** @class */ (function () {
-        function TrainThawer(env) {
-            this.env = env;
+        function TrainThawer() {
         }
-        TrainThawer.prototype.thaw_notes = function (filepath, env) {
+        TrainThawer.thaw_notes = function (filepath, env) {
             var matrix_deserialized = from_json(filepath, env);
             var notes = [];
             // TODO: this is only valid for forward iteration
@@ -2527,10 +2453,6 @@ var song;
     var Song = /** @class */ (function () {
         function Song(song_dao) {
             this.song_dao = song_dao;
-            // automatically set path at time of instantiation
-            // if (this.song_dao.is_async()) {
-            //     this.set_path_deferlow('set_path_' + this.song_dao.key_route)
-            // }
         }
         Song.prototype.load_scenes = function () {
             this.scenes = this.song_dao.get_scenes();
@@ -2563,7 +2485,7 @@ var song;
             return this.get_scenes().length / 2;
         };
         Song.prototype.set_path_deferlow = function (key_route) {
-            this.song_dao.set_path_deferlow(key_route, this.get_path());
+            this.song_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
         };
         Song.prototype.get_path = function () {
             return this.song_dao.get_path();
@@ -2582,6 +2504,7 @@ var song;
             // this.key_route = key_route;
         }
         SongDaoVirtual.prototype.create_scene = function (index) {
+            return;
         };
         SongDaoVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
             return;
@@ -2624,7 +2547,6 @@ var song;
     song.SongDaoVirtual = SongDaoVirtual;
     var SongDao = /** @class */ (function () {
         function SongDao(song_live, messenger, deferlow, key_route, env) {
-            // constructor(song_live: iLiveApiJs, patcher: Patcher, deferlow?: boolean, key_route?: string, env?: string) {
             this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -2652,19 +2574,16 @@ var song;
                 this.messenger.message([this.key_route, "set", "session_record", String(int)]);
             }
             else {
-                this.song_live.set("session_record", String(int));
+                // this.song_live.set("session_record", String(int));
+                this.song_live.set("session_record", int);
             }
-            // if (this.deferlow) {
-            //     this.patcher.getnamed('song').message('set', 'session_record', String(int))
-            // } else {
-            //
-            // }
         };
         SongDao.prototype.set_overdub = function (int) {
             if (this.deferlow) {
                 this.messenger.message([this.key_route, "set", "overdub", String(int)]);
             }
             else {
+                // this.song_live.set("overdub", int);
                 this.song_live.set("overdub", int);
             }
         };
@@ -3245,6 +3164,8 @@ var algorithm;
         Targeted.prototype.unpause = function (song, scene_current) {
             // not forcing legato so that it starts immediately
             scene_current.fire(false);
+            song.set_session_record(1);
+            song.set_overdub(1);
         };
         Targeted.prototype.postprocess_user_input = function (notes_user_input, subtarget_current) {
             return [subtarget_current.note];
@@ -3280,14 +3201,15 @@ var algorithm;
             return matrix_targets;
         };
         Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current, segments) {
-            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
-            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
-            messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
-            var length_segment = segment_current.get_note().model.note.get_beat_end() - segment_current.get_note().model.note.beat_start;
+            // messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
+            // messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
+            var duration_training_data = segments[segments.length - 1].beat_end;
+            messenger.message(['duration_training_data', duration_training_data], true);
+            // let length_segment = segment_current.get_note().model.note.get_beat_end() - segment_current.get_note().model.note.beat_start;
             messenger.message([
                 'bounds',
-                subtarget_current.note.model.note.beat_start / length_segment,
-                subtarget_current.note.model.note.get_beat_end() / length_segment
+                subtarget_current.note.model.note.beat_start / duration_training_data,
+                subtarget_current.note.model.note.get_beat_end() / duration_training_data
             ], true);
         };
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current, segments) {
@@ -3375,8 +3297,8 @@ var algorithm;
         };
         Parsed.stream_segment_bounds = function (messenger, subtarget_current, segment_current, segments) {
             // route offset_beats_current_segment duration_beats_current_segment duration_training_data
-            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
-            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
+            // messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
+            // messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
             messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
             messenger.message(['bounds', 0, 1], true);
         };
@@ -3384,9 +3306,9 @@ var algorithm;
             this.finish_parse(struct_train, segments);
         };
         Parsed.prototype.unpause = function (song, scene_current) {
+            scene_current.fire(false);
             song.set_overdub(1);
             song.set_session_record(1);
-            scene_current.fire(false);
         };
         Parsed.prototype.warrants_advance = function (notes_user_input, subtarget_current) {
             return true;
@@ -3395,9 +3317,9 @@ var algorithm;
             return this.create_struct_parse(segments);
         };
         Parsed.prototype.advance_scene = function (scene_current, song) {
+            scene_current.fire(true);
             song.set_overdub(1);
             song.set_session_record(1);
-            scene_current.fire(true);
         };
         Parsed.prototype.preprocess_history_user_input = function (history_user_input, segments) {
             for (var i_segment in segments) {
@@ -3900,16 +3822,15 @@ var iterate;
 Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
 var iterate_1 = require("./iterate");
-var logger_1 = require("../log/logger");
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
-    var Logger = logger_1.log.Logger;
     var Trainer = /** @class */ (function () {
         function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, segments, messenger, virtualized) {
             this.virtualized = false;
+            this.done = false;
             this.window = window;
             this.trainable = trainable;
             this.track_target = track_target;
@@ -3919,8 +3840,9 @@ var trainer;
             this.segments = segments;
             this.messenger = messenger;
             this.virtualized = virtualized;
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(this.segments));
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(this.segments));
             this.notes_target_track = track_target.get_notes();
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_objectives(this.trainable, this.segments));
@@ -3939,6 +3861,9 @@ var trainer;
         };
         Trainer.prototype.render_window = function () {
             if (!this.virtualized) {
+                if (!this.done) {
+                    this.window.clear();
+                }
                 this.window.render(this.iterator_matrix_train, this.trainable, this.struct_train, this.segment_current);
             }
         };
@@ -3967,6 +3892,7 @@ var trainer;
             this.advance();
         };
         Trainer.prototype.shut_down = function () {
+            this.done = true;
             if (!this.virtualized) {
                 this.trainable.terminate(this.struct_train, this.segments);
                 this.trainable.pause(this.song, this.segment_current.scene);
@@ -3981,7 +3907,7 @@ var trainer;
             this.next_segment();
         };
         Trainer.prototype.advance_subtarget = function () {
-            var logger = new Logger('max');
+            // let logger = new Logger('max');
             var matrix_targets = this.struct_train;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {
@@ -3992,7 +3918,7 @@ var trainer;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
                 this.iterator_subtarget_current.next();
                 this.subtarget_current = this.iterator_subtarget_current.current();
-                logger.log(JSON.stringify(this.subtarget_current));
+                // logger.log(JSON.stringify(this.subtarget_current));
                 this.next_segment();
                 // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
                 return;
@@ -4013,7 +3939,7 @@ var trainer;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
                     this.subtarget_current = obj_next_subtarget_twice_nested.value;
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
-                    logger.log(JSON.stringify(this.subtarget_current));
+                    // logger.log(JSON.stringify(this.subtarget_current));
                     this.next_segment();
                     // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
                     return;
@@ -4021,7 +3947,7 @@ var trainer;
                 this.target_current = obj_next_target.value;
                 var obj_next_subtarget_once_nested = this.target_current.iterator_subtarget.next();
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
-                logger.log(JSON.stringify(this.subtarget_current));
+                // logger.log(JSON.stringify(this.subtarget_current));
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
                 this.stream_bounds();
                 return;
@@ -4070,7 +3996,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../history/history":5,"../log/logger":8,"./iterate":24}],26:[function(require,module,exports){
+},{"../history/history":5,"./iterate":24}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;

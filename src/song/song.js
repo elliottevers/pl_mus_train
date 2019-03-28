@@ -11,10 +11,6 @@ var song;
     var Song = /** @class */ (function () {
         function Song(song_dao) {
             this.song_dao = song_dao;
-            // automatically set path at time of instantiation
-            // if (this.song_dao.is_async()) {
-            //     this.set_path_deferlow('set_path_' + this.song_dao.key_route)
-            // }
         }
         Song.prototype.load_scenes = function () {
             this.scenes = this.song_dao.get_scenes();
@@ -47,7 +43,7 @@ var song;
             return this.get_scenes().length / 2;
         };
         Song.prototype.set_path_deferlow = function (key_route) {
-            this.song_dao.set_path_deferlow(key_route, this.get_path());
+            this.song_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
         };
         Song.prototype.get_path = function () {
             return this.song_dao.get_path();
@@ -66,6 +62,7 @@ var song;
             // this.key_route = key_route;
         }
         SongDaoVirtual.prototype.create_scene = function (index) {
+            return;
         };
         SongDaoVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
             return;
@@ -108,7 +105,6 @@ var song;
     song.SongDaoVirtual = SongDaoVirtual;
     var SongDao = /** @class */ (function () {
         function SongDao(song_live, messenger, deferlow, key_route, env) {
-            // constructor(song_live: iLiveApiJs, patcher: Patcher, deferlow?: boolean, key_route?: string, env?: string) {
             this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -136,19 +132,16 @@ var song;
                 this.messenger.message([this.key_route, "set", "session_record", String(int)]);
             }
             else {
-                this.song_live.set("session_record", String(int));
+                // this.song_live.set("session_record", String(int));
+                this.song_live.set("session_record", int);
             }
-            // if (this.deferlow) {
-            //     this.patcher.getnamed('song').message('set', 'session_record', String(int))
-            // } else {
-            //
-            // }
         };
         SongDao.prototype.set_overdub = function (int) {
             if (this.deferlow) {
                 this.messenger.message([this.key_route, "set", "overdub", String(int)]);
             }
             else {
+                // this.song_live.set("overdub", int);
                 this.song_live.set("overdub", int);
             }
         };

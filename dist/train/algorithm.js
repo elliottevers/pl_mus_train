@@ -67,6 +67,8 @@ var algorithm;
         Targeted.prototype.unpause = function (song, scene_current) {
             // not forcing legato so that it starts immediately
             scene_current.fire(false);
+            song.set_session_record(1);
+            song.set_overdub(1);
         };
         Targeted.prototype.postprocess_user_input = function (notes_user_input, subtarget_current) {
             return [subtarget_current.note];
@@ -102,14 +104,15 @@ var algorithm;
             return matrix_targets;
         };
         Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current, segments) {
-            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
-            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
-            messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
-            var length_segment = segment_current.get_note().model.note.get_beat_end() - segment_current.get_note().model.note.beat_start;
+            // messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
+            // messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
+            var duration_training_data = segments[segments.length - 1].beat_end;
+            messenger.message(['duration_training_data', duration_training_data], true);
+            // let length_segment = segment_current.get_note().model.note.get_beat_end() - segment_current.get_note().model.note.beat_start;
             messenger.message([
                 'bounds',
-                subtarget_current.note.model.note.beat_start / length_segment,
-                subtarget_current.note.model.note.get_beat_end() / length_segment
+                subtarget_current.note.model.note.beat_start / duration_training_data,
+                subtarget_current.note.model.note.get_beat_end() / duration_training_data
             ], true);
         };
         Targeted.prototype.stream_bounds = function (messenger, subtarget_current, segment_current, segments) {
@@ -197,8 +200,8 @@ var algorithm;
         };
         Parsed.stream_segment_bounds = function (messenger, subtarget_current, segment_current, segments) {
             // route offset_beats_current_segment duration_beats_current_segment duration_training_data
-            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
-            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
+            // messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
+            // messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
             messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
             messenger.message(['bounds', 0, 1], true);
         };
@@ -206,9 +209,9 @@ var algorithm;
             this.finish_parse(struct_train, segments);
         };
         Parsed.prototype.unpause = function (song, scene_current) {
+            scene_current.fire(false);
             song.set_overdub(1);
             song.set_session_record(1);
-            scene_current.fire(false);
         };
         Parsed.prototype.warrants_advance = function (notes_user_input, subtarget_current) {
             return true;
@@ -217,9 +220,9 @@ var algorithm;
             return this.create_struct_parse(segments);
         };
         Parsed.prototype.advance_scene = function (scene_current, song) {
+            scene_current.fire(true);
             song.set_overdub(1);
             song.set_session_record(1);
-            scene_current.fire(true);
         };
         Parsed.prototype.preprocess_history_user_input = function (history_user_input, segments) {
             for (var i_segment in segments) {

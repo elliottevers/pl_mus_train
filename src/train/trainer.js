@@ -2,16 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
 var iterate_1 = require("./iterate");
-var logger_1 = require("../log/logger");
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
-    var Logger = logger_1.log.Logger;
     var Trainer = /** @class */ (function () {
         function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, segments, messenger, virtualized) {
             this.virtualized = false;
+            this.done = false;
             this.window = window;
             this.trainable = trainable;
             this.track_target = track_target;
@@ -21,8 +20,9 @@ var trainer;
             this.segments = segments;
             this.messenger = messenger;
             this.virtualized = virtualized;
-            var logger = new Logger('max');
-            logger.log(JSON.stringify(this.segments));
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(this.segments));
             this.notes_target_track = track_target.get_notes();
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_objectives(this.trainable, this.segments));
@@ -41,6 +41,9 @@ var trainer;
         };
         Trainer.prototype.render_window = function () {
             if (!this.virtualized) {
+                if (!this.done) {
+                    this.window.clear();
+                }
                 this.window.render(this.iterator_matrix_train, this.trainable, this.struct_train, this.segment_current);
             }
         };
@@ -69,6 +72,7 @@ var trainer;
             this.advance();
         };
         Trainer.prototype.shut_down = function () {
+            this.done = true;
             if (!this.virtualized) {
                 this.trainable.terminate(this.struct_train, this.segments);
                 this.trainable.pause(this.song, this.segment_current.scene);
@@ -83,7 +87,7 @@ var trainer;
             this.next_segment();
         };
         Trainer.prototype.advance_subtarget = function () {
-            var logger = new Logger('max');
+            // let logger = new Logger('max');
             var matrix_targets = this.struct_train;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {
@@ -94,7 +98,7 @@ var trainer;
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
                 this.iterator_subtarget_current.next();
                 this.subtarget_current = this.iterator_subtarget_current.current();
-                logger.log(JSON.stringify(this.subtarget_current));
+                // logger.log(JSON.stringify(this.subtarget_current));
                 this.next_segment();
                 // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
                 return;
@@ -115,7 +119,7 @@ var trainer;
                     var obj_next_subtarget_twice_nested = this.target_current.iterator_subtarget.next();
                     this.subtarget_current = obj_next_subtarget_twice_nested.value;
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
-                    logger.log(JSON.stringify(this.subtarget_current));
+                    // logger.log(JSON.stringify(this.subtarget_current));
                     this.next_segment();
                     // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
                     return;
@@ -123,7 +127,7 @@ var trainer;
                 this.target_current = obj_next_target.value;
                 var obj_next_subtarget_once_nested = this.target_current.iterator_subtarget.next();
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
-                logger.log(JSON.stringify(this.subtarget_current));
+                // logger.log(JSON.stringify(this.subtarget_current));
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
                 this.stream_bounds();
                 return;

@@ -157,12 +157,17 @@ var set_track_user_input = function () {
     var this_device = new LiveApiJs('this_device');
     var path_this_track = utils_1.utils.get_path_track_from_path_device(utils_1.utils.cleanse_path(this_device.get_path()));
     track_user_input = new Track(new TrackDao(new LiveApiJs(path_this_track), new Messenger(env, 0), true, 'track_user_input'));
+    track_user_input.set_path_deferlow('track_user_input');
     track_user_input.load_clips();
+};
+var set_song = function () {
+    song = new Song(new SongDao(new LiveApiJs('live_set'), new Messenger(env, 0), true, 'song'));
+    song.set_path_deferlow('song');
 };
 var initialize = function () {
     set_segments();
     set_track_user_input();
-    song = new Song(new SongDao(new LiveApiJs('live_set'), new Messenger(env, 0), true, 'song'));
+    set_song();
     user_input_handler = new UserInputHandler(mode_texture, mode_control);
     trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render);
 };
@@ -280,8 +285,8 @@ var load_session = function () {
     //     'messenger': messenger_render,
     //     'env': env
     // };
-    var thawer = new TrainThawer(env);
-    var notes_thawed = thawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', env);
+    var thawer = new TrainThawer();
+    var notes_thawed = TrainThawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', env);
     logger.log('loaded thawed notes');
     logger.log(JSON.stringify(notes_thawed));
     commence();

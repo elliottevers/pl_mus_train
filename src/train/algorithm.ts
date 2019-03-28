@@ -219,7 +219,9 @@ export namespace algorithm {
 
         unpause(song: Song, scene_current: Scene) {
             // not forcing legato so that it starts immediately
-            scene_current.fire(false)
+            scene_current.fire(false);
+            song.set_session_record(1);
+            song.set_overdub(1);
         }
 
         postprocess_user_input(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current: target.Subtarget): TreeModel.Node<note.Note>[] {
@@ -275,15 +277,14 @@ export namespace algorithm {
         }
 
         private static stream_subtarget_bounds(messenger: message.Messenger, subtarget_current: Subtarget, segment_current: Segment, segments: Segment[]) {
-            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
-            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
-            messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
-            let length_segment = segment_current.get_note().model.note.get_beat_end() - segment_current.get_note().model.note.beat_start;
+            let duration_training_data = segments[segments.length - 1].beat_end;
+            messenger.message(['duration_training_data', duration_training_data], true);
+
             messenger.message(
                 [
                     'bounds',
-                    subtarget_current.note.model.note.beat_start/length_segment,
-                    subtarget_current.note.model.note.get_beat_end()/length_segment
+                    subtarget_current.note.model.note.beat_start/duration_training_data,
+                    subtarget_current.note.model.note.get_beat_end()/duration_training_data
                 ],
                 true
             )
@@ -444,9 +445,6 @@ export namespace algorithm {
             segment_current: segment.Segment,
             segments: Segment[]
         ) {
-            // route offset_beats_current_segment duration_beats_current_segment duration_training_data
-            messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
-            messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
             messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
             messenger.message(['bounds', 0, 1], true)
         }
@@ -456,11 +454,11 @@ export namespace algorithm {
         }
 
         unpause(song: Song, scene_current: Scene) {
+            scene_current.fire(false);
+
             song.set_overdub(1);
 
             song.set_session_record(1);
-
-            scene_current.fire(false);
         }
 
         public abstract update_roots(coords_roots_previous: number[][], coords_notes_to_grow: number[][], coord_notes_current: number[])
@@ -474,12 +472,11 @@ export namespace algorithm {
         }
 
         advance_scene(scene_current: scene.Scene, song: song.Song) {
+            scene_current.fire(true);
 
             song.set_overdub(1);
 
             song.set_session_record(1);
-
-            scene_current.fire(true);
         }
 
         preprocess_history_user_input(history_user_input: history.HistoryUserInput, segments: segment.Segment[]): HistoryUserInput {

@@ -72,6 +72,8 @@ export namespace trainer {
 
         public virtualized: boolean = false;
 
+        public done: boolean = false;
+
         constructor(
             window: MatrixWindow,
             user_input_handler: UserInputHandler,
@@ -93,9 +95,9 @@ export namespace trainer {
             this.messenger = messenger;
             this.virtualized = virtualized;
 
-            let logger = new Logger('max');
-
-            logger.log(JSON.stringify(this.segments));
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(this.segments));
 
             this.notes_target_track = track_target.get_notes();
 
@@ -161,6 +163,11 @@ export namespace trainer {
 
         public render_window() {
             if (!this.virtualized) {
+
+                if (!this.done) {
+                    this.window.clear();
+                }
+
                 this.window.render(
                     this.iterator_matrix_train,
                     this.trainable,
@@ -197,6 +204,7 @@ export namespace trainer {
         }
 
         private shut_down() {
+            this.done = true;
             if (!this.virtualized) {
                 this.trainable.terminate(this.struct_train, this.segments);
 
@@ -220,7 +228,7 @@ export namespace trainer {
 
         private advance_subtarget() {
 
-            let logger = new Logger('max');
+            // let logger = new Logger('max');
 
             let matrix_targets = this.struct_train as StructTargets;
 
@@ -241,7 +249,7 @@ export namespace trainer {
 
                 this.subtarget_current = this.iterator_subtarget_current.current();
 
-                logger.log(JSON.stringify(this.subtarget_current));
+                // logger.log(JSON.stringify(this.subtarget_current));
 
                 this.next_segment();
 
@@ -281,7 +289,7 @@ export namespace trainer {
 
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
-                    logger.log(JSON.stringify(this.subtarget_current));
+                    // logger.log(JSON.stringify(this.subtarget_current));
 
                     this.next_segment();
 
@@ -296,7 +304,7 @@ export namespace trainer {
 
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
 
-                logger.log(JSON.stringify(this.subtarget_current));
+                // logger.log(JSON.stringify(this.subtarget_current));
 
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
@@ -360,7 +368,10 @@ export namespace trainer {
 
             if (this.trainable.warrants_advance(notes_input_user, this.subtarget_current)) {
 
-                let input_postprocessed = this.trainable.postprocess_user_input(notes_input_user, this.subtarget_current);
+                let input_postprocessed = this.trainable.postprocess_user_input(
+                    notes_input_user,
+                    this.subtarget_current
+                );
 
                 this.history_user_input = this.trainable.update_history_user_input(
                     input_postprocessed,

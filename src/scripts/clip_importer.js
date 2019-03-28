@@ -14,9 +14,6 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-// let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
-//
-// let file_json_comm = dir_projects + 'json_live.json';
 var length_beats;
 var set_length_beats = function (beats) {
     length_beats = beats;
@@ -43,21 +40,6 @@ var import_part = function (name_part) {
     messenger.message(['part_imported']);
 };
 var test = function () {
-    // let song = new li.LiveApiJs(
-    //     'live_set'
-    // );
-    //
-    // let clip_highlighted = new li.LiveApiJs(
-    //     'live_set view highlighted_clip_slot clip'
-    // );
-    //
-    // let length_clip = clip_highlighted.get("length");
-    //
-    // let tempo = song.get("tempo");
-    //
-    // let logger = new Logger(env);
-    //
-    // logger.log(clip_highlighted.get_id())
 };
 if (typeof Global !== "undefined") {
     Global.clip_importer = {};
