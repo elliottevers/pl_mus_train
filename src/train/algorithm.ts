@@ -62,8 +62,17 @@ export namespace algorithm {
     }
 
     interface Renderable {
-        initialize_render(window: MatrixWindow, segments: Segment[], notes_track_target: TreeModel.Node<Note>[]): MatrixWindow
-        get_notes_in_region(target: Target, segment: Segment): TreeModel.Node<Note>[]
+        initialize_render(
+            window: MatrixWindow,
+            segments: Segment[],
+            notes_track_target: TreeModel.Node<Note>[],
+            struct_train: StructTrain
+        ): MatrixWindow
+
+        get_notes_in_region(
+            target: Target,
+            segment: Segment
+        ): TreeModel.Node<Note>[]
     }
 
     // interface that the trainer uses
@@ -217,7 +226,12 @@ export namespace algorithm {
             })
         }
 
-        public abstract initialize_render(window: Window, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): MatrixWindow
+        public abstract initialize_render(
+            window: Window,
+            segments: Segment[],
+            notes_target_track: TreeModel.Node<Note>[],
+            struct_train: StructTrain
+        ): MatrixWindow
 
         unpause(song: Song, scene_current: Scene) {
             // not forcing legato so that it starts immediately
@@ -366,7 +380,12 @@ export namespace algorithm {
             return struct_parse
         }
 
-        public abstract initialize_render(window: Window, segments: Segment[], notes_track_target: TreeModel.Node<Note>[]): MatrixWindow
+        public abstract initialize_render(
+            window: Window,
+            segments: Segment[],
+            notes_track_target: TreeModel.Node<Note>[],
+            struct_train: StructTrain
+        ): MatrixWindow
 
         public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain)
 
@@ -586,7 +605,12 @@ export namespace algorithm {
         }
 
         // TODO: verify that we don't have to do anything here
-        initialize_render(window: window.MatrixWindow, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]): MatrixWindow {
+        initialize_render(
+            window: window.MatrixWindow,
+            segments: segment.Segment[],
+            notes_target_track: TreeModel.Node<note.Note>[],
+            struct_train: StructTrain
+        ): MatrixWindow {
             return window
         }
 
@@ -656,7 +680,12 @@ export namespace algorithm {
         }
 
         // TODO: verify that we don't have to do anythiing here
-        initialize_render(window: window.MatrixWindow, segments: segment.Segment[], notes_target_track: TreeModel.Node<note.Note>[]) {
+        initialize_render(
+            window: window.MatrixWindow,
+            segments: segment.Segment[],
+            notes_target_track: TreeModel.Node<note.Note>[],
+            struct_train: StructTrain
+        ) {
             return window
         }
 
@@ -741,12 +770,25 @@ export namespace algorithm {
         // add the root up to which we're going to parse
         // add the segments as the layer below
         // add the leaf notes
-        initialize_render(window: MatrixWindow, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): MatrixWindow {
+        initialize_render(
+            window: MatrixWindow,
+            segments: Segment[],
+            notes_target_track: TreeModel.Node<Note>[],
+            struct_train: StructTrain
+        ): MatrixWindow {
             // first layer
             window.add_note_to_clip_root(
                 StructParse.create_root_from_segments(
                     segments
                 )
+            );
+
+            // window.regions_renderable.push(coords_parse);
+
+            let struct_parse = struct_train as StructParse;
+
+            struct_parse.regions_renderable.push(
+                [-1]
             );
 
             for (let i_segment in segments) {
@@ -767,6 +809,12 @@ export namespace algorithm {
                 window.add_notes_to_clip(
                     [note_segment],
                     this.coord_to_index_clip_render(
+                        coord_current_virtual_second_layer
+                    )
+                );
+
+                struct_parse.regions_renderable.push(
+                    this.coord_to_index_struct_train(
                         coord_current_virtual_second_layer
                     )
                 );
@@ -935,7 +983,12 @@ export namespace algorithm {
             return struct_parse
         }
 
-        initialize_render(window: MatrixWindow, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): MatrixWindow {
+        initialize_render(
+            window: MatrixWindow,
+            segments: Segment[],
+            notes_target_track: TreeModel.Node<Note>[],
+            struct_train: StructTrain
+        ): MatrixWindow {
             // first layer (root)
             window.add_note_to_clip_root(
                 StructParse.create_root_from_segments(

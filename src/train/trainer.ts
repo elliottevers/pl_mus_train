@@ -122,12 +122,6 @@ export namespace trainer {
                 this.segments[this.segments.length - 1].beat_end
             );
 
-            this.window = this.trainable.initialize_render(
-                this.window,
-                this.segments,
-                this.notes_target_track
-            );
-
             this.history_user_input = this.trainable.preprocess_history_user_input(
                 this.history_user_input,
                 this.segments
@@ -152,7 +146,14 @@ export namespace trainer {
                 this.track_target,
                 this.track_user_input,
                 this.struct_train
-            )
+            );
+
+            this.window = this.trainable.initialize_render(
+                this.window,
+                this.segments,
+                this.notes_target_track,
+                this.struct_train
+            );
         }
 
         public clear_window() {
