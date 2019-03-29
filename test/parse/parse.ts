@@ -32,6 +32,7 @@ import {freeze} from "../../src/serialize/freeze";
 import TrainFreezer = freeze.TrainFreezer;
 import {thaw} from "../../src/serialize/thaw";
 import TrainThawer = thaw.TrainThawer;
+const _ = require('underscore');
 
 
 let tree: TreeModel = new TreeModel();
@@ -534,40 +535,11 @@ trainer_local_parse.clear_window(
 
 );
 
-let freezer_parse = new TrainFreezer(
+TrainFreezer.freeze(
+    trainer_local_parse,
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
     env_parse
 );
-
-freezer_parse.freeze(
-    trainer_local_parse,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json'
-);
-
-// let thawer_parse = new TrainThawer(
-//     env_parse
-// );
-//
-// let config_parse = {
-//     'window': window_local_parse,
-//     'user_input_handler': user_input_handler_parse,
-//     'algorithm': algorithm_train_parse,
-//     'track_target': track_target,
-//     'track_user_input': track_user_input,
-//     'song': song_parse,
-//     'segments': segments,
-//     'messenger': messenger_parse,
-//     'env': env_parse
-// };
-//
-// let train_thawed_parse = thawer_parse.thaw(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
-//     config_parse
-// );
-//
-// train_thawed_parse.render_window(
-//
-// );
-
 
 // TODO: batch up the notes into the segments
 trainer_local_parse = new Trainer(
@@ -582,16 +554,38 @@ trainer_local_parse = new Trainer(
     true
 );
 
-let notes_thawed = TrainThawer.thaw_notes(
+let matrix_deserialized = TrainThawer.thaw_notes_matrix(
     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
     env_parse
 );
 
 trainer_local_parse.commence();
 
-for (let note of notes_thawed) {
-    trainer_local_parse.accept_input([note])
+// skip over the layer of segments
+
+let input_left = true;
+
+while (input_left) {
+    let coord_current = trainer_local_parse.iterator_matrix_train.get_coord_current();
+
+    let coord_user_input_history = algorithm_train_parse.coord_to_index_history_user_input(coord_current);
+
+    if (trainer_local_parse.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
+
+        algorithm_train_parse.terminate(trainer_local_parse.struct_train, segments);
+
+        algorithm_train_parse.pause(song_parse, trainer_local_parse.segment_current.scene);
+
+        input_left = false;
+
+        continue;
+    }
+
+    trainer_local_parse.accept_input(
+        matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]
+    );
 }
+
 
 trainer_local_parse.virtualized = false;
 

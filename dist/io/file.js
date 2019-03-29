@@ -27,7 +27,7 @@ var file;
             case 'max': {
                 var f = new File(filename, "write", "JSON");
                 if (f.isopen) {
-                    post("saving session");
+                    post("writing json");
                     f.writestring(JSON.stringify(string_json));
                     f.close();
                 }
@@ -73,6 +73,7 @@ var file;
                     post("reading json");
                     //@ts-ignore
                     while ((a = f.readline()) != null) {
+                        post('reading line');
                         matrix_deserialized = JSON.parse(a);
                     }
                     f.close();

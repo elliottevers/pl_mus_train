@@ -24,42 +24,49 @@ var serialize;
         }
         return notes_serialized;
     };
-    serialize.serialize_subtarget = function (subtarget) {
-        var subtarget_serialized;
-        // TODO: fix
-        // let subtarget_serialized = subtarget;
-        subtarget_serialized = subtarget;
-        subtarget_serialized.note = serialize.serialize_note(subtarget.note);
-        return subtarget_serialized;
-    };
-    serialize.deserialize_subtarget = function (subtarget_serialized) {
-        var subtarget_deserialized = subtarget_serialized;
-        subtarget_deserialized.note = serialize.deserialize_note(subtarget_serialized.note);
-        return subtarget_deserialized;
-    };
-    // import SequenceTarget = history.SequenceTarget;
-    serialize.serialize_target_sequence = function (sequence_target) {
-        var sequence_target_serialized = sequence_target;
-        for (var i_target in sequence_target) {
-            var subtargets = sequence_target[Number(i_target)].iterator_subtarget.subtargets;
-            for (var i_subtarget in subtargets) {
-                var subtarget = subtargets[Number(i_subtarget)];
-                sequence_target_serialized[Number(i_target)][Number(i_subtarget)] = serialize.serialize_subtarget(subtarget);
-            }
-        }
-        return sequence_target_serialized;
-    };
-    serialize.deserialize_target_sequence = function (sequence_target_serialized) {
-        var sequence_target_deserialized = sequence_target_serialized;
-        for (var i_target in sequence_target_serialized) {
-            var subtargets = sequence_target_serialized[Number(i_target)].get_subtargets();
-            for (var i_subtarget in subtargets) {
-                var subtarget = subtargets[Number(i_subtarget)];
-                sequence_target_deserialized[Number(i_target)][Number(i_subtarget)] = serialize.deserialize_subtarget(subtarget);
-            }
-        }
-        return sequence_target_deserialized;
-    };
+    // import Subtarget = target.Subtarget;
+    //
+    // export let serialize_subtarget = (subtarget: Subtarget) => {
+    //     let subtarget_serialized: any;
+    //     // TODO: fix
+    //     // let subtarget_serialized = subtarget;
+    //     subtarget_serialized = subtarget;
+    //     subtarget_serialized.note = serialize_note(subtarget.note);
+    //     return subtarget_serialized;
+    // };
+    //
+    // export let deserialize_subtarget = (subtarget_serialized) => {
+    //     let subtarget_deserialized = subtarget_serialized;
+    //     subtarget_deserialized.note = deserialize_note(subtarget_serialized.note);
+    //     return subtarget_deserialized;
+    // };
+    //
+    // // import SequenceTarget = history.SequenceTarget;
+    //
+    // export let serialize_target_sequence = (sequence_target) => {
+    //     let sequence_target_serialized = sequence_target;
+    //     for (let i_target in sequence_target) {
+    //         let subtargets = sequence_target[Number(i_target)].iterator_subtarget.subtargets;
+    //         for (let i_subtarget in subtargets) {
+    //             let subtarget = subtargets[Number(i_subtarget)];
+    //             sequence_target_serialized[Number(i_target)][Number(i_subtarget)] = serialize_subtarget(subtarget)
+    //         }
+    //     }
+    //     return sequence_target_serialized;
+    // };
+    //
+    // export let deserialize_target_sequence = (sequence_target_serialized) => {
+    //     let sequence_target_deserialized = sequence_target_serialized;
+    //
+    //     for (let i_target in sequence_target_serialized) {
+    //         let subtargets = sequence_target_serialized[Number(i_target)].get_subtargets();
+    //         for (let i_subtarget in subtargets) {
+    //             let subtarget = subtargets[Number(i_subtarget)];
+    //             sequence_target_deserialized[Number(i_target)][Number(i_subtarget)] = deserialize_subtarget(subtarget)
+    //         }
+    //     }
+    //     return sequence_target_deserialized;
+    // };
     // export let serialize_note_sequence = (sequence_target) => {
     //     let sequence_target_serialized = sequence_target;
     //     for (let i_target in sequence_target) {

@@ -8,7 +8,7 @@ import {live} from "../../src/live/live";
 import LiveClipVirtual = live.LiveClipVirtual;
 import {segment} from "../../src/segment/segment";
 import Segment = segment.Segment;
-import {clip as c, clip} from "../../src/clip/clip";
+import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
 import {algorithm} from "../../src/train/algorithm";
 import Detect = algorithm.Detect;
@@ -26,7 +26,6 @@ import SongDaoVirtual = module_song.SongDaoVirtual;
 import Track = track.Track;
 import TrackDaoVirtual = track.TrackDaoVirtual;
 import {scene as module_scene} from "../../src/scene/scene";
-import SceneDao = module_scene.SceneDao;
 import SceneDaoVirtual = module_scene.SceneDaoVirtual;
 import Scene = module_scene.Scene;
 import {freeze} from "../../src/serialize/freeze";
@@ -216,7 +215,7 @@ let user_input_handler = new UserInputHandler(
 );
 
 let env: string = 'node_for_max';
-env = 'node';
+// env = 'node';
 
 
 let messenger = new Messenger(env, 0, 'render_detect');
@@ -362,13 +361,6 @@ let segments = Segment.from_notes(
 );
 
 // assign scenes to segments
-// for (let segment of segments) {
-//     segment.set_scene(
-//         new Scene(
-//             new SceneDaoVirtual()
-//         )
-//     )
-// }
 
 for (let i_segment in segments) {
     let segment = segments[Number(i_segment)];
@@ -429,39 +421,11 @@ trainer_local.clear_window(
 
 );
 
-let freezer = new TrainFreezer(
+TrainFreezer.freeze(
+    trainer_local,
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
     env
 );
-
-freezer.freeze(
-    trainer_local,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json'
-);
-
-// let thawer = new TrainThawer(
-//     env
-// );
-//
-// let config = {
-//     'window': window_train,
-//     'user_input_handler': user_input_handler,
-//     'trainable': algorithm_train,
-//     'track_target': track_target,
-//     'track_user_input': track_user_input,
-//     'song': song,
-//     'segments': segments,
-//     'messenger': messenger,
-//     'env': env
-// };
-//
-// let train_thawed = thawer.thaw(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
-//     config
-// );
-//
-// train_thawed.render_window(
-//
-// );
 
 trainer_local = new Trainer(
     window_train,

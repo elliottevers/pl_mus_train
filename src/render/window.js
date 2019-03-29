@@ -58,7 +58,7 @@ var window;
             var list_clips = [];
             var beat_start_song = segments[0].beat_start;
             var beat_end_song = segments[segments.length - 1].beat_end;
-            for (var i in _.range(0, trainable.get_depth())) {
+            for (var i in _.range(0, trainable.get_num_layers_clips_to_render())) {
                 var clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
@@ -70,11 +70,11 @@ var window;
         Window.prototype.set_length_beats = function (beats) {
             this.length_beats = beats;
         };
-        Window.prototype.add_notes_to_clip = function (notes_to_add_to_clip, coord_current, algorithm) {
-            var index_clip = algorithm.coord_to_index_clip(coord_current);
+        Window.prototype.add_notes_to_clip = function (notes_to_add_to_clip, index_clip_render) {
+            // let index_clip = algorithm.coord_to_index_clip(coord_current);
             for (var _i = 0, notes_to_add_to_clip_1 = notes_to_add_to_clip; _i < notes_to_add_to_clip_1.length; _i++) {
                 var note_1 = notes_to_add_to_clip_1[_i];
-                this.list_clips[index_clip].append(note_1);
+                this.list_clips[index_clip_render].append(note_1);
             }
         };
         Window.prototype.add_note_to_clip_root = function (note) {
@@ -205,7 +205,7 @@ var window;
         MatrixWindow.prototype.get_centroid = function (node, trainable) {
             var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
             var coord_clip = node.model.note.get_coordinates_matrix();
-            var index_clip = trainable.coord_to_index_clip(coord_clip);
+            var index_clip = trainable.coord_to_index_clip_render(coord_clip);
             // TODO: determine how to get the index of the clip from just depth of the node
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
@@ -250,7 +250,7 @@ var window;
                 var struct_parse = struct_train;
                 for (var _i = 0, _a = struct_parse.get_regions_renderable(); _i < _a.length; _i++) {
                     var coord = _a[_i];
-                    messages.push(this.get_messages_render_clip(trainable.coord_to_index_clip(coord)));
+                    messages.push(this.get_messages_render_clip(trainable.coord_to_index_clip_render(coord)));
                 }
             }
             return messages;

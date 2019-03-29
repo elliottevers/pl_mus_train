@@ -60,7 +60,7 @@ export namespace trainer {
         private limit_user_input: number;
         private limit_input_reached: boolean;
 
-        private segment_current: Segment;
+        public segment_current: Segment;
         public target_current: Target;
         private subtarget_current: Subtarget;
 
@@ -107,7 +107,7 @@ export namespace trainer {
             );
 
             this.history_user_input = new HistoryUserInput(
-                FactoryMatrixObjectives.create_matrix_objectives(
+                FactoryMatrixObjectives.create_matrix_user_input_history(
                     this.trainable,
                     this.segments
                 )
@@ -376,7 +376,8 @@ export namespace trainer {
                 this.history_user_input = this.trainable.update_history_user_input(
                     input_postprocessed,
                     this.history_user_input,
-                    this.iterator_matrix_train
+                    this.iterator_matrix_train,
+                    this.trainable
                 );
 
                 this.struct_train = this.trainable.update_struct(
@@ -388,8 +389,9 @@ export namespace trainer {
 
                 this.window.add_notes_to_clip(
                     input_postprocessed,
-                    this.iterator_matrix_train.get_coord_current(),
-                    this.trainable
+                    this.trainable.coord_to_index_clip_render(
+                        this.iterator_matrix_train.get_coord_current()
+                    )
                 );
 
                 this.advance();

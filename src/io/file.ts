@@ -1,3 +1,4 @@
+
 export namespace file {
 
     export let to_json = (string_json, filename: string, env: string) => {
@@ -30,7 +31,7 @@ export namespace file {
                 let f = new File(filename,"write","JSON");
 
                 if (f.isopen) {
-                    post("saving session");
+                    post("writing json");
                     f.writestring(JSON.stringify(string_json));
                     f.close();
                 } else {
@@ -78,7 +79,9 @@ export namespace file {
                     post("reading json");
                     //@ts-ignore
                     while ((a = f.readline()) != null) {
+                        post('reading line');
                         matrix_deserialized = JSON.parse(a) as any;
+
                     }
                     f.close();
                 } else {

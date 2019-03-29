@@ -1,52 +1,52 @@
-import {message} from "../message/messenger";
-import Messenger = message.Messenger;
 import {live} from "../live/live";
-import {modes_control, modes_texture} from "../constants/constants";
-import INSTRUMENTAL = modes_control.INSTRUMENTAL;
-import POLYPHONY = modes_texture.POLYPHONY;
-import LiveApiJs = live.LiveApiJs;
-import {log} from "../log/logger";
-import Logger = log.Logger;
-import MONOPHONY = modes_texture.MONOPHONY;
-import VOCAL = modes_control.VOCAL;
-import {song as sng} from "../song/song";
-import Song = sng.Song;
-import SongDao = sng.SongDao;
-import {track} from "../track/track";
-import Track = track.Track;
-import {freeze} from "../serialize/freeze";
-import TrainFreezer = freeze.TrainFreezer;
-import {thaw} from "../serialize/thaw";
-import TrainThawer = thaw.TrainThawer;
+import {algorithm} from "../train/algorithm";
+import Predict = algorithm.Predict;
+import Parse = algorithm.Parse;
+import Derive = algorithm.Derive;
 import {trainer as module_trainer} from "../train/trainer";
 import Trainer = module_trainer.Trainer;
-import {algorithm} from "../train/algorithm";
-import PARSE = algorithm.PARSE;
-import PREDICT = algorithm.PREDICT;
-import DERIVE = algorithm.DERIVE;
-import DETECT = algorithm.DETECT;
-import TreeModel = require("tree-model");
-import {note} from "../note/note";
-import Note = note.Note;
-import TrackDao = track.TrackDao;
-import {utils} from "../utils/utils";
-import Predict = algorithm.Predict;
-import {user_input} from "../control/user_input";
-import UserInputHandler = user_input.UserInputHandler;
-import Parse = algorithm.Parse;
-import FREESTYLE = algorithm.FREESTYLE;
-import Derive = algorithm.Derive;
-import Detect = algorithm.Detect;
-import {window as module_window} from "../render/window";
-import MatrixWindow = module_window.MatrixWindow;
 import {clip} from "../clip/clip";
-import Clip = clip.Clip;
-import {scene} from "../scene/scene";
-import SceneDao = scene.SceneDao;
 import ClipDao = clip.ClipDao;
-import Scene = scene.Scene;
+import {log} from "../log/logger";
+import Logger = log.Logger;
+import Detect = algorithm.Detect;
 import {segment} from "../segment/segment";
 import Segment = segment.Segment;
+import {modes_control, modes_texture} from "../constants/constants";
+import MONOPHONY = modes_texture.MONOPHONY;
+import INSTRUMENTAL = modes_control.INSTRUMENTAL;
+import Clip = clip.Clip;
+import {song as module_song} from "../song/song";
+import SongDao = module_song.SongDao;
+import {user_input} from "../control/user_input";
+import UserInputHandler = user_input.UserInputHandler;
+import Song = module_song.Song;
+import PARSE = algorithm.PARSE;
+import {utils} from "../utils/utils";
+import DERIVE = algorithm.DERIVE;
+import DETECT = algorithm.DETECT;
+import {scene} from "../scene/scene";
+import SceneDao = scene.SceneDao;
+import {message} from "../message/messenger";
+import Messenger = message.Messenger;
+import {thaw} from "../serialize/thaw";
+import TrainThawer = thaw.TrainThawer;
+import Scene = scene.Scene;
+import {track} from "../track/track";
+import TrackDao = track.TrackDao;
+import VOCAL = modes_control.VOCAL;
+import PREDICT = algorithm.PREDICT;
+import POLYPHONY = modes_texture.POLYPHONY;
+import {note} from "../note/note";
+import Note = note.Note;
+import {freeze} from "../serialize/freeze";
+import TrainFreezer = freeze.TrainFreezer;
+import FREESTYLE = algorithm.FREESTYLE;
+import Track = track.Track;
+import {window as module_window} from "../render/window";
+import MatrixWindow = module_window.MatrixWindow;
+import TreeModel = require("tree-model");
+
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -151,13 +151,13 @@ let set_segments = () => {
 
     // TODO: this assumes the trainer device is on the same track as the segmenter
     // TODO: put back
-    let this_device = new LiveApiJs('this_device');
+    let this_device = new live.LiveApiJs('this_device');
 
     let path_this_device = utils.cleanse_path(this_device.get_path());
 
     let this_track = new Track(
         new TrackDao(
-            new LiveApiJs(
+            new live.LiveApiJs(
                 utils.get_path_track_from_path_device(path_this_device)
             ),
             new Messenger(env, 0)
@@ -179,7 +179,7 @@ let set_segments = () => {
         segment.set_scene(
             new Scene(
                 new SceneDao(
-                    new LiveApiJs(
+                    new live.LiveApiJs(
                         path_scene
                     ),
                     new Messenger(env, 0),
@@ -198,7 +198,7 @@ let set_segments = () => {
         segment.set_clip_user_input(
             new Clip(
                 new ClipDao(
-                    new LiveApiJs(
+                    new live.LiveApiJs(
                         path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
                     ),
                     new Messenger(env, 0),
@@ -227,7 +227,7 @@ let set_track_target = () => {
 
     track_target = new Track(
         new TrackDao(
-            new LiveApiJs(
+            new live.LiveApiJs(
                 utils.get_path_track_from_path_device(path_device_target)
             ),
             new Messenger(env, 0),
@@ -244,7 +244,7 @@ let set_track_target = () => {
 };
 
 let set_track_user_input = () => {
-    let this_device = new LiveApiJs('this_device');
+    let this_device = new live.LiveApiJs('this_device');
 
     let path_this_track = utils.get_path_track_from_path_device(
         utils.cleanse_path(
@@ -254,7 +254,7 @@ let set_track_user_input = () => {
 
     track_user_input = new Track(
         new TrackDao(
-            new LiveApiJs(
+            new live.LiveApiJs(
                 path_this_track
             ),
             new Messenger(env, 0),
@@ -271,7 +271,7 @@ let set_track_user_input = () => {
 let set_song = () => {
     song = new Song(
         new SongDao(
-            new LiveApiJs(
+            new live.LiveApiJs(
                 'live_set'
             ),
             new Messenger(env, 0),
@@ -389,10 +389,6 @@ let user_input_command = (command: string) => {
                         [coords_current[0] - 1, coords_current[1]]
                     );
 
-                    let logger = new Logger('max');
-
-                    logger.log(JSON.stringify(notes));
-
                     trainer.clip_user_input.set_notes(
                         notes
                     );
@@ -400,14 +396,6 @@ let user_input_command = (command: string) => {
                     break;
                 }
                 case 'erase': {
-                    let logger = new Logger(env);
-
-                    logger.log(
-                        JSON.stringify(
-                            trainer.segment_current
-                        )
-                    );
-
                     trainer.clip_user_input.remove_notes(
                         trainer.segment_current.beat_start,
                         0,
@@ -480,17 +468,39 @@ let user_input_midi = (pitch: number, velocity: number) => {
     }
 };
 
+let get_filename = () => {
+    let filename;
+
+    switch (algorithm_train.get_name()) {
+        case DETECT: {
+            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json';
+            break;
+        }
+        case PREDICT: {
+            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json';
+            break;
+        }
+        case PARSE: {
+            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json';
+            break;
+        }
+        case DERIVE: {
+            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json';
+            break;
+        }
+    }
+
+    return filename;
+};
+
 let save_session = () => {
 
     // TODO: logic to determine, from project folder, name of file
 
-    let freezer = new TrainFreezer(
-        env
-    );
-
-    freezer.freeze(
+    TrainFreezer.freeze(
         trainer,
-        '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json'
+        get_filename(),
+        env
     );
 };
 
@@ -498,22 +508,8 @@ let load_session = () => {
 
     // TODO: logic to determine, from project folder, name of file
 
-    // let config = {
-    //     'window': window,
-    //     'user_input_handler': user_input_handler,
-    //     'trainable': algorithm_train,
-    //     'track_target': track_target,
-    //     'track_user_input': track_user_input,
-    //     'song': song,
-    //     'segments': segments_train,
-    //     'messenger': messenger_render,
-    //     'env': env
-    // };
-
-    let thawer = new TrainThawer();
-
     let notes_thawed = TrainThawer.thaw_notes(
-        '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
+        get_filename(),
         env
     );
 

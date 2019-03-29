@@ -46,8 +46,8 @@ var message;
             console.log("\n");
         };
         Messenger.prototype.message_node_for_max = function (message) {
-            // const Max = require('max-api');
-            // Max.outlet(message);
+            var Max = require('max-api');
+            Max.outlet(message);
         };
         return Messenger;
     }());

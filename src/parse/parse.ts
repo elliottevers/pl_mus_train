@@ -143,17 +143,27 @@ export namespace parse {
         }
 
         // TODO: never set the root in this manner - maybe that's how we can get around the if-else barrage
-        public add(notes_user_input, coord_notes_current, parsable: Parsable): void {
+        public add(notes_user_input, coords_parse: number[], parsable: Parsable, bypass_parse?: boolean): void {
 
             let notes_user_input_renderable = notes_user_input.map((note) => {
-                return NoteRenderable.from_note(note, coord_notes_current)
+                return NoteRenderable.from_note(note, coords_parse)
             });
 
-            this.matrix_leaves[coord_notes_current[0]][coord_notes_current[1]] = notes_user_input_renderable;
+            this.matrix_leaves[coords_parse[0]][coords_parse[1]] = notes_user_input_renderable;
 
-            this.regions_renderable.push(coord_notes_current);
+            this.regions_renderable.push(coords_parse);
 
-            let coords_notes_to_grow = parsable.get_coords_notes_to_grow(coord_notes_current);
+            if (bypass_parse) {
+
+                this.coords_roots = this.coords_roots.concat(
+                    [coords_parse]
+                );
+
+                return
+            }
+
+            // if (!bypass_parse) {
+            let coords_notes_to_grow = parsable.get_coords_notes_to_grow(coords_parse);
 
             for (let coord_to_grow of coords_notes_to_grow) {
 
@@ -165,7 +175,7 @@ export namespace parse {
             this.coords_roots = parsable.update_roots(
                 this.coords_roots,
                 coords_notes_to_grow,
-                coord_notes_current
+                coords_parse
             );
         }
     }

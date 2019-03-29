@@ -89,7 +89,7 @@ var mode_texture = POLYPHONY;
 var mode_control = INSTRUMENTAL;
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
 var env = 'node_for_max';
-env = 'node';
+// env = 'node';
 var messenger = new Messenger(env, 0, 'render_detect');
 var algorithm_train = new Detect();
 var window_train = new MatrixWindow(384, 384, messenger);
@@ -143,13 +143,6 @@ track_target.load_clips();
 track_user_input.load_clips();
 var segments = Segment.from_notes(track_user_input.get_notes());
 // assign scenes to segments
-// for (let segment of segments) {
-//     segment.set_scene(
-//         new Scene(
-//             new SceneDaoVirtual()
-//         )
-//     )
-// }
 for (var i_segment in segments) {
     var segment_2 = segments[Number(i_segment)];
     segment_2.set_scene(new Scene(new SceneDaoVirtual()));
@@ -165,32 +158,7 @@ trainer_local.accept_input([note_target_2_subtarget_2]);
 trainer_local.accept_input([note_target_3_subtarget_1]);
 trainer_local.render_window();
 trainer_local.clear_window();
-var freezer = new TrainFreezer(env);
-freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
-// let thawer = new TrainThawer(
-//     env
-// );
-//
-// let config = {
-//     'window': window_train,
-//     'user_input_handler': user_input_handler,
-//     'trainable': algorithm_train,
-//     'track_target': track_target,
-//     'track_user_input': track_user_input,
-//     'song': song,
-//     'segments': segments,
-//     'messenger': messenger,
-//     'env': env
-// };
-//
-// let train_thawed = thawer.thaw(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
-//     config
-// );
-//
-// train_thawed.render_window(
-//
-// );
+TrainFreezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', env);
 trainer_local = new Trainer(window_train, user_input_handler, algorithm_train, track_target, track_user_input, song, segments, messenger, true);
 var notes_thawed = TrainThawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json', env);
 trainer_local.commence();

@@ -235,7 +235,7 @@ let messenger = new Messenger(env, 0, 'render_derive');
 let algorithm_train = new Derive();
 
 algorithm_train.set_depth(
-    4
+    3
 );
 
 let window_local = new MatrixWindow(
@@ -441,39 +441,11 @@ trainer_local.clear_window(
 
 );
 
-let freezer_parse = new TrainFreezer(
+TrainFreezer.freeze(
+    trainer_local,
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json',
     env
 );
-
-freezer_parse.freeze(
-    trainer_local,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json'
-);
-
-// let thawer_parse = new TrainThawer(
-//     env
-// );
-//
-// let config_parse = {
-//     'window': window_local,
-//     'user_input_handler': user_input_handler,
-//     'trainable': algorithm_train,
-//     'track_target': track_target,
-//     'track_user_input': track_user_input,
-//     'song': song,
-//     'segments': segments,
-//     'messenger': messenger,
-//     'env': env
-// };
-//
-// let train_thawed_parse = thawer_parse.thaw(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
-//     config_parse
-// );
-//
-// train_thawed_parse.render_window(
-//
-// );
 
 // TODO: batch these notes up and input them as segment groups
 
@@ -489,16 +461,64 @@ trainer_local = new Trainer(
     true
 );
 
-let notes_thawed = TrainThawer.thaw_notes(
+// let matrix_deserialized = TrainThawer.thaw_notes_matrix(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json',
+//     env
+// );
+
+// trainer_local.commence();
+//
+// let input_left = true;
+//
+// while (input_left) {
+//     let coord_current = trainer_local.iterator_matrix_train.get_coord_current();
+//
+//     if (trainer_local.iterator_matrix_train.done || matrix_deserialized[coord_current[0]][coord_current[1]].length === 0) {
+//         input_left = false;
+//     }
+//
+//     trainer_local.accept_input(
+//         matrix_deserialized[coord_current[0]][coord_current[1]]
+//     );
+// }
+//
+//
+// trainer_local.virtualized = false;
+//
+// trainer_local.render_window();
+
+let matrix_deserialized = TrainThawer.thaw_notes_matrix(
     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json',
     env
 );
 
 trainer_local.commence();
 
-for (let note of notes_thawed) {
-    trainer_local.accept_input([note])
+// skip over the layer of segments
+
+let input_left = true;
+
+while (input_left) {
+    let coord_current = trainer_local.iterator_matrix_train.get_coord_current();
+
+    let coord_user_input_history = algorithm_train.coord_to_index_history_user_input(coord_current);
+
+    if (trainer_local.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
+
+        algorithm_train.terminate(trainer_local.struct_train, segments);
+
+        algorithm_train.pause(song, trainer_local.segment_current.scene);
+
+        input_left = false;
+
+        continue;
+    }
+
+    trainer_local.accept_input(
+        matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]
+    );
 }
+
 
 trainer_local.virtualized = false;
 

@@ -31,7 +31,7 @@ export namespace history {
         }
 
         // set(coord: number[]): void {
-        //     return
+        //     this.matrix_data[coord[0]][coord[1]]
         // }
     }
 }

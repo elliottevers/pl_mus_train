@@ -4,7 +4,6 @@ import {harmony} from "../music/harmony";
 import {modes_texture} from "../constants/constants";
 import {user_input} from "../control/user_input";
 import {history} from "../history/history";
-import {clip} from "../clip/clip";
 import {parse} from "../parse/parse";
 import {segment} from "../segment/segment";
 import {track} from "../track/track";
@@ -16,7 +15,6 @@ import {scene} from "../scene/scene";
 import {utils} from "../utils/utils";
 import {song} from "../song/song";
 import {trainer} from "./trainer";
-import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace algorithm {
@@ -37,20 +35,16 @@ export namespace algorithm {
     import Window = window.Window;
     import Track = track.Track;
     import MatrixIterator = iterate.MatrixIterator;
-    import Messenger = message.Messenger;
     import Subtarget = target.Subtarget;
     import TargetIterator = target.TargetIterator;
-    import ClipDao = clip.ClipDao;
     import Target = target.Target;
     import FactoryMatrixObjectives = iterate.FactoryMatrixObjectives;
     import Scene = scene.Scene;
     import UserInputHandler = user_input.UserInputHandler;
-    import Clip = clip.Clip;
     import HistoryUserInput = history.HistoryUserInput;
     import StructTrain = trainer.StructTrain;
     import MatrixWindow = window.MatrixWindow;
     import StructTargets = trainer.StructTargets;
-    import Logger = log.Logger;
 
 
     interface Temporal {
@@ -79,9 +73,12 @@ export namespace algorithm {
         b_targeted: boolean;
 
         get_name(): string
-        get_depth(): number
+        get_num_layers_input(): number
+        get_num_layers_clips_to_render(): number
         set_depth(depth: number): void
-        coord_to_index_clip(coord: number[]): number
+        coord_to_index_clip_render(coord: number[]): number
+        coord_to_index_history_user_input(coord: number[]): number[]
+        coord_to_index_struct_train(coord: number[]): number[]
 
         preprocess_history_user_input(
             history_user_input: HistoryUserInput,
@@ -140,7 +137,8 @@ export namespace algorithm {
         update_history_user_input(
             input_postprocessed: TreeModel.Node<Note>[],
             history_user_input: HistoryUserInput,
-            iterator_matrix_train: MatrixIterator
+            iterator_matrix_train: MatrixIterator,
+            trainable: Trainable
         ): HistoryUserInput
 
         warrants_advance(
@@ -170,16 +168,20 @@ export namespace algorithm {
     }
 
     // logic common to detect and predict
-    abstract class Targeted implements Targetable {
+    export abstract class Targeted implements Targetable {
 
         update_history_user_input(
             input_postprocessed: TreeModel.Node<note.Note>[],
             history_user_input: history.HistoryUserInput,
-            iterator_matrix_train: iterate.MatrixIterator
+            iterator_matrix_train: iterate.MatrixIterator,
+            trainable: Trainable
         ): history.HistoryUserInput {
             history_user_input.concat(
                 input_postprocessed,
-                iterator_matrix_train.get_coord_current()
+                // trainable.coord_in_indeiterator_matrix_train.get_coord_current()
+                trainable.coord_to_index_history_user_input(
+                    iterator_matrix_train.get_coord_current()
+                )
             );
             return history_user_input
         }
@@ -194,13 +196,13 @@ export namespace algorithm {
 
         public abstract determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget
 
-        public get_depth(): number {
+        public get_num_layers_input(): number {
             return 1
         }
 
-        coord_to_index_clip(coord: number[]): number {
-            return 0;
-        }
+        // coord_to_index_clip(coord: number[]): number {
+        //     return 0;
+        // }
 
         public determine_region_present(notes_target_next: TreeModel.Node<Note>[], segment_current: Segment): number[] {
             return [
@@ -253,7 +255,7 @@ export namespace algorithm {
 
         public create_matrix_targets(user_input_handler: UserInputHandler, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): TargetIterator[][] {
 
-            let matrix_targets = FactoryMatrixObjectives.create_matrix_objectives(
+            let matrix_targets = FactoryMatrixObjectives.create_matrix_targets(
                 this,
                 segments
             );
@@ -319,10 +321,26 @@ export namespace algorithm {
         preprocess_history_user_input(history_user_input: history.HistoryUserInput, segments: segment.Segment[]): HistoryUserInput {
             return history_user_input
         }
+
+        get_num_layers_clips_to_render(): number {
+            return 1;
+        }
+
+        coord_to_index_clip_render(coord: number[]): number {
+            return 0;
+        }
+
+        coord_to_index_history_user_input(coord: number[]): number[] {
+            return coord;
+        }
+
+        coord_to_index_struct_train(coord: number[]): number[] {
+            return coord;
+        }
     }
 
     // logic common to parse and derive
-    abstract class Parsed implements Parsable {
+    export abstract class Parsed implements Parsable {
 
         public b_parsed: boolean = true;
 
@@ -338,7 +356,10 @@ export namespace algorithm {
 
             struct_parse.add(
                 notes_input_user,
-                iterator_matrix_train.get_coord_current(),
+                // iterator_matrix_train.get_coord_current(),
+                trainable.coord_to_index_struct_train(
+                    iterator_matrix_train.get_coord_current()
+                ),
                 trainable as Parsable
             );
 
@@ -352,24 +373,27 @@ export namespace algorithm {
         public update_history_user_input(
             input_postprocessed: TreeModel.Node<Note>[],
             history_user_input: HistoryUserInput,
-            iterator_matrix_train: MatrixIterator
+            iterator_matrix_train: MatrixIterator,
+            trainable: Trainable
         ): HistoryUserInput {
+
             history_user_input.concat(
                 input_postprocessed,
-                iterator_matrix_train.get_coord_current()
+                trainable.coord_to_index_history_user_input(
+                    iterator_matrix_train.get_coord_current()
+                )
             );
+
             return history_user_input
         }
 
-        public get_depth(): number {
-            return this.depth
-        }
+        public abstract get_num_layers_input(): number
 
         set_depth(depth: number) {
             this.depth = depth;
         }
 
-        coord_to_index_clip(coord: number[]): number {
+        coord_to_index_clip_render(coord: number[]): number {
             if (coord[0] === -1) {
                 return 0
             } else {
@@ -379,7 +403,7 @@ export namespace algorithm {
 
         create_struct_parse(segments: Segment[]): StructParse {
             return new StructParse(
-                FactoryMatrixObjectives.create_matrix_objectives(
+                FactoryMatrixObjectives.create_matrix_parse(
                     this,
                     segments
                 )
@@ -480,14 +504,37 @@ export namespace algorithm {
         }
 
         preprocess_history_user_input(history_user_input: history.HistoryUserInput, segments: segment.Segment[]): HistoryUserInput {
-            for (let i_segment in segments) {
-                let segment = segments[Number(i_segment)];
-                history_user_input.concat(
-                    [segment.get_note()],
-                    [0, Number(i_segment)]
-                )
-            }
+            // for (let i_segment in segments) {
+            //     let segment = segments[Number(i_segment)];
+            //     history_user_input.concat(
+            //         [segment.get_note()],
+            //         [0, Number(i_segment)]
+            //     )
+            // }
             return history_user_input
+        }
+
+        public abstract get_num_layers_clips_to_render(): number
+
+        // we skip over the root and the segments layer
+        // to_index_history_user_input(coord: number[]): number[] {
+        //     return [coord[0] - 2, coord[1]];
+        // }
+
+        // the root is prepended to clips
+        // coord_to_index_clip_render(coord: number[]): number {
+        //     return coord[0] + 1;
+        // }
+
+        // we skip over the segments layer
+        coord_to_index_history_user_input(coord: number[]): number[] {
+            return [coord[0] - 1, coord[1]];
+        }
+
+        // the root is not included in iteration
+        coord_to_index_struct_train(coord: number[]): number[] {
+            // return [coord[0] - 1, coord[1]];
+            return coord
         }
     }
 
@@ -581,13 +628,18 @@ export namespace algorithm {
                 // partition segment into measures
 
                 let position_measure = (node) => {
-                    Math.floor(node.model.note.beat_start/4)
+                    return Math.floor(node.model.note.beat_start/4)
                 };
 
                 let note_partitions: TreeModel.Node<Note>[][] = _.groupBy(notes_segment_next, position_measure);
 
-                for (let partition of note_partitions) {
-                    // get the middle note of the measure
+                // for (let partition of note_partitions) {
+                //     // get the middle note of the measure
+                //     notes_grouped.push([partition[partition.length/2]])
+                // }
+
+                for (let key_partition of Object.keys(note_partitions)) {
+                    let partition = note_partitions[key_partition];
                     notes_grouped.push([partition[partition.length/2]])
                 }
 
@@ -709,27 +761,29 @@ export namespace algorithm {
                     node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
                 );
 
-                let coord_current_virtual_leaves = [this.get_depth() - 1, Number(i_segment)];
+                let coord_current_virtual_leaves = [this.depth - 1, Number(i_segment)];
 
                 // second layer
                 window.add_notes_to_clip(
                     [note_segment],
-                    coord_current_virtual_second_layer,
-                    this
+                    this.coord_to_index_clip_render(
+                        coord_current_virtual_second_layer
+                    )
                 );
 
                 // leaves
                 window.add_notes_to_clip(
                     notes_leaves,
-                    coord_current_virtual_leaves,
-                    this
+                    this.coord_to_index_clip_render(
+                        coord_current_virtual_leaves
+                    )
                 )
             }
 
             return window
         }
 
-        update_roots(coords_roots_previous: number[][], coords_notes_previous: number[][], coord_notes_current: number[]) {
+        update_roots(coords_roots_previous: number[][], coords_notes_previous: number[][], coord_notes_current: number[]): number[][] {
             let coords_roots_new = [];
 
             // remove references to old leaves
@@ -745,6 +799,8 @@ export namespace algorithm {
             coords_roots_new.push(
                 coord_notes_current
             );
+
+            return coords_roots_new
         }
 
         get_coords_notes_to_grow(coord_notes_input_current) {
@@ -757,6 +813,12 @@ export namespace algorithm {
         preprocess_struct_parse(struct_parse: StructParse, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]) {
             // this is to set the leaves as the notes of the target clip
 
+            // struct_parse.set_root(
+            //     ParseTree.create_root_from_segments(
+            //         segments
+            //     )
+            // );
+
             for (let i_segment in segments) {
                 let segment = segments[Number(i_segment)];
 
@@ -764,12 +826,13 @@ export namespace algorithm {
                     node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
                 );
 
-                let coord_current_virtual_leaf = [this.get_depth() - 1, Number(i_segment)];
+                let coord_parse_current_virtual_leaf = [this.depth - 1, Number(i_segment)];
 
                 struct_parse.add(
                     notes,
-                    coord_current_virtual_leaf,
-                    this
+                    coord_parse_current_virtual_leaf,
+                    this,
+                    true
                 );
             }
 
@@ -778,8 +841,11 @@ export namespace algorithm {
 
         finish_parse(struct_parse: StructParse, segments: Segment[]): void {
 
+            let coords_to_grow = [];
+
             // make connections with segments
             for (let i_segment in segments) {
+                coords_to_grow.push([0, Number(i_segment)]);
                 let segment = segments[Number(i_segment)];
                 struct_parse.add(
                     [segment.get_note()],
@@ -794,12 +860,30 @@ export namespace algorithm {
                 )
             );
 
-            // make connections with root
-            struct_parse.add(
-                [Note.from_note_renderable(struct_parse.get_root())],
-                [-1],
-                this
+            for (let coord_to_grow of coords_to_grow) {
+
+                let notes_to_grow = struct_parse.get_notes_at_coord(coord_to_grow);
+
+                this.grow_layer(
+                    [struct_parse.get_root()],
+                    notes_to_grow
+                );
+            }
+
+            struct_parse.coords_roots = this.update_roots(
+                struct_parse.coords_roots,
+                coords_to_grow,
+                [-1]
             );
+        }
+
+        // segments layer and leaves layer don't count
+        get_num_layers_input(): number {
+            return this.depth - 2;
+        }
+
+        get_num_layers_clips_to_render(): number {
+            return this.depth + 1;
         }
     }
 
@@ -870,9 +954,10 @@ export namespace algorithm {
                 // second layer
                 window.add_notes_to_clip(
                     [note_segment],
-                    coord_current_virtual_second_layer,
-                    this
-                );
+                    this.coord_to_index_clip_render(
+                        coord_current_virtual_second_layer
+                    )
+                )
             }
 
             return window
@@ -884,6 +969,15 @@ export namespace algorithm {
 
         update_roots(coords_roots_previous: number[][], coords_notes_previous: number[][], coord_notes_current: number[]) {
             return coords_roots_previous
+        }
+
+        // the layer of segments don't count
+        get_num_layers_input(): number {
+            return this.depth - 1;
+        }
+
+        get_num_layers_clips_to_render(): number {
+            return this.depth + 1;
         }
     }
 }

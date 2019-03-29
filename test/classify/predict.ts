@@ -32,6 +32,7 @@ import {freeze} from "../../src/serialize/freeze";
 import TrainFreezer = freeze.TrainFreezer;
 import {thaw} from "../../src/serialize/thaw";
 import TrainThawer = thaw.TrainThawer;
+import MONOPHONY = modes_texture.MONOPHONY;
 
 
 let tree: TreeModel = new TreeModel();
@@ -205,7 +206,8 @@ let note_target_4_subtarget_1 = tree.parse(
 // );
 
 
-let mode_texture = POLYPHONY;
+// let mode_texture = POLYPHONY;
+let mode_texture = MONOPHONY;
 let mode_control = INSTRUMENTAL;
 
 let user_input_handler = new UserInputHandler(
@@ -415,39 +417,11 @@ trainer_local.clear_window(
 
 );
 
-let freezer = new TrainFreezer(
+TrainFreezer.freeze(
+    trainer_local,
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json',
     env
 );
-
-freezer.freeze(
-    trainer_local,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json'
-);
-
-// let thawer = new TrainThawer(
-//     env
-// );
-//
-// let config = {
-//     'window': window_train,
-//     'user_input_handler': user_input_handler,
-//     'algorithm': algorithm_train,
-//     'clip_user_input': clip_user_input,
-//     'clip_target': clip_target,
-//     'song': song,
-//     'segments': segments,
-//     'messenger': messenger,
-//     'env': env
-// };
-//
-// let train_thawed = thawer.thaw(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
-//     config
-// );
-//
-// train_thawed.render_window(
-//
-// );
 
 trainer_local = new Trainer(
     window_train,

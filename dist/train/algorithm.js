@@ -43,16 +43,18 @@ var algorithm;
             this.b_parsed = false;
             this.b_targeted = true;
         }
-        Targeted.prototype.update_history_user_input = function (input_postprocessed, history_user_input, iterator_matrix_train) {
-            history_user_input.concat(input_postprocessed, iterator_matrix_train.get_coord_current());
+        Targeted.prototype.update_history_user_input = function (input_postprocessed, history_user_input, iterator_matrix_train, trainable) {
+            history_user_input.concat(input_postprocessed, 
+            // trainable.coord_in_indeiterator_matrix_train.get_coord_current()
+            trainable.coord_to_index_history_user_input(iterator_matrix_train.get_coord_current()));
             return history_user_input;
         };
-        Targeted.prototype.get_depth = function () {
+        Targeted.prototype.get_num_layers_input = function () {
             return 1;
         };
-        Targeted.prototype.coord_to_index_clip = function (coord) {
-            return 0;
-        };
+        // coord_to_index_clip(coord: number[]): number {
+        //     return 0;
+        // }
         Targeted.prototype.determine_region_present = function (notes_target_next, segment_current) {
             return [
                 notes_target_next[0].model.note.beat_start,
@@ -90,7 +92,7 @@ var algorithm;
             return struct_targets;
         };
         Targeted.prototype.create_matrix_targets = function (user_input_handler, segments, notes_target_track) {
-            var matrix_targets = FactoryMatrixObjectives.create_matrix_objectives(this, segments);
+            var matrix_targets = FactoryMatrixObjectives.create_matrix_targets(this, segments);
             var _loop_1 = function (i_segment) {
                 var segment_1 = segments[Number(i_segment)];
                 var notes_in_segment = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_1.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_1.get_endpoints_loop()[1]; });
@@ -104,11 +106,8 @@ var algorithm;
             return matrix_targets;
         };
         Targeted.stream_subtarget_bounds = function (messenger, subtarget_current, segment_current, segments) {
-            // messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
-            // messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
             var duration_training_data = segments[segments.length - 1].beat_end;
             messenger.message(['duration_training_data', duration_training_data], true);
-            // let length_segment = segment_current.get_note().model.note.get_beat_end() - segment_current.get_note().model.note.beat_start;
             messenger.message([
                 'bounds',
                 subtarget_current.note.model.note.beat_start / duration_training_data,
@@ -133,8 +132,21 @@ var algorithm;
         Targeted.prototype.preprocess_history_user_input = function (history_user_input, segments) {
             return history_user_input;
         };
+        Targeted.prototype.get_num_layers_clips_to_render = function () {
+            return 1;
+        };
+        Targeted.prototype.coord_to_index_clip_render = function (coord) {
+            return 0;
+        };
+        Targeted.prototype.coord_to_index_history_user_input = function (coord) {
+            return coord;
+        };
+        Targeted.prototype.coord_to_index_struct_train = function (coord) {
+            return coord;
+        };
         return Targeted;
     }());
+    algorithm.Targeted = Targeted;
     // logic common to parse and derive
     var Parsed = /** @class */ (function () {
         function Parsed() {
@@ -143,20 +155,19 @@ var algorithm;
         }
         Parsed.prototype.update_struct = function (notes_input_user, struct_train, trainable, iterator_matrix_train) {
             var struct_parse = struct_train;
-            struct_parse.add(notes_input_user, iterator_matrix_train.get_coord_current(), trainable);
+            struct_parse.add(notes_input_user, 
+            // iterator_matrix_train.get_coord_current(),
+            trainable.coord_to_index_struct_train(iterator_matrix_train.get_coord_current()), trainable);
             return struct_parse;
         };
-        Parsed.prototype.update_history_user_input = function (input_postprocessed, history_user_input, iterator_matrix_train) {
-            history_user_input.concat(input_postprocessed, iterator_matrix_train.get_coord_current());
+        Parsed.prototype.update_history_user_input = function (input_postprocessed, history_user_input, iterator_matrix_train, trainable) {
+            history_user_input.concat(input_postprocessed, trainable.coord_to_index_history_user_input(iterator_matrix_train.get_coord_current()));
             return history_user_input;
-        };
-        Parsed.prototype.get_depth = function () {
-            return this.depth;
         };
         Parsed.prototype.set_depth = function (depth) {
             this.depth = depth;
         };
-        Parsed.prototype.coord_to_index_clip = function (coord) {
+        Parsed.prototype.coord_to_index_clip_render = function (coord) {
             if (coord[0] === -1) {
                 return 0;
             }
@@ -165,7 +176,7 @@ var algorithm;
             }
         };
         Parsed.prototype.create_struct_parse = function (segments) {
-            return new StructParse(FactoryMatrixObjectives.create_matrix_objectives(this, segments));
+            return new StructParse(FactoryMatrixObjectives.create_matrix_parse(this, segments));
         };
         Parsed.prototype.determine_region_present = function (notes_target_next, segment_current) {
             // return [
@@ -199,9 +210,6 @@ var algorithm;
             Parsed.stream_segment_bounds(messenger, subtarget_current, segment_current, segments);
         };
         Parsed.stream_segment_bounds = function (messenger, subtarget_current, segment_current, segments) {
-            // route offset_beats_current_segment duration_beats_current_segment duration_training_data
-            // messenger.message(['offset_beats_current_segment', segment_current.beat_start], true);
-            // messenger.message(['duration_beats_current_segment', segment_current.beat_end - segment_current.beat_start], true);
             messenger.message(['duration_training_data', segments[segments.length - 1].beat_end], true);
             messenger.message(['bounds', 0, 1], true);
         };
@@ -225,14 +233,34 @@ var algorithm;
             song.set_session_record(1);
         };
         Parsed.prototype.preprocess_history_user_input = function (history_user_input, segments) {
-            for (var i_segment in segments) {
-                var segment_2 = segments[Number(i_segment)];
-                history_user_input.concat([segment_2.get_note()], [0, Number(i_segment)]);
-            }
+            // for (let i_segment in segments) {
+            //     let segment = segments[Number(i_segment)];
+            //     history_user_input.concat(
+            //         [segment.get_note()],
+            //         [0, Number(i_segment)]
+            //     )
+            // }
             return history_user_input;
+        };
+        // we skip over the root and the segments layer
+        Parsed.prototype.to_index_history_user_input = function (coord) {
+            return [coord[0] - 2, coord[1]];
+        };
+        // the root is prepended to clips
+        // coord_to_index_clip_render(coord: number[]): number {
+        //     return coord[0] + 1;
+        // }
+        // we skip over the root and the segments layer
+        Parsed.prototype.coord_to_index_history_user_input = function (coord) {
+            return [coord[0] - 2, coord[1]];
+        };
+        // the root is not included in iteration
+        Parsed.prototype.coord_to_index_struct_train = function (coord) {
+            return [coord[0] - 1, coord[1]];
         };
         return Parsed;
     }());
+    algorithm.Parsed = Parsed;
     var Detect = /** @class */ (function (_super) {
         __extends(Detect, _super);
         function Detect() {
@@ -305,12 +333,16 @@ var algorithm;
                 var notes_grouped = [];
                 // partition segment into measures
                 var position_measure = function (node) {
-                    Math.floor(node.model.note.beat_start / 4);
+                    return Math.floor(node.model.note.beat_start / 4);
                 };
                 var note_partitions = _.groupBy(notes_segment_next, position_measure);
-                for (var _i = 0, note_partitions_1 = note_partitions; _i < note_partitions_1.length; _i++) {
-                    var partition = note_partitions_1[_i];
-                    // get the middle note of the measure
+                // for (let partition of note_partitions) {
+                //     // get the middle note of the measure
+                //     notes_grouped.push([partition[partition.length/2]])
+                // }
+                for (var _i = 0, _a = Object.keys(note_partitions); _i < _a.length; _i++) {
+                    var key_partition = _a[_i];
+                    var partition = note_partitions[key_partition];
                     notes_grouped.push([partition[partition.length / 2]]);
                 }
                 return notes_grouped;
@@ -331,13 +363,13 @@ var algorithm;
         Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             var matrix_targets = struct_train;
             for (var i_segment in segments) {
-                var segment_3 = segments[Number(i_segment)];
+                var segment_2 = segments[Number(i_segment)];
                 var targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
                     var note_3 = targeted_notes_in_segment_1[_i];
-                    segment_3.clip_user_input.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
-                    segment_3.clip_user_input.set_notes([note_3]);
+                    segment_2.clip_user_input.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
+                    segment_2.clip_user_input.set_notes([note_3]);
                 }
             }
         };
@@ -375,15 +407,15 @@ var algorithm;
             // first layer
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             var _loop_2 = function (i_segment) {
-                var segment_4 = segments[Number(i_segment)];
-                var note_segment = segment_4.get_note();
+                var segment_3 = segments[Number(i_segment)];
+                var note_segment = segment_3.get_note();
                 var coord_current_virtual_second_layer = [0, Number(i_segment)];
-                var notes_leaves = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_4.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_4.get_endpoints_loop()[1]; });
-                var coord_current_virtual_leaves = [this_2.get_depth() - 1, Number(i_segment)];
+                var notes_leaves = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
+                var coord_current_virtual_leaves = [this_2.depth, Number(i_segment)];
                 // second layer
-                window.add_notes_to_clip([note_segment], coord_current_virtual_second_layer, this_2);
+                window.add_notes_to_clip([note_segment], this_2.coord_to_index_clip_render(coord_current_virtual_second_layer));
                 // leaves
-                window.add_notes_to_clip(notes_leaves, coord_current_virtual_leaves, this_2);
+                window.add_notes_to_clip(notes_leaves, this_2.coord_to_index_clip_render(coord_current_virtual_leaves));
             };
             var this_2 = this;
             for (var i_segment in segments) {
@@ -415,12 +447,17 @@ var algorithm;
         Parse.prototype.preprocess_struct_parse = function (struct_parse, segments, notes_target_track) {
             // this is to set the leaves as the notes of the target clip
             var _loop_4 = function (i_segment) {
-                var segment_5 = segments[Number(i_segment)];
-                var notes = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_5.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_5.get_endpoints_loop()[1]; });
-                var coord_current_virtual_leaf = [this_3.get_depth() - 1, Number(i_segment)];
-                struct_parse.add(notes, coord_current_virtual_leaf, this_3);
+                var segment_4 = segments[Number(i_segment)];
+                var notes = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_4.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_4.get_endpoints_loop()[1]; });
+                var coord_current_virtual_leaf = [this_3.depth, Number(i_segment)];
+                struct_parse.add(notes, coord_current_virtual_leaf, this_3, true);
             };
             var this_3 = this;
+            // struct_parse.set_root(
+            //     ParseTree.create_root_from_segments(
+            //         segments
+            //     )
+            // );
             for (var i_segment in segments) {
                 _loop_4(i_segment);
             }
@@ -429,12 +466,19 @@ var algorithm;
         Parse.prototype.finish_parse = function (struct_parse, segments) {
             // make connections with segments
             for (var i_segment in segments) {
-                var segment_6 = segments[Number(i_segment)];
-                struct_parse.add([segment_6.get_note()], [0, Number(i_segment)], this);
+                var segment_5 = segments[Number(i_segment)];
+                struct_parse.add([segment_5.get_note()], [0, Number(i_segment)], this);
             }
             struct_parse.set_root(StructParse.create_root_from_segments(segments));
             // make connections with root
             struct_parse.add([Note.from_note_renderable(struct_parse.get_root())], [-1], this);
+        };
+        // segments layer and leaves layer don't count
+        Parse.prototype.get_num_layers_input = function () {
+            return this.depth - 2;
+        };
+        Parse.prototype.get_num_layers_clips_to_render = function () {
+            return this.depth + 1;
         };
         return Parse;
     }(Parsed));
@@ -460,8 +504,8 @@ var algorithm;
             // add the root to the tree immediately
             struct_parse.set_root(ParseTree.create_root_from_segments(segments));
             for (var i_segment in segments) {
-                var segment_7 = segments[Number(i_segment)];
-                var note_4 = segment_7.get_note();
+                var segment_6 = segments[Number(i_segment)];
+                var note_4 = segment_6.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
                 struct_parse.add([note_4], coord_current_virtual, this);
             }
@@ -471,11 +515,11 @@ var algorithm;
             // first layer (root)
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             for (var i_segment in segments) {
-                var segment_8 = segments[Number(i_segment)];
-                var note_segment = segment_8.get_note();
+                var segment_7 = segments[Number(i_segment)];
+                var note_segment = segment_7.get_note();
                 var coord_current_virtual_second_layer = [0, Number(i_segment)];
                 // second layer
-                window.add_notes_to_clip([note_segment], coord_current_virtual_second_layer, this);
+                window.add_notes_to_clip([note_segment], this.coord_to_index_clip_render(coord_current_virtual_second_layer));
             }
             return window;
         };
@@ -484,6 +528,13 @@ var algorithm;
         };
         Derive.prototype.update_roots = function (coords_roots_previous, coords_notes_previous, coord_notes_current) {
             return coords_roots_previous;
+        };
+        // the layer of segments don't count
+        Derive.prototype.get_num_layers_input = function () {
+            return this.depth - 1;
+        };
+        Derive.prototype.get_num_layers_clips_to_render = function () {
+            return this.depth + 1;
         };
         return Derive;
     }(Parsed));

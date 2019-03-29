@@ -25,7 +25,7 @@ var trainer;
             // logger.log(JSON.stringify(this.segments));
             this.notes_target_track = track_target.get_notes();
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
-            this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_objectives(this.trainable, this.segments));
+            this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_user_input_history(this.trainable, this.segments));
             this.window.initialize_clips(this.trainable, this.segments);
             this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
             this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track);
@@ -164,9 +164,9 @@ var trainer;
             }
             if (this.trainable.warrants_advance(notes_input_user, this.subtarget_current)) {
                 var input_postprocessed = this.trainable.postprocess_user_input(notes_input_user, this.subtarget_current);
-                this.history_user_input = this.trainable.update_history_user_input(input_postprocessed, this.history_user_input, this.iterator_matrix_train);
+                this.history_user_input = this.trainable.update_history_user_input(input_postprocessed, this.history_user_input, this.iterator_matrix_train, this.trainable);
                 this.struct_train = this.trainable.update_struct(input_postprocessed, this.struct_train, this.trainable, this.iterator_matrix_train);
-                this.window.add_notes_to_clip(input_postprocessed, this.iterator_matrix_train.get_coord_current(), this.trainable);
+                this.window.add_notes_to_clip(input_postprocessed, this.trainable.coord_to_index_clip_render(this.iterator_matrix_train.get_coord_current()));
                 this.advance();
                 this.render_window();
             }

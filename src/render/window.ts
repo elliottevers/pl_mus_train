@@ -82,7 +82,7 @@ export namespace window {
             let beat_start_song = segments[0].beat_start;
             let beat_end_song = segments[segments.length - 1].beat_end;
 
-            for (let i in _.range(0, trainable.get_depth())) {
+            for (let i in _.range(0, trainable.get_num_layers_clips_to_render())) {
                 let clip_dao_virtual = new LiveClipVirtual([]);
                 clip_dao_virtual.beat_start = beat_start_song;
                 clip_dao_virtual.beat_end = beat_end_song;
@@ -97,10 +97,10 @@ export namespace window {
             this.length_beats = beats;
         }
 
-        public add_notes_to_clip(notes_to_add_to_clip, coord_current, algorithm) {
-            let index_clip = algorithm.coord_to_index_clip(coord_current);
+        public add_notes_to_clip(notes_to_add_to_clip, index_clip_render) {
+            // let index_clip = algorithm.coord_to_index_clip(coord_current);
             for (let note of notes_to_add_to_clip) {
-                this.list_clips[index_clip].append(note);
+                this.list_clips[index_clip_render].append(note);
             }
         }
 
@@ -282,7 +282,7 @@ export namespace window {
 
             let coord_clip = node.model.note.get_coordinates_matrix();
 
-            let index_clip = trainable.coord_to_index_clip(coord_clip);
+            let index_clip = trainable.coord_to_index_clip_render(coord_clip);
 
             // TODO: determine how to get the index of the clip from just depth of the node
 
@@ -332,6 +332,7 @@ export namespace window {
                 messages.push(
                     this.get_messages_render_clip(index_clip)
                 )
+
             } else {
 
                 let struct_parse = struct_train as StructParse;
@@ -339,7 +340,7 @@ export namespace window {
                 for (let coord of struct_parse.get_regions_renderable()) {
                     messages.push(
                         this.get_messages_render_clip(
-                            trainable.coord_to_index_clip(
+                            trainable.coord_to_index_clip_render(
                                 coord
                             )
                         )

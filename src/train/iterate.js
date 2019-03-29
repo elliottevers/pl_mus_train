@@ -139,9 +139,19 @@ var iterate;
     var FactoryMatrixObjectives = /** @class */ (function () {
         function FactoryMatrixObjectives() {
         }
-        FactoryMatrixObjectives.create_matrix_objectives = function (trainable, segments) {
+        FactoryMatrixObjectives.create_matrix_user_input_history = function (trainable, segments) {
             var matrix_data = [];
-            switch (trainable.get_name()) {
+            for (var i = 0; i < trainable.get_num_layers_input(); i++) {
+                matrix_data.push([]);
+                for (var i_segment in segments) {
+                    matrix_data[i][Number(i_segment)] = [];
+                }
+            }
+            return matrix_data;
+        };
+        FactoryMatrixObjectives.create_matrix_targets = function (targeted, segments) {
+            var matrix_data = [];
+            switch (targeted.get_name()) {
                 case algorithm_1.algorithm.DETECT: {
                     for (var i = 0; i < 1; i++) {
                         matrix_data.push([]);
@@ -153,27 +163,46 @@ var iterate;
                 }
                 case algorithm_1.algorithm.PREDICT: {
                     for (var i = 0; i < 1; i++) {
-                        matrix_data[i] = new Array(segments.length);
-                    }
-                    break;
-                }
-                // depth - 1, since depth includes root... actually this might be against convention
-                case algorithm_1.algorithm.PARSE: {
-                    for (var i = 0; i < trainable.get_depth() - 1; i++) {
-                        matrix_data[i] = new Array(segments.length);
-                    }
-                    break;
-                }
-                case algorithm_1.algorithm.DERIVE: {
-                    for (var i = 0; i < trainable.get_depth() - 1; i++) {
                         matrix_data.push([]);
                         for (var i_segment in segments) {
                             matrix_data[i][Number(i_segment)] = [];
                         }
                     }
-                    // for (let i=0; i < trainable.get_depth(); i++) {
-                    //     matrix_data[i] = new Array(segments.length);
-                    // }
+                    break;
+                }
+                // depth - 1, since depth includes root... actually this might be against convention
+                case algorithm_1.algorithm.PARSE: {
+                    throw 'parse has no targets';
+                }
+                case algorithm_1.algorithm.DERIVE: {
+                    throw 'derive has no targets';
+                }
+                default: {
+                    throw 'case not considered';
+                }
+            }
+            return matrix_data;
+        };
+        FactoryMatrixObjectives.create_matrix_parse = function (parsed, segments) {
+            var matrix_data = [];
+            switch (parsed.get_name()) {
+                // depth - 1, since depth includes root... actually this might be against convention
+                case algorithm_1.algorithm.PARSE: {
+                    for (var i = 0; i < parsed.get_num_layers_input() + 2; i++) {
+                        matrix_data.push([]);
+                        for (var i_segment in segments) {
+                            matrix_data[i][Number(i_segment)] = [];
+                        }
+                    }
+                    break;
+                }
+                case algorithm_1.algorithm.DERIVE: {
+                    for (var i = 0; i < parsed.get_num_layers_input() + 1; i++) {
+                        matrix_data.push([]);
+                        for (var i_segment in segments) {
+                            matrix_data[i][Number(i_segment)] = [];
+                        }
+                    }
                     break;
                 }
                 default: {
@@ -203,17 +232,17 @@ var iterate;
                 case algorithm_1.algorithm.PARSE: {
                     downward = false;
                     rightward = true;
-                    var index_row_start = trainable.get_depth() - 1;
+                    var index_row_start = trainable.depth - 1;
                     var index_row_stop = 1;
-                    iterator = new MatrixIterator(trainable.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
+                    iterator = new MatrixIterator(trainable.get_num_layers_input(), segments.length, downward, rightward, index_row_start, index_row_stop);
                     break;
                 }
                 case algorithm_1.algorithm.DERIVE: {
                     downward = true;
                     rightward = true;
                     var index_row_start = 1;
-                    var index_row_stop = trainable.get_depth();
-                    iterator = new MatrixIterator(trainable.get_depth(), segments.length, downward, rightward, index_row_start, index_row_stop);
+                    var index_row_stop = trainable.depth;
+                    iterator = new MatrixIterator(trainable.get_num_layers_input(), segments.length, downward, rightward, index_row_start, index_row_stop);
                     break;
                 }
                 default: {

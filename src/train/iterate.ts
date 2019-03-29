@@ -5,9 +5,11 @@ import {segment} from "../segment/segment";
 export namespace iterate {
     import division_int = utils.division_int;
     import remainder = utils.remainder;
-    // import Algorithm = algorithm.Algorithm;
     import Segment = segment.Segment;
     import Trainable = algorithm.Trainable;
+    import Parsable = algorithm.Parsable;
+    import Targeted = algorithm.Targeted;
+    import Parsed = algorithm.Parsed;
 
     export class MatrixIterator {
 
@@ -174,11 +176,25 @@ export namespace iterate {
     }
 
     export class FactoryMatrixObjectives {
-        public static create_matrix_objectives(trainable: Trainable, segments: Segment[]): any[][] {
+        public static create_matrix_user_input_history(trainable: Trainable, segments: Segment[]): any[][] {
 
             let matrix_data = [];
 
-            switch(trainable.get_name()) {
+            for (let i=0; i < trainable.get_num_layers_input(); i++) {
+                matrix_data.push([]);
+                for (let i_segment in segments) {
+                    matrix_data[i][Number(i_segment)] = []
+                }
+            }
+
+            return matrix_data;
+        }
+
+        public static create_matrix_targets(targeted: Targeted, segments: Segment[]): any[][] {
+
+            let matrix_data = [];
+
+            switch(targeted.get_name()) {
                 case algo.DETECT: {
                     for (let i=0; i < 1; i++) {
                         matrix_data.push([]);
@@ -190,27 +206,49 @@ export namespace iterate {
                 }
                 case algo.PREDICT: {
                     for (let i=0; i < 1; i++) {
-                        matrix_data[i] = new Array(segments.length);
-                    }
-                    break;
-                }
-                // depth - 1, since depth includes root... actually this might be against convention
-                case algo.PARSE: {
-                    for (let i=0; i < trainable.get_depth() - 1; i++) {
-                        matrix_data[i] = new Array(segments.length);
-                    }
-                    break;
-                }
-                case algo.DERIVE: {
-                    for (let i=0; i < trainable.get_depth() - 1; i++) {
                         matrix_data.push([]);
                         for (let i_segment in segments) {
                             matrix_data[i][Number(i_segment)] = []
                         }
                     }
-                    // for (let i=0; i < trainable.get_depth(); i++) {
-                    //     matrix_data[i] = new Array(segments.length);
-                    // }
+                    break;
+                }
+                // depth - 1, since depth includes root... actually this might be against convention
+                case algo.PARSE: {
+                    throw 'parse has no targets';
+                }
+                case algo.DERIVE: {
+                    throw 'derive has no targets'
+                }
+                default: {
+                    throw 'case not considered';
+                }
+            }
+            return matrix_data;
+        }
+
+        public static create_matrix_parse(parsed: Parsed, segments: Segment[]): any[][] {
+
+            let matrix_data = [];
+
+            switch(parsed.get_name()) {
+                // depth - 1, since depth includes root... actually this might be against convention
+                case algo.PARSE: {
+                    for (let i=0; i < parsed.get_num_layers_input() + 2; i++) {
+                        matrix_data.push([]);
+                        for (let i_segment in segments) {
+                            matrix_data[i][Number(i_segment)] = []
+                        }
+                    }
+                    break;
+                }
+                case algo.DERIVE: {
+                    for (let i=0; i < parsed.get_num_layers_input() + 1; i++) {
+                        matrix_data.push([]);
+                        for (let i_segment in segments) {
+                            matrix_data[i][Number(i_segment)] = []
+                        }
+                    }
                     break;
                 }
                 default: {
@@ -241,16 +279,19 @@ export namespace iterate {
                     break;
                 }
                 case algo.PREDICT: {
-                    iterator = new MatrixIterator(1, segments.length);
+                    iterator = new MatrixIterator(
+                        1,
+                        segments.length
+                    );
                     break;
                 }
                 case algo.PARSE: {
                     downward = false;
                     rightward = true;
-                    let index_row_start = trainable.get_depth() - 1;
+                    let index_row_start = trainable.depth - 1;
                     let index_row_stop = 1;
                     iterator = new MatrixIterator(
-                        trainable.get_depth(),
+                        trainable.get_num_layers_input(),
                         segments.length,
                         downward,
                         rightward,
@@ -263,9 +304,9 @@ export namespace iterate {
                     downward = true;
                     rightward = true;
                     let index_row_start = 1;
-                    let index_row_stop = trainable.get_depth();
+                    let index_row_stop = trainable.depth;
                     iterator = new MatrixIterator(
-                        trainable.get_depth(),
+                        trainable.get_num_layers_input(),
                         segments.length,
                         downward,
                         rightward,

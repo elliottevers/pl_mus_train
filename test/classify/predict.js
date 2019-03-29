@@ -15,7 +15,6 @@ var window_1 = require("../../src/render/window");
 var trainer_1 = require("../../src/train/trainer");
 var Trainer = trainer_1.trainer.Trainer;
 var constants_1 = require("../../src/constants/constants");
-var POLYPHONY = constants_1.modes_texture.POLYPHONY;
 var INSTRUMENTAL = constants_1.modes_control.INSTRUMENTAL;
 var MatrixWindow = window_1.window.MatrixWindow;
 var Predict = algorithm_1.algorithm.Predict;
@@ -34,6 +33,7 @@ var freeze_1 = require("../../src/serialize/freeze");
 var TrainFreezer = freeze_1.freeze.TrainFreezer;
 var thaw_1 = require("../../src/serialize/thaw");
 var TrainThawer = thaw_1.thaw.TrainThawer;
+var MONOPHONY = constants_1.modes_texture.MONOPHONY;
 var tree = new TreeModel();
 var segment_note_1 = tree.parse({
     id: -1,
@@ -125,7 +125,8 @@ var note_target_4_subtarget_1 = tree.parse({
 //         ]
 //     }
 // );
-var mode_texture = POLYPHONY;
+// let mode_texture = POLYPHONY;
+var mode_texture = MONOPHONY;
 var mode_control = INSTRUMENTAL;
 var user_input_handler = new UserInputHandler(mode_texture, mode_control);
 var env = 'node_for_max';
@@ -198,32 +199,7 @@ trainer_local.accept_input([note_target_2_subtarget_1]);
 trainer_local.accept_input([note_target_3_subtarget_1]);
 trainer_local.render_window();
 trainer_local.clear_window();
-var freezer = new TrainFreezer(env);
-freezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json');
-// let thawer = new TrainThawer(
-//     env
-// );
-//
-// let config = {
-//     'window': window_train,
-//     'user_input_handler': user_input_handler,
-//     'algorithm': algorithm_train,
-//     'clip_user_input': clip_user_input,
-//     'clip_target': clip_target,
-//     'song': song,
-//     'segments': segments,
-//     'messenger': messenger,
-//     'env': env
-// };
-//
-// let train_thawed = thawer.thaw(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json',
-//     config
-// );
-//
-// train_thawed.render_window(
-//
-// );
+TrainFreezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json', env);
 trainer_local = new Trainer(window_train, user_input_handler, algorithm_train, track_target, track_user_input, song, segments, messenger, true);
 var notes_thawed = TrainThawer.thaw_notes('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json', env);
 trainer_local.commence();
