@@ -27,7 +27,6 @@ var window;
     var region_red = [251, 1, 6];
     var blue = [10, 10, 251];
     var Window = /** @class */ (function () {
-        // trainer: Trainer;
         function Window(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
                 var num_pixels_width = this.width;
@@ -36,24 +35,11 @@ var window;
             this.height = height;
             this.width = width;
             this.messenger = messenger;
-            // this.trainer = trainer;
         }
         Window.prototype.clear = function () {
             var msg_clear = ["clear"];
             this.messenger.message(msg_clear);
         };
-        // TODO: put this logic in Algorithm
-        // public coord_to_index_clip(coord): number {
-        //     if (this.algorithm.b_targeted()) {
-        //         return 0
-        //     } else {
-        //         if (coord[0] === -1) {
-        //             return 0
-        //         } else {
-        //             return coord[0] + 1
-        //         }
-        //     }
-        // }
         Window.prototype.initialize_clips = function (trainable, segments) {
             var list_clips = [];
             var beat_start_song = segments[0].beat_start;
@@ -71,10 +57,9 @@ var window;
             this.length_beats = beats;
         };
         Window.prototype.add_notes_to_clip = function (notes_to_add_to_clip, index_clip_render) {
-            // let index_clip = algorithm.coord_to_index_clip(coord_current);
             for (var _i = 0, notes_to_add_to_clip_1 = notes_to_add_to_clip; _i < notes_to_add_to_clip_1.length; _i++) {
-                var note_1 = notes_to_add_to_clip_1[_i];
-                this.list_clips[index_clip_render].append(note_1);
+                var note = notes_to_add_to_clip_1[_i];
+                this.list_clips[index_clip_render].append(note);
             }
         };
         Window.prototype.add_note_to_clip_root = function (note) {
@@ -154,7 +139,6 @@ var window;
             return _super.call(this, height, width, messenger) || this;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train, segment_current) {
-            // this.clear();
             this.render_regions(iterator_matrix_train, trainable, struct_train, segment_current);
             this.render_clips(trainable, struct_train);
             this.render_trees(struct_train, trainable);
@@ -229,19 +213,6 @@ var window;
         };
         MatrixWindow.prototype.get_messages_render_clips = function (trainable, struct_train) {
             var messages = [];
-            // let b_targeted = (struct_parse === null);
-            // make abstraction that gets the renderable regions
-            // struct_parse.get_regions_renderable();
-            //
-            // for (let coord of struct_parse.get_regions_renderable()) {
-            //     messages.push(
-            //         this.get_messages_render_clip(
-            //             trainable.coord_to_index_clip(
-            //                 coord
-            //             )
-            //         )
-            //     )
-            // }
             if (trainable.b_targeted) {
                 var index_clip = 0;
                 messages.push(this.get_messages_render_clip(index_clip));
@@ -279,20 +250,14 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, trainable, 
-        // target_current: Target,
-        // struct_parse: StructParse
-        struct_train, segment_current) {
-            // let notes;
+        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, trainable, struct_train, segment_current) {
             var coord_current = iterator_matrix_train.get_coord_current();
             var interval_current;
             // prediction/detection need the current target, while parse/derive need the current segment
             if (trainable.b_targeted) {
                 var struct_targets = struct_train;
-                var note_2 = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
-                // iterator_subtarget.subtargets.
-                // let notes_target_current = target_current.get_notes();
-                interval_current = trainable.determine_region_present([note_2], segment_current);
+                var note = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
+                interval_current = trainable.determine_region_present([note], segment_current);
             }
             else {
                 var struct_parse = struct_train;
@@ -303,9 +268,7 @@ var window;
                     ];
                 }
                 else {
-                    // coord = iterator_matrix_train.get_coord_current();
                     var coord_segment = [0, coord_current[1]];
-                    // let notes = struct_parse.get_notes_at_coord(coord_segment);
                     interval_current = trainable.determine_region_present(struct_parse.get_notes_at_coord(coord_segment), segment_current);
                 }
             }

@@ -47,6 +47,8 @@ import {window as module_window} from "../render/window";
 import MatrixWindow = module_window.MatrixWindow;
 import TreeModel = require("tree-model");
 import {io} from "../io/io";
+import {parse} from "../parse/parse";
+import StructParse = parse.StructParse;
 const _ = require('underscore');
 
 
@@ -334,7 +336,7 @@ let user_input_command = (command: string) => {
         case PARSE: {
             switch(command) {
                 case 'confirm': {
-                    let notes = trainer.clip_user_input_synchronous.get_notes(
+                    let notes = trainer.clip_user_input.get_notes(
                         trainer.segment_current.beat_start,
                         0,
                         trainer.segment_current.beat_end - trainer.segment_current.beat_start,
@@ -348,10 +350,12 @@ let user_input_command = (command: string) => {
                 case 'reset': {
                     let coords_current = trainer.iterator_matrix_train.get_coord_current();
 
+                    let struct_parse = trainer.struct_train as StructParse;
+
+                    let notes_struct_below = algorithm_train.coord_to_index_struct_train([coords_current[0] + 1, coords_current[1]]);
+
                     trainer.clip_user_input.set_notes(
-                        trainer.history_user_input.get(
-                            [coords_current[0] + 1, coords_current[1]]
-                        )
+                        struct_parse.get_notes_at_coord(notes_struct_below)
                     );
 
                     break;
@@ -517,10 +521,6 @@ let load_session = () => {
             env
         );
 
-        let logger = new Logger(env);
-
-        logger.log(JSON.stringify(matrix_deserialized));
-
         trainer.commence();
 
         let input_left = true;
@@ -578,18 +578,6 @@ let save_session = () => {
     );
 };
 
-// let json_import_test = () => {
-//     let dict = new Dict();
-//     // dict.import_json(get_filename());
-//     dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
-//
-//     let logger = new Logger(env);
-//
-//     // logger.log(get_filename());
-//
-//     logger.log(dict.get("key_test::0::0"))
-// };
-
 if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load_session = load_session;
@@ -607,5 +595,4 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
-    // Global.train.json_import_test = json_import_test;
 }

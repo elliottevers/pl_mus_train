@@ -11,18 +11,16 @@ export namespace thaw {
     export class TrainThawer {
 
         public static thaw_notes(filepath: string, env: string): TreeModel.Node<Note>[] {
-            // let matrix_deserialized = from_json(filepath, env);
-
             let notes = [];
             // TODO: this is only valid for forward iteration
-            for (let row of TrainThawer.thaw_notes_matrix(filepath, env)) {
-                for (let col of row) {
-                    if (col === null) {
-                        continue;
-                    }
-                    for (let note_deserialized of col) {
+            let matrix = TrainThawer.thaw_notes_matrix(filepath, env);
+            for (let key_row of Object.keys(matrix)) {
+                let col = matrix[key_row];
+                for (let key_col of Object.keys(col)) {
+                    for (let note_deserialized of matrix[key_row][key_col]) {
                         notes.push(note_deserialized)
                     }
+
                 }
             }
 

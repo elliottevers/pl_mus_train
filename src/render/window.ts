@@ -1,16 +1,14 @@
 import TreeModel = require("tree-model");
-import {message, message as m} from "../message/messenger"
+import {message} from "../message/messenger"
 import {clip, clip as c} from "../clip/clip";
-import {note, note as n} from "../note/note";
+import {note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
 import {segment as module_segment} from "../segment/segment";
 import {algorithm} from "../train/algorithm";
 import {iterate} from "../train/iterate";
 import {parse} from "../parse/parse";
-import {log} from "../log/logger";
-import {target} from "../target/target";
-import {trainer, trainer as module_trainer} from "../train/trainer";
+import {trainer} from "../train/trainer";
 
 export namespace window {
 
@@ -18,14 +16,8 @@ export namespace window {
     import Messenger = message.Messenger;
     import Segment = module_segment.Segment;
     import Clip = clip.Clip;
-    // import Algorithm = algorithm.Algorithm;
     import MatrixIterator = iterate.MatrixIterator;
     import StructParse = parse.StructParse;
-    import Logger = log.Logger;
-    import Note = note.Note;
-    import NoteRenderable = note.NoteRenderable;
-    import Target = target.Target;
-    import Trainer = module_trainer.Trainer;
     import Trainable = algorithm.Trainable;
     import StructTrain = trainer.StructTrain;
     import StructTargets = trainer.StructTargets;
@@ -50,32 +42,17 @@ export namespace window {
         width: number;
         messenger: Messenger;
         length_beats: number;
-        // trainer: Trainer;
 
         protected constructor(height, width, messenger) {
             this.height = height;
             this.width = width;
             this.messenger = messenger;
-            // this.trainer = trainer;
         }
 
         public clear() {
             let msg_clear = ["clear"];
             this.messenger.message(msg_clear);
         }
-
-        // TODO: put this logic in Algorithm
-        // public coord_to_index_clip(coord): number {
-        //     if (this.algorithm.b_targeted()) {
-        //         return 0
-        //     } else {
-        //         if (coord[0] === -1) {
-        //             return 0
-        //         } else {
-        //             return coord[0] + 1
-        //         }
-        //     }
-        // }
 
         public initialize_clips(trainable: Trainable, segments: Segment[]) {
             let list_clips = [];
@@ -98,7 +75,6 @@ export namespace window {
         }
 
         public add_notes_to_clip(notes_to_add_to_clip, index_clip_render) {
-            // let index_clip = algorithm.coord_to_index_clip(coord_current);
             for (let note of notes_to_add_to_clip) {
                 this.list_clips[index_clip_render].append(note);
             }
@@ -200,8 +176,6 @@ export namespace window {
             struct_train: StructTrain,
             segment_current: Segment
         ) {
-
-            // this.clear();
 
             this.render_regions(
                 iterator_matrix_train,
@@ -309,22 +283,6 @@ export namespace window {
         public get_messages_render_clips(trainable: Trainable, struct_train: StructTrain): any[][] {
             let messages = [];
 
-            // let b_targeted = (struct_parse === null);
-
-            // make abstraction that gets the renderable regions
-
-            // struct_parse.get_regions_renderable();
-            //
-            // for (let coord of struct_parse.get_regions_renderable()) {
-            //     messages.push(
-            //         this.get_messages_render_clip(
-            //             trainable.coord_to_index_clip(
-            //                 coord
-            //             )
-            //         )
-            //     )
-            // }
-
             if (trainable.b_targeted) {
 
                 let index_clip = 0;
@@ -387,14 +345,9 @@ export namespace window {
         public render_regions(
             iterator_matrix_train: MatrixIterator,
             trainable: Trainable,
-            // target_current: Target,
-            // struct_parse: StructParse
             struct_train: StructTrain,
             segment_current: Segment
         ) {
-
-            // let notes;
-
             let coord_current = iterator_matrix_train.get_coord_current();
 
             let interval_current;
@@ -405,10 +358,6 @@ export namespace window {
                 let struct_targets = struct_train as StructTargets;
 
                 let note = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
-
-                // iterator_subtarget.subtargets.
-
-                // let notes_target_current = target_current.get_notes();
 
                 interval_current = trainable.determine_region_present(
                     [note],
@@ -425,11 +374,7 @@ export namespace window {
                         struct_parse.get_root().model.note.get_beat_end()
                     ]
                 } else {
-                    // coord = iterator_matrix_train.get_coord_current();
-
                     let coord_segment = [0, coord_current[1]];
-
-                    // let notes = struct_parse.get_notes_at_coord(coord_segment);
 
                     interval_current = trainable.determine_region_present(
                         struct_parse.get_notes_at_coord(coord_segment),

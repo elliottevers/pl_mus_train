@@ -189,13 +189,21 @@ var user_input_command = function (command) {
         case PARSE: {
             switch (command) {
                 case 'confirm': {
-                    var notes = trainer.clip_user_input_synchronous.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var notes = trainer.clip_user_input.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
                     trainer.accept_input(notes);
                     break;
                 }
                 case 'reset': {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    trainer.clip_user_input.set_notes(trainer.history_user_input.get([coords_current[0] + 1, coords_current[1]]));
+                    var struct_parse = trainer.struct_train;
+                    var notes_struct_below = algorithm_train.coord_to_index_struct_train([coords_current[0] + 1, coords_current[1]]);
+                    // struct_parse.get_notes_at_coord(notes_struct_below);
+                    // trainer.clip_user_input.set_notes(
+                    //     trainer.history_user_input.get(
+                    //         [coords_current[0] + 1, coords_current[1]]
+                    //     )
+                    // );
+                    trainer.clip_user_input.set_notes(struct_parse.get_notes_at_coord(notes_struct_below));
                     break;
                 }
                 case 'erase': {

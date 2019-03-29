@@ -10,18 +10,16 @@ var thaw;
         function TrainThawer() {
         }
         TrainThawer.thaw_notes = function (filepath, env) {
-            // let matrix_deserialized = from_json(filepath, env);
             var notes = [];
             // TODO: this is only valid for forward iteration
-            for (var _i = 0, _a = TrainThawer.thaw_notes_matrix(filepath, env); _i < _a.length; _i++) {
-                var row = _a[_i];
-                for (var _b = 0, row_1 = row; _b < row_1.length; _b++) {
-                    var col = row_1[_b];
-                    if (col === null) {
-                        continue;
-                    }
-                    for (var _c = 0, col_1 = col; _c < col_1.length; _c++) {
-                        var note_deserialized = col_1[_c];
+            var matrix = TrainThawer.thaw_notes_matrix(filepath, env);
+            for (var _i = 0, _a = Object.keys(matrix); _i < _a.length; _i++) {
+                var key_row = _a[_i];
+                var col = matrix[key_row];
+                for (var _b = 0, _c = Object.keys(col); _b < _c.length; _b++) {
+                    var key_col = _c[_b];
+                    for (var _d = 0, _e = matrix[key_row][key_col]; _d < _e.length; _d++) {
+                        var note_deserialized = _e[_d];
                         notes.push(note_deserialized);
                     }
                 }
@@ -41,8 +39,8 @@ var thaw;
                         continue;
                     }
                     var notes = [];
-                    for (var _i = 0, col_2 = col; _i < col_2.length; _i++) {
-                        var note_serialized = col_2[_i];
+                    for (var _i = 0, col_1 = col; _i < col_1.length; _i++) {
+                        var note_serialized = col_1[_i];
                         notes.push(deserialize_note(note_serialized));
                     }
                     matrix_test[Number(i_row)][Number(i_col)] = notes;
