@@ -12,3 +12,4 @@ var set_depth_tree = Global.train.set_depth_tree;
 var set_algorithm_train = Global.train.set_algorithm_train;
 var set_mode_control = Global.train.set_mode_control;
 var set_mode_texture = Global.train.set_mode_texture;
+var json_import_test = Global.train.json_import_test;

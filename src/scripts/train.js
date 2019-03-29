@@ -48,6 +48,7 @@ var Track = track_1.track.Track;
 var window_1 = require("../render/window");
 var MatrixWindow = window_1.window.MatrixWindow;
 var TreeModel = require("tree-model");
+var _ = require('underscore');
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -284,21 +285,49 @@ var get_filename = function () {
     }
     return filename;
 };
+var load_session = function () {
+    trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render, true);
+    if (_.contains([PARSE, DERIVE], algorithm_train.get_name())) {
+        var matrix_deserialized = TrainThawer.thaw_notes_matrix(get_filename(), env);
+        trainer.commence();
+        var input_left = true;
+        while (input_left) {
+            var coord_current = trainer.iterator_matrix_train.get_coord_current();
+            var coord_user_input_history = algorithm_train.coord_to_index_history_user_input(coord_current);
+            if (trainer.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
+                algorithm_train.terminate(trainer.struct_train, segments_train);
+                algorithm_train.pause(song, trainer.segment_current.scene);
+                input_left = false;
+                continue;
+            }
+            trainer.accept_input(matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]);
+        }
+    }
+    else if (_.contains([DETECT, PREDICT], algorithm_train.get_name())) {
+        var notes_thawed = TrainThawer.thaw_notes(get_filename(), env);
+        trainer.commence();
+        for (var _i = 0, notes_thawed_1 = notes_thawed; _i < notes_thawed_1.length; _i++) {
+            var note_4 = notes_thawed_1[_i];
+            trainer.accept_input([note_4]);
+        }
+    }
+    else {
+        throw 'algorithm not supported';
+    }
+    trainer.virtualized = false;
+    trainer.render_window();
+};
 var save_session = function () {
     // TODO: logic to determine, from project folder, name of file
     TrainFreezer.freeze(trainer, get_filename(), env);
 };
-var load_session = function () {
-    // TODO: logic to determine, from project folder, name of file
-    var notes_thawed = TrainThawer.thaw_notes(get_filename(), env);
-    logger.log('loaded thawed notes');
-    logger.log(JSON.stringify(notes_thawed));
-    commence();
-    for (var _i = 0, notes_thawed_1 = notes_thawed; _i < notes_thawed_1.length; _i++) {
-        var note_4 = notes_thawed_1[_i];
-        trainer.accept_input([note_4]);
-    }
-    trainer.virtualized = false;
+var json_import_test = function () {
+    var dict = new Dict();
+    // dict.import_json(get_filename());
+    dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
+    var logger = new Logger(env);
+    // logger.log(get_filename());
+    logger.log(dict.get("key_test::0::0"));
 };
 if (typeof Global !== "undefined") {
     Global.train = {};
@@ -317,5 +346,6 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
+    Global.train.json_import_test = json_import_test;
 }
 //# sourceMappingURL=train.js.map

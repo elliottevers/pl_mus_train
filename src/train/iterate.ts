@@ -7,7 +7,6 @@ export namespace iterate {
     import remainder = utils.remainder;
     import Segment = segment.Segment;
     import Trainable = algorithm.Trainable;
-    import Parsable = algorithm.Parsable;
     import Targeted = algorithm.Targeted;
     import Parsed = algorithm.Parsed;
 

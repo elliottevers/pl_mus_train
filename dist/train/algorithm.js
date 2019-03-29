@@ -13,7 +13,6 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var note_1 = require("../note/note");
 var harmony_1 = require("../music/harmony");
 var constants_1 = require("../constants/constants");
 var parse_1 = require("../parse/parse");
@@ -31,7 +30,6 @@ var algorithm;
     var Harmony = harmony_1.harmony.Harmony;
     var POLYPHONY = constants_1.modes_texture.POLYPHONY;
     var MONOPHONY = constants_1.modes_texture.MONOPHONY;
-    var Note = note_1.note.Note;
     var ParseTree = parse_1.parse.ParseTree;
     var StructParse = parse_1.parse.StructParse;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
@@ -243,20 +241,21 @@ var algorithm;
             return history_user_input;
         };
         // we skip over the root and the segments layer
-        Parsed.prototype.to_index_history_user_input = function (coord) {
-            return [coord[0] - 2, coord[1]];
-        };
+        // to_index_history_user_input(coord: number[]): number[] {
+        //     return [coord[0] - 2, coord[1]];
+        // }
         // the root is prepended to clips
         // coord_to_index_clip_render(coord: number[]): number {
         //     return coord[0] + 1;
         // }
-        // we skip over the root and the segments layer
+        // we skip over the segments layer
         Parsed.prototype.coord_to_index_history_user_input = function (coord) {
-            return [coord[0] - 2, coord[1]];
+            return [coord[0] - 1, coord[1]];
         };
         // the root is not included in iteration
         Parsed.prototype.coord_to_index_struct_train = function (coord) {
-            return [coord[0] - 1, coord[1]];
+            // return [coord[0] - 1, coord[1]];
+            return coord;
         };
         return Parsed;
     }());
@@ -279,8 +278,8 @@ var algorithm;
             else if (user_input_handler.mode_texture === MONOPHONY) {
                 var notes_grouped_trivial = [];
                 for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
-                    var note_2 = notes_segment_next_1[_a];
-                    notes_grouped_trivial.push([note_2]);
+                    var note_1 = notes_segment_next_1[_a];
+                    notes_grouped_trivial.push([note_1]);
                 }
                 return notes_grouped_trivial;
             }
@@ -367,9 +366,9 @@ var algorithm;
                 var targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
-                    var note_3 = targeted_notes_in_segment_1[_i];
-                    segment_2.clip_user_input.remove_notes(note_3.model.note.beat_start, 0, note_3.model.note.get_beat_end(), 128);
-                    segment_2.clip_user_input.set_notes([note_3]);
+                    var note_2 = targeted_notes_in_segment_1[_i];
+                    segment_2.clip_user_input.remove_notes(note_2.model.note.beat_start, 0, note_2.model.note.get_beat_end(), 128);
+                    segment_2.clip_user_input.set_notes([note_2]);
                 }
             }
         };
@@ -411,7 +410,7 @@ var algorithm;
                 var note_segment = segment_3.get_note();
                 var coord_current_virtual_second_layer = [0, Number(i_segment)];
                 var notes_leaves = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
-                var coord_current_virtual_leaves = [this_2.depth, Number(i_segment)];
+                var coord_current_virtual_leaves = [this_2.depth - 1, Number(i_segment)];
                 // second layer
                 window.add_notes_to_clip([note_segment], this_2.coord_to_index_clip_render(coord_current_virtual_second_layer));
                 // leaves
@@ -437,6 +436,7 @@ var algorithm;
             }
             // add references to new leaves
             coords_roots_new.push(coord_notes_current);
+            return coords_roots_new;
         };
         Parse.prototype.get_coords_notes_to_grow = function (coord_notes_input_current) {
             return MatrixIterator.get_coords_below([coord_notes_input_current[0], coord_notes_input_current[1]]);
@@ -449,8 +449,8 @@ var algorithm;
             var _loop_4 = function (i_segment) {
                 var segment_4 = segments[Number(i_segment)];
                 var notes = notes_target_track.filter(function (node) { return node.model.note.beat_start >= segment_4.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_4.get_endpoints_loop()[1]; });
-                var coord_current_virtual_leaf = [this_3.depth, Number(i_segment)];
-                struct_parse.add(notes, coord_current_virtual_leaf, this_3, true);
+                var coord_parse_current_virtual_leaf = [this_3.depth - 1, Number(i_segment)];
+                struct_parse.add(notes, coord_parse_current_virtual_leaf, this_3, true);
             };
             var this_3 = this;
             // struct_parse.set_root(
@@ -464,14 +464,20 @@ var algorithm;
             return struct_parse;
         };
         Parse.prototype.finish_parse = function (struct_parse, segments) {
+            var coords_to_grow = [];
             // make connections with segments
             for (var i_segment in segments) {
+                coords_to_grow.push([0, Number(i_segment)]);
                 var segment_5 = segments[Number(i_segment)];
                 struct_parse.add([segment_5.get_note()], [0, Number(i_segment)], this);
             }
             struct_parse.set_root(StructParse.create_root_from_segments(segments));
-            // make connections with root
-            struct_parse.add([Note.from_note_renderable(struct_parse.get_root())], [-1], this);
+            for (var _i = 0, coords_to_grow_1 = coords_to_grow; _i < coords_to_grow_1.length; _i++) {
+                var coord_to_grow = coords_to_grow_1[_i];
+                var notes_to_grow = struct_parse.get_notes_at_coord(coord_to_grow);
+                this.grow_layer([struct_parse.get_root()], notes_to_grow);
+            }
+            struct_parse.coords_roots = this.update_roots(struct_parse.coords_roots, coords_to_grow, [-1]);
         };
         // segments layer and leaves layer don't count
         Parse.prototype.get_num_layers_input = function () {
@@ -505,9 +511,9 @@ var algorithm;
             struct_parse.set_root(ParseTree.create_root_from_segments(segments));
             for (var i_segment in segments) {
                 var segment_6 = segments[Number(i_segment)];
-                var note_4 = segment_6.get_note();
+                var note_3 = segment_6.get_note();
                 var coord_current_virtual = [0, Number(i_segment)];
-                struct_parse.add([note_4], coord_current_virtual, this);
+                struct_parse.add([note_3], coord_current_virtual, this);
             }
             return struct_parse;
         };

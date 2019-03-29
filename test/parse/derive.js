@@ -168,30 +168,6 @@ trainer_local.clear_window();
 TrainFreezer.freeze(trainer_local, '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json', env);
 // TODO: batch these notes up and input them as segment groups
 trainer_local = new Trainer(window_local, user_input_handler, algorithm_train, track_target, track_user_input, song, segments, messenger, true);
-// let matrix_deserialized = TrainThawer.thaw_notes_matrix(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json',
-//     env
-// );
-// trainer_local.commence();
-//
-// let input_left = true;
-//
-// while (input_left) {
-//     let coord_current = trainer_local.iterator_matrix_train.get_coord_current();
-//
-//     if (trainer_local.iterator_matrix_train.done || matrix_deserialized[coord_current[0]][coord_current[1]].length === 0) {
-//         input_left = false;
-//     }
-//
-//     trainer_local.accept_input(
-//         matrix_deserialized[coord_current[0]][coord_current[1]]
-//     );
-// }
-//
-//
-// trainer_local.virtualized = false;
-//
-// trainer_local.render_window();
 var matrix_deserialized = TrainThawer.thaw_notes_matrix('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json', env);
 trainer_local.commence();
 // skip over the layer of segments

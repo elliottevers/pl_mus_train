@@ -232,7 +232,7 @@ var iterate;
                 case algorithm_1.algorithm.PARSE: {
                     downward = false;
                     rightward = true;
-                    var index_row_start = trainable.get_num_layers_input() + 2;
+                    var index_row_start = trainable.depth - 1;
                     var index_row_stop = 1;
                     iterator = new MatrixIterator(trainable.get_num_layers_input(), segments.length, downward, rightward, index_row_start, index_row_stop);
                     break;
@@ -241,7 +241,7 @@ var iterate;
                     downward = true;
                     rightward = true;
                     var index_row_start = 1;
-                    var index_row_stop = trainable.get_num_layers_input() + 1;
+                    var index_row_stop = trainable.depth;
                     iterator = new MatrixIterator(trainable.get_num_layers_input(), segments.length, downward, rightward, index_row_start, index_row_stop);
                     break;
                 }

@@ -119,22 +119,24 @@ var parse;
             return this.regions_renderable;
         };
         // TODO: never set the root in this manner - maybe that's how we can get around the if-else barrage
-        StructParse.prototype.add = function (notes_user_input, coord_notes_current, parsable, bypass_parse) {
-            var coords_parse = parsable.coord_to_index_struct_train(coord_notes_current);
+        StructParse.prototype.add = function (notes_user_input, coords_parse, parsable, bypass_parse) {
             var notes_user_input_renderable = notes_user_input.map(function (note) {
-                return NoteRenderable.from_note(note, coord_notes_current);
+                return NoteRenderable.from_note(note, coords_parse);
             });
             this.matrix_leaves[coords_parse[0]][coords_parse[1]] = notes_user_input_renderable;
             this.regions_renderable.push(coords_parse);
-            if (!bypass_parse) {
-                var coords_notes_to_grow = parsable.get_coords_notes_to_grow(coords_parse);
-                for (var _i = 0, coords_notes_to_grow_1 = coords_notes_to_grow; _i < coords_notes_to_grow_1.length; _i++) {
-                    var coord_to_grow = coords_notes_to_grow_1[_i];
-                    var notes_to_grow = this.get_notes_at_coord(coord_to_grow);
-                    parsable.grow_layer(notes_user_input_renderable, notes_to_grow);
-                }
-                this.coords_roots = parsable.update_roots(this.coords_roots, coords_notes_to_grow, coords_parse);
+            if (bypass_parse) {
+                this.coords_roots = this.coords_roots.concat([coords_parse]);
+                return;
             }
+            // if (!bypass_parse) {
+            var coords_notes_to_grow = parsable.get_coords_notes_to_grow(coords_parse);
+            for (var _i = 0, coords_notes_to_grow_1 = coords_notes_to_grow; _i < coords_notes_to_grow_1.length; _i++) {
+                var coord_to_grow = coords_notes_to_grow_1[_i];
+                var notes_to_grow = this.get_notes_at_coord(coord_to_grow);
+                parsable.grow_layer(notes_user_input_renderable, notes_to_grow);
+            }
+            this.coords_roots = parsable.update_roots(this.coords_roots, coords_notes_to_grow, coords_parse);
         };
         return StructParse;
     }(ParseTree));
