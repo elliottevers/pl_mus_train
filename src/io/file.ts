@@ -1,6 +1,10 @@
+import {log} from "../log/logger";
+
+declare let Dict: any;
 
 export namespace file {
 
+    import Logger = log.Logger;
     export let to_json = (string_json, filename: string, env: string) => {
         switch (env) {
             case 'node_for_max': {
@@ -46,7 +50,7 @@ export namespace file {
     };
 
     export let from_json = (filepath: string, env: string) => {
-        let matrix_deserialized;
+        let matrix_deserialized = [];
 
         switch (env) {
             case 'node_for_max': {
@@ -72,21 +76,22 @@ export namespace file {
                 break;
             }
             case 'max': {
-                let f = new File(filepath, "read","JSON");
-                let a;
+                let dict = new Dict();
 
-                if (f.isopen) {
-                    post("reading json");
-                    //@ts-ignore
-                    while ((a = f.readline()) != null) {
-                        post('reading line');
-                        matrix_deserialized = JSON.parse(a) as any;
+                dict.import_json(filepath);
 
+                // NB: using "of" looks wrong but it isn't
+                for (let i_row of dict.get("history_user_input").getkeys()) {
+                    matrix_deserialized.push([]);
+                    let col = dict.get(["history_user_input", i_row].join('::'));
+                    for (let i_col of col.getkeys()) {
+                        matrix_deserialized[Number(i_row)].push([]);
+                        matrix_deserialized[Number(i_row)][Number(i_col)] = dict.get(
+                            ["history_user_input", i_row, i_col].join('::')
+                        )
                     }
-                    f.close();
-                } else {
-                    post("could not open file");
                 }
+
                 break;
             }
             default: {

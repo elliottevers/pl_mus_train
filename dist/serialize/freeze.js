@@ -11,12 +11,20 @@ var freeze;
         }
         TrainFreezer.freeze = function (trainer, filepath, env) {
             var data_serializable = trainer.history_user_input.matrix_data;
+            var dict = {};
+            var data_serializable_max = {};
             for (var i_row in trainer.history_user_input.matrix_data) {
+                data_serializable_max[i_row] = {};
                 for (var i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
-                    data_serializable[Number(i_row)][Number(i_col)] = serialize_sequence_note(trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]);
+                    // data_serializable[Number(i_row)][Number(i_col)] = serialize_sequence_note(
+                    //     trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]
+                    // )
+                    data_serializable_max[i_row][i_col] = serialize_sequence_note(trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]);
                 }
             }
-            to_json(data_serializable, filepath, env);
+            dict['history_user_input'] = data_serializable_max;
+            // to_json(data_serializable, filepath, env)
+            to_json(dict, filepath, env);
         };
         return TrainFreezer;
     }());

@@ -547,8 +547,10 @@ var history;
 },{}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var logger_1 = require("../log/logger");
 var file;
 (function (file) {
+    var Logger = logger_1.log.Logger;
     file.to_json = function (string_json, filename, env) {
         switch (env) {
             case 'node_for_max': {
@@ -589,7 +591,7 @@ var file;
         }
     };
     file.from_json = function (filepath, env) {
-        var matrix_deserialized;
+        var matrix_deserialized = [];
         switch (env) {
             case 'node_for_max': {
                 console.log('reading json');
@@ -614,19 +616,40 @@ var file;
                 break;
             }
             case 'max': {
-                var f = new File(filepath, "read", "JSON");
-                var a = void 0;
-                if (f.isopen) {
-                    post("reading json");
-                    //@ts-ignore
-                    while ((a = f.readline()) != null) {
-                        post('reading line');
-                        matrix_deserialized = JSON.parse(a);
+                // let f = new File(filepath, "read","JSON");
+                // let a;
+                //
+                // if (f.isopen) {
+                //     post("reading json");
+                //     //@ts-ignore
+                //     while ((a = f.readline()) != null) {
+                //         post('reading line');
+                //         matrix_deserialized = JSON.parse(a) as any;
+                //
+                //     }
+                //     f.close();
+                // } else {
+                //     post("could not open file");
+                // }
+                var dict = new Dict();
+                dict.import_json(filepath);
+                var logger = new Logger('max');
+                // logger.log(dict.get("history_user_input::0::0"));
+                // logger.log(JSON.stringify(dict.get("history_user_input").getkeys()));
+                //
+                // matrix_deserialized = dict.get("history_user_input::0::0");
+                // NB: using "of" looks wrong but it isn't
+                for (var _i = 0, _a = dict.get("history_user_input").getkeys(); _i < _a.length; _i++) {
+                    var i_row = _a[_i];
+                    // logger.log(["history_user_input", i_row].join('::'));
+                    matrix_deserialized.push([]);
+                    var col = dict.get(["history_user_input", i_row].join('::'));
+                    for (var _b = 0, _c = col.getkeys(); _b < _c.length; _b++) {
+                        var i_col = _c[_b];
+                        matrix_deserialized[Number(i_row)].push([]);
+                        logger.log(["history_user_input", i_row, i_col].join('::'));
+                        matrix_deserialized[Number(i_row)][Number(i_col)] = dict.get(["history_user_input", i_row, i_col].join('::'));
                     }
-                    f.close();
-                }
-                else {
-                    post("could not open file");
                 }
                 break;
             }
@@ -638,7 +661,7 @@ var file;
     };
 })(file = exports.file || (exports.file = {}));
 
-},{"fs":27}],7:[function(require,module,exports){
+},{"../log/logger":8,"fs":27}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -2051,9 +2074,11 @@ var get_filename = function () {
     return filename;
 };
 var load_session = function () {
+    trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render, true);
     if (_.contains([PARSE, DERIVE], algorithm_train.get_name())) {
-        trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render, true);
         var matrix_deserialized = TrainThawer.thaw_notes_matrix(get_filename(), env);
+        var logger_2 = new Logger(env);
+        logger_2.log(JSON.stringify(matrix_deserialized));
         trainer.commence();
         var input_left = true;
         while (input_left) {
@@ -2075,8 +2100,6 @@ var load_session = function () {
             var note_4 = notes_thawed_1[_i];
             trainer.accept_input([note_4]);
         }
-        trainer.virtualized = false;
-        trainer.render_window();
     }
     else {
         throw 'algorithm not supported';
@@ -2088,14 +2111,17 @@ var save_session = function () {
     // TODO: logic to determine, from project folder, name of file
     TrainFreezer.freeze(trainer, get_filename(), env);
 };
-var json_import_test = function () {
-    var dict = new Dict();
-    // dict.import_json(get_filename());
-    dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
-    var logger = new Logger(env);
-    // logger.log(get_filename());
-    logger.log(dict.get("key_test::0::0"));
-};
+// let json_import_test = () => {
+//     let dict = new Dict();
+//     // dict.import_json(get_filename());
+//     dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
+//
+//     let logger = new Logger(env);
+//
+//     // logger.log(get_filename());
+//
+//     logger.log(dict.get("key_test::0::0"))
+// };
 if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load_session = load_session;
@@ -2113,7 +2139,7 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
-    Global.train.json_import_test = json_import_test;
+    // Global.train.json_import_test = json_import_test;
 }
 
 },{"../clip/clip":1,"../constants/constants":3,"../control/user_input":4,"../live/live":7,"../log/logger":8,"../message/messenger":9,"../note/note":11,"../render/window":13,"../scene/scene":14,"../segment/segment":16,"../serialize/freeze":17,"../serialize/thaw":19,"../song/song":20,"../track/track":22,"../train/algorithm":23,"../train/trainer":25,"../utils/utils":26,"tree-model":31,"underscore":32}],16:[function(require,module,exports){
@@ -2228,12 +2254,20 @@ var freeze;
         }
         TrainFreezer.freeze = function (trainer, filepath, env) {
             var data_serializable = trainer.history_user_input.matrix_data;
+            var dict = {};
+            var data_serializable_max = {};
             for (var i_row in trainer.history_user_input.matrix_data) {
+                data_serializable_max[i_row] = {};
                 for (var i_col in trainer.history_user_input.matrix_data[Number(i_row)]) {
-                    data_serializable[Number(i_row)][Number(i_col)] = serialize_sequence_note(trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]);
+                    // data_serializable[Number(i_row)][Number(i_col)] = serialize_sequence_note(
+                    //     trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]
+                    // )
+                    data_serializable_max[i_row][i_col] = serialize_sequence_note(trainer.history_user_input.matrix_data[Number(i_row)][Number(i_col)]);
                 }
             }
-            to_json(data_serializable, filepath, env);
+            dict['history_user_input'] = data_serializable_max;
+            // to_json(data_serializable, filepath, env)
+            to_json(dict, filepath, env);
         };
         return TrainFreezer;
     }());

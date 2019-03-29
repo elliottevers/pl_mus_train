@@ -286,9 +286,11 @@ var get_filename = function () {
     return filename;
 };
 var load_session = function () {
+    trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render, true);
     if (_.contains([PARSE, DERIVE], algorithm_train.get_name())) {
-        trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render, true);
         var matrix_deserialized = TrainThawer.thaw_notes_matrix(get_filename(), env);
+        var logger_2 = new Logger(env);
+        logger_2.log(JSON.stringify(matrix_deserialized));
         trainer.commence();
         var input_left = true;
         while (input_left) {
@@ -310,8 +312,6 @@ var load_session = function () {
             var note_4 = notes_thawed_1[_i];
             trainer.accept_input([note_4]);
         }
-        trainer.virtualized = false;
-        trainer.render_window();
     }
     else {
         throw 'algorithm not supported';
@@ -323,14 +323,17 @@ var save_session = function () {
     // TODO: logic to determine, from project folder, name of file
     TrainFreezer.freeze(trainer, get_filename(), env);
 };
-var json_import_test = function () {
-    var dict = new Dict();
-    // dict.import_json(get_filename());
-    dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
-    var logger = new Logger(env);
-    // logger.log(get_filename());
-    logger.log(dict.get("key_test::0::0"));
-};
+// let json_import_test = () => {
+//     let dict = new Dict();
+//     // dict.import_json(get_filename());
+//     dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
+//
+//     let logger = new Logger(env);
+//
+//     // logger.log(get_filename());
+//
+//     logger.log(dict.get("key_test::0::0"))
+// };
 if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load_session = load_session;
@@ -348,6 +351,6 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
-    Global.train.json_import_test = json_import_test;
+    // Global.train.json_import_test = json_import_test;
 }
 //# sourceMappingURL=train.js.map

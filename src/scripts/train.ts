@@ -517,6 +517,10 @@ let load_session = () => {
             env
         );
 
+        let logger = new Logger(env);
+
+        logger.log(JSON.stringify(matrix_deserialized));
+
         trainer.commence();
 
         let input_left = true;
@@ -574,17 +578,17 @@ let save_session = () => {
     );
 };
 
-let json_import_test = () => {
-    let dict = new Dict();
-    // dict.import_json(get_filename());
-    dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
-
-    let logger = new Logger(env);
-
-    // logger.log(get_filename());
-
-    logger.log(dict.get("key_test::0::0"))
-};
+// let json_import_test = () => {
+//     let dict = new Dict();
+//     // dict.import_json(get_filename());
+//     dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
+//
+//     let logger = new Logger(env);
+//
+//     // logger.log(get_filename());
+//
+//     logger.log(dict.get("key_test::0::0"))
+// };
 
 if (typeof Global !== "undefined") {
     Global.train = {};
@@ -603,5 +607,5 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
-    Global.train.json_import_test = json_import_test;
+    // Global.train.json_import_test = json_import_test;
 }
