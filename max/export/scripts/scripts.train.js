@@ -599,7 +599,7 @@ var file;
                     if (err) {
                         console.log(err);
                     }
-                }));
+                }))['history_user_input'];
                 break;
             }
             case 'node': {
@@ -610,7 +610,7 @@ var file;
                     if (err) {
                         console.log(err);
                     }
-                }));
+                }))['history_user_input'];
                 break;
             }
             case 'max': {
@@ -1336,7 +1336,6 @@ var window;
     var region_red = [251, 1, 6];
     var blue = [10, 10, 251];
     var Window = /** @class */ (function () {
-        // trainer: Trainer;
         function Window(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
                 var num_pixels_width = this.width;
@@ -1345,24 +1344,11 @@ var window;
             this.height = height;
             this.width = width;
             this.messenger = messenger;
-            // this.trainer = trainer;
         }
         Window.prototype.clear = function () {
             var msg_clear = ["clear"];
             this.messenger.message(msg_clear);
         };
-        // TODO: put this logic in Algorithm
-        // public coord_to_index_clip(coord): number {
-        //     if (this.algorithm.b_targeted()) {
-        //         return 0
-        //     } else {
-        //         if (coord[0] === -1) {
-        //             return 0
-        //         } else {
-        //             return coord[0] + 1
-        //         }
-        //     }
-        // }
         Window.prototype.initialize_clips = function (trainable, segments) {
             var list_clips = [];
             var beat_start_song = segments[0].beat_start;
@@ -1380,10 +1366,9 @@ var window;
             this.length_beats = beats;
         };
         Window.prototype.add_notes_to_clip = function (notes_to_add_to_clip, index_clip_render) {
-            // let index_clip = algorithm.coord_to_index_clip(coord_current);
             for (var _i = 0, notes_to_add_to_clip_1 = notes_to_add_to_clip; _i < notes_to_add_to_clip_1.length; _i++) {
-                var note_1 = notes_to_add_to_clip_1[_i];
-                this.list_clips[index_clip_render].append(note_1);
+                var note = notes_to_add_to_clip_1[_i];
+                this.list_clips[index_clip_render].append(note);
             }
         };
         Window.prototype.add_note_to_clip_root = function (note) {
@@ -1463,7 +1448,6 @@ var window;
             return _super.call(this, height, width, messenger) || this;
         }
         MatrixWindow.prototype.render = function (iterator_matrix_train, trainable, struct_train, segment_current) {
-            // this.clear();
             this.render_regions(iterator_matrix_train, trainable, struct_train, segment_current);
             this.render_clips(trainable, struct_train);
             this.render_trees(struct_train, trainable);
@@ -1538,19 +1522,6 @@ var window;
         };
         MatrixWindow.prototype.get_messages_render_clips = function (trainable, struct_train) {
             var messages = [];
-            // let b_targeted = (struct_parse === null);
-            // make abstraction that gets the renderable regions
-            // struct_parse.get_regions_renderable();
-            //
-            // for (let coord of struct_parse.get_regions_renderable()) {
-            //     messages.push(
-            //         this.get_messages_render_clip(
-            //             trainable.coord_to_index_clip(
-            //                 coord
-            //             )
-            //         )
-            //     )
-            // }
             if (trainable.b_targeted) {
                 var index_clip = 0;
                 messages.push(this.get_messages_render_clip(index_clip));
@@ -1588,20 +1559,14 @@ var window;
             offset_top_end = this.get_offset_pixel_bottommost();
             return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
         };
-        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, trainable, 
-        // target_current: Target,
-        // struct_parse: StructParse
-        struct_train, segment_current) {
-            // let notes;
+        MatrixWindow.prototype.render_regions = function (iterator_matrix_train, trainable, struct_train, segment_current) {
             var coord_current = iterator_matrix_train.get_coord_current();
             var interval_current;
             // prediction/detection need the current target, while parse/derive need the current segment
             if (trainable.b_targeted) {
                 var struct_targets = struct_train;
-                var note_2 = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
-                // iterator_subtarget.subtargets.
-                // let notes_target_current = target_current.get_notes();
-                interval_current = trainable.determine_region_present([note_2], segment_current);
+                var note = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
+                interval_current = trainable.determine_region_present([note], segment_current);
             }
             else {
                 var struct_parse = struct_train;
@@ -1612,9 +1577,7 @@ var window;
                     ];
                 }
                 else {
-                    // coord = iterator_matrix_train.get_coord_current();
                     var coord_segment = [0, coord_current[1]];
-                    // let notes = struct_parse.get_notes_at_coord(coord_segment);
                     interval_current = trainable.determine_region_present(struct_parse.get_notes_at_coord(coord_segment), segment_current);
                 }
             }
@@ -1961,12 +1924,6 @@ var user_input_command = function (command) {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
                     var struct_parse = trainer.struct_train;
                     var notes_struct_below = algorithm_train.coord_to_index_struct_train([coords_current[0] + 1, coords_current[1]]);
-                    // struct_parse.get_notes_at_coord(notes_struct_below);
-                    // trainer.clip_user_input.set_notes(
-                    //     trainer.history_user_input.get(
-                    //         [coords_current[0] + 1, coords_current[1]]
-                    //     )
-                    // );
                     trainer.clip_user_input.set_notes(struct_parse.get_notes_at_coord(notes_struct_below));
                     break;
                 }
@@ -1988,9 +1945,19 @@ var user_input_command = function (command) {
                     break;
                 }
                 case 'reset': {
+                    // let coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    //
+                    // let notes = trainer.history_user_input.get(
+                    //     [coords_current[0] - 1, coords_current[1]]
+                    // );
+                    //
+                    // trainer.clip_user_input.set_notes(
+                    //     notes
+                    // );
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    var notes = trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]);
-                    trainer.clip_user_input.set_notes(notes);
+                    var struct_parse = trainer.struct_train;
+                    var notes_struct_above = algorithm_train.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
+                    trainer.clip_user_input.set_notes(struct_parse.get_notes_at_coord(notes_struct_above));
                     break;
                 }
                 case 'erase': {
@@ -2061,8 +2028,6 @@ var load_session = function () {
     trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render, true);
     if (_.contains([PARSE, DERIVE], algorithm_train.get_name())) {
         var matrix_deserialized = TrainThawer.thaw_notes_matrix(get_filename(), env);
-        var logger_2 = new Logger(env);
-        logger_2.log(JSON.stringify(matrix_deserialized));
         trainer.commence();
         var input_left = true;
         while (input_left) {
@@ -2095,17 +2060,6 @@ var save_session = function () {
     // TODO: logic to determine, from project folder, name of file
     TrainFreezer.freeze(trainer, get_filename(), env);
 };
-// let json_import_test = () => {
-//     let dict = new Dict();
-//     // dict.import_json(get_filename());
-//     dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
-//
-//     let logger = new Logger(env);
-//
-//     // logger.log(get_filename());
-//
-//     logger.log(dict.get("key_test::0::0"))
-// };
 if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load_session = load_session;
@@ -2123,7 +2077,6 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
-    // Global.train.json_import_test = json_import_test;
 }
 
 },{"../clip/clip":1,"../constants/constants":3,"../control/user_input":4,"../live/live":7,"../log/logger":8,"../message/messenger":9,"../note/note":11,"../render/window":13,"../scene/scene":14,"../segment/segment":16,"../serialize/freeze":17,"../serialize/thaw":19,"../song/song":20,"../track/track":22,"../train/algorithm":23,"../train/trainer":25,"../utils/utils":26,"tree-model":31,"underscore":32}],16:[function(require,module,exports){
@@ -2367,18 +2320,16 @@ var thaw;
         function TrainThawer() {
         }
         TrainThawer.thaw_notes = function (filepath, env) {
-            // let matrix_deserialized = from_json(filepath, env);
             var notes = [];
             // TODO: this is only valid for forward iteration
-            for (var _i = 0, _a = TrainThawer.thaw_notes_matrix(filepath, env); _i < _a.length; _i++) {
-                var row = _a[_i];
-                for (var _b = 0, row_1 = row; _b < row_1.length; _b++) {
-                    var col = row_1[_b];
-                    if (col === null) {
-                        continue;
-                    }
-                    for (var _c = 0, col_1 = col; _c < col_1.length; _c++) {
-                        var note_deserialized = col_1[_c];
+            var matrix = TrainThawer.thaw_notes_matrix(filepath, env);
+            for (var _i = 0, _a = Object.keys(matrix); _i < _a.length; _i++) {
+                var key_row = _a[_i];
+                var col = matrix[key_row];
+                for (var _b = 0, _c = Object.keys(col); _b < _c.length; _b++) {
+                    var key_col = _c[_b];
+                    for (var _d = 0, _e = matrix[key_row][key_col]; _d < _e.length; _d++) {
+                        var note_deserialized = _e[_d];
                         notes.push(note_deserialized);
                     }
                 }
@@ -2398,8 +2349,8 @@ var thaw;
                         continue;
                     }
                     var notes = [];
-                    for (var _i = 0, col_2 = col; _i < col_2.length; _i++) {
-                        var note_serialized = col_2[_i];
+                    for (var _i = 0, col_1 = col; _i < col_1.length; _i++) {
+                        var note_serialized = col_1[_i];
                         notes.push(deserialize_note(note_serialized));
                     }
                     matrix_test[Number(i_row)][Number(i_col)] = notes;
@@ -3364,7 +3315,7 @@ var algorithm;
             return note_subtarget;
         };
         // TODO: verify that we don't have to do anything here
-        Detect.prototype.initialize_render = function (window, segments, notes_target_track) {
+        Detect.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             return window;
         };
         Detect.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
@@ -3425,7 +3376,7 @@ var algorithm;
             return note_subtarget;
         };
         // TODO: verify that we don't have to do anythiing here
-        Predict.prototype.initialize_render = function (window, segments, notes_target_track) {
+        Predict.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             return window;
         };
         // NB: we only have to initialize clips in the target track
@@ -3472,9 +3423,12 @@ var algorithm;
         // add the root up to which we're going to parse
         // add the segments as the layer below
         // add the leaf notes
-        Parse.prototype.initialize_render = function (window, segments, notes_target_track) {
+        Parse.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             // first layer
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
+            // window.regions_renderable.push(coords_parse);
+            var struct_parse = struct_train;
+            struct_parse.regions_renderable.push([-1]);
             var _loop_2 = function (i_segment) {
                 var segment_3 = segments[Number(i_segment)];
                 var note_segment = segment_3.get_note();
@@ -3483,6 +3437,7 @@ var algorithm;
                 var coord_current_virtual_leaves = [this_2.depth - 1, Number(i_segment)];
                 // second layer
                 window.add_notes_to_clip([note_segment], this_2.coord_to_index_clip_render(coord_current_virtual_second_layer));
+                struct_parse.regions_renderable.push(this_2.coord_to_index_struct_train(coord_current_virtual_second_layer));
                 // leaves
                 window.add_notes_to_clip(notes_leaves, this_2.coord_to_index_clip_render(coord_current_virtual_leaves));
             };
@@ -3587,7 +3542,7 @@ var algorithm;
             }
             return struct_parse;
         };
-        Derive.prototype.initialize_render = function (window, segments, notes_target_track) {
+        Derive.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             // first layer (root)
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             for (var i_segment in segments) {
@@ -3907,11 +3862,11 @@ var trainer;
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_user_input_history(this.trainable, this.segments));
             this.window.initialize_clips(this.trainable, this.segments);
             this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
-            this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track);
             this.history_user_input = this.trainable.preprocess_history_user_input(this.history_user_input, this.segments);
             this.struct_train = this.trainable.create_struct_train(this.window, this.segments, this.track_target, this.user_input_handler, this.struct_train);
             this.struct_train = this.trainable.preprocess_struct_train(this.struct_train, this.segments, this.notes_target_track);
             this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
+            this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track, this.struct_train);
         }
         Trainer.prototype.clear_window = function () {
             if (!this.virtualized) {

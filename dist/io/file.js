@@ -52,7 +52,7 @@ var file;
                     if (err) {
                         console.log(err);
                     }
-                }));
+                }))['history_user_input'];
                 break;
             }
             case 'node': {
@@ -63,7 +63,7 @@ var file;
                     if (err) {
                         console.log(err);
                     }
-                }));
+                }))['history_user_input'];
                 break;
             }
             case 'max': {

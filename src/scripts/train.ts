@@ -390,15 +390,26 @@ let user_input_command = (command: string) => {
                     break;
                 }
                 case 'reset': {
+                    // let coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    //
+                    // let notes = trainer.history_user_input.get(
+                    //     [coords_current[0] - 1, coords_current[1]]
+                    // );
+                    //
+                    // trainer.clip_user_input.set_notes(
+                    //     notes
+                    // );
+
                     let coords_current = trainer.iterator_matrix_train.get_coord_current();
 
-                    let notes = trainer.history_user_input.get(
-                        [coords_current[0] - 1, coords_current[1]]
-                    );
+                    let struct_parse = trainer.struct_train as StructParse;
+
+                    let notes_struct_above = algorithm_train.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
 
                     trainer.clip_user_input.set_notes(
-                        notes
+                        struct_parse.get_notes_at_coord(notes_struct_above)
                     );
+
 
                     break;
                 }

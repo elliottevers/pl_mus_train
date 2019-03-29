@@ -197,12 +197,6 @@ var user_input_command = function (command) {
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
                     var struct_parse = trainer.struct_train;
                     var notes_struct_below = algorithm_train.coord_to_index_struct_train([coords_current[0] + 1, coords_current[1]]);
-                    // struct_parse.get_notes_at_coord(notes_struct_below);
-                    // trainer.clip_user_input.set_notes(
-                    //     trainer.history_user_input.get(
-                    //         [coords_current[0] + 1, coords_current[1]]
-                    //     )
-                    // );
                     trainer.clip_user_input.set_notes(struct_parse.get_notes_at_coord(notes_struct_below));
                     break;
                 }
@@ -224,9 +218,19 @@ var user_input_command = function (command) {
                     break;
                 }
                 case 'reset': {
+                    // let coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    //
+                    // let notes = trainer.history_user_input.get(
+                    //     [coords_current[0] - 1, coords_current[1]]
+                    // );
+                    //
+                    // trainer.clip_user_input.set_notes(
+                    //     notes
+                    // );
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    var notes = trainer.history_user_input.get([coords_current[0] - 1, coords_current[1]]);
-                    trainer.clip_user_input.set_notes(notes);
+                    var struct_parse = trainer.struct_train;
+                    var notes_struct_above = algorithm_train.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
+                    trainer.clip_user_input.set_notes(struct_parse.get_notes_at_coord(notes_struct_above));
                     break;
                 }
                 case 'erase': {
@@ -297,8 +301,6 @@ var load_session = function () {
     trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render, true);
     if (_.contains([PARSE, DERIVE], algorithm_train.get_name())) {
         var matrix_deserialized = TrainThawer.thaw_notes_matrix(get_filename(), env);
-        var logger_2 = new Logger(env);
-        logger_2.log(JSON.stringify(matrix_deserialized));
         trainer.commence();
         var input_left = true;
         while (input_left) {
@@ -331,17 +333,6 @@ var save_session = function () {
     // TODO: logic to determine, from project folder, name of file
     TrainFreezer.freeze(trainer, get_filename(), env);
 };
-// let json_import_test = () => {
-//     let dict = new Dict();
-//     // dict.import_json(get_filename());
-//     dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json');
-//
-//     let logger = new Logger(env);
-//
-//     // logger.log(get_filename());
-//
-//     logger.log(dict.get("key_test::0::0"))
-// };
 if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load_session = load_session;
@@ -359,6 +350,5 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
-    // Global.train.json_import_test = json_import_test;
 }
 //# sourceMappingURL=train.js.map

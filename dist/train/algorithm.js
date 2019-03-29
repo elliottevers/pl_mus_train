@@ -294,7 +294,7 @@ var algorithm;
             return note_subtarget;
         };
         // TODO: verify that we don't have to do anything here
-        Detect.prototype.initialize_render = function (window, segments, notes_target_track) {
+        Detect.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             return window;
         };
         Detect.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
@@ -355,7 +355,7 @@ var algorithm;
             return note_subtarget;
         };
         // TODO: verify that we don't have to do anythiing here
-        Predict.prototype.initialize_render = function (window, segments, notes_target_track) {
+        Predict.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             return window;
         };
         // NB: we only have to initialize clips in the target track
@@ -402,9 +402,12 @@ var algorithm;
         // add the root up to which we're going to parse
         // add the segments as the layer below
         // add the leaf notes
-        Parse.prototype.initialize_render = function (window, segments, notes_target_track) {
+        Parse.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             // first layer
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
+            // window.regions_renderable.push(coords_parse);
+            var struct_parse = struct_train;
+            struct_parse.regions_renderable.push([-1]);
             var _loop_2 = function (i_segment) {
                 var segment_3 = segments[Number(i_segment)];
                 var note_segment = segment_3.get_note();
@@ -413,6 +416,7 @@ var algorithm;
                 var coord_current_virtual_leaves = [this_2.depth - 1, Number(i_segment)];
                 // second layer
                 window.add_notes_to_clip([note_segment], this_2.coord_to_index_clip_render(coord_current_virtual_second_layer));
+                struct_parse.regions_renderable.push(this_2.coord_to_index_struct_train(coord_current_virtual_second_layer));
                 // leaves
                 window.add_notes_to_clip(notes_leaves, this_2.coord_to_index_clip_render(coord_current_virtual_leaves));
             };
@@ -517,7 +521,7 @@ var algorithm;
             }
             return struct_parse;
         };
-        Derive.prototype.initialize_render = function (window, segments, notes_target_track) {
+        Derive.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             // first layer (root)
             window.add_note_to_clip_root(StructParse.create_root_from_segments(segments));
             for (var i_segment in segments) {

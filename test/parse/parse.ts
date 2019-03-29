@@ -586,7 +586,6 @@ while (input_left) {
     );
 }
 
-
 trainer_local_parse.virtualized = false;
 
 trainer_local_parse.render_window();
