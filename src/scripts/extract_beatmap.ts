@@ -56,7 +56,7 @@ let extract_beatmap_manual = () => {
 
     messenger.message(['length-beats', length_beats]);
 
-    messenger.message(['run']);
+    messenger.message(['run', 'bang']);
 };
 
 let test = () => {

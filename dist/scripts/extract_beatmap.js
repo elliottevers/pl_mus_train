@@ -24,7 +24,7 @@ var extract_beatmap_manual = function () {
     messenger.message(['loop_bracket_lower', loop_bracket_lower]);
     messenger.message(['loop_bracket_upper', loop_bracket_upper]);
     messenger.message(['length-beats', length_beats]);
-    messenger.message(['run']);
+    messenger.message(['run', 'bang']);
 };
 var test = function () {
 };

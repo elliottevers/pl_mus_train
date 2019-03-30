@@ -94,6 +94,8 @@ let run = () => {
         pythonPath: path_interpreter,
     };
 
+    console.log(script.get_run_parameters().split(' '));
+
     if (parameters_exist) {
         options_python_shell['args'] = script.get_run_parameters().split(' ')
     }
