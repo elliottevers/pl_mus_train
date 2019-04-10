@@ -16,7 +16,12 @@ var song;
             this.scenes = this.song_dao.get_scenes();
         };
         Song.prototype.get_scene_at_index = function (index) {
-            return this.scenes[index];
+            if (this.scenes.length > index) {
+                return this.scenes[index];
+            }
+            else {
+                return null;
+            }
         };
         Song.prototype.create_scene_at_index = function (index) {
             this.song_dao.create_scene(index);

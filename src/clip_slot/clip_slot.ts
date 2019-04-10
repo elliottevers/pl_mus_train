@@ -1,19 +1,13 @@
 import {live} from "../live/live";
 import {clip, clip as module_clip} from "../clip/clip";
 import {message} from "../message/messenger";
-// import {log} from "../log/logger";
 import LiveApiJs = live.LiveApiJs;
 import {utils} from "../utils/utils";
-import {log} from "../log/logger";
 
 export namespace clip_slot {
     import Clip = module_clip.Clip;
-    // import ClipDao = module_clip.ClipDao;
     import Messenger = message.Messenger;
     import ClipDao = clip.ClipDao;
-    import Logger = log.Logger;
-    import LiveClipVirtual = live.LiveClipVirtual;
-    // import Logger = log.Logger;
 
     export class ClipSlot {
 
@@ -139,8 +133,6 @@ export namespace clip_slot {
         }
 
         get_clip(): Clip {
-            // let logger = new Logger('max');
-            // logger.log(utils.cleanse_id(this.live_api.get('clip')));
             return new Clip(
                 new ClipDao(
                     new LiveApiJs(

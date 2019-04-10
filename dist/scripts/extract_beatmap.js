@@ -3,9 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
-var clip_1 = require("../clip/clip");
-var Clip = clip_1.clip.Clip;
-var ClipDao = clip_1.clip.ClipDao;
+var utils_1 = require("../utils/utils");
+var track_1 = require("../track/track");
+var TrackDao = track_1.track.TrackDao;
+var Track = track_1.track.Track;
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
@@ -13,7 +14,25 @@ if (env === 'max') {
 }
 var messenger = new Messenger(env, 0);
 var extract_beatmap_manual = function () {
-    var clip_audio_warped = new Clip(new ClipDao(new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip'), new Messenger(env, 0)));
+    var this_device = new live_1.live.LiveApiJs('this_device');
+    var track = new Track(new TrackDao(new live_1.live.LiveApiJs(utils_1.utils.get_path_track_from_path_device(this_device.get_path())), messenger));
+    track.load_clip_slots();
+    var clip_slot = track.get_clip_slot_at_index(0);
+    clip_slot.load_clip();
+    var clip_audio_warped = clip_slot.get_clip();
+    // let logger = new Logger(env);
+    //
+    // logger.log(JSON.stringify(clip_audio_warped.clip_dao.clip_live.get_id()));
+    //
+    // logger.log(JSON.stringify(clip_audio_warped.get_name()));
+    //
+    // logger.log(JSON.stringify(clip_audio_warped.get_id()));
+    //
+    // // logger.log(JSON.stringify(clip_audio_warped.get_end_marker()));
+    //
+    // logger.log(JSON.stringify(clip_audio_warped.get_loop_bracket_upper()));
+    //
+    // return;
     var beat_start_marker = clip_audio_warped.get_start_marker();
     var beat_end_marker = clip_audio_warped.get_end_marker();
     var loop_bracket_lower = clip_audio_warped.get_loop_bracket_lower();

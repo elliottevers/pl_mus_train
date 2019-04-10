@@ -68,6 +68,10 @@ export namespace clip {
             return this.clip_dao.get_path();
         }
 
+        get_id(): string {
+            return this.clip_dao.get_id();
+        }
+
         set_path_deferlow(key_route): void {
             this.clip_dao.set_path_deferlow(
                 'set_path_' + key_route,
@@ -349,6 +353,10 @@ export namespace clip {
 
             return notes_parsed;
         }
+
+        public get_name() {
+            return this.clip_dao.get_name()
+        }
     }
 
     export class ClipDao {
@@ -533,6 +541,14 @@ export namespace clip {
                 }
                 this.clip_live.call("done")
             }
+        }
+
+        get_name() {
+            return this.clip_live.get('name')
+        }
+
+        get_id() {
+            return this.clip_live.get_id()
         }
     }
 }

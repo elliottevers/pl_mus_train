@@ -2,14 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
-// import {log} from "../log/logger";
 var LiveApiJs = live_1.live.LiveApiJs;
 var utils_1 = require("../utils/utils");
 var clip_slot;
 (function (clip_slot_1) {
     var Clip = clip_1.clip.Clip;
     var ClipDao = clip_1.clip.ClipDao;
-    // import Logger = log.Logger;
     var ClipSlot = /** @class */ (function () {
         function ClipSlot(clip_slot_dao) {
             this.clip_slot_dao = clip_slot_dao;
@@ -87,8 +85,6 @@ var clip_slot;
             this.live_api.call("duplicate_clip_to", ['id', id].join(' '));
         };
         ClipSlotDao.prototype.get_clip = function () {
-            // let logger = new Logger('max');
-            // logger.log(utils.cleanse_id(this.live_api.get('clip')));
             return new Clip(new ClipDao(new LiveApiJs(utils_1.utils.cleanse_id(this.live_api.get('clip'))), this.messenger));
         };
         ClipSlotDao.prototype.get_path = function () {

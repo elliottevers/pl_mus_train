@@ -1,17 +1,7 @@
-import {message as m, message} from "../message/messenger";
+import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live, live as li} from "../live/live";
-import {clip, clip as c} from "../clip/clip";
-import LiveApiJs = live.LiveApiJs;
 import {log} from "../log/logger";
 import Logger = log.Logger;
-import {io} from "../io/io";
-import Exporter = io.Exporter;
-import {utils} from "../utils/utils";
-import {harmony} from "../music/harmony";
-import Harmony = harmony.Harmony;
-import ClipDao = clip.ClipDao;
-import Clip = clip.Clip;
 
 declare let autowatch: any;
 declare let inlets: any;

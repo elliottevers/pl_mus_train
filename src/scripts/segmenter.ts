@@ -82,12 +82,6 @@ let get_length_beats = () => {
 
 let expand_segments = () => {
     let this_device = new li.LiveApiJs('this_device');
-    //
-    // let path_this_device = this_device.get_path();
-    //
-    // let list_this_device = path_this_device.split(' ');
-    //
-    // let index_this_track = Number(list_this_device[2]);
 
     let track = new Track(
         new TrackDao(
@@ -103,12 +97,6 @@ let expand_segments = () => {
 
 let contract_segments = () => {
     let this_device = new li.LiveApiJs('this_device');
-    //
-    // let path_this_device = this_device.get_path();
-    //
-    // let list_this_device = path_this_device.split(' ');
-    //
-    // let index_this_track = Number(list_this_device[2]);
 
     let track = new Track(
         new TrackDao(
@@ -550,8 +538,6 @@ let expand_track_audio = (path_track) => {
 
 let expand_track = (path_track) => {
 
-    let logger = new Logger(env);
-
     let track = new Track(
         new TrackDao(
             new LiveApiJs(
@@ -578,7 +564,9 @@ let expand_track = (path_track) => {
 
     let notes_segments = get_notes_segments();
 
-    // logger.log(JSON.stringify(notes_segments));
+    let logger = new Logger(env);
+
+    logger.log(JSON.stringify(notes_segments));
 
     let segments: Segment[] = [];
 
@@ -610,6 +598,10 @@ let expand_track = (path_track) => {
 
         let scene = song_read.get_scene_at_index(Number(i_segment));
 
+        // logger.log(JSON.stringify(i_segment));
+        //
+        // logger.log(JSON.stringify(scene));
+
         let scene_exists = scene !== null;
 
         if (!scene_exists) {
@@ -639,9 +631,14 @@ let expand_track = (path_track) => {
             segment.get_endpoints_loop()[1]
         );
 
+        // clip.set_endpoint_markers(
+        //     0,
+        //     length_beats
+        // );
+
         clip.set_endpoint_markers(
-            0,
-            length_beats
+            segment.get_endpoints_loop()[0],
+            segment.get_endpoints_loop()[1]
         );
 
         let notes_within_segment = notes_clip.filter(

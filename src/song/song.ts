@@ -3,6 +3,7 @@ import {live} from "../live/live";
 import {scene} from "../scene/scene";
 import {utils} from "../utils/utils";
 import {track} from "../track/track";
+import {log} from "../log/logger";
 
 export namespace song {
     import Messenger = message.Messenger;
@@ -11,6 +12,7 @@ export namespace song {
     import Track = track.Track;
     import SceneDao = scene.SceneDao;
     import LiveApiJs = live.LiveApiJs;
+    import Logger = log.Logger;
 
     export class Song {
 
@@ -29,7 +31,11 @@ export namespace song {
         }
 
         get_scene_at_index(index: number): Scene {
-            return this.scenes[index]
+            if (this.scenes.length > index) {
+                return this.scenes[index]
+            } else {
+                return null
+            }
         }
 
         create_scene_at_index(index: number) {

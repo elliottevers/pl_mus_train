@@ -47,6 +47,9 @@ var clip;
         Clip.prototype.get_path = function () {
             return this.clip_dao.get_path();
         };
+        Clip.prototype.get_id = function () {
+            return this.clip_dao.get_id();
+        };
         Clip.prototype.set_path_deferlow = function (key_route) {
             this.clip_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
         };
@@ -222,6 +225,9 @@ var clip;
             // }
             return notes_parsed;
         };
+        Clip.prototype.get_name = function () {
+            return this.clip_dao.get_name();
+        };
         return Clip;
     }());
     clip.Clip = Clip;
@@ -379,6 +385,12 @@ var clip;
                 }
                 this.clip_live.call("done");
             }
+        };
+        ClipDao.prototype.get_name = function () {
+            return this.clip_live.get('name');
+        };
+        ClipDao.prototype.get_id = function () {
+            return this.clip_live.get_id();
         };
         return ClipDao;
     }());

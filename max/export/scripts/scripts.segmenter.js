@@ -4,15 +4,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
 var live_1 = require("../live/live");
-var logger_1 = require("../log/logger");
 var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
-    var Logger = logger_1.log.Logger;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
-            this.logger = new Logger('max');
         }
         Clip.from_path = function (path, messenger) {
             //@ts-ignore
@@ -51,8 +48,11 @@ var clip;
         Clip.prototype.get_path = function () {
             return this.clip_dao.get_path();
         };
+        Clip.prototype.get_id = function () {
+            return this.clip_dao.get_id();
+        };
         Clip.prototype.set_path_deferlow = function (key_route) {
-            this.clip_dao.set_path_deferlow(key_route, this.get_path());
+            this.clip_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
         };
         Clip.prototype.get_num_measures = function () {
             return (this.get_end_marker() - this.get_start_marker()) / 4;
@@ -226,6 +226,9 @@ var clip;
             // }
             return notes_parsed;
         };
+        Clip.prototype.get_name = function () {
+            return this.clip_dao.get_name();
+        };
         return Clip;
     }());
     clip.Clip = Clip;
@@ -384,32 +387,33 @@ var clip;
                 this.clip_live.call("done");
             }
         };
+        ClipDao.prototype.get_name = function () {
+            return this.clip_live.get('name');
+        };
+        ClipDao.prototype.get_id = function () {
+            return this.clip_live.get_id();
+        };
         return ClipDao;
     }());
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../live/live":3,"../log/logger":4,"../note/note":6,"../utils/utils":12,"tree-model":15}],2:[function(require,module,exports){
+},{"../live/live":3,"../note/note":6,"../utils/utils":12,"tree-model":15}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
-// import {log} from "../log/logger";
 var LiveApiJs = live_1.live.LiveApiJs;
 var utils_1 = require("../utils/utils");
 var clip_slot;
 (function (clip_slot_1) {
     var Clip = clip_1.clip.Clip;
     var ClipDao = clip_1.clip.ClipDao;
-    // import Logger = log.Logger;
     var ClipSlot = /** @class */ (function () {
         function ClipSlot(clip_slot_dao) {
             this.clip_slot_dao = clip_slot_dao;
         }
         ClipSlot.prototype.b_has_clip = function () {
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.clip));
-            // return this.clip !== null
             return this.clip_slot_dao.has_clip();
         };
         ClipSlot.prototype.delete_clip = function () {
@@ -436,6 +440,34 @@ var clip_slot;
         return ClipSlot;
     }());
     clip_slot_1.ClipSlot = ClipSlot;
+    var ClipSlotDaoVirtual = /** @class */ (function () {
+        function ClipSlotDaoVirtual(clip) {
+            this.clip = clip;
+        }
+        ClipSlotDaoVirtual.prototype.create_clip = function (length_beats) {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.delete_clip = function () {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.duplicate_clip_to = function (id) {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.get_clip = function () {
+            return this.clip;
+        };
+        ClipSlotDaoVirtual.prototype.get_id = function () {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.get_path = function () {
+            throw 'error';
+        };
+        ClipSlotDaoVirtual.prototype.has_clip = function () {
+            return true;
+        };
+        return ClipSlotDaoVirtual;
+    }());
+    clip_slot_1.ClipSlotDaoVirtual = ClipSlotDaoVirtual;
     var ClipSlotDao = /** @class */ (function () {
         function ClipSlotDao(live_api, messenger) {
             this.live_api = live_api;
@@ -454,12 +486,6 @@ var clip_slot;
             this.live_api.call("duplicate_clip_to", ['id', id].join(' '));
         };
         ClipSlotDao.prototype.get_clip = function () {
-            // return utils.FactoryLive.clip_from_path(
-            //     String(this.live_api.get('clip')).split(',').join(' '),
-            //     this.messenger
-            // )
-            // let logger = new Logger('max');
-            // logger.log(utils.cleanse_id(this.live_api.get('clip')));
             return new Clip(new ClipDao(new LiveApiJs(utils_1.utils.cleanse_id(this.live_api.get('clip'))), this.messenger));
         };
         ClipSlotDao.prototype.get_path = function () {
@@ -477,6 +503,7 @@ var clip_slot;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
+// declare let LiveAPI: any;
 var live;
 (function (live) {
     var Clip = clip_1.clip.Clip;
@@ -605,6 +632,12 @@ var live;
         LiveClipVirtual.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
             return;
         };
+        LiveClipVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            return;
+        };
+        LiveClipVirtual.prototype.get_path = function () {
+            return '';
+        };
         return LiveClipVirtual;
     }());
     live.LiveClipVirtual = LiveClipVirtual;
@@ -717,24 +750,24 @@ var message;
         Messenger.prototype.get_key_route = function () {
             return this.key_route;
         };
-        Messenger.prototype.message = function (message) {
+        Messenger.prototype.message = function (message, override) {
             switch (this.env) {
                 case 'max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_max(message);
                     break;
                 }
                 case 'node': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node(message);
                     break;
                 }
                 case 'node_for_max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node_for_max(message);
@@ -930,6 +963,7 @@ var note;
 },{"tree-model":15}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var utils_1 = require("../utils/utils");
 var scene;
 (function (scene) {
     var Scene = /** @class */ (function () {
@@ -943,6 +977,12 @@ var scene;
             // TODO: implement
             return;
         };
+        Scene.prototype.set_path_deferlow = function (key_route) {
+            this.scene_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
+        };
+        Scene.prototype.get_path = function () {
+            return this.scene_dao.get_path();
+        };
         return Scene;
     }());
     scene.Scene = Scene;
@@ -952,16 +992,49 @@ var scene;
         SceneDaoVirtual.prototype.fire = function (force_legato) {
             return;
         };
+        SceneDaoVirtual.prototype.get_path = function () {
+            return "";
+        };
+        SceneDaoVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            return;
+        };
         return SceneDaoVirtual;
     }());
     scene.SceneDaoVirtual = SceneDaoVirtual;
     var SceneDao = /** @class */ (function () {
-        function SceneDao(live_api, messenger) {
+        function SceneDao(live_api, messenger, deferlow, key_route, env) {
             this.live_api = live_api;
             this.messenger = messenger;
+            if (deferlow && !key_route) {
+                throw new Error('key route not specified when using deferlow');
+            }
+            this.deferlow = deferlow;
+            this.key_route = key_route;
+            this.env = env;
         }
+        SceneDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            var mess = [key_route_override];
+            for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
+                var word = _a[_i];
+                mess.push(word);
+            }
+            this.messenger.message(mess);
+        };
         SceneDao.prototype.fire = function (force_legato) {
-            this.live_api.call("fire", force_legato ? '1' : '0');
+            // if (this.deferlow) {
+            //     this.messenger.message([this.key_route, "set", "loop_end", beat]);
+            // } else {
+            //     this.clip_live.set('loop_end', beat);
+            // }
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "call", "fire", force_legato ? '1' : '0']);
+            }
+            else {
+                this.live_api.call("fire", force_legato ? '1' : '0');
+            }
+        };
+        SceneDao.prototype.get_path = function () {
+            return utils_1.utils.cleanse_path(this.live_api.get_path());
         };
         return SceneDao;
     }());
@@ -1011,7 +1084,7 @@ var scene;
     scene.SceneIterator = SceneIterator;
 })(scene = exports.scene || (exports.scene = {}));
 
-},{}],8:[function(require,module,exports){
+},{"../utils/utils":12}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -1059,23 +1132,11 @@ var get_length_beats = function () {
 };
 var expand_segments = function () {
     var this_device = new live_1.live.LiveApiJs('this_device');
-    //
-    // let path_this_device = this_device.get_path();
-    //
-    // let list_this_device = path_this_device.split(' ');
-    //
-    // let index_this_track = Number(list_this_device[2]);
     var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(this_device.get_path())), messenger));
     expand_track(track.get_path());
 };
 var contract_segments = function () {
     var this_device = new live_1.live.LiveApiJs('this_device');
-    //
-    // let path_this_device = this_device.get_path();
-    //
-    // let list_this_device = path_this_device.split(' ');
-    //
-    // let index_this_track = Number(list_this_device[2]);
     var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(this_device.get_path())), messenger));
     contract_track(track.get_path());
 };
@@ -1373,7 +1434,6 @@ var expand_track_audio = function (path_track) {
 };
 // let notes_segments = io.Importer.import('segment');
 var expand_track = function (path_track) {
-    var logger = new Logger(env);
     var track = new Track(new TrackDao(new LiveApiJs(path_track), messenger));
     track.load_clips();
     var clip_slot = track.get_clip_slot_at_index(0);
@@ -1381,7 +1441,8 @@ var expand_track = function (path_track) {
     var clip = clip_slot.get_clip();
     var notes_clip = clip.get_notes(clip.get_loop_bracket_lower(), 0, clip.get_loop_bracket_upper(), 128);
     var notes_segments = get_notes_segments();
-    // logger.log(JSON.stringify(notes_segments));
+    var logger = new Logger(env);
+    logger.log(JSON.stringify(notes_segments));
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {
         var note = notes_segments_1[_i];
@@ -1393,6 +1454,9 @@ var expand_track = function (path_track) {
     var _loop_1 = function (i_segment) {
         var segment_3 = segments[Number(i_segment)];
         var scene = song_read.get_scene_at_index(Number(i_segment));
+        // logger.log(JSON.stringify(i_segment));
+        //
+        // logger.log(JSON.stringify(scene));
         var scene_exists = scene !== null;
         if (!scene_exists) {
             song_read.create_scene_at_index(Number(i_segment));
@@ -1406,7 +1470,11 @@ var expand_track = function (path_track) {
         clip_slot_1.load_clip();
         var clip_2 = clip_slot_1.get_clip();
         clip_2.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
-        clip_2.set_endpoint_markers(0, length_beats);
+        // clip.set_endpoint_markers(
+        //     0,
+        //     length_beats
+        // );
+        clip_2.set_endpoint_markers(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
         var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
         clip_2.set_notes(notes_within_segment);
     };
@@ -1431,10 +1499,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var segment;
-(function (segment) {
+(function (segment_1) {
     var Clip = clip_1.clip.Clip;
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var Segment = /** @class */ (function () {
+        // clip_user_input_async: Clip;
         function Segment(note) {
             this.beat_start = note.model.note.beat_start;
             this.beat_end = note.model.note.get_beat_end();
@@ -1442,14 +1511,22 @@ var segment;
             this.clip = new Clip(clip_dao_virtual);
         }
         Segment.from_notes = function (notes) {
-            return;
+            var segments = [];
+            for (var _i = 0, notes_1 = notes; _i < notes_1.length; _i++) {
+                var note_1 = notes_1[_i];
+                var segment_2 = new Segment(note_1);
+                segment_2.beat_start = note_1.model.note.beat_start;
+                segment_2.beat_end = note_1.model.note.get_beat_end();
+                segments.push(segment_2);
+            }
+            return segments;
         };
-        Segment.prototype.set_clip_user_input_sync = function (clip) {
-            this.clip_user_input_sync = clip;
+        Segment.prototype.set_clip_user_input = function (clip) {
+            this.clip_user_input = clip;
         };
-        Segment.prototype.set_clip_user_input_async = function (clip) {
-            this.clip_user_input_async = clip;
-        };
+        // public set_clip_user_input_async(clip: Clip) {
+        //     this.clip_user_input_async = clip;
+        // }
         Segment.prototype.get_note = function () {
             return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128)[0];
         };
@@ -1468,7 +1545,7 @@ var segment;
         };
         return Segment;
     }());
-    segment.Segment = Segment;
+    segment_1.Segment = Segment;
     var SegmentIterator = /** @class */ (function () {
         function SegmentIterator(segments, direction_forward) {
             this.segments = segments;
@@ -1511,7 +1588,7 @@ var segment;
         };
         return SegmentIterator;
     }());
-    segment.SegmentIterator = SegmentIterator;
+    segment_1.SegmentIterator = SegmentIterator;
 })(segment = exports.segment || (exports.segment = {}));
 
 },{"../clip/clip":1,"../live/live":3}],10:[function(require,module,exports){
@@ -1528,16 +1605,17 @@ var song;
     var Song = /** @class */ (function () {
         function Song(song_dao) {
             this.song_dao = song_dao;
-            // automatically set path at time of instantiation
-            if (this.song_dao.is_async()) {
-                this.set_path_deferlow('set_path_' + this.song_dao.key_route);
-            }
         }
         Song.prototype.load_scenes = function () {
             this.scenes = this.song_dao.get_scenes();
         };
         Song.prototype.get_scene_at_index = function (index) {
-            return this.scenes[index];
+            if (this.scenes.length > index) {
+                return this.scenes[index];
+            }
+            else {
+                return null;
+            }
         };
         Song.prototype.create_scene_at_index = function (index) {
             this.song_dao.create_scene(index);
@@ -1564,7 +1642,7 @@ var song;
             return this.get_scenes().length / 2;
         };
         Song.prototype.set_path_deferlow = function (key_route) {
-            this.song_dao.set_path_deferlow(key_route, this.get_path());
+            this.song_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
         };
         Song.prototype.get_path = function () {
             return this.song_dao.get_path();
@@ -1574,21 +1652,23 @@ var song;
     song.Song = Song;
     var SongDaoVirtual = /** @class */ (function () {
         // constructor(scenes: Scene[], messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
-        function SongDaoVirtual(scenes, messenger, deferlow, key_route, env) {
+        function SongDaoVirtual(scenes) {
             this.scenes = scenes;
-            if (deferlow && !key_route) {
-                throw new Error('key route not specified when using deferlow');
-            }
-            this.deferlow = deferlow;
-            this.key_route = key_route;
+            // if (deferlow && !key_route) {
+            //     throw new Error('key route not specified when using deferlow');
+            // }
+            // this.deferlow = deferlow;
+            // this.key_route = key_route;
         }
         SongDaoVirtual.prototype.create_scene = function (index) {
+            return;
         };
         SongDaoVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
             return;
         };
         SongDaoVirtual.prototype.is_async = function () {
-            return this.deferlow;
+            // return this.deferlow
+            return false;
         };
         SongDaoVirtual.prototype.get_path = function () {
             return 'live_set';
@@ -1624,7 +1704,6 @@ var song;
     song.SongDaoVirtual = SongDaoVirtual;
     var SongDao = /** @class */ (function () {
         function SongDao(song_live, messenger, deferlow, key_route, env) {
-            // constructor(song_live: iLiveApiJs, patcher: Patcher, deferlow?: boolean, key_route?: string, env?: string) {
             this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -1652,16 +1731,18 @@ var song;
                 this.messenger.message([this.key_route, "set", "session_record", String(int)]);
             }
             else {
-                this.song_live.set("session_record", String(int));
+                // this.song_live.set("session_record", String(int));
+                this.song_live.set("session_record", int);
             }
-            // if (this.deferlow) {
-            //     this.patcher.getnamed('song').message('set', 'session_record', String(int))
-            // } else {
-            //
-            // }
         };
         SongDao.prototype.set_overdub = function (int) {
-            this.song_live.set("overdub", int);
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "overdub", String(int)]);
+            }
+            else {
+                // this.song_live.set("overdub", int);
+                this.song_live.set("overdub", int);
+            }
         };
         SongDao.prototype.set_tempo = function (int) {
             this.song_live.set("tempo", int);
@@ -1716,82 +1797,23 @@ var track;
     var ClipSlot = clip_slot_1.clip_slot.ClipSlot;
     var ClipSlotDao = clip_slot_1.clip_slot.ClipSlotDao;
     var ClipDao = clip_1.clip.ClipDao;
-    // export let get_notes_on_track = (path_track) => {
-    //     let index_track = Number(path_track.split(' ')[2]);
-    //
-    //     let track = new Track(
-    //         new TrackDao(
-    //             new li.LiveApiJs(path_track)
-    //         )
-    //     );
-    //
-    //     let num_clip_slots = track.get_num_clip_slots();
-    //
-    //     let notes_amassed = [];
-    //
-    //     for (let i_clipslot of _.range(0, num_clip_slots)) {
-    //         let path_clipslot = ['live_set', 'tracks', index_track, 'clip_slots', Number(i_clipslot)].join(' ');
-    //
-    //         let clip = new Clip(
-    //             new ClipDao(
-    //                 new li.LiveApiJs(
-    //                     path_clipslot.split(' ').concat(['clip']).join(' ')
-    //                 ),
-    //                 new Messenger('max', 0)
-    //             )
-    //         );
-    //
-    //         notes_amassed = notes_amassed.concat(
-    //             clip.get_notes(
-    //                 clip.get_loop_bracket_lower(),
-    //                 0,
-    //                 clip.get_loop_bracket_upper(),
-    //                 128
-    //             )
-    //         );
-    //     }
-    //
-    //     return notes_amassed
-    // };
+    var ClipSlotDaoVirtual = clip_slot_1.clip_slot.ClipSlotDaoVirtual;
     var Track = /** @class */ (function () {
         function Track(track_dao) {
             this.clip_slots = [];
             this.track_dao = track_dao;
         }
         Track.get_clip_at_index = function (index_track, index_clip_slot, messenger) {
-            // return new Clip(
-            //     new ClipDao(
-            //         new LiveApiJs(
-            //             ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot), 'clip'].join(' ')
-            //         ),
-            //         messenger
-            //     )
-            // );
             return new Clip(new ClipDao(new LiveApiJs(['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot), 'clip'].join(' ')), messenger));
         };
         Track.get_clip_slot_at_index = function (index_track, index_clip_slot, messenger) {
-            // return new ClipSlot(
-            //     new ClipSlotDao(
-            //         new LiveApiJs(
-            //             ['live_set', 'tracks', String(index_track), 'clips', String(index_clip_slot)].join(' ')
-            //         ),
-            //         messenger
-            //     )
-            // );
             return new ClipSlot(new ClipSlotDao(new LiveApiJs(['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot)].join(' ')), messenger));
         };
         Track.prototype.get_index = function () {
-            // let logger = new Logger('max');
-            // logger.log(String(String(this.track_dao.get_path()).split(' ')[2]));
             return Number(this.track_dao.get_path().split(' ')[2]);
         };
         Track.prototype.load_clip_slots = function () {
             this.clip_slots = this.track_dao.get_clip_slots();
-            // for (let clip_slot of this.clip_slots) {
-            //     clip_slot.load_clip();
-            // }
-            // let logger = new Logger('max');
-            // logger.log(this.track_dao.get_clip_slots().length);
         };
         Track.prototype.mute = function () {
             this.track_dao.mute(true);
@@ -1799,37 +1821,14 @@ var track;
         Track.prototype.unmute = function () {
             this.track_dao.mute(false);
         };
-        // public load_clips(): void {
-        //     //
-        //     let id_pairs: string[][] = this.get_clip_slots();
-        //     for (let id_pair of id_pairs) {
-        //         let clip_slot = new ClipSlot(
-        //             new ClipSlotDao(
-        //                 new LiveApiJs(
-        //                     id_pair.join(' ')
-        //                 ),
-        //                 this.track_dao.messenger
-        //             )
-        //         );
-        //
-        //         if (clip_slot.b_has_clip()) {
-        //             this.clip
-        //         }
-        //     }
-        // }
+        Track.prototype.set_path_deferlow = function (key_route) {
+            this.track_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
+        };
         Track.prototype.load_clips = function () {
             this.load_clip_slots();
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(this.clip_slots))
             for (var _i = 0, _a = this.clip_slots; _i < _a.length; _i++) {
                 var clip_slot_2 = _a[_i];
-                if (clip_slot_2.b_has_clip()) {
-                    clip_slot_2.load_clip();
-                }
-                // clip_slot.load_clip()
-                // if (clip_slot.b_has_clip()) {
-                //     logger.log(JSON.stringify(clip_slot.get_clip().get_notes_within_markers()))
-                // }
+                clip_slot_2.load_clip();
             }
         };
         Track.prototype.delete_clips = function () {
@@ -1882,9 +1881,6 @@ var track;
         }
         TrackDaoVirtual.prototype.mute = function () {
         };
-        // get_num_clip_slots(): number {
-        //     return this.num_clip_slots;
-        // }
         TrackDaoVirtual.prototype.get_notes = function () {
             var notes_amassed = [];
             for (var _i = 0, _a = this.clips; _i < _a.length; _i++) {
@@ -1893,8 +1889,14 @@ var track;
             }
             return notes_amassed;
         };
+        // only return as many clip slots as there are clips
         TrackDaoVirtual.prototype.get_clip_slots = function () {
-            return;
+            var clip_slots = [];
+            for (var _i = 0, _a = this.clips; _i < _a.length; _i++) {
+                var clip_3 = _a[_i];
+                clip_slots.push(new ClipSlot(new ClipSlotDaoVirtual(clip_3)));
+            }
+            return clip_slots;
         };
         TrackDaoVirtual.prototype.get_path = function () {
             return;
@@ -1903,10 +1905,24 @@ var track;
     }());
     track.TrackDaoVirtual = TrackDaoVirtual;
     var TrackDao = /** @class */ (function () {
-        function TrackDao(live_api, messenger) {
+        function TrackDao(live_api, messenger, deferlow, key_route, env) {
             this.live_api = live_api;
             this.messenger = messenger;
+            if (deferlow && !key_route) {
+                throw new Error('key route not specified when using deferlow');
+            }
+            this.deferlow = deferlow;
+            this.key_route = key_route;
+            this.env = env;
         }
+        TrackDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            var mess = [key_route_override];
+            for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
+                var word = _a[_i];
+                mess.push(word);
+            }
+            this.messenger.message(mess);
+        };
         TrackDao.prototype.get_clip_slots = function () {
             var data_clip_slots = this.live_api.get("clip_slots");
             var clip_slots = [];
@@ -1919,33 +1935,39 @@ var track;
                     clip_slot = [];
                 }
             }
-            // let logger = new Logger('max');
-            // logger.log(JSON.stringify(clip_slots));
             return clip_slots.map(function (list_id_clip_slot) {
-                // return new ClipSlot(
-                //     new ClipSlotDao(
-                //         new LiveApiJs(
-                //             id_clip_slot
-                //         ),
-                //         this.messenger
-                //     )
-                // )
-                // return utils.FactoryLive.get_clip_slot(list_id_clip_slot.join(' '))
                 return new ClipSlot(new ClipSlotDao(new LiveApiJs(list_id_clip_slot.join(' ')), new Messenger('max', 0)));
             });
         };
+        // TODO: use deferlow
         TrackDao.prototype.mute = function (val) {
-            if (val) {
-                this.live_api.call('mute', '1');
+            if (this.deferlow) {
+                if (val) {
+                    this.messenger.message([
+                        this.key_route,
+                        "set",
+                        "solo",
+                        "0"
+                    ]);
+                }
+                else {
+                    this.messenger.message([
+                        this.key_route,
+                        "set",
+                        "solo",
+                        "1"
+                    ]);
+                }
             }
             else {
-                this.live_api.call('mute', '0');
+                if (val) {
+                    this.live_api.set('solo', '0');
+                }
+                else {
+                    this.live_api.set('solo', '1');
+                }
             }
         };
-        // // implement the amassing notes logic
-        // get_notes(): TreeModel.Node<Note>[] {
-        //     return
-        // }
         TrackDao.prototype.get_path = function () {
             return utils_1.utils.cleanse_path(this.live_api.get_path());
         };
