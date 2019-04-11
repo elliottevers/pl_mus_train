@@ -1,4 +1,4 @@
-import {message as m, message} from "../message/messenger";
+import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live, live as li} from "../live/live";
 import {log} from "../log/logger";
@@ -13,14 +13,6 @@ import LiveApiJs = live.LiveApiJs;
 import {track as module_track} from "../track/track";
 import TrackDao = module_track.TrackDao;
 import Track = module_track.Track;
-import {scene as module_scen} from "../scene/scene";
-import Scene = module_scen.Scene;
-import {clip_slot as module_clipslot} from "../clip_slot/clip_slot";
-import ClipSlot = module_clipslot.ClipSlot;
-import {clip} from "../clip/clip";
-import ClipDao = clip.ClipDao;
-import Clip = clip.Clip;
-import ClipSlotDao = module_clipslot.ClipSlotDao;
 const _ = require('underscore');
 
 declare let autowatch: any;
@@ -190,7 +182,7 @@ let contract_track_audio = (path_track) => {
         )
     );
 
-    track.load_clips();
+    track.load_clip_slots();
 
     let clip_slots = track.get_clip_slots();
 
@@ -199,7 +191,14 @@ let contract_track_audio = (path_track) => {
         let clip_slot_audio = clip_slots[Number(i_clip_slot_audio)];
 
         if (Number(i_clip_slot_audio) === 0) {
-            clip_slot_audio.clip.set_endpoint_markers(0, length_beats);
+
+            let clip = Track.get_clip_at_index(
+                track.get_index(),
+                Number(i_clip_slot_audio),
+                messenger
+            );
+
+            clip.set_endpoint_markers(0, length_beats);
 
             continue
         }
@@ -224,9 +223,6 @@ let expand_track_audio = (path_track) => {
     track.load_clip_slots();
 
     let clip_slot_audio = track.get_clip_slot_at_index(0);
-
-    // TODO: we won't need to do this since we will be creating new ones anyway
-    // track.load();
 
     let notes_segments = get_notes_segments();
 
@@ -371,10 +367,6 @@ let expand_track = (path_track) => {
         let segment = segments[Number(i_segment)];
 
         let scene = song_read.get_scene_at_index(Number(i_segment));
-
-        // logger.log(JSON.stringify(i_segment));
-        //
-        // logger.log(JSON.stringify(scene));
 
         let scene_exists = scene !== null;
 
