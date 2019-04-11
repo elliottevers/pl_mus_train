@@ -8,14 +8,12 @@ import {live} from "../../src/live/live";
 import LiveClipVirtual = live.LiveClipVirtual;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
-import {algorithm} from "../../src/train/algorithm";
 import {window} from "../../src/render/window";
 import MatrixWindow = window.MatrixWindow;
 import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
 import {modes_control, modes_texture} from "../../src/constants/constants";
 import VOCAL = modes_control.VOCAL;
-import Parse = algorithm.Parse;
 import MONOPHONY = modes_texture.MONOPHONY;
 import {track} from "../../src/track/track";
 import TrackDaoVirtual = track.TrackDaoVirtual;
@@ -32,6 +30,8 @@ import {freeze} from "../../src/serialize/freeze";
 import TrainFreezer = freeze.TrainFreezer;
 import {thaw} from "../../src/serialize/thaw";
 import TrainThawer = thaw.TrainThawer;
+import {parse} from "../../src/algorithm/parse";
+import Parse = parse.Parse;
 const _ = require('underscore');
 
 

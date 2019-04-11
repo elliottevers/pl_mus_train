@@ -1,11 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var algorithm_1 = require("./algorithm");
 var utils_1 = require("../utils/utils");
+var trainable_1 = require("../algorithm/trainable");
 var iterate;
 (function (iterate) {
     var division_int = utils_1.utils.division_int;
     var remainder = utils_1.utils.remainder;
+    var DETECT = trainable_1.trainable.DETECT;
+    var PREDICT = trainable_1.trainable.PREDICT;
+    var PARSE = trainable_1.trainable.PARSE;
+    var DERIVE = trainable_1.trainable.DERIVE;
     var MatrixIterator = /** @class */ (function () {
         function MatrixIterator(num_rows, num_columns, downward, rightward, start_at_row, stop_at_row) {
             this.num_rows = num_rows;
@@ -152,7 +156,7 @@ var iterate;
         FactoryMatrixObjectives.create_matrix_targets = function (targeted, segments) {
             var matrix_data = [];
             switch (targeted.get_name()) {
-                case algorithm_1.algorithm.DETECT: {
+                case DETECT: {
                     for (var i = 0; i < 1; i++) {
                         matrix_data.push([]);
                         for (var i_segment in segments) {
@@ -161,7 +165,7 @@ var iterate;
                     }
                     break;
                 }
-                case algorithm_1.algorithm.PREDICT: {
+                case PREDICT: {
                     for (var i = 0; i < 1; i++) {
                         matrix_data.push([]);
                         for (var i_segment in segments) {
@@ -171,10 +175,10 @@ var iterate;
                     break;
                 }
                 // depth - 1, since depth includes root... actually this might be against convention
-                case algorithm_1.algorithm.PARSE: {
+                case PARSE: {
                     throw 'parse has no targets';
                 }
-                case algorithm_1.algorithm.DERIVE: {
+                case DERIVE: {
                     throw 'derive has no targets';
                 }
                 default: {
@@ -187,7 +191,7 @@ var iterate;
             var matrix_data = [];
             switch (parsed.get_name()) {
                 // depth - 1, since depth includes root... actually this might be against convention
-                case algorithm_1.algorithm.PARSE: {
+                case PARSE: {
                     for (var i = 0; i < parsed.get_num_layers_input() + 2; i++) {
                         matrix_data.push([]);
                         for (var i_segment in segments) {
@@ -196,7 +200,7 @@ var iterate;
                     }
                     break;
                 }
-                case algorithm_1.algorithm.DERIVE: {
+                case DERIVE: {
                     for (var i = 0; i < parsed.get_num_layers_input() + 1; i++) {
                         matrix_data.push([]);
                         for (var i_segment in segments) {
@@ -221,15 +225,15 @@ var iterate;
             var iterator;
             var downward, rightward;
             switch (trainable.get_name()) {
-                case algorithm_1.algorithm.DETECT: {
+                case DETECT: {
                     iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
                     break;
                 }
-                case algorithm_1.algorithm.PREDICT: {
+                case PREDICT: {
                     iterator = new MatrixIterator(1, segments.length);
                     break;
                 }
-                case algorithm_1.algorithm.PARSE: {
+                case PARSE: {
                     downward = false;
                     rightward = true;
                     var index_row_start = trainable.depth - 1;
@@ -237,7 +241,7 @@ var iterate;
                     iterator = new MatrixIterator(trainable.get_num_layers_input(), segments.length, downward, rightward, index_row_start, index_row_stop);
                     break;
                 }
-                case algorithm_1.algorithm.DERIVE: {
+                case DERIVE: {
                     downward = true;
                     rightward = true;
                     var index_row_start = 1;

@@ -8,7 +8,6 @@ import {live} from "../../src/live/live";
 import LiveClipVirtual = live.LiveClipVirtual;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
-import {algorithm} from "../../src/train/algorithm";
 import {window} from "../../src/render/window";
 import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
@@ -16,7 +15,6 @@ import {modes_control, modes_texture} from "../../src/constants/constants";
 import POLYPHONY = modes_texture.POLYPHONY;
 import INSTRUMENTAL = modes_control.INSTRUMENTAL;
 import MatrixWindow = window.MatrixWindow;
-import Predict = algorithm.Predict;
 import {scene as module_scene} from "../../src/scene/scene";
 import SceneDaoVirtual = module_scene.SceneDaoVirtual;
 import {track} from "../../src/track/track";
@@ -33,6 +31,8 @@ import TrainFreezer = freeze.TrainFreezer;
 import {thaw} from "../../src/serialize/thaw";
 import TrainThawer = thaw.TrainThawer;
 import MONOPHONY = modes_texture.MONOPHONY;
+import {predict} from "../../src/algorithm/predict";
+import Predict = predict.Predict;
 
 
 let tree: TreeModel = new TreeModel();

@@ -10,8 +10,6 @@ import {segment} from "../../src/segment/segment";
 import Segment = segment.Segment;
 import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
-import {algorithm} from "../../src/train/algorithm";
-import Detect = algorithm.Detect;
 import {window} from "../../src/render/window";
 import {trainer} from "../../src/train/trainer";
 import Trainer = trainer.Trainer;
@@ -32,6 +30,8 @@ import {freeze} from "../../src/serialize/freeze";
 import TrainFreezer = freeze.TrainFreezer;
 import {thaw} from "../../src/serialize/thaw";
 import TrainThawer = thaw.TrainThawer;
+import {detect} from "../../src/algorithm/detect";
+import Detect = detect.Detect;
 
 
 

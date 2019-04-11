@@ -5,10 +5,10 @@ import {note as n} from "../note/note";
 import {live} from "../live/live";
 import * as _ from "lodash";
 import {segment as module_segment} from "../segment/segment";
-import {algorithm} from "../train/algorithm";
 import {iterate} from "../train/iterate";
 import {parse} from "../parse/parse";
 import {trainer} from "../train/trainer";
+import {trainable} from "../algorithm/trainable";
 
 export namespace window {
 
@@ -18,9 +18,9 @@ export namespace window {
     import Clip = clip.Clip;
     import MatrixIterator = iterate.MatrixIterator;
     import StructParse = parse.StructParse;
-    import Trainable = algorithm.Trainable;
     import StructTrain = trainer.StructTrain;
     import StructTargets = trainer.StructTargets;
+    import Trainable = trainable.Trainable;
 
     const red = [255, 0, 0];
     const white = [255, 255, 255];

@@ -1,14 +1,13 @@
 import {note as n, note} from "../note/note";
 import TreeModel = require("tree-model");
-import {algorithm} from "../train/algorithm";
-// import {algorithm} from "../train/algorithm";
-
+import {trainable} from "../algorithm/trainable";
 const _ = require("underscore");
 
 
 export namespace parse {
     import NoteRenderable = note.NoteRenderable;
-    import Parsable = algorithm.Parsable;
+    import Parsable = trainable.Parsable;
+    // import Parsable = algorithm.Parsable;
 
     export abstract class ParseTree {
         root: TreeModel.Node<n.NoteRenderable>;

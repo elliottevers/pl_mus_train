@@ -15,11 +15,11 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
-// import {algorithm} from "../train/algorithm";
 var _ = require("underscore");
 var parse;
 (function (parse) {
     var NoteRenderable = note_1.note.NoteRenderable;
+    // import Parsable = algorithm.Parsable;
     var ParseTree = /** @class */ (function () {
         function ParseTree() {
         }

@@ -408,7 +408,6 @@ let expand_track = (path_track) => {
 
         clip.set_notes(notes_within_segment)
     }
-
 };
 
 if (typeof Global !== "undefined") {

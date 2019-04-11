@@ -1,6 +1,5 @@
 import {note, note as n} from "../note/note";
 import TreeModel = require("tree-model");
-import {algorithm} from "./algorithm";
 import {history} from "../history/history";
 import {target} from "../target/target";
 import {segment} from "../segment/segment";
@@ -9,10 +8,10 @@ import {message} from "../message/messenger";
 import {song} from "../song/song";
 import {clip} from "../clip/clip";
 import {iterate} from "./iterate";
-import {log} from "../log/logger";
 import {window} from "../render/window";
 import {track} from "../track/track";
 import {user_input} from "../control/user_input";
+import {trainable} from "../algorithm/trainable";
 
 export namespace trainer {
 
@@ -30,11 +29,10 @@ export namespace trainer {
     import Note = note.Note;
     import Track = track.Track;
     import FactoryMatrixObjectives = iterate.FactoryMatrixObjectives;
-    import Trainable = algorithm.Trainable;
     import UserInputHandler = user_input.UserInputHandler;
     import Song = song.Song;
     import MatrixWindow = window.MatrixWindow;
-    import Logger = log.Logger;
+    import Trainable = trainable.Trainable;
 
     export type StructTargets = TargetIterator[][];
 
@@ -94,10 +92,6 @@ export namespace trainer {
             this.segments = segments;
             this.messenger = messenger;
             this.virtualized = virtualized;
-
-            // let logger = new Logger('max');
-            //
-            // logger.log(JSON.stringify(this.segments));
 
             this.notes_target_track = track_target.get_notes();
 
@@ -250,11 +244,7 @@ export namespace trainer {
 
                 this.subtarget_current = this.iterator_subtarget_current.current();
 
-                // logger.log(JSON.stringify(this.subtarget_current));
-
                 this.next_segment();
-
-                // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
 
                 return
             }
@@ -290,11 +280,7 @@ export namespace trainer {
 
                     this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 
-                    // logger.log(JSON.stringify(this.subtarget_current));
-
                     this.next_segment();
-
-                    // this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current);
 
                     return
                 }
@@ -304,8 +290,6 @@ export namespace trainer {
                 let obj_next_subtarget_once_nested = this.target_current.iterator_subtarget.next();
 
                 this.subtarget_current = obj_next_subtarget_once_nested.value;
-
-                // logger.log(JSON.stringify(this.subtarget_current));
 
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
 

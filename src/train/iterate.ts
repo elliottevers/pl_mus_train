@@ -1,14 +1,20 @@
-import {algorithm, algorithm as algo} from "./algorithm";
 import {utils} from "../utils/utils";
 import {segment} from "../segment/segment";
+import {parsed} from "../algorithm/parsed";
+import {targeted} from "../algorithm/targeted";
+import {trainable} from "../algorithm/trainable";
 
 export namespace iterate {
     import division_int = utils.division_int;
     import remainder = utils.remainder;
     import Segment = segment.Segment;
-    import Trainable = algorithm.Trainable;
-    import Targeted = algorithm.Targeted;
-    import Parsed = algorithm.Parsed;
+    import Parsed = parsed.Parsed;
+    import Targeted = targeted.Targeted;
+    import Trainable = trainable.Trainable;
+    import DETECT = trainable.DETECT;
+    import PREDICT = trainable.PREDICT;
+    import PARSE = trainable.PARSE;
+    import DERIVE = trainable.DERIVE;
 
     export class MatrixIterator {
 
@@ -194,7 +200,7 @@ export namespace iterate {
             let matrix_data = [];
 
             switch(targeted.get_name()) {
-                case algo.DETECT: {
+                case DETECT: {
                     for (let i=0; i < 1; i++) {
                         matrix_data.push([]);
                         for (let i_segment in segments) {
@@ -203,7 +209,7 @@ export namespace iterate {
                     }
                     break;
                 }
-                case algo.PREDICT: {
+                case PREDICT: {
                     for (let i=0; i < 1; i++) {
                         matrix_data.push([]);
                         for (let i_segment in segments) {
@@ -213,10 +219,10 @@ export namespace iterate {
                     break;
                 }
                 // depth - 1, since depth includes root... actually this might be against convention
-                case algo.PARSE: {
+                case PARSE: {
                     throw 'parse has no targets';
                 }
-                case algo.DERIVE: {
+                case DERIVE: {
                     throw 'derive has no targets'
                 }
                 default: {
@@ -232,7 +238,7 @@ export namespace iterate {
 
             switch(parsed.get_name()) {
                 // depth - 1, since depth includes root... actually this might be against convention
-                case algo.PARSE: {
+                case PARSE: {
                     for (let i=0; i < parsed.get_num_layers_input() + 2; i++) {
                         matrix_data.push([]);
                         for (let i_segment in segments) {
@@ -241,7 +247,7 @@ export namespace iterate {
                     }
                     break;
                 }
-                case algo.DERIVE: {
+                case DERIVE: {
                     for (let i=0; i < parsed.get_num_layers_input() + 1; i++) {
                         matrix_data.push([]);
                         for (let i_segment in segments) {
@@ -266,7 +272,7 @@ export namespace iterate {
             let downward, rightward;
 
             switch (trainable.get_name()) {
-                case algo.DETECT: {
+                case DETECT: {
                     iterator = new MatrixIterator(
                         1,
                         segments.length,
@@ -277,14 +283,14 @@ export namespace iterate {
                     );
                     break;
                 }
-                case algo.PREDICT: {
+                case PREDICT: {
                     iterator = new MatrixIterator(
                         1,
                         segments.length
                     );
                     break;
                 }
-                case algo.PARSE: {
+                case PARSE: {
                     downward = false;
                     rightward = true;
                     let index_row_start = trainable.depth - 1;
@@ -299,7 +305,7 @@ export namespace iterate {
                     );
                     break;
                 }
-                case algo.DERIVE: {
+                case DERIVE: {
                     downward = true;
                     rightward = true;
                     let index_row_start = 1;

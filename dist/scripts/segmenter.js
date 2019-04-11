@@ -89,17 +89,13 @@ var contract_selected_audio_track = function () {
 var contract_track_audio = function (path_track) {
     var length_beats = get_length_beats();
     var track = new Track(new TrackDao(new live_1.live.LiveApiJs(path_track), messenger));
-    // track.load_clips();
     track.load_clip_slots();
     var clip_slots = track.get_clip_slots();
-    var logger = new Logger(env);
-    logger.log(String(length_beats));
-    return;
     for (var i_clip_slot_audio in clip_slots) {
         var clip_slot_audio = clip_slots[Number(i_clip_slot_audio)];
         if (Number(i_clip_slot_audio) === 0) {
-            var clip_1 = Track.get_clip_at_index(track.get_index(), Number(i_clip_slot_audio), messenger);
-            clip_1.set_endpoint_markers(0, length_beats);
+            var clip = Track.get_clip_at_index(track.get_index(), Number(i_clip_slot_audio), messenger);
+            clip.set_endpoint_markers(0, length_beats);
             continue;
         }
         if (clip_slot_audio.b_has_clip()) {
@@ -111,8 +107,6 @@ var expand_track_audio = function (path_track) {
     var track = new Track(new TrackDao(new LiveApiJs(path_track), messenger));
     track.load_clip_slots();
     var clip_slot_audio = track.get_clip_slot_at_index(0);
-    // TODO: we won't need to do this since we will be creating new ones anyway
-    // track.load();
     var notes_segments = get_notes_segments();
     var song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
     song.load_scenes();
@@ -138,10 +132,10 @@ var expand_track_audio = function (path_track) {
         // clip_slot.create_clip(length_beats);
         //
         clip_slot.load_clip();
-        var clip_2 = Track.get_clip_at_index(track.get_index(), Number(i_clipslot), messenger);
+        var clip = Track.get_clip_at_index(track.get_index(), Number(i_clipslot), messenger);
         var segment_2 = new Segment(note_segment);
-        clip_2.set_endpoints_loop(segment_2.beat_start, segment_2.beat_end);
-        clip_2.set_endpoint_markers(segment_2.beat_start, segment_2.beat_end);
+        clip.set_endpoints_loop(segment_2.beat_start, segment_2.beat_end);
+        clip.set_endpoint_markers(segment_2.beat_start, segment_2.beat_end);
     }
 };
 var expand_track = function (path_track) {
@@ -165,9 +159,6 @@ var expand_track = function (path_track) {
     var _loop_1 = function (i_segment) {
         var segment_3 = segments[Number(i_segment)];
         var scene = song_read.get_scene_at_index(Number(i_segment));
-        // logger.log(JSON.stringify(i_segment));
-        //
-        // logger.log(JSON.stringify(scene));
         var scene_exists = scene !== null;
         if (!scene_exists) {
             song_read.create_scene_at_index(Number(i_segment));
@@ -179,11 +170,11 @@ var expand_track = function (path_track) {
         }
         clip_slot_1.create_clip(length_beats);
         clip_slot_1.load_clip();
-        var clip_3 = clip_slot_1.get_clip();
-        clip_3.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
-        clip_3.set_endpoint_markers(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        var clip_1 = clip_slot_1.get_clip();
+        clip_1.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
+        clip_1.set_endpoint_markers(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
         var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
-        clip_3.set_notes(notes_within_segment);
+        clip_1.set_notes(notes_within_segment);
     };
     for (var i_segment in segments) {
         _loop_1(i_segment);
