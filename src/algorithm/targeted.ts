@@ -13,6 +13,7 @@ import {scene} from "../scene/scene";
 import {song} from "../song/song";
 import {trainable} from "./trainable";
 import TreeModel = require("tree-model");
+import {log} from "../log/logger";
 
 export namespace targeted {
 
@@ -32,6 +33,7 @@ export namespace targeted {
     import TypeSequenceTarget = history.TypeSequenceTarget;
     import Segment = segment.Segment;
     import MatrixWindow = window.MatrixWindow;
+    import Logger = log.Logger;
 
     export abstract class Targeted implements Targetable {
 
@@ -56,7 +58,12 @@ export namespace targeted {
 
         public abstract get_name()
 
-        public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain)
+        public abstract initialize_tracks(
+            segments: segment.Segment[],
+            track_target: track.Track,
+            track_user_input: track.Track,
+            struct_train: StructTrain
+        )
 
         public abstract determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget
 
@@ -124,6 +131,10 @@ export namespace targeted {
                 this,
                 segments
             );
+
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(notes_target_track));
 
             for (let i_segment in segments) {
                 let segment = segments[Number(i_segment)];

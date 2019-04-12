@@ -10,6 +10,7 @@ import {modes_texture} from "../constants/constants";
 import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
+import {message} from "../message/messenger";
 
 export namespace detect {
 
@@ -22,6 +23,7 @@ export namespace detect {
     import MatrixWindow = window.MatrixWindow;
     import MONOPHONY = modes_texture.MONOPHONY;
     import DETECT = trainable.DETECT;
+    import Messenger = message.Messenger;
 
     export class Detect extends Targeted {
 
@@ -80,7 +82,12 @@ export namespace detect {
             return window
         }
 
-        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
+        initialize_tracks(
+            segments: segment.Segment[],
+            track_target: track.Track,
+            track_user_input: track.Track,
+            struct_train: StructTrain
+        ) {
             return
         }
     }

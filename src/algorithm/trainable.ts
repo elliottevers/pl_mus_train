@@ -27,6 +27,7 @@ export namespace trainable {
     import Scene = scene.Scene;
     import Track = track.Track;
     import StructParse = parse.StructParse;
+    import Messenger = message.Messenger;
 
     export let DETECT = 'detect';
     export let PREDICT = 'predict';

@@ -36,7 +36,6 @@ import Track = track.Track;
 import {window as module_window} from "../render/window";
 import MatrixWindow = module_window.MatrixWindow;
 import TreeModel = require("tree-model");
-import {io} from "../io/io";
 import {parse} from "../parse/parse";
 import StructParse = parse.StructParse;
 import {trainable} from "../algorithm/trainable";
@@ -394,16 +393,6 @@ let user_input_command = (command: string) => {
                     break;
                 }
                 case 'reset': {
-                    // let coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    //
-                    // let notes = trainer.history_user_input.get(
-                    //     [coords_current[0] - 1, coords_current[1]]
-                    // );
-                    //
-                    // trainer.clip_user_input.set_notes(
-                    //     notes
-                    // );
-
                     let coords_current = trainer.iterator_matrix_train.get_coord_current();
 
                     let struct_parse = trainer.struct_train as StructParse;
@@ -490,6 +479,7 @@ let user_input_midi = (pitch: number, velocity: number) => {
     }
 };
 
+// TODO: we're gonna have to do this in Python to get the name of the most recent project
 let get_filename = () => {
     let filename;
 

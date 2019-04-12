@@ -8,6 +8,7 @@ import {trainable} from "./trainable";
 import {parse} from "../parse/parse";
 import {window} from "../render/window";
 import TreeModel = require("tree-model");
+import {message} from "../message/messenger";
 
 export namespace derive {
     import Parsed = parsed.Parsed;
@@ -19,6 +20,7 @@ export namespace derive {
     import StructParse = parse.StructParse;
     import Segment = segment.Segment;
     import MatrixWindow = window.MatrixWindow;
+    import Messenger = message.Messenger;
 
     export class Derive extends Parsed {
 
@@ -38,7 +40,12 @@ export namespace derive {
             )
         }
 
-        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
+        initialize_tracks(
+            segments: segment.Segment[],
+            track_target: track.Track,
+            track_user_input: track.Track,
+            struct_train: StructTrain
+        ) {
             track_target.mute();
         }
 

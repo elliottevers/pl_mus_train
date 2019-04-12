@@ -1,9 +1,6 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live as li} from "../live/live";
-import {log} from "../log/logger";
-import Logger = log.Logger;
-import {utils} from "../utils/utils";
 import {song as module_song} from "../song/song";
 import Song = module_song.Song;
 import SongDao = module_song.SongDao;
@@ -11,7 +8,6 @@ import {scene} from "../scene/scene";
 import Scene = scene.Scene;
 import SceneIterator = scene.SceneIterator;
 import SceneDao = scene.SceneDao;
-// import {Segment} from "../segment/segment";
 const _ = require('underscore');
 
 declare let autowatch: any;
@@ -71,9 +67,9 @@ let scene_current: Scene;
 let next = () => {
     let obj_next = scene_iterator.next();
 
-    let logger = new Logger(env);
+    // let logger = new Logger(env);
 
-    logger.log(JSON.stringify(obj_next));
+    // logger.log(JSON.stringify(obj_next));
 
     if (obj_next.done) {
         song.stop();

@@ -3,8 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
 var Messenger = messenger_1.message.Messenger;
 var live_1 = require("../live/live");
-var logger_1 = require("../log/logger");
-var Logger = logger_1.log.Logger;
 var song_1 = require("../song/song");
 var Song = song_1.song.Song;
 var SongDao = song_1.song.SongDao;
@@ -12,7 +10,6 @@ var scene_1 = require("../scene/scene");
 var Scene = scene_1.scene.Scene;
 var SceneIterator = scene_1.scene.SceneIterator;
 var SceneDao = scene_1.scene.SceneDao;
-// import {Segment} from "../segment/segment";
 var _ = require('underscore');
 var env = 'max';
 if (env === 'max') {
@@ -34,8 +31,8 @@ var scene_iterator = new SceneIterator(scenes, true);
 var scene_current;
 var next = function () {
     var obj_next = scene_iterator.next();
-    var logger = new Logger(env);
-    logger.log(JSON.stringify(obj_next));
+    // let logger = new Logger(env);
+    // logger.log(JSON.stringify(obj_next));
     if (obj_next.done) {
         song.stop();
         return;

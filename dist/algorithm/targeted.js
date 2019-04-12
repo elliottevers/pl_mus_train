@@ -64,6 +64,9 @@ var targeted;
                 matrix_targets[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             };
             var this_1 = this;
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(notes_target_track));
             for (var i_segment in segments) {
                 _loop_1(i_segment);
             }

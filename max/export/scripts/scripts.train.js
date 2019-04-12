@@ -417,9 +417,11 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var track_1 = require("../track/track");
 var targeted_1 = require("./targeted");
 var constants_1 = require("../constants/constants");
 var trainable_1 = require("./trainable");
+var logger_1 = require("../log/logger");
 var _ = require('underscore');
 var predict;
 (function (predict) {
@@ -427,6 +429,8 @@ var predict;
     var POLYPHONY = constants_1.modes_texture.POLYPHONY;
     var MONOPHONY = constants_1.modes_texture.MONOPHONY;
     var PREDICT = trainable_1.trainable.PREDICT;
+    var Logger = logger_1.log.Logger;
+    var Track = track_1.track.Track;
     var Predict = /** @class */ (function (_super) {
         __extends(Predict, _super);
         function Predict() {
@@ -468,6 +472,10 @@ var predict;
                     var partition = note_partitions[key_partition];
                     notes_grouped.push([partition[partition.length / 2]]);
                 }
+                // let logger = new Logger('max');
+                // logger.log(JSON.stringify(notes_segment_next));
+                //
+                // logger.log('done');
                 return notes_grouped;
             }
             else {
@@ -485,14 +493,20 @@ var predict;
         // NB: we only have to initialize clips in the target track
         Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             var matrix_targets = struct_train;
+            var logger = new Logger('max');
             for (var i_segment in segments) {
-                var segment_1 = segments[Number(i_segment)];
+                // let segment = segments[Number(i_segment)];
+                var clip = Track.get_clip_at_index(track_target.get_index(), Number(i_segment), track_target.track_dao.messenger);
                 var targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
+                // logger.log(JSON.stringify(targeted_notes_in_segment));
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
                     var note_1 = targeted_notes_in_segment_1[_i];
-                    segment_1.clip_user_input.remove_notes(note_1.model.note.beat_start, 0, note_1.model.note.get_beat_end(), 128);
-                    segment_1.clip_user_input.set_notes([note_1]);
+                    clip.set_path_deferlow('clip_target');
+                    clip.remove_notes(note_1.model.note.beat_start, 0, note_1.model.note.get_beat_end(), 128);
+                    var note_muted = note_1;
+                    note_muted.model.note.muted = 1;
+                    clip.set_notes([note_muted]);
                 }
             }
         };
@@ -501,7 +515,7 @@ var predict;
     predict.Predict = Predict;
 })(predict = exports.predict || (exports.predict = {}));
 
-},{"../constants/constants":10,"./targeted":6,"./trainable":7,"underscore":38}],6:[function(require,module,exports){
+},{"../constants/constants":10,"../log/logger":15,"../track/track":29,"./targeted":6,"./trainable":7,"underscore":38}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var iterate_1 = require("../train/iterate");
@@ -568,6 +582,9 @@ var targeted;
                 matrix_targets[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             };
             var this_1 = this;
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(notes_target_track));
             for (var i_segment in segments) {
                 _loop_1(i_segment);
             }
@@ -2588,15 +2605,6 @@ var user_input_command = function (command) {
                     break;
                 }
                 case 'reset': {
-                    // let coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    //
-                    // let notes = trainer.history_user_input.get(
-                    //     [coords_current[0] - 1, coords_current[1]]
-                    // );
-                    //
-                    // trainer.clip_user_input.set_notes(
-                    //     notes
-                    // );
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
                     var struct_parse = trainer.struct_train;
                     var notes_struct_above = algorithm_train.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
@@ -2645,6 +2653,7 @@ var user_input_midi = function (pitch, velocity) {
         }
     }
 };
+// TODO: we're gonna have to do this in Python to get the name of the most recent project
 var get_filename = function () {
     var filename;
     switch (algorithm_train.get_name()) {
@@ -3960,6 +3969,9 @@ var trainer;
             this.history_user_input = this.trainable.preprocess_history_user_input(this.history_user_input, this.segments);
             this.struct_train = this.trainable.create_struct_train(this.window, this.segments, this.track_target, this.user_input_handler, this.struct_train);
             this.struct_train = this.trainable.preprocess_struct_train(this.struct_train, this.segments, this.notes_target_track);
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(this.struct_train));
             this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
             this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track, this.struct_train);
         }

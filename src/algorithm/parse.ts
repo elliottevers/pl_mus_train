@@ -10,6 +10,7 @@ import {trainable} from "./trainable";
 import {parse as module_parse} from "../parse/parse";
 import ParseTree = module_parse.ParseTree;
 import StructParse = module_parse.StructParse;
+import {message} from "../message/messenger";
 
 export namespace parse {
     import Parsed = parsed.Parsed;
@@ -19,6 +20,7 @@ export namespace parse {
     import MatrixWindow = module_window.MatrixWindow;
     import Segment = segment.Segment;
     import PARSE = trainable.PARSE;
+    import Messenger = message.Messenger;
 
     export class Parse extends Parsed {
 
@@ -39,7 +41,12 @@ export namespace parse {
         }
 
         // TODO: we don't need the target track - we should 1) transfer all notes over to user input track and 2) mute the track
-        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
+        initialize_tracks(
+            segments: segment.Segment[],
+            track_target: track.Track,
+            track_user_input: track.Track,
+            struct_train: StructTrain
+        ) {
             // transfer notes from target track to user input track
             for (let i_segment in segments) {
 

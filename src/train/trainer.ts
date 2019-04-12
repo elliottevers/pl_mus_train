@@ -12,6 +12,7 @@ import {window} from "../render/window";
 import {track} from "../track/track";
 import {user_input} from "../control/user_input";
 import {trainable} from "../algorithm/trainable";
+import {log} from "../log/logger";
 
 export namespace trainer {
 
@@ -33,6 +34,7 @@ export namespace trainer {
     import Song = song.Song;
     import MatrixWindow = window.MatrixWindow;
     import Trainable = trainable.Trainable;
+    import Logger = log.Logger;
 
     export type StructTargets = TargetIterator[][];
 
@@ -134,6 +136,10 @@ export namespace trainer {
                 this.segments,
                 this.notes_target_track
             );
+
+            // let logger = new Logger('max');
+            //
+            // logger.log(JSON.stringify(this.struct_train));
 
             this.trainable.initialize_tracks(
                 this.segments,

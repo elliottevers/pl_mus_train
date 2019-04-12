@@ -222,15 +222,6 @@ var user_input_command = function (command) {
                     break;
                 }
                 case 'reset': {
-                    // let coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    //
-                    // let notes = trainer.history_user_input.get(
-                    //     [coords_current[0] - 1, coords_current[1]]
-                    // );
-                    //
-                    // trainer.clip_user_input.set_notes(
-                    //     notes
-                    // );
                     var coords_current = trainer.iterator_matrix_train.get_coord_current();
                     var struct_parse = trainer.struct_train;
                     var notes_struct_above = algorithm_train.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
@@ -279,6 +270,7 @@ var user_input_midi = function (pitch, velocity) {
         }
     }
 };
+// TODO: we're gonna have to do this in Python to get the name of the most recent project
 var get_filename = function () {
     var filename;
     switch (algorithm_train.get_name()) {

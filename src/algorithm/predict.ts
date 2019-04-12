@@ -9,6 +9,8 @@ import {modes_texture} from "../constants/constants";
 import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
+import {log} from "../log/logger";
+import {message} from "../message/messenger";
 const _ = require('underscore');
 
 export namespace predict {
@@ -20,6 +22,9 @@ export namespace predict {
     import TypeSequenceTarget = history.TypeSequenceTarget;
     import MONOPHONY = modes_texture.MONOPHONY;
     import PREDICT = trainable.PREDICT;
+    import Logger = log.Logger;
+    import Track = track.Track;
+    import Messenger = message.Messenger;
 
     export class Predict extends Targeted {
 
@@ -92,27 +97,49 @@ export namespace predict {
         }
 
         // NB: we only have to initialize clips in the target track
-        initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain) {
+        initialize_tracks(
+            segments: segment.Segment[],
+            track_target: track.Track,
+            track_user_input: track.Track,
+            struct_train: StructTrain
+        ) {
 
             let matrix_targets = struct_train;
 
+            let logger = new Logger('max');
+
             for (let i_segment in segments) {
-                let segment = segments[Number(i_segment)];
+
+                // let segment = segments[Number(i_segment)];
+
+                let clip = Track.get_clip_at_index(
+                    track_target.get_index(),
+                    Number(i_segment),
+                    track_target.track_dao.messenger
+                );
 
                 let targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
+
+                // logger.log(JSON.stringify(targeted_notes_in_segment));
 
                 // TODO: this won't work for polyphony
                 for (let note of targeted_notes_in_segment) {
 
-                    segment.clip_user_input.remove_notes(
+                    clip.set_path_deferlow('clip_target');
+
+                    clip.remove_notes(
                         note.model.note.beat_start,
                         0,
                         note.model.note.get_beat_end(),
                         128
                     );
 
-                    segment.clip_user_input.set_notes(
-                        [note]
+                    let note_muted = note;
+
+                    note_muted.model.note.muted = 1;
+
+                    clip.set_notes(
+                        [note_muted]
                     )
                 }
             }

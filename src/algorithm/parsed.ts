@@ -29,6 +29,7 @@ export namespace parsed {
     import Trainable = trainable.Trainable;
     import StructParse = parse.StructParse;
     import MatrixWindow = window.MatrixWindow;
+    import Messenger = message.Messenger;
 
     export abstract class Parsed implements Parsable {
 
@@ -63,7 +64,12 @@ export namespace parsed {
             struct_train: StructTrain
         ): MatrixWindow
 
-        public abstract initialize_tracks(segments: segment.Segment[], track_target: track.Track, track_user_input: track.Track, struct_train: StructTrain)
+        public abstract initialize_tracks(
+            segments: segment.Segment[],
+            track_target: track.Track,
+            track_user_input: track.Track,
+            struct_train: StructTrain
+        )
 
         public update_history_user_input(
             input_postprocessed: TreeModel.Node<Note>[],
