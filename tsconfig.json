@@ -3,23 +3,14 @@
     "module": "commonjs",
     "target": "es5",
     "sourceMap": true,
-//    "noImplicitAny": true,
-//    "strictNullChecks": true,
-//    "removeComments": false,
     "moduleResolution": "node",
     "suppressImplicitAnyIndexErrors": true,
     "typeRoots": [ "node_modules/@types" ],
     "inlineSources": true
-//    "baseUrl": ".",
-//    "paths": {
-//      "max-api": [
-//        "./src/typings/max_api"
-//      ]
-//    }
   },
   "exclude": [
     "node_modules",
-    "dist",
+//    "dist",
     "src"
   ]
 }

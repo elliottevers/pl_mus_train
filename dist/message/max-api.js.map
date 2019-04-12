@@ -1,1 +1,0 @@
-{"version":3,"file":"max-api.js","sourceRoot":"","sources":["../../src/message/max-api.ts"],"names":[],"mappings":";;AAAa,QAAA,GAAG,GAAG,OAAO,CAAC,SAAS,CAAC,CAAC","sourcesContent":["export const Max = require('max-api');"]}

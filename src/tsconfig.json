@@ -1,64 +1,11 @@
-//{
-//  "compilerOptions": {
-//    //    "outDir": "../dist",
-//    //    "outDir": "../src",
-//    "module": "commonjs",
-//    "target": "es5",
-//    //    "sourceMap": true,
-//    "noImplicitAny": false,
-//    "strictNullChecks": false,
-//    "removeComments": false,
-//    "moduleResolution": "node",
-//    "declaration": true,
-//    "inlineSources": true,
-//    "inlineSourceMap": true
-//  }
-//}
-
-//{
-//  "compilerOptions": {
-//    "module": "commonjs",
-//    "target": "es5",
-////    "noImplicitAny": true,
-////    "strictNullChecks": true,
-//    "removeComments": false,
-//    "moduleResolution": "node",
-//    "suppressImplicitAnyIndexErrors": true,
-//    "typeRoots": [ "node_modules/@types" ],
-////    "inlineSources": true,
-////    "inlineSourceMap": true,
-//    "sourceMap": true
-//  }
-////  "include": [
-////    "renderer.ts"
-////  ]
-////  "exclude": [
-////    "node_modules",
-////    "dist"
-////    //    "src"
-////  ]
-//}
-
 {
   "compilerOptions": {
-//    "outDir": "../dist",
     "module": "commonjs",
     "target": "es5",
     "sourceMap": true,
-//    "noImplicitAny": false,
-//    "strictNullChecks": false,
-//    "removeComments": false,
     "moduleResolution": "node",
-//    "declaration": true,
     "inlineSources": true,
     "lib": ["es2015"]
-//    "typeRoots": ["typings/cycling"]
-//    "baseUrl": ".",
-//    "paths": {
-//      "max-api": [
-//        "./src/typings/max_api"
-//      ]
-//    }
   }
 }
 
