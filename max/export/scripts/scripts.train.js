@@ -218,11 +218,13 @@ var trainable_1 = require("./trainable");
 var parse_1 = require("../parse/parse");
 var ParseTree = parse_1.parse.ParseTree;
 var StructParse = parse_1.parse.StructParse;
+var logger_1 = require("../log/logger");
 var parse;
 (function (parse) {
     var Parsed = parsed_1.parsed.Parsed;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var PARSE = trainable_1.trainable.PARSE;
+    var Logger = logger_1.log.Logger;
     var Parse = /** @class */ (function (_super) {
         __extends(Parse, _super);
         function Parse() {
@@ -238,6 +240,15 @@ var parse;
         Parse.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             // transfer notes from target track to user input track
             for (var i_segment in segments) {
+                // let clip_target = Track.get_clip_at_index(
+                //     track_target.get_index(),
+                //     Number(i_segment),
+                //     track_target.track_dao.messenger
+                // );
+                var logger = new Logger('max');
+                logger.log('new');
+                logger.log(JSON.stringify(track_target.clip_slots[Number(i_segment)].clip));
+                // track_target.load_clips();
                 var clip_target = track_target.get_clip_at_index(Number(i_segment));
                 var clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
                 var notes = clip_target.get_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
@@ -364,7 +375,7 @@ var parse;
     parse.Parse = Parse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../parse/parse":19,"../train/iterate":30,"./parsed":4,"./trainable":7}],4:[function(require,module,exports){
+},{"../log/logger":15,"../parse/parse":19,"../train/iterate":30,"./parsed":4,"./trainable":7}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_1 = require("../parse/parse");
@@ -2631,6 +2642,8 @@ var set_track_target = function () {
     track_target = new Track(new TrackDao(new live_1.live.LiveApiJs(utils_1.utils.get_path_track_from_path_device(path_device_target)), new Messenger(env, 0), true, 'track_target'));
     track_target.set_path_deferlow('track_target');
     track_target.load_clips();
+    var logger = new Logger(env);
+    logger.log(JSON.stringify(track_target.get_clip_at_index(1)));
     messenger_monitor_target.message([track_target.get_index()]);
 };
 var set_track_user_input = function () {
@@ -2667,82 +2680,17 @@ var user_input_command = function (command) {
 var user_input_midi = function (pitch, velocity) {
     trainer.accept_midi(pitch, velocity);
 };
-// TODO: we're gonna have to do this in Python to get the name of the most recent project
-// TODO: let's just manually find the folder ourselves
-// let get_filename = () => {
-//     let filename;
-//
-//     switch (algorithm_train.get_name()) {
-//         case DETECT: {
-//             filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json';
-//             break;
-//         }
-//         case PREDICT: {
-//             filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json';
-//             break;
-//         }
-//         case PARSE: {
-//             filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json';
-//             break;
-//         }
-//         case DERIVE: {
-//             filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json';
-//             break;
-//         }
-//     }
-//
-//     return filename;
-// };
 var load_session = function (filename) {
     trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render, true);
     if (_.contains([PARSE, DERIVE], algorithm_train.get_name())) {
         var matrix_deserialized = TrainThawer.thaw_notes_matrix(filename, env);
         var algorithm_parsed = algorithm_train;
         algorithm_parsed.restore(trainer, segments_train, matrix_deserialized);
-        // let matrix_deserialized = TrainThawer.thaw_notes_matrix(
-        //     filename,
-        //     env
-        // );
-        //
-        // trainer.commence();
-        //
-        // let input_left = true;
-        //
-        // while (input_left) {
-        //     let coord_current = trainer.iterator_matrix_train.get_coord_current();
-        //
-        //     let coord_user_input_history = algorithm_train.coord_to_index_history_user_input(coord_current);
-        //
-        //     if (trainer.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
-        //
-        //         algorithm_train.terminate(trainer.struct_train, segments_train);
-        //
-        //         algorithm_train.pause(song, trainer.segment_current.scene);
-        //
-        //         input_left = false;
-        //
-        //         continue;
-        //     }
-        //
-        //     trainer.accept_input(
-        //         matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]
-        //     );
-        // }
     }
     else if (_.contains([DETECT, PREDICT], algorithm_train.get_name())) {
         var notes_thawed = TrainThawer.thaw_notes(filename, env);
         var algorithm_targeted = algorithm_train;
         algorithm_targeted.restore(trainer, notes_thawed);
-        // let notes_thawed = TrainThawer.thaw_notes(
-        //     filename,
-        //     env
-        // );
-        //
-        // trainer.commence();
-        //
-        // for (let note of notes_thawed) {
-        //     trainer.accept_input([note])
-        // }
     }
     else {
         throw 'algorithm not supported';

@@ -11,6 +11,7 @@ import {parse as module_parse} from "../parse/parse";
 import ParseTree = module_parse.ParseTree;
 import StructParse = module_parse.StructParse;
 import {message} from "../message/messenger";
+import {log} from "../log/logger";
 
 export namespace parse {
     import Parsed = parsed.Parsed;
@@ -22,6 +23,8 @@ export namespace parse {
     import PARSE = trainable.PARSE;
     import Messenger = message.Messenger;
     import Trainer = trainer.Trainer;
+    import Track = track.Track;
+    import Logger = log.Logger;
 
     export class Parse extends Parsed {
 

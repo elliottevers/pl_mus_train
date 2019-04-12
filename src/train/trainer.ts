@@ -141,6 +141,7 @@ export namespace trainer {
             //
             // logger.log(JSON.stringify(this.struct_train));
 
+
             this.trainable.initialize_tracks(
                 this.segments,
                 this.track_target,
