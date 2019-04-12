@@ -78,6 +78,32 @@ var derive;
         Derive.prototype.get_num_layers_clips_to_render = function () {
             return this.depth + 1;
         };
+        Derive.prototype.handle_command = function (command, trainer) {
+            switch (command) {
+                case 'confirm': {
+                    var notes = trainer.clip_user_input.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    trainer.accept_input(notes);
+                    break;
+                }
+                case 'reset': {
+                    var coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    var struct_parse = trainer.struct_train;
+                    var notes_struct_above = this.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
+                    trainer.clip_user_input.set_notes(struct_parse.get_notes_at_coord(notes_struct_above));
+                    break;
+                }
+                case 'erase': {
+                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    break;
+                }
+                default: {
+                    throw ['command', command, 'not recognized'].join(' ');
+                }
+            }
+        };
+        Derive.prototype.handle_midi = function (pitch, velocity, trainer) {
+            throw ['algorithm of name', this.get_name(), 'does not support direct midi input'];
+        };
         return Derive;
     }(Parsed));
     derive.Derive = Derive;
@@ -99,9 +125,11 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var note_1 = require("../note/note");
 var targeted_1 = require("./targeted");
 var harmony_1 = require("../music/harmony");
 var constants_1 = require("../constants/constants");
+var TreeModel = require("tree-model");
 var trainable_1 = require("./trainable");
 var detect;
 (function (detect) {
@@ -110,6 +138,7 @@ var detect;
     var POLYPHONY = constants_1.modes_texture.POLYPHONY;
     var MONOPHONY = constants_1.modes_texture.MONOPHONY;
     var DETECT = trainable_1.trainable.DETECT;
+    var Note = note_1.note.Note;
     var Detect = /** @class */ (function (_super) {
         __extends(Detect, _super);
         function Detect() {
@@ -128,8 +157,8 @@ var detect;
             else if (user_input_handler.mode_texture === MONOPHONY) {
                 var notes_grouped_trivial = [];
                 for (var _a = 0, notes_segment_next_1 = notes_segment_next; _a < notes_segment_next_1.length; _a++) {
-                    var note_1 = notes_segment_next_1[_a];
-                    notes_grouped_trivial.push([note_1]);
+                    var note_2 = notes_segment_next_1[_a];
+                    notes_grouped_trivial.push([note_2]);
                 }
                 return notes_grouped_trivial;
             }
@@ -148,14 +177,26 @@ var detect;
             return window;
         };
         Detect.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
-            return;
+            track_target.unmute();
+        };
+        Detect.prototype.handle_midi = function (pitch, velocity, trainer) {
+            var tree = new TreeModel();
+            var note = tree.parse({
+                id: -1,
+                note: new Note(pitch, -Infinity, Infinity, velocity, 0),
+                children: []
+            });
+            trainer.accept_input([note]);
+        };
+        Detect.prototype.handle_command = function (command, trainer) {
+            throw ['algorithm of name', this.get_name(), 'does not support commands'];
         };
         return Detect;
     }(Targeted));
     detect.Detect = Detect;
 })(detect = exports.detect || (exports.detect = {}));
 
-},{"../constants/constants":10,"../music/harmony":17,"./targeted":6,"./trainable":7}],3:[function(require,module,exports){
+},{"../constants/constants":10,"../music/harmony":17,"../note/note":18,"./targeted":6,"./trainable":7,"tree-model":37}],3:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -292,6 +333,32 @@ var parse;
         Parse.prototype.get_num_layers_clips_to_render = function () {
             return this.depth + 1;
         };
+        Parse.prototype.handle_command = function (command, trainer) {
+            switch (command) {
+                case 'confirm': {
+                    var notes = trainer.clip_user_input.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    trainer.accept_input(notes);
+                    break;
+                }
+                case 'reset': {
+                    var coords_current = trainer.iterator_matrix_train.get_coord_current();
+                    var struct_parse = trainer.struct_train;
+                    var notes_struct_below = this.coord_to_index_struct_train([coords_current[0] + 1, coords_current[1]]);
+                    trainer.clip_user_input.set_notes(struct_parse.get_notes_at_coord(notes_struct_below));
+                    break;
+                }
+                case 'erase': {
+                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    break;
+                }
+                default: {
+                    throw ['command', command, 'not recognized'].join(' ');
+                }
+            }
+        };
+        Parse.prototype.handle_midi = function (pitch, velocity, trainer) {
+            throw ['algorithm of name', this.get_name(), 'does not support direct midi input'];
+        };
         return Parse;
     }(Parsed));
     parse.Parse = Parse;
@@ -396,6 +463,22 @@ var parsed;
             // return [coord[0] - 1, coord[1]];
             return coord;
         };
+        Parsed.prototype.restore = function (trainer, segments_train, matrix_deserialized) {
+            trainer.commence();
+            var input_left = true;
+            while (input_left) {
+                var coord_current = trainer.iterator_matrix_train.get_coord_current();
+                var coord_user_input_history = this.coord_to_index_history_user_input(coord_current);
+                if (trainer.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
+                    this.terminate(trainer.struct_train, segments_train);
+                    // TODO: is this necessary?  This should be a virtual play-through
+                    // this.pause(song, trainer.segment_current.scene);
+                    input_left = false;
+                    continue;
+                }
+                trainer.accept_input(matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]);
+            }
+        };
         return Parsed;
     }());
     parsed.Parsed = Parsed;
@@ -417,19 +500,20 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var note_1 = require("../note/note");
 var track_1 = require("../track/track");
 var targeted_1 = require("./targeted");
 var constants_1 = require("../constants/constants");
+var TreeModel = require("tree-model");
 var trainable_1 = require("./trainable");
-var logger_1 = require("../log/logger");
 var _ = require('underscore');
 var predict;
 (function (predict) {
     var Targeted = targeted_1.targeted.Targeted;
     var POLYPHONY = constants_1.modes_texture.POLYPHONY;
+    var Note = note_1.note.Note;
     var MONOPHONY = constants_1.modes_texture.MONOPHONY;
     var PREDICT = trainable_1.trainable.PREDICT;
-    var Logger = logger_1.log.Logger;
     var Track = track_1.track.Track;
     var Predict = /** @class */ (function (_super) {
         __extends(Predict, _super);
@@ -472,10 +556,6 @@ var predict;
                     var partition = note_partitions[key_partition];
                     notes_grouped.push([partition[partition.length / 2]]);
                 }
-                // let logger = new Logger('max');
-                // logger.log(JSON.stringify(notes_segment_next));
-                //
-                // logger.log('done');
                 return notes_grouped;
             }
             else {
@@ -493,29 +573,38 @@ var predict;
         // NB: we only have to initialize clips in the target track
         Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             var matrix_targets = struct_train;
-            var logger = new Logger('max');
             for (var i_segment in segments) {
-                // let segment = segments[Number(i_segment)];
                 var clip = Track.get_clip_at_index(track_target.get_index(), Number(i_segment), track_target.track_dao.messenger);
                 var targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
-                // logger.log(JSON.stringify(targeted_notes_in_segment));
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
-                    var note_1 = targeted_notes_in_segment_1[_i];
+                    var note_2 = targeted_notes_in_segment_1[_i];
                     clip.set_path_deferlow('clip_target');
-                    clip.remove_notes(note_1.model.note.beat_start, 0, note_1.model.note.get_beat_end(), 128);
-                    var note_muted = note_1;
+                    clip.remove_notes(note_2.model.note.beat_start, 0, note_2.model.note.get_beat_end(), 128);
+                    var note_muted = note_2;
                     note_muted.model.note.muted = 1;
                     clip.set_notes([note_muted]);
                 }
             }
+        };
+        Predict.prototype.handle_midi = function (pitch, velocity, trainer) {
+            var tree = new TreeModel();
+            var note = tree.parse({
+                id: -1,
+                note: new Note(pitch, -Infinity, Infinity, velocity, 0),
+                children: []
+            });
+            trainer.accept_input([note]);
+        };
+        Predict.prototype.handle_command = function (command, trainer) {
+            throw ['algorithm of name', this.get_name(), 'does not support commands'];
         };
         return Predict;
     }(Targeted));
     predict.Predict = Predict;
 })(predict = exports.predict || (exports.predict = {}));
 
-},{"../constants/constants":10,"../log/logger":15,"../track/track":29,"./targeted":6,"./trainable":7,"underscore":38}],6:[function(require,module,exports){
+},{"../constants/constants":10,"../note/note":18,"../track/track":29,"./targeted":6,"./trainable":7,"tree-model":37,"underscore":38}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var iterate_1 = require("../train/iterate");
@@ -628,6 +717,13 @@ var targeted;
         };
         Targeted.prototype.coord_to_index_struct_train = function (coord) {
             return coord;
+        };
+        Targeted.prototype.restore = function (trainer, notes_thawed) {
+            trainer.commence();
+            for (var _i = 0, notes_thawed_1 = notes_thawed; _i < notes_thawed_1.length; _i++) {
+                var note_1 = notes_thawed_1[_i];
+                trainer.accept_input([note_1]);
+            }
         };
         return Targeted;
     }());
@@ -2413,14 +2509,11 @@ var track_1 = require("../track/track");
 var TrackDao = track_1.track.TrackDao;
 var VOCAL = constants_1.modes_control.VOCAL;
 var POLYPHONY = constants_1.modes_texture.POLYPHONY;
-var note_1 = require("../note/note");
-var Note = note_1.note.Note;
 var freeze_1 = require("../serialize/freeze");
 var TrainFreezer = freeze_1.freeze.TrainFreezer;
 var Track = track_1.track.Track;
 var window_1 = require("../render/window");
 var MatrixWindow = window_1.window.MatrixWindow;
-var TreeModel = require("tree-model");
 var trainable_1 = require("../algorithm/trainable");
 var FREESTYLE = trainable_1.trainable.FREESTYLE;
 var predict_1 = require("../algorithm/predict");
@@ -2569,138 +2662,87 @@ var unpause = function () {
     trainer.unpause();
 };
 var user_input_command = function (command) {
-    var logger = new Logger(env);
-    // logger.log('user input command....');
-    // TODO: there is literally one character difference between the two algorithms - please abstract
-    switch (algorithm_train.get_name()) {
-        case PARSE: {
-            switch (command) {
-                case 'confirm': {
-                    var notes = trainer.clip_user_input.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
-                    trainer.accept_input(notes);
-                    break;
-                }
-                case 'reset': {
-                    var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    var struct_parse = trainer.struct_train;
-                    var notes_struct_below = algorithm_train.coord_to_index_struct_train([coords_current[0] + 1, coords_current[1]]);
-                    trainer.clip_user_input.set_notes(struct_parse.get_notes_at_coord(notes_struct_below));
-                    break;
-                }
-                case 'erase': {
-                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
-                    break;
-                }
-                default: {
-                    logger.log('command not recognized');
-                }
-            }
-            break;
-        }
-        case DERIVE: {
-            switch (command) {
-                case 'confirm': {
-                    var notes = trainer.clip_user_input.get_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
-                    trainer.accept_input(notes);
-                    break;
-                }
-                case 'reset': {
-                    var coords_current = trainer.iterator_matrix_train.get_coord_current();
-                    var struct_parse = trainer.struct_train;
-                    var notes_struct_above = algorithm_train.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
-                    trainer.clip_user_input.set_notes(struct_parse.get_notes_at_coord(notes_struct_above));
-                    break;
-                }
-                case 'erase': {
-                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
-                    break;
-                }
-                default: {
-                    logger.log('command not recognized');
-                }
-            }
-            break;
-        }
-        default: {
-            logger.log('command not supported for this type of algorithm');
-        }
-    }
+    trainer.accept_command(command);
 };
 var user_input_midi = function (pitch, velocity) {
-    switch (algorithm_train.get_name()) {
-        case DETECT: {
-            var tree = new TreeModel();
-            var note_2 = tree.parse({
-                id: -1,
-                note: new Note(pitch, -Infinity, Infinity, velocity, 0),
-                children: []
-            });
-            trainer.accept_input([note_2]);
-            break;
-        }
-        case PREDICT: {
-            var tree = new TreeModel();
-            var note_3 = tree.parse({
-                id: -1,
-                note: new Note(pitch, -Infinity, Infinity, velocity, 0),
-                children: []
-            });
-            trainer.accept_input([note_3]);
-            break;
-        }
-        default: {
-            logger.log('command not supported for this type of algorithm');
-        }
-    }
+    trainer.accept_midi(pitch, velocity);
 };
 // TODO: we're gonna have to do this in Python to get the name of the most recent project
-var get_filename = function () {
-    var filename;
-    switch (algorithm_train.get_name()) {
-        case DETECT: {
-            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json';
-            break;
-        }
-        case PREDICT: {
-            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json';
-            break;
-        }
-        case PARSE: {
-            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json';
-            break;
-        }
-        case DERIVE: {
-            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json';
-            break;
-        }
-    }
-    return filename;
-};
-var load_session = function () {
+// TODO: let's just manually find the folder ourselves
+// let get_filename = () => {
+//     let filename;
+//
+//     switch (algorithm_train.get_name()) {
+//         case DETECT: {
+//             filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json';
+//             break;
+//         }
+//         case PREDICT: {
+//             filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json';
+//             break;
+//         }
+//         case PARSE: {
+//             filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json';
+//             break;
+//         }
+//         case DERIVE: {
+//             filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json';
+//             break;
+//         }
+//     }
+//
+//     return filename;
+// };
+var load_session = function (filename) {
     trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render, true);
     if (_.contains([PARSE, DERIVE], algorithm_train.get_name())) {
-        var matrix_deserialized = TrainThawer.thaw_notes_matrix(get_filename(), env);
-        trainer.commence();
-        var input_left = true;
-        while (input_left) {
-            var coord_current = trainer.iterator_matrix_train.get_coord_current();
-            var coord_user_input_history = algorithm_train.coord_to_index_history_user_input(coord_current);
-            if (trainer.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
-                algorithm_train.terminate(trainer.struct_train, segments_train);
-                algorithm_train.pause(song, trainer.segment_current.scene);
-                input_left = false;
-                continue;
-            }
-            trainer.accept_input(matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]);
-        }
+        var matrix_deserialized = TrainThawer.thaw_notes_matrix(filename, env);
+        var algorithm_parsed = algorithm_train;
+        algorithm_parsed.restore(trainer, segments_train, matrix_deserialized);
+        // let matrix_deserialized = TrainThawer.thaw_notes_matrix(
+        //     filename,
+        //     env
+        // );
+        //
+        // trainer.commence();
+        //
+        // let input_left = true;
+        //
+        // while (input_left) {
+        //     let coord_current = trainer.iterator_matrix_train.get_coord_current();
+        //
+        //     let coord_user_input_history = algorithm_train.coord_to_index_history_user_input(coord_current);
+        //
+        //     if (trainer.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
+        //
+        //         algorithm_train.terminate(trainer.struct_train, segments_train);
+        //
+        //         algorithm_train.pause(song, trainer.segment_current.scene);
+        //
+        //         input_left = false;
+        //
+        //         continue;
+        //     }
+        //
+        //     trainer.accept_input(
+        //         matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]
+        //     );
+        // }
     }
     else if (_.contains([DETECT, PREDICT], algorithm_train.get_name())) {
-        var notes_thawed = TrainThawer.thaw_notes(get_filename(), env);
-        trainer.commence();
-        for (var _i = 0, notes_thawed_1 = notes_thawed; _i < notes_thawed_1.length; _i++) {
-            var note_4 = notes_thawed_1[_i];
-            trainer.accept_input([note_4]);
-        }
+        var notes_thawed = TrainThawer.thaw_notes(filename, env);
+        var algorithm_targeted = algorithm_train;
+        algorithm_targeted.restore(trainer, notes_thawed);
+        // let notes_thawed = TrainThawer.thaw_notes(
+        //     filename,
+        //     env
+        // );
+        //
+        // trainer.commence();
+        //
+        // for (let note of notes_thawed) {
+        //     trainer.accept_input([note])
+        // }
     }
     else {
         throw 'algorithm not supported';
@@ -2708,9 +2750,8 @@ var load_session = function () {
     trainer.virtualized = false;
     trainer.render_window();
 };
-var save_session = function () {
-    // TODO: logic to determine, from project folder, name of file
-    TrainFreezer.freeze(trainer, get_filename(), env);
+var save_session = function (filename) {
+    TrainFreezer.freeze(trainer, filename, env);
 };
 if (typeof Global !== "undefined") {
     Global.train = {};
@@ -2731,7 +2772,7 @@ if (typeof Global !== "undefined") {
     Global.train.set_mode_texture = set_mode_texture;
 }
 
-},{"../algorithm/derive":1,"../algorithm/detect":2,"../algorithm/parse":3,"../algorithm/predict":5,"../algorithm/trainable":7,"../clip/clip":8,"../constants/constants":10,"../control/user_input":11,"../live/live":14,"../log/logger":15,"../message/messenger":16,"../note/note":18,"../render/window":20,"../scene/scene":21,"../segment/segment":23,"../serialize/freeze":24,"../serialize/thaw":26,"../song/song":27,"../track/track":29,"../train/trainer":31,"../utils/utils":32,"tree-model":37,"underscore":38}],23:[function(require,module,exports){
+},{"../algorithm/derive":1,"../algorithm/detect":2,"../algorithm/parse":3,"../algorithm/predict":5,"../algorithm/trainable":7,"../clip/clip":8,"../constants/constants":10,"../control/user_input":11,"../live/live":14,"../log/logger":15,"../message/messenger":16,"../render/window":20,"../scene/scene":21,"../segment/segment":23,"../serialize/freeze":24,"../serialize/thaw":26,"../song/song":27,"../track/track":29,"../train/trainer":31,"../utils/utils":32,"underscore":38}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -4106,6 +4147,12 @@ var trainer;
                 this.advance();
                 this.render_window();
             }
+        };
+        Trainer.prototype.accept_command = function (command) {
+            this.trainable.handle_command(command, this);
+        };
+        Trainer.prototype.accept_midi = function (pitch, velocity) {
+            this.trainable.handle_midi(pitch, velocity, this);
         };
         return Trainer;
     }());

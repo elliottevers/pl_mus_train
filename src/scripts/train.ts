@@ -52,6 +52,11 @@ import DERIVE = trainable.DERIVE;
 import {detect} from "../algorithm/detect";
 import Detect = detect.Detect;
 import DETECT = trainable.DETECT;
+import {parsed} from "../algorithm/parsed";
+import Parsed = parsed.Parsed;
+import StructTrain = module_trainer.StructTrain;
+import {targeted} from "../algorithm/targeted";
+import Targeted = targeted.Targeted;
 const _ = require('underscore');
 
 
@@ -331,181 +336,14 @@ let unpause = () => {
 };
 
 let user_input_command = (command: string) => {
-    let logger = new Logger(env);
-
-    // logger.log('user input command....');
-    // TODO: there is literally one character difference between the two algorithms - please abstract
-    switch(algorithm_train.get_name()) {
-        case PARSE: {
-            switch(command) {
-                case 'confirm': {
-                    let notes = trainer.clip_user_input.get_notes(
-                        trainer.segment_current.beat_start,
-                        0,
-                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
-                        128
-                    );
-
-                    trainer.accept_input(notes);
-
-                    break;
-                }
-                case 'reset': {
-                    let coords_current = trainer.iterator_matrix_train.get_coord_current();
-
-                    let struct_parse = trainer.struct_train as StructParse;
-
-                    let notes_struct_below = algorithm_train.coord_to_index_struct_train([coords_current[0] + 1, coords_current[1]]);
-
-                    trainer.clip_user_input.set_notes(
-                        struct_parse.get_notes_at_coord(notes_struct_below)
-                    );
-
-                    break;
-                }
-                case 'erase': {
-                    trainer.clip_user_input.remove_notes(
-                        trainer.segment_current.beat_start,
-                        0,
-                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
-                        128
-                    );
-                    break;
-                }
-                default: {
-                    logger.log('command not recognized')
-                }
-            }
-            break;
-        }
-        case DERIVE: {
-            switch(command) {
-                case 'confirm': {
-                    let notes = trainer.clip_user_input.get_notes(
-                        trainer.segment_current.beat_start,
-                        0,
-                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
-                        128
-                    );
-
-                    trainer.accept_input(notes);
-
-                    break;
-                }
-                case 'reset': {
-                    let coords_current = trainer.iterator_matrix_train.get_coord_current();
-
-                    let struct_parse = trainer.struct_train as StructParse;
-
-                    let notes_struct_above = algorithm_train.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
-
-                    trainer.clip_user_input.set_notes(
-                        struct_parse.get_notes_at_coord(notes_struct_above)
-                    );
-
-
-                    break;
-                }
-                case 'erase': {
-                    trainer.clip_user_input.remove_notes(
-                        trainer.segment_current.beat_start,
-                        0,
-                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
-                        128
-                    );
-                    break;
-                }
-                default: {
-                    logger.log('command not recognized')
-                }
-            }
-            break;
-        }
-        default: {
-            logger.log('command not supported for this type of algorithm')
-        }
-    }
+    trainer.accept_command(command);
 };
 
 let user_input_midi = (pitch: number, velocity: number) => {
-    switch(algorithm_train.get_name()) {
-        case DETECT: {
-            let tree: TreeModel = new TreeModel();
-            let note = tree.parse(
-                {
-                    id: -1,
-                    note: new Note(
-                        pitch,
-                        -Infinity,
-                        Infinity,
-                        velocity,
-                        0
-                    ),
-                    children: [
-
-                    ]
-                }
-            );
-            trainer.accept_input(
-                [note]
-            );
-            break;
-        }
-        case PREDICT: {
-            let tree: TreeModel = new TreeModel();
-            let note = tree.parse(
-                {
-                    id: -1,
-                    note: new Note(
-                        pitch,
-                        -Infinity,
-                        Infinity,
-                        velocity,
-                        0
-                    ),
-                    children: [
-
-                    ]
-                }
-            );
-            trainer.accept_input(
-                [note]
-            );
-            break;
-        }
-        default: {
-            logger.log('command not supported for this type of algorithm')
-        }
-    }
+    trainer.accept_midi(pitch, velocity);
 };
 
-// TODO: we're gonna have to do this in Python to get the name of the most recent project
-let get_filename = () => {
-    let filename;
-
-    switch (algorithm_train.get_name()) {
-        case DETECT: {
-            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_detect.json';
-            break;
-        }
-        case PREDICT: {
-            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_predict.json';
-            break;
-        }
-        case PARSE: {
-            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json';
-            break;
-        }
-        case DERIVE: {
-            filename = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_derive.json';
-            break;
-        }
-    }
-
-    return filename;
-};
-
-let load_session = () => {
+let load_session = (filename: string) => {
 
     trainer = new Trainer(
         window,
@@ -522,47 +360,28 @@ let load_session = () => {
     if (_.contains([PARSE, DERIVE], algorithm_train.get_name())) {
 
         let matrix_deserialized = TrainThawer.thaw_notes_matrix(
-            get_filename(),
+            filename,
             env
         );
 
-        trainer.commence();
+        let algorithm_parsed = algorithm_train as Parsed;
 
-        let input_left = true;
-
-        while (input_left) {
-            let coord_current = trainer.iterator_matrix_train.get_coord_current();
-
-            let coord_user_input_history = algorithm_train.coord_to_index_history_user_input(coord_current);
-
-            if (trainer.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
-
-                algorithm_train.terminate(trainer.struct_train, segments_train);
-
-                algorithm_train.pause(song, trainer.segment_current.scene);
-
-                input_left = false;
-
-                continue;
-            }
-
-            trainer.accept_input(
-                matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]
-            );
-        }
+        algorithm_parsed.restore(
+            trainer,
+            segments_train,
+            matrix_deserialized as StructTrain as StructParse
+        )
 
     } else if (_.contains([DETECT, PREDICT], algorithm_train.get_name())) {
 
         let notes_thawed = TrainThawer.thaw_notes(
-            get_filename(),
+            filename,
             env
         );
 
-        trainer.commence();
+        let algorithm_targeted = algorithm_train as Targeted;
 
-        for (let note of notes_thawed) {
-            trainer.accept_input([note])
-        }
+        algorithm_targeted.restore(trainer, notes_thawed)
 
     } else {
         throw 'algorithm not supported'
@@ -573,12 +392,10 @@ let load_session = () => {
     trainer.render_window();
 };
 
-let save_session = () => {
-    // TODO: logic to determine, from project folder, name of file
-
+let save_session = (filename: string) => {
     TrainFreezer.freeze(
         trainer,
-        get_filename(),
+        filename,
         env
     );
 };

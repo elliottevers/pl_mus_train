@@ -28,6 +28,7 @@ export namespace trainable {
     import Track = track.Track;
     import StructParse = parse.StructParse;
     import Messenger = message.Messenger;
+    import Trainer = trainer.Trainer;
 
     export let DETECT = 'detect';
     export let PREDICT = 'predict';
@@ -147,6 +148,17 @@ export namespace trainable {
             notes_user_input: TreeModel.Node<Note>[],
             subtarget_current: Subtarget
         ): TreeModel.Node<Note>[]
+
+        handle_command(
+            command: string,
+            trainer: Trainer
+        ): void
+
+        handle_midi(
+            pitch: number,
+            velocity: number,
+            trainer: Trainer
+        ): void
     }
 
     // interface common to both parse and derive, but have different implementations

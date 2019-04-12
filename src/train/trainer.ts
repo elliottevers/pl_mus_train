@@ -390,5 +390,13 @@ export namespace trainer {
                 this.render_window();
             }
         }
+
+        public accept_command(command) {
+            this.trainable.handle_command(command, this);
+        }
+
+        public accept_midi(pitch: number, velocity: number) {
+            this.trainable.handle_midi(pitch, velocity, this)
+        }
     }
 }

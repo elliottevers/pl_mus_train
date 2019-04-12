@@ -30,6 +30,7 @@ export namespace parsed {
     import StructParse = parse.StructParse;
     import MatrixWindow = window.MatrixWindow;
     import Messenger = message.Messenger;
+    import Trainer = trainer.Trainer;
 
     export abstract class Parsed implements Parsable {
 
@@ -214,6 +215,37 @@ export namespace parsed {
             // return [coord[0] - 1, coord[1]];
             return coord
         }
-    }
 
+        public abstract handle_command(command: string, trainer: trainer.Trainer): void
+
+        public abstract handle_midi(pitch: number, velocity: number, trainer: trainer.Trainer): void
+
+        restore(trainer: Trainer, segments_train: Segment[], matrix_deserialized: StructParse) {
+            trainer.commence();
+
+            let input_left = true;
+
+            while (input_left) {
+                let coord_current = trainer.iterator_matrix_train.get_coord_current();
+
+                let coord_user_input_history = this.coord_to_index_history_user_input(coord_current);
+
+                if (trainer.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
+
+                    this.terminate(trainer.struct_train, segments_train);
+
+                    // TODO: is this necessary?  This should be a virtual play-through
+                    // this.pause(song, trainer.segment_current.scene);
+
+                    input_left = false;
+
+                    continue;
+                }
+
+                trainer.accept_input(
+                    matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]
+                );
+            }
+        }
+    }
 }

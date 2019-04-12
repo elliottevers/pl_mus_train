@@ -14,6 +14,7 @@ import {song} from "../song/song";
 import {trainable} from "./trainable";
 import TreeModel = require("tree-model");
 import {log} from "../log/logger";
+import {thaw} from "../serialize/thaw";
 
 export namespace targeted {
 
@@ -34,6 +35,8 @@ export namespace targeted {
     import Segment = segment.Segment;
     import MatrixWindow = window.MatrixWindow;
     import Logger = log.Logger;
+    import Trainer = trainer.Trainer;
+    import TrainThawer = thaw.TrainThawer;
 
     export abstract class Targeted implements Targetable {
 
@@ -213,6 +216,17 @@ export namespace targeted {
         coord_to_index_struct_train(coord: number[]): number[] {
             return coord;
         }
-    }
 
+        public abstract handle_command(command: string, trainer: trainer.Trainer): void
+
+        public abstract handle_midi(pitch: number, velocity: number, trainer: trainer.Trainer): void
+
+        restore(trainer: Trainer, notes_thawed: TreeModel.Node<Note>[]): void {
+            trainer.commence();
+
+            for (let note of notes_thawed) {
+                trainer.accept_input([note])
+            }
+        }
+    }
 }

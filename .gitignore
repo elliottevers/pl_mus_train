@@ -6,3 +6,4 @@ src/*/*.js
 src/*/*/*.d.ts
 test/*/*.js.map
 test/*/*.js
+dist

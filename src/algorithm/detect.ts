@@ -24,6 +24,8 @@ export namespace detect {
     import MONOPHONY = modes_texture.MONOPHONY;
     import DETECT = trainable.DETECT;
     import Messenger = message.Messenger;
+    import Note = note.Note;
+    import Trainer = trainer.Trainer;
 
     export class Detect extends Targeted {
 
@@ -88,8 +90,33 @@ export namespace detect {
             track_user_input: track.Track,
             struct_train: StructTrain
         ) {
-            return
+            track_target.unmute()
+        }
+
+        handle_midi(pitch: number, velocity: number, trainer: Trainer): void {
+            let tree: TreeModel = new TreeModel();
+            let note = tree.parse(
+                {
+                    id: -1,
+                    note: new Note(
+                        pitch,
+                        -Infinity,
+                        Infinity,
+                        velocity,
+                        0
+                    ),
+                    children: [
+
+                    ]
+                }
+            );
+            trainer.accept_input(
+                [note]
+            );
+        }
+
+        handle_command(command: string, trainer: trainer.Trainer): void {
+            throw ['algorithm of name', this.get_name(), 'does not support commands']
         }
     }
-
 }

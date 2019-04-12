@@ -25,6 +25,7 @@ export namespace predict {
     import Logger = log.Logger;
     import Track = track.Track;
     import Messenger = message.Messenger;
+    import Trainer = trainer.Trainer;
 
     export class Predict extends Targeted {
 
@@ -106,11 +107,7 @@ export namespace predict {
 
             let matrix_targets = struct_train;
 
-            let logger = new Logger('max');
-
             for (let i_segment in segments) {
-
-                // let segment = segments[Number(i_segment)];
 
                 let clip = Track.get_clip_at_index(
                     track_target.get_index(),
@@ -119,8 +116,6 @@ export namespace predict {
                 );
 
                 let targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
-
-                // logger.log(JSON.stringify(targeted_notes_in_segment));
 
                 // TODO: this won't work for polyphony
                 for (let note of targeted_notes_in_segment) {
@@ -143,6 +138,32 @@ export namespace predict {
                     )
                 }
             }
+        }
+
+        handle_midi(pitch: number, velocity: number, trainer: Trainer): void {
+            let tree: TreeModel = new TreeModel();
+            let note = tree.parse(
+                {
+                    id: -1,
+                    note: new Note(
+                        pitch,
+                        -Infinity,
+                        Infinity,
+                        velocity,
+                        0
+                    ),
+                    children: [
+
+                    ]
+                }
+            );
+            trainer.accept_input(
+                [note]
+            );
+        }
+
+        handle_command(command: string, trainer: trainer.Trainer): void {
+            throw ['algorithm of name', this.get_name(), 'does not support commands']
         }
     }
 }

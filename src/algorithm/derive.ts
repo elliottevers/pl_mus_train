@@ -124,5 +124,52 @@ export namespace derive {
         get_num_layers_clips_to_render(): number {
             return this.depth + 1;
         }
+
+        handle_command(command: string, trainer: trainer.Trainer): void {
+            switch(command) {
+                case 'confirm': {
+                    let notes = trainer.clip_user_input.get_notes(
+                        trainer.segment_current.beat_start,
+                        0,
+                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                        128
+                    );
+
+                    trainer.accept_input(notes);
+
+                    break;
+                }
+                case 'reset': {
+                    let coords_current = trainer.iterator_matrix_train.get_coord_current();
+
+                    let struct_parse = trainer.struct_train as StructParse;
+
+                    let notes_struct_above = this.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
+
+                    trainer.clip_user_input.set_notes(
+                        struct_parse.get_notes_at_coord(notes_struct_above)
+                    );
+
+
+                    break;
+                }
+                case 'erase': {
+                    trainer.clip_user_input.remove_notes(
+                        trainer.segment_current.beat_start,
+                        0,
+                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                        128
+                    );
+                    break;
+                }
+                default: {
+                    throw ['command', command, 'not recognized'].join(' ')
+                }
+            }
+        }
+
+        handle_midi(pitch: number, velocity: number, trainer: trainer.Trainer): void {
+            throw ['algorithm of name', this.get_name(), 'does not support direct midi input']
+        }
     }
 }
