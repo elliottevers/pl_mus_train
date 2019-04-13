@@ -334,10 +334,6 @@ let expand_track = (path_track) => {
 
     let notes_segments = get_notes_segments();
 
-    let logger = new Logger(env);
-
-    logger.log(JSON.stringify(notes_segments));
-
     let segments: Segment[] = [];
 
     for (let note of notes_segments) {

@@ -46,16 +46,7 @@ export namespace utils {
         }
     }
 
-    export let remainder = (top, bottom) => {
-        return ((top % bottom) + bottom) % bottom
-    };
-
-    export let division_int = (top, bottom) => {
-        return Math.floor(top/bottom)
-    };
-
     export let path_clip_from_list_path_device = (list_path_device) => {
-        // list_path_device.shift();
 
         list_path_device[list_path_device.length - 2] = 'clip_slots';
 
@@ -64,6 +55,14 @@ export namespace utils {
         let path_clip = list_path_device.join(' ');
 
         return path_clip;
+    };
+
+    export let remainder = (top, bottom) => {
+        return ((top % bottom) + bottom) % bottom
+    };
+
+    export let division_int = (top, bottom) => {
+        return Math.floor(top/bottom)
     };
 
     export class Set {

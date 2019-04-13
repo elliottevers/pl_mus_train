@@ -218,13 +218,11 @@ var trainable_1 = require("./trainable");
 var parse_1 = require("../parse/parse");
 var ParseTree = parse_1.parse.ParseTree;
 var StructParse = parse_1.parse.StructParse;
-var logger_1 = require("../log/logger");
 var parse;
 (function (parse) {
     var Parsed = parsed_1.parsed.Parsed;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var PARSE = trainable_1.trainable.PARSE;
-    var Logger = logger_1.log.Logger;
     var Parse = /** @class */ (function (_super) {
         __extends(Parse, _super);
         function Parse() {
@@ -240,15 +238,6 @@ var parse;
         Parse.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             // transfer notes from target track to user input track
             for (var i_segment in segments) {
-                // let clip_target = Track.get_clip_at_index(
-                //     track_target.get_index(),
-                //     Number(i_segment),
-                //     track_target.track_dao.messenger
-                // );
-                var logger = new Logger('max');
-                logger.log('new');
-                logger.log(JSON.stringify(track_target.clip_slots[Number(i_segment)].clip));
-                // track_target.load_clips();
                 var clip_target = track_target.get_clip_at_index(Number(i_segment));
                 var clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
                 var notes = clip_target.get_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
@@ -375,7 +364,7 @@ var parse;
     parse.Parse = Parse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../log/logger":15,"../parse/parse":19,"../train/iterate":30,"./parsed":4,"./trainable":7}],4:[function(require,module,exports){
+},{"../parse/parse":19,"../train/iterate":30,"./parsed":4,"./trainable":7}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_1 = require("../parse/parse");
@@ -2642,8 +2631,6 @@ var set_track_target = function () {
     track_target = new Track(new TrackDao(new live_1.live.LiveApiJs(utils_1.utils.get_path_track_from_path_device(path_device_target)), new Messenger(env, 0), true, 'track_target'));
     track_target.set_path_deferlow('track_target');
     track_target.load_clips();
-    var logger = new Logger(env);
-    logger.log(JSON.stringify(track_target.get_clip_at_index(1)));
     messenger_monitor_target.message([track_target.get_index()]);
 };
 var set_track_user_input = function () {

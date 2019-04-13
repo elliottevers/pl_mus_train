@@ -3,10 +3,12 @@ import Messenger = message.Messenger;
 import {live, live as li} from "../live/live";
 import {clip} from "../clip/clip";
 import LiveApiJs = live.LiveApiJs;
-import {harmony} from "../music/harmony";
-import Harmony = harmony.Harmony;
 import ClipDao = clip.ClipDao;
 import Clip = clip.Clip;
+import TreeModel = require("tree-model");
+import {note as n, note} from "../note/note";
+import Note = note.Note;
+const _ = require('underscore');
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -26,13 +28,13 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let notes_polyphonic = [];
-let notes_arpegiatted = [];
+let notes_raw = [];
+let notes_consolidated = [];
 let cached: boolean = false;
 
 let toggle = (val: number) => {
 
-    let arpeggiate = Boolean(val);
+    let consolidate = Boolean(val);
 
     let this_device = new li.LiveApiJs('this_device');
 
@@ -54,27 +56,54 @@ let toggle = (val: number) => {
     );
 
     if (!cached) {
-        notes_polyphonic = clip.get_notes(
+        notes_raw = clip.get_notes(
             clip.get_start_marker(),
             0,
             clip.get_end_marker(),
             128
         );
 
-        let groups_notes_arpegiatted = Harmony.arpeggiate(
-            notes_polyphonic
-        );
-
-        for (let group of groups_notes_arpegiatted) {
-            // let logger = new Logger(env);
-            // logger.log(JSON.stringify(group));
-            notes_arpegiatted = notes_arpegiatted.concat(group)
-        }
-
         cached = true;
+
+        let note_group_head: TreeModel.Node<Note> = notes_raw[0];
+
+        for (let i_note of _.range(1, notes_raw.length)) {
+
+            let note = notes_raw[Number(i_note)];
+
+            let note_last = notes_raw[Number(i_note) - 1];
+
+            if (note_group_head.model.note.pitch === note.model.note.pitch) {
+                continue
+            }
+
+            let tree: TreeModel = new TreeModel();
+
+            let note_consolidated = tree.parse(
+                {
+                    id: -1, // TODO: hashing scheme for clip id and beat start
+                    note: new n.Note(
+                        note_group_head.model.note.pitch,
+                        note_group_head.model.note.beat_start,
+                        note_last.model.note.get_beat_end() - note_group_head.model.note.beat_start,
+                        note_group_head.model.note.velocity,
+                        0
+                    ),
+                    children: [
+
+                    ]
+                }
+            );
+
+            notes_consolidated.push(
+                note_consolidated
+            );
+
+            note_group_head = note;
+        }
     }
 
-    if (arpeggiate) {
+    if (consolidate) {
         clip.remove_notes(
             clip.get_start_marker(),
             0,
@@ -82,7 +111,7 @@ let toggle = (val: number) => {
             128
         );
         clip.set_notes(
-            notes_arpegiatted
+            notes_consolidated
         )
     } else {
         clip.remove_notes(
@@ -92,12 +121,12 @@ let toggle = (val: number) => {
             128
         );
         clip.set_notes(
-            notes_polyphonic
+            notes_raw
         )
     }
 };
 
 if (typeof Global !== "undefined") {
-    Global.arpeggiate = {};
-    Global.arpeggiate.toggle = toggle;
+    Global.consolidate = {};
+    Global.consolidate.toggle = toggle;
 }

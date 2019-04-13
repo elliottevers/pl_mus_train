@@ -3,13 +3,11 @@ import {PythonShell} from "python-shell";
 const max_api = require('max-api');
 
 let arg_url = new cli.Arg('url');
-// let option_outfile = new cli.Option('o', false, false, true);
 let flag_audio_only = new cli.Flag('x');
 let option_format = new cli.Option('audio-format');
 let option_ffmpeg_location = new cli.Option('ffmpeg-location');
 let option_name_project = new cli.Option('name-project');
 let option_path_executable = new cli.Option('path-executable');
-
 
 option_format.set('wav');
 
@@ -23,12 +21,10 @@ max_api.addHandler('set_url', (url) => {
     arg_url.set(url);
 });
 
-// arg_url.set('https://www.youtube.com/watch?v=j6TmogXhOZ8');
 max_api.addHandler('set_project_name', (name) => {
     let name_project = name.split('/').pop();
     option_name_project.set(name_project)
 });
-// option_name_project.set('dream');
 
 let download = () => {
 

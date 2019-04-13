@@ -1,15 +1,10 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live as li} from "../live/live";
-import {clip} from "../clip/clip";
-import Clip = clip.Clip;
-import ClipDao = clip.ClipDao;
 import {utils} from "../utils/utils";
 import {track} from "../track/track";
 import TrackDao = track.TrackDao;
 import Track = track.Track;
-import {log} from "../log/logger";
-import Logger = log.Logger;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -52,20 +47,6 @@ let extract_beatmap_manual = () => {
     clip_slot.load_clip();
 
     let clip_audio_warped = clip_slot.get_clip();
-
-    // let logger = new Logger(env);
-    //
-    // logger.log(JSON.stringify(clip_audio_warped.clip_dao.clip_live.get_id()));
-    //
-    // logger.log(JSON.stringify(clip_audio_warped.get_name()));
-    //
-    // logger.log(JSON.stringify(clip_audio_warped.get_id()));
-    //
-    // // logger.log(JSON.stringify(clip_audio_warped.get_end_marker()));
-    //
-    // logger.log(JSON.stringify(clip_audio_warped.get_loop_bracket_upper()));
-    //
-    // return;
 
     let beat_start_marker = clip_audio_warped.get_start_marker();
 
