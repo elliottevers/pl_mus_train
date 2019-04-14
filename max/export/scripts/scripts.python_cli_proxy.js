@@ -105,24 +105,24 @@ var message;
         Messenger.prototype.get_key_route = function () {
             return this.key_route;
         };
-        Messenger.prototype.message = function (message) {
+        Messenger.prototype.message = function (message, override) {
             switch (this.env) {
                 case 'max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_max(message);
                     break;
                 }
                 case 'node': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node(message);
                     break;
                 }
                 case 'node_for_max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node_for_max(message);
@@ -164,7 +164,6 @@ var messenger = new Messenger(env, 0);
 var commands = [];
 var logger = new Logger(env);
 var includes = function (array, s) {
-    // logger.log(JSON.stringify(array));
     return array.indexOf(s) > -1;
 };
 var reset = function () {
@@ -207,11 +206,18 @@ var message_commands = function () {
         var command = commands_1[_i];
         messenger.message(['commands'].concat(command.split(' ')));
     }
+    messenger.message(['run', 'bang']);
 };
+// let handle_status = (status: number) => {
+//     if (status === 1) {
+//         message_commands();
+//         messenger.message(['run', 'bang']);
+//     }
+// };
 var run = function () {
     messenger.message(['start', 'bang']);
-    message_commands();
-    messenger.message(['run', 'bang']);
+    // message_commands();
+    // messenger.message(['run', 'bang']);
 };
 if (typeof Global !== "undefined") {
     Global.python_cli_proxy = {};

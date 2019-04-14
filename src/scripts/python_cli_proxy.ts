@@ -28,7 +28,6 @@ let commands: string[] = [];
 let logger = new Logger(env);
 
 let includes = (array, s) => {
-    // logger.log(JSON.stringify(array));
     return array.indexOf(s) > -1
 };
 
@@ -84,12 +83,11 @@ let message_commands = () => {
     for (let command of commands) {
         messenger.message(['commands'].concat(command.split(' ')))
     }
+    messenger.message(['run', 'bang']);
 };
 
 let run = () => {
     messenger.message(['start', 'bang']);
-    message_commands();
-    messenger.message(['run', 'bang']);
 };
 
 if (typeof Global !== "undefined") {
