@@ -100,7 +100,7 @@ let run = () => {
         options_python_shell['args'] = script.get_run_parameters().split(' ')
     }
 
-    max_api.post(script.get_run_parameters().split(' '));
+    // max_api.post(script.get_run_parameters().split(' '));
 
     PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err) throw err;
