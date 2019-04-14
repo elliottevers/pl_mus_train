@@ -1,7 +1,5 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {log} from "../log/logger";
-import Logger = log.Logger;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -23,66 +21,63 @@ if (env === 'max') {
 
 let messenger = new Messenger(env, 0);
 
-let commands: string[] = [];
+let args: Object = {};
 
-let logger = new Logger(env);
+let options: Object = {};
 
-let includes = (array, s) => {
-    return array.indexOf(s) > -1
-};
+let flags: Object = {};
 
-let reset = () => {
-    commands = [];
-};
+let path_script: string;
 
 let set_arg = () => {
     //@ts-ignore
     let list_args = Array.prototype.slice.call(arguments);
 
-    let command = ['set_arg'].concat(list_args).join(' ');
-
-    if (!includes(commands, command)) {
-        commands.push(command)
-    }
+    args[list_args[0]] = list_args.slice(1, list_args.length)
 };
 
 let set_option = () => {
     //@ts-ignore
-    let list_args = Array.prototype.slice.call(arguments);
+    let list_options = Array.prototype.slice.call(arguments);
 
-    let command = ['set_option'].concat(list_args).join(' ');
-
-    if (!includes(commands, command)) {
-        commands.push(command)
-    }
+    options[list_options[0]] = list_options.slice(1, list_options.length)
 };
 
 let set_flag = () => {
     //@ts-ignore
-    let list_args = Array.prototype.slice.call(arguments);
+    let list_flags = Array.prototype.slice.call(arguments);
 
-    let command = ['set_flag'].concat(list_args).join(' ');
-
-    if (!includes(commands, command)) {
-        commands.push(command)
-    }
+    flags[list_flags[0]] = list_flags.slice(1, list_flags.length)
 };
 
 let set_path_script = () => {
     //@ts-ignore
     let list_args = Array.prototype.slice.call(arguments);
 
-    let command = ['set_path_script'].concat(list_args).join(' ');
-
-    if (!includes(commands, command)) {
-        commands.push(command)
-    }
+    path_script = list_args[0];
 };
 
 let message_commands = () => {
+    let commands = [];
+
+    commands.push(['set_path_script'].concat([path_script]).join(' '));
+
+    for (let arg of Object.keys(args)) {
+        commands.push(['set_arg'].concat([arg, args[arg]]).join(' '))
+    }
+
+    for (let option of Object.keys(options)) {
+        commands.push(['set_option'].concat([option, options[option]]).join(' '))
+    }
+
+    for (let flag of Object.keys(flags)) {
+        commands.push(['set_flag'].concat([flag, flags[flag]]).join(' '))
+    }
+
     for (let command of commands) {
         messenger.message(['commands'].concat(command.split(' ')))
     }
+
     messenger.message(['run', 'bang']);
 };
 
@@ -97,6 +92,5 @@ if (typeof Global !== "undefined") {
     Global.python_cli_proxy.set_option = set_option;
     Global.python_cli_proxy.set_flag = set_flag;
     Global.python_cli_proxy.set_path_script = set_path_script;
-    Global.python_cli_proxy.reset = reset;
     Global.python_cli_proxy.message_commands = message_commands;
 }

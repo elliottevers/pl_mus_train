@@ -161,63 +161,81 @@ if (env === 'max') {
     autowatch = 1;
 }
 var messenger = new Messenger(env, 0);
-var commands = [];
+var args = {};
+var options = {};
+var flags = {};
+var path_script;
 var logger = new Logger(env);
 var includes = function (array, s) {
     return array.indexOf(s) > -1;
 };
-var reset = function () {
-    commands = [];
+// let reset = () => {
+//     commands = [];
+// };
+var thing = function () {
+    // if first string of command is already in commands list
 };
 var set_arg = function () {
     //@ts-ignore
     var list_args = Array.prototype.slice.call(arguments);
-    var command = ['set_arg'].concat(list_args).join(' ');
-    if (!includes(commands, command)) {
-        commands.push(command);
-    }
+    // let command = ['set_arg'].concat(list_args).join(' ');
+    // if (!includes(commands, command)) {
+    //     commands.push(command)
+    // }
+    args[list_args[0]] = list_args.slice(1, list_args.length);
 };
 var set_option = function () {
     //@ts-ignore
-    var list_args = Array.prototype.slice.call(arguments);
-    var command = ['set_option'].concat(list_args).join(' ');
-    if (!includes(commands, command)) {
-        commands.push(command);
-    }
+    var list_options = Array.prototype.slice.call(arguments);
+    // let command = ['set_option'].concat(list_options).join(' ');
+    // if (!includes(commands, command)) {
+    //     commands.push(command)
+    // }
+    //
+    // logger.log(JSON.stringify(commands))
+    options[list_options[0]] = list_options.slice(1, list_options.length);
 };
 var set_flag = function () {
     //@ts-ignore
-    var list_args = Array.prototype.slice.call(arguments);
-    var command = ['set_flag'].concat(list_args).join(' ');
-    if (!includes(commands, command)) {
-        commands.push(command);
-    }
+    var list_flags = Array.prototype.slice.call(arguments);
+    // let command = ['set_flag'].concat(list_args).join(' ');
+    // if (!includes(commands, command)) {
+    //     commands.push(command)
+    // }
+    flags[list_flags[0]] = list_flags.slice(1, list_flags.length);
 };
 var set_path_script = function () {
     //@ts-ignore
     var list_args = Array.prototype.slice.call(arguments);
-    var command = ['set_path_script'].concat(list_args).join(' ');
-    if (!includes(commands, command)) {
-        commands.push(command);
-    }
+    // let command = ['set_path_script'].concat(list_args).join(' ');
+    path_script = list_args[0];
+    // if (!includes(commands, command)) {
+    //     commands.push(command)
+    // }
 };
 var message_commands = function () {
-    for (var _i = 0, commands_1 = commands; _i < commands_1.length; _i++) {
-        var command = commands_1[_i];
+    var commands = [];
+    commands.push(['set_path_script'].concat([path_script]).join(' '));
+    for (var _i = 0, _a = Object.keys(args); _i < _a.length; _i++) {
+        var arg = _a[_i];
+        commands.push(['set_arg'].concat([arg, args[arg]]).join(' '));
+    }
+    for (var _b = 0, _c = Object.keys(options); _b < _c.length; _b++) {
+        var option = _c[_b];
+        commands.push(['set_option'].concat([option, options[option]]).join(' '));
+    }
+    for (var _d = 0, _e = Object.keys(flags); _d < _e.length; _d++) {
+        var flag = _e[_d];
+        commands.push(['set_flag'].concat([flag, flags[flag]]).join(' '));
+    }
+    for (var _f = 0, commands_1 = commands; _f < commands_1.length; _f++) {
+        var command = commands_1[_f];
         messenger.message(['commands'].concat(command.split(' ')));
     }
     messenger.message(['run', 'bang']);
 };
-// let handle_status = (status: number) => {
-//     if (status === 1) {
-//         message_commands();
-//         messenger.message(['run', 'bang']);
-//     }
-// };
 var run = function () {
     messenger.message(['start', 'bang']);
-    // message_commands();
-    // messenger.message(['run', 'bang']);
 };
 if (typeof Global !== "undefined") {
     Global.python_cli_proxy = {};
@@ -226,7 +244,7 @@ if (typeof Global !== "undefined") {
     Global.python_cli_proxy.set_option = set_option;
     Global.python_cli_proxy.set_flag = set_flag;
     Global.python_cli_proxy.set_path_script = set_path_script;
-    Global.python_cli_proxy.reset = reset;
+    // Global.python_cli_proxy.reset = reset;
     Global.python_cli_proxy.message_commands = message_commands;
 }
 
@@ -237,5 +255,4 @@ var set_arg = Global.python_cli_proxy.set_arg;
 var set_option = Global.python_cli_proxy.set_option;
 var set_flag = Global.python_cli_proxy.set_flag;
 var set_path_script = Global.python_cli_proxy.set_path_script;
-var reset = Global.python_cli_proxy.reset;
 var message_commands = Global.python_cli_proxy.message_commands;
