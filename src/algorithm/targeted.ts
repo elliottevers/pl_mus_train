@@ -14,7 +14,6 @@ import {song} from "../song/song";
 import {trainable} from "./trainable";
 import TreeModel = require("tree-model");
 import {log} from "../log/logger";
-import {thaw} from "../serialize/thaw";
 
 export namespace targeted {
 
@@ -36,7 +35,6 @@ export namespace targeted {
     import MatrixWindow = window.MatrixWindow;
     import Logger = log.Logger;
     import Trainer = trainer.Trainer;
-    import TrainThawer = thaw.TrainThawer;
 
     export abstract class Targeted implements Targetable {
 
@@ -60,6 +58,12 @@ export namespace targeted {
         public depth: number;
 
         public abstract get_name()
+
+        public abstract get_view(): string
+
+        public initialize_set(song: song.Song): void {
+
+        }
 
         public abstract initialize_tracks(
             segments: segment.Segment[],
@@ -134,10 +138,6 @@ export namespace targeted {
                 this,
                 segments
             );
-
-            // let logger = new Logger('max');
-            //
-            // logger.log(JSON.stringify(notes_target_track));
 
             for (let i_segment in segments) {
                 let segment = segments[Number(i_segment)];

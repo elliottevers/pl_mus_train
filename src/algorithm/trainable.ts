@@ -124,6 +124,10 @@ export namespace trainable {
             iterator_matrix_train: MatrixIterator
         ): StructTrain
 
+        initialize_set(
+            song: Song
+        ): void
+
         initialize_tracks(
             segments: segment.Segment[],
             track_target: track.Track,
@@ -159,6 +163,8 @@ export namespace trainable {
             velocity: number,
             trainer: Trainer
         ): void
+
+        get_view(): string
     }
 
     // interface common to both parse and derive, but have different implementations

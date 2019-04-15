@@ -40,6 +40,10 @@ export namespace trainer {
 
     export type StructTrain = StructParse | StructTargets;
 
+
+    export let SESSION = 'session';
+    export let ARRANGEMENT = 'arrangement';
+
     export class Trainer {
 
         private window: MatrixWindow;
@@ -70,6 +74,8 @@ export namespace trainer {
 
         private user_input_handler: UserInputHandler;
 
+        private view: string;
+
         public virtualized: boolean = false;
 
         public done: boolean = false;
@@ -93,6 +99,7 @@ export namespace trainer {
             this.user_input_handler = user_input_handler;
             this.segments = segments;
             this.messenger = messenger;
+            this.view = this.trainable.get_view();
             this.virtualized = virtualized;
 
             this.notes_target_track = track_target.get_notes();
@@ -137,10 +144,9 @@ export namespace trainer {
                 this.notes_target_track
             );
 
-            // let logger = new Logger('max');
-            //
-            // logger.log(JSON.stringify(this.struct_train));
-
+            this.trainable.initialize_set(
+                this.song
+            );
 
             this.trainable.initialize_tracks(
                 this.segments,
@@ -333,9 +339,24 @@ export namespace trainer {
             }
         }
 
-        next_segment() {
+        advance_loop_song() {
+            this.advance_segment();
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
 
+            // TODO: update loops
+            this.song.stop();
+
+            let endpoints_loop = this.segment_current.get_endpoints_loop();
+
+            this.song.set_loop_start(endpoints_loop[0]);
+
+            this.song.set_loop_length(endpoints_loop[1] - endpoints_loop[0]);
+
+            this.song.start();
+        }
+
+        // e.g., clips and scenes
+        update_session_constucts() {
             this.segment_current.scene.set_path_deferlow('scene');
 
             this.clip_user_input = this.segment_current.clip_user_input;
@@ -343,6 +364,14 @@ export namespace trainer {
             this.clip_user_input.set_path_deferlow('clip_user_input');
 
             this.advance_scene()
+        }
+
+        next_segment() {
+            this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+
+            if (this.view === SESSION) {
+                this.update_session_constucts()
+            }
         }
 
         accept_input(notes_input_user: TreeModel.Node<n.Note>[]) {

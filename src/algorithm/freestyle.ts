@@ -15,11 +15,16 @@ import TreeModel = require("tree-model");
 
 export namespace freestyle {
     import Trainable = trainable.Trainable;
+    import ARRANGEMENT = trainer.ARRANGEMENT;
 
     export class Freestyle implements Trainable {
         b_parsed: boolean;
         b_targeted: boolean;
         depth: number;
+
+        public get_view(): string {
+            return ARRANGEMENT
+        }
 
         advance_scene(scene_current: scene.Scene, song: song.Song) {
             return
@@ -63,7 +68,17 @@ export namespace freestyle {
 
         // TODO: look how others handle this - should we advance song's loop here?
         handle_command(command: string, trainer: trainer.Trainer): void {
+            switch(command) {
+                case 'advance': {
 
+                    trainer.advance_loop_song();
+
+                    break;
+                }
+                default: {
+                    throw ['command', command, 'not recognized'].join(' ')
+                }
+            }
         }
 
         handle_midi(pitch: number, velocity: number, trainer: trainer.Trainer): void {
@@ -78,9 +93,13 @@ export namespace freestyle {
 
         }
 
+        initialize_set(song: song.Song) {
+            song.loop(true);
+        }
+
         // TODO: see how other's implement
         pause(song: song.Song, scene_current: scene.Scene) {
-
+            song.stop()
         }
 
         postprocess_user_input(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current: target.Subtarget): TreeModel.Node<note.Note>[] {
@@ -110,7 +129,7 @@ export namespace freestyle {
 
         // TODO: see how others implement
         unpause(song: song.Song, scene_current: scene.Scene) {
-
+            song.start()
         }
 
         update_history_user_input(input_postprocessed: TreeModel.Node<note.Note>[], history_user_input: history.HistoryUserInput, iterator_matrix_train: iterate.MatrixIterator, trainable: trainable.Trainable): history.HistoryUserInput {
@@ -121,6 +140,7 @@ export namespace freestyle {
             return null;
         }
 
+        // although we should never be giving MIDI input here...
         warrants_advance(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current: target.Subtarget): boolean {
             return true;
         }

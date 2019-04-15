@@ -26,6 +26,7 @@ export namespace detect {
     import Messenger = message.Messenger;
     import Note = note.Note;
     import Trainer = trainer.Trainer;
+    import SESSION = trainer.SESSION;
 
     export class Detect extends Targeted {
 
@@ -68,6 +69,10 @@ export namespace detect {
 
         public get_name(): string {
             return DETECT
+        }
+
+        public get_view(): string {
+            return SESSION
         }
 
         postprocess_subtarget(note_subtarget) {

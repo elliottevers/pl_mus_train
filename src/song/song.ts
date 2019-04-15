@@ -26,6 +26,19 @@ export namespace song {
             this.song_dao = song_dao;
         }
 
+        loop(status: boolean) {
+            this.song_dao.loop(status);
+        }
+
+        set_loop_start(beat_start: number) {
+            this.song_dao.set_loop_start(beat_start);
+
+        }
+
+        set_loop_length(length_beats: number) {
+            this.song_dao.set_loop_length(length_beats);
+        }
+
         load_scenes(): void {
             this.scenes = this.song_dao.get_scenes();
         }
@@ -85,6 +98,9 @@ export namespace song {
 
     export interface iSongDao {
         key_route;
+        loop(status: boolean): void
+        set_loop_start(beat_start: number): void
+        set_loop_length(length_beats: number): void
         set_session_record(int: number)
         set_overdub(int: number)
         set_tempo(int: number)
@@ -93,27 +109,17 @@ export namespace song {
         get_scenes(): any[]
         get_path(): string
         set_path_deferlow(key_route_override: string, path_live: string): void
-        // is_async(): boolean
         create_scene(index: number): void
-        // load_scenes(): void
     }
 
     export class SongDaoVirtual implements iSongDao {
 
-        // private deferlow: boolean;
         public key_route: string;
 
         scenes: Scene[];
 
-        // constructor(scenes: Scene[], messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
         constructor(scenes: Scene[]) {
             this.scenes = scenes;
-
-            // if (deferlow && !key_route) {
-            //     throw new Error('key route not specified when using deferlow');
-            // }
-            // this.deferlow = deferlow;
-            // this.key_route = key_route;
         }
 
         public create_scene(index: number): void {
@@ -164,6 +170,18 @@ export namespace song {
 
         stop(): void {
             return
+        }
+
+        loop(status: boolean) {
+
+        }
+
+        set_loop_length(length_beats: number) {
+
+        }
+
+        set_loop_start(beat_start: number) {
+
         }
 
 
@@ -273,6 +291,18 @@ export namespace song {
 
         create_scene(index: number): void {
             this.song_live.call('create_scene', String(index))
+        }
+
+        loop(status: boolean) {
+            this.song_live.set("loop", status ? 1 : 0)
+        }
+
+        set_loop_length(length_beats: number) {
+            this.song_live.set("loop_length", length_beats)
+        }
+
+        set_loop_start(beat_start: number) {
+            this.song_live.set("loop_start", beat_start)
         }
     }
 }

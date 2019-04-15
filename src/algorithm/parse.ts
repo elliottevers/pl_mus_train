@@ -12,6 +12,7 @@ import ParseTree = module_parse.ParseTree;
 import StructParse = module_parse.StructParse;
 import {message} from "../message/messenger";
 import {log} from "../log/logger";
+import {song} from "../song/song";
 
 export namespace parse {
     import Parsed = parsed.Parsed;
@@ -25,6 +26,7 @@ export namespace parse {
     import Trainer = trainer.Trainer;
     import Track = track.Track;
     import Logger = log.Logger;
+    import SESSION = trainer.SESSION;
 
     export class Parse extends Parsed {
 
@@ -36,12 +38,20 @@ export namespace parse {
             return PARSE
         }
 
+        public get_view(): string {
+            return SESSION
+        }
+
         grow_layer(notes_user_input_renderable, notes_to_grow) {
             ParseTree.add_layer(
                 notes_user_input_renderable,
                 notes_to_grow,
                 -1
             )
+        }
+
+        initialize_set(song: song.Song): void {
+
         }
 
         // TODO: we don't need the target track - we should 1) transfer all notes over to user input track and 2) mute the track

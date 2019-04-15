@@ -15,6 +15,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var parsed_1 = require("./parsed");
+var trainer_1 = require("../train/trainer");
 var iterate_1 = require("../train/iterate");
 var trainable_1 = require("./trainable");
 var parse_1 = require("../parse/parse");
@@ -25,6 +26,7 @@ var derive;
     var DERIVE = trainable_1.trainable.DERIVE;
     var ParseTree = parse_1.parse.ParseTree;
     var StructParse = parse_1.parse.StructParse;
+    var SESSION = trainer_1.trainer.SESSION;
     var Derive = /** @class */ (function (_super) {
         __extends(Derive, _super);
         function Derive() {
@@ -33,11 +35,16 @@ var derive;
         Derive.prototype.get_name = function () {
             return DERIVE;
         };
+        Derive.prototype.get_view = function () {
+            return SESSION;
+        };
         Derive.prototype.get_coords_notes_to_grow = function (coords_note_input_current) {
             return MatrixIterator.get_coords_above([coords_note_input_current[0], coords_note_input_current[1]]);
         };
         Derive.prototype.grow_layer = function (notes_user_input_renderable, notes_to_grow) {
             ParseTree.add_layer(notes_to_grow, notes_user_input_renderable, -1);
+        };
+        Derive.prototype.initialize_set = function (song) {
         };
         Derive.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             track_target.mute();
@@ -109,7 +116,7 @@ var derive;
     derive.Derive = Derive;
 })(derive = exports.derive || (exports.derive = {}));
 
-},{"../parse/parse":19,"../train/iterate":30,"./parsed":4,"./trainable":7}],2:[function(require,module,exports){
+},{"../parse/parse":19,"../train/iterate":30,"../train/trainer":31,"./parsed":4,"./trainable":7}],2:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -127,6 +134,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var targeted_1 = require("./targeted");
+var trainer_1 = require("../train/trainer");
 var harmony_1 = require("../music/harmony");
 var constants_1 = require("../constants/constants");
 var TreeModel = require("tree-model");
@@ -139,6 +147,7 @@ var detect;
     var MONOPHONY = constants_1.modes_texture.MONOPHONY;
     var DETECT = trainable_1.trainable.DETECT;
     var Note = note_1.note.Note;
+    var SESSION = trainer_1.trainer.SESSION;
     var Detect = /** @class */ (function (_super) {
         __extends(Detect, _super);
         function Detect() {
@@ -169,6 +178,9 @@ var detect;
         Detect.prototype.get_name = function () {
             return DETECT;
         };
+        Detect.prototype.get_view = function () {
+            return SESSION;
+        };
         Detect.prototype.postprocess_subtarget = function (note_subtarget) {
             return note_subtarget;
         };
@@ -196,7 +208,7 @@ var detect;
     detect.Detect = Detect;
 })(detect = exports.detect || (exports.detect = {}));
 
-},{"../constants/constants":10,"../music/harmony":17,"../note/note":18,"./targeted":6,"./trainable":7,"tree-model":37}],3:[function(require,module,exports){
+},{"../constants/constants":10,"../music/harmony":17,"../note/note":18,"../train/trainer":31,"./targeted":6,"./trainable":7,"tree-model":37}],3:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -213,6 +225,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var parsed_1 = require("./parsed");
+var trainer_1 = require("../train/trainer");
 var iterate_1 = require("../train/iterate");
 var trainable_1 = require("./trainable");
 var parse_1 = require("../parse/parse");
@@ -223,6 +236,7 @@ var parse;
     var Parsed = parsed_1.parsed.Parsed;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var PARSE = trainable_1.trainable.PARSE;
+    var SESSION = trainer_1.trainer.SESSION;
     var Parse = /** @class */ (function (_super) {
         __extends(Parse, _super);
         function Parse() {
@@ -231,8 +245,13 @@ var parse;
         Parse.prototype.get_name = function () {
             return PARSE;
         };
+        Parse.prototype.get_view = function () {
+            return SESSION;
+        };
         Parse.prototype.grow_layer = function (notes_user_input_renderable, notes_to_grow) {
             ParseTree.add_layer(notes_user_input_renderable, notes_to_grow, -1);
+        };
+        Parse.prototype.initialize_set = function (song) {
         };
         // TODO: we don't need the target track - we should 1) transfer all notes over to user input track and 2) mute the track
         Parse.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
@@ -364,7 +383,7 @@ var parse;
     parse.Parse = Parse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../parse/parse":19,"../train/iterate":30,"./parsed":4,"./trainable":7}],4:[function(require,module,exports){
+},{"../parse/parse":19,"../train/iterate":30,"../train/trainer":31,"./parsed":4,"./trainable":7}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_1 = require("../parse/parse");
@@ -503,6 +522,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var track_1 = require("../track/track");
 var targeted_1 = require("./targeted");
+var trainer_1 = require("../train/trainer");
 var constants_1 = require("../constants/constants");
 var TreeModel = require("tree-model");
 var trainable_1 = require("./trainable");
@@ -515,6 +535,7 @@ var predict;
     var MONOPHONY = constants_1.modes_texture.MONOPHONY;
     var PREDICT = trainable_1.trainable.PREDICT;
     var Track = track_1.track.Track;
+    var SESSION = trainer_1.trainer.SESSION;
     var Predict = /** @class */ (function (_super) {
         __extends(Predict, _super);
         function Predict() {
@@ -522,6 +543,9 @@ var predict;
         }
         Predict.prototype.get_name = function () {
             return PREDICT;
+        };
+        Predict.prototype.get_view = function () {
+            return SESSION;
         };
         Predict.prototype.determine_targets = function (user_input_handler, notes_segment_next) {
             if (user_input_handler.mode_texture === POLYPHONY) {
@@ -604,7 +628,7 @@ var predict;
     predict.Predict = Predict;
 })(predict = exports.predict || (exports.predict = {}));
 
-},{"../constants/constants":10,"../note/note":18,"../track/track":29,"./targeted":6,"./trainable":7,"tree-model":37,"underscore":38}],6:[function(require,module,exports){
+},{"../constants/constants":10,"../note/note":18,"../track/track":29,"../train/trainer":31,"./targeted":6,"./trainable":7,"tree-model":37,"underscore":38}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var iterate_1 = require("../train/iterate");
@@ -622,6 +646,8 @@ var targeted;
         Targeted.prototype.update_history_user_input = function (input_postprocessed, history_user_input, iterator_matrix_train, trainable) {
             history_user_input.concat(input_postprocessed, trainable.coord_to_index_history_user_input(iterator_matrix_train.get_coord_current()));
             return history_user_input;
+        };
+        Targeted.prototype.initialize_set = function (song) {
         };
         Targeted.prototype.get_num_layers_input = function () {
             return 1;
@@ -671,9 +697,6 @@ var targeted;
                 matrix_targets[0][Number(i_segment)] = TargetIterator.from_sequence_target(sequence_targets);
             };
             var this_1 = this;
-            // let logger = new Logger('max');
-            //
-            // logger.log(JSON.stringify(notes_target_track));
             for (var i_segment in segments) {
                 _loop_1(i_segment);
             }
@@ -3006,6 +3029,15 @@ var song;
         function Song(song_dao) {
             this.song_dao = song_dao;
         }
+        Song.prototype.loop = function (status) {
+            this.song_dao.loop(status);
+        };
+        Song.prototype.set_loop_start = function (beat_start) {
+            this.song_dao.set_loop_start(beat_start);
+        };
+        Song.prototype.set_loop_length = function (length_beats) {
+            this.song_dao.set_loop_length(length_beats);
+        };
         Song.prototype.load_scenes = function () {
             this.scenes = this.song_dao.get_scenes();
         };
@@ -3051,14 +3083,8 @@ var song;
     }());
     song.Song = Song;
     var SongDaoVirtual = /** @class */ (function () {
-        // constructor(scenes: Scene[], messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
         function SongDaoVirtual(scenes) {
             this.scenes = scenes;
-            // if (deferlow && !key_route) {
-            //     throw new Error('key route not specified when using deferlow');
-            // }
-            // this.deferlow = deferlow;
-            // this.key_route = key_route;
         }
         SongDaoVirtual.prototype.create_scene = function (index) {
             return;
@@ -3098,6 +3124,12 @@ var song;
         };
         SongDaoVirtual.prototype.stop = function () {
             return;
+        };
+        SongDaoVirtual.prototype.loop = function (status) {
+        };
+        SongDaoVirtual.prototype.set_loop_length = function (length_beats) {
+        };
+        SongDaoVirtual.prototype.set_loop_start = function (beat_start) {
         };
         return SongDaoVirtual;
     }());
@@ -3174,6 +3206,15 @@ var song;
         };
         SongDao.prototype.create_scene = function (index) {
             this.song_live.call('create_scene', String(index));
+        };
+        SongDao.prototype.loop = function (status) {
+            this.song_live.set("loop", status ? 1 : 0);
+        };
+        SongDao.prototype.set_loop_length = function (length_beats) {
+            this.song_live.set("loop_length", length_beats);
+        };
+        SongDao.prototype.set_loop_start = function (beat_start) {
+            this.song_live.set("loop_start", beat_start);
         };
         return SongDao;
     }());
@@ -3924,6 +3965,8 @@ var trainer;
     var HistoryUserInput = history_1.history.HistoryUserInput;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
+    trainer.SESSION = 'session';
+    trainer.ARRANGEMENT = 'arrangement';
     var Trainer = /** @class */ (function () {
         function Trainer(window, user_input_handler, trainable, track_target, track_user_input, song, segments, messenger, virtualized) {
             this.virtualized = false;
@@ -3936,6 +3979,7 @@ var trainer;
             this.user_input_handler = user_input_handler;
             this.segments = segments;
             this.messenger = messenger;
+            this.view = this.trainable.get_view();
             this.virtualized = virtualized;
             this.notes_target_track = track_target.get_notes();
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
@@ -3945,9 +3989,7 @@ var trainer;
             this.history_user_input = this.trainable.preprocess_history_user_input(this.history_user_input, this.segments);
             this.struct_train = this.trainable.create_struct_train(this.window, this.segments, this.track_target, this.user_input_handler, this.struct_train);
             this.struct_train = this.trainable.preprocess_struct_train(this.struct_train, this.segments, this.notes_target_track);
-            // let logger = new Logger('max');
-            //
-            // logger.log(JSON.stringify(this.struct_train));
+            this.trainable.initialize_set(this.song);
             this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
             this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track, this.struct_train);
         }
@@ -4058,12 +4100,28 @@ var trainer;
                 this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
             }
         };
-        Trainer.prototype.next_segment = function () {
+        Trainer.prototype.advance_loop_song = function () {
+            this.advance_segment();
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+            // TODO: update loops
+            this.song.stop();
+            var endpoints_loop = this.segment_current.get_endpoints_loop();
+            this.song.set_loop_start(endpoints_loop[0]);
+            this.song.set_loop_length(endpoints_loop[1] - endpoints_loop[0]);
+            this.song.start();
+        };
+        // e.g., clips and scenes
+        Trainer.prototype.update_session_constucts = function () {
             this.segment_current.scene.set_path_deferlow('scene');
             this.clip_user_input = this.segment_current.clip_user_input;
             this.clip_user_input.set_path_deferlow('clip_user_input');
             this.advance_scene();
+        };
+        Trainer.prototype.next_segment = function () {
+            this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
+            if (this.view === trainer.SESSION) {
+                this.update_session_constucts();
+            }
         };
         Trainer.prototype.accept_input = function (notes_input_user) {
             this.counter_user_input++;
@@ -4140,18 +4198,17 @@ var utils;
         return PathLive;
     }());
     utils.PathLive = PathLive;
+    utils.path_clip_from_list_path_device = function (list_path_device) {
+        list_path_device[list_path_device.length - 2] = 'clip_slots';
+        list_path_device.push('clip');
+        var path_clip = list_path_device.join(' ');
+        return path_clip;
+    };
     utils.remainder = function (top, bottom) {
         return ((top % bottom) + bottom) % bottom;
     };
     utils.division_int = function (top, bottom) {
         return Math.floor(top / bottom);
-    };
-    utils.path_clip_from_list_path_device = function (list_path_device) {
-        // list_path_device.shift();
-        list_path_device[list_path_device.length - 2] = 'clip_slots';
-        list_path_device.push('clip');
-        var path_clip = list_path_device.join(' ');
-        return path_clip;
     };
     var Set = /** @class */ (function () {
         function Set(items) {

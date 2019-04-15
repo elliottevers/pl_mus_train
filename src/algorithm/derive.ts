@@ -9,6 +9,7 @@ import {parse} from "../parse/parse";
 import {window} from "../render/window";
 import TreeModel = require("tree-model");
 import {message} from "../message/messenger";
+import {song} from "../song/song";
 
 export namespace derive {
     import Parsed = parsed.Parsed;
@@ -21,11 +22,16 @@ export namespace derive {
     import Segment = segment.Segment;
     import MatrixWindow = window.MatrixWindow;
     import Messenger = message.Messenger;
+    import SESSION = trainer.SESSION;
 
     export class Derive extends Parsed {
 
         public get_name(): string {
             return DERIVE
+        }
+
+        public get_view(): string {
+            return SESSION
         }
 
         get_coords_notes_to_grow(coords_note_input_current) {
@@ -38,6 +44,10 @@ export namespace derive {
                 notes_user_input_renderable,
                 -1
             )
+        }
+
+        initialize_set(song: song.Song): void {
+
         }
 
         initialize_tracks(

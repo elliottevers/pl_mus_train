@@ -26,11 +26,16 @@ export namespace predict {
     import Track = track.Track;
     import Messenger = message.Messenger;
     import Trainer = trainer.Trainer;
+    import SESSION = trainer.SESSION;
 
     export class Predict extends Targeted {
 
         public get_name(): string {
             return PREDICT
+        }
+
+        public get_view(): string {
+            return SESSION
         }
 
         determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {

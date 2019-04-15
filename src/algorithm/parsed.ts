@@ -40,6 +40,8 @@ export namespace parsed {
 
         public abstract get_name();
 
+        public abstract get_view(): string
+
         depth: number;
 
         update_struct(notes_input_user: TreeModel.Node<Note>[], struct_train: StructTrain, trainable: Trainable, iterator_matrix_train: MatrixIterator): StructTrain {
@@ -64,6 +66,8 @@ export namespace parsed {
             notes_track_target: TreeModel.Node<Note>[],
             struct_train: StructTrain
         ): MatrixWindow
+
+        public abstract initialize_set(song: song.Song): void
 
         public abstract initialize_tracks(
             segments: segment.Segment[],
