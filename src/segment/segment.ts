@@ -3,6 +3,7 @@ import {note, note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {live} from "../live/live";
 import {scene} from "../scene/scene";
+import {cue_point} from "../cue_point/cue_point";
 
 export namespace segment {
 
@@ -11,15 +12,16 @@ export namespace segment {
     import LiveClipVirtual = live.LiveClipVirtual;
     import Scene = scene.Scene;
     import ClipLive = live.ClipLive;
+    import CuePoint = cue_point.CuePoint;
 
     export class Segment {
 
         beat_start: number;
         beat_end: number;
         scene: Scene;
+        cue_point: CuePoint;
         clip: Clip; // used as storage with an interface similar to Live
         clip_user_input: Clip;
-        // clip_user_input_async: Clip;
 
         constructor(note: TreeModel.Node<n.Note>) {
             this.beat_start = note.model.note.beat_start;
@@ -45,9 +47,9 @@ export namespace segment {
             this.clip_user_input = clip;
         }
 
-        // public set_clip_user_input_async(clip: Clip) {
-        //     this.clip_user_input_async = clip;
-        // }
+        public set_cue_point(cue_point: CuePoint) {
+            this.cue_point = cue_point;
+        }
 
         public get_note(): TreeModel.Node<n.Note> {
             return this.clip.get_notes(

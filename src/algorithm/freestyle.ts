@@ -13,6 +13,7 @@ import {track} from "../track/track";
 import {iterate} from "../train/iterate";
 import TreeModel = require("tree-model");
 import {log} from "../log/logger";
+import {cue_point} from "../cue_point/cue_point";
 const _ = require('underscore');
 
 export namespace freestyle {
@@ -20,6 +21,7 @@ export namespace freestyle {
     import ARRANGEMENT = trainer.ARRANGEMENT;
     import Track = track.Track;
     import Logger = log.Logger;
+    import CuePoint = cue_point.CuePoint;
 
     export class Freestyle implements Trainable {
         b_parsed: boolean;
@@ -133,14 +135,17 @@ export namespace freestyle {
                         () => {
                             let cue_points = song.get_cue_points();
 
-                            let cue_point_first = _.min(
+                            cue_points = _.sortBy(
                                 cue_points,
-                                (cue_point) => {
-                                    return cue_point.get_time()
-                                }
+                                (cue_point) => {return cue_point.get_time()}
                             );
 
-                            cue_point_first.jump()
+                            for (let i_segment in segments) {
+                                let segment = segments[Number(i_segment)];
+                                segment.set_cue_point(cue_points[Number(i_segment)]);
+                            }
+
+                            cue_points[0].jump()
                         }
                     );
 

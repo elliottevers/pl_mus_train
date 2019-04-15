@@ -366,8 +366,6 @@ export namespace song {
         get_cue_points() {
             let data_cue_points = this.song_live.get("cue_points");
 
-            let logger = new Logger('max');
-
             let cue_points = [];
 
             let cue_point = [];
@@ -383,8 +381,6 @@ export namespace song {
                     cue_point = [];
                 }
             }
-
-            logger.log(JSON.stringify(data_cue_points));
 
             return cue_points.map((list_id_cue_point) => {
                 return new CuePoint(

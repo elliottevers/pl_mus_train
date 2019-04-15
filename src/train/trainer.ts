@@ -347,9 +347,6 @@ export namespace trainer {
 
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
 
-            // TODO: update loops
-            // this.song.stop();
-
             let endpoints_loop = this.segment_current.get_endpoints_loop();
 
             this.song.set_loop_start(endpoints_loop[0]);
@@ -358,15 +355,12 @@ export namespace trainer {
 
             this.song.set_current_song_time(endpoints_loop[0]);
 
-            // if this is first segment, don't jump to next cue
-
             let b_first_segment = this.segment_current.beat_start === 0;
 
-            // this.song.start();
             if (b_first_segment) {
                 this.song.start()
             } else {
-                this.song.jump_to_next_cue()
+                this.segment_current.cue_point.jump()
             }
         }
 

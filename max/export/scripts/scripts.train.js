@@ -289,12 +289,12 @@ var freestyle;
                 if (Number(i_segment) === segments.length - 1) {
                     var task_jump_to_first = new Task(function () {
                         var cue_points = song.get_cue_points();
-                        logger.log(JSON.stringify(cue_points));
-                        logger.log(JSON.stringify(cue_points[0].get_time()));
-                        var cue_point_first = _.min(cue_points, function (cue_point) {
-                            return cue_point.get_time();
-                        });
-                        cue_point_first.jump();
+                        cue_points = _.sortBy(cue_points, function (cue_point) { return cue_point.get_time(); });
+                        for (var i_segment_1 in segments) {
+                            var segment_2 = segments[Number(i_segment_1)];
+                            segment_2.set_cue_point(cue_points[Number(i_segment_1)]);
+                        }
+                        cue_points[0].jump();
                     });
                     task_jump_to_first.schedule(Number(i_segment) * 500 + 500);
                 }
@@ -304,17 +304,6 @@ var freestyle;
             for (var i_segment in segments) {
                 _loop_1(i_segment);
             }
-            // go to first cue point
-            // let cue_points = song.get_cue_points();
-            //
-            // let cue_point_first = _.min(
-            //     cue_points,
-            //     (cue_point) => {
-            //         return cue_point.get_time()
-            //     }
-            // );
-            //
-            // cue_point_first.jump()
         };
         // TODO: see how other's implement
         Freestyle.prototype.pause = function (song, scene_current) {
@@ -2849,14 +2838,18 @@ var set_segments = function () {
     segments_train = segments;
 };
 var test = function () {
-    set_song();
-    var cue_points = song.get_cue_points();
-    logger.log(JSON.stringify(cue_points));
-    logger.log(JSON.stringify(cue_points[0].get_time()));
-    var cue_point_first = _.min(cue_points, function (cue_point) {
-        return cue_point.get_time();
-    });
-    cue_point_first.jump();
+    // set_song();
+    //
+    // let cue_points = song.get_cue_points();
+    //
+    // let cue_point_first = _.min(
+    //     cue_points,
+    //     (cue_point) => {
+    //         return cue_point.get_time()
+    //     }
+    // );
+    //
+    // cue_point_first.jump()
 };
 // TODO: send this via bus based on options in radio
 var set_track_target = function () {
@@ -2953,7 +2946,6 @@ var segment;
     var Clip = clip_1.clip.Clip;
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
     var Segment = /** @class */ (function () {
-        // clip_user_input_async: Clip;
         function Segment(note) {
             this.beat_start = note.model.note.beat_start;
             this.beat_end = note.model.note.get_beat_end();
@@ -2974,9 +2966,9 @@ var segment;
         Segment.prototype.set_clip_user_input = function (clip) {
             this.clip_user_input = clip;
         };
-        // public set_clip_user_input_async(clip: Clip) {
-        //     this.clip_user_input_async = clip;
-        // }
+        Segment.prototype.set_cue_point = function (cue_point) {
+            this.cue_point = cue_point;
+        };
         Segment.prototype.get_note = function () {
             return this.clip.get_notes(this.beat_start, 0, this.beat_end, 128)[0];
         };
@@ -3234,7 +3226,6 @@ var messenger_1 = require("../message/messenger");
 var live_1 = require("../live/live");
 var scene_1 = require("../scene/scene");
 var utils_1 = require("../utils/utils");
-var logger_1 = require("../log/logger");
 var cue_point_1 = require("../cue_point/cue_point");
 var song;
 (function (song) {
@@ -3242,7 +3233,6 @@ var song;
     var Scene = scene_1.scene.Scene;
     var SceneDao = scene_1.scene.SceneDao;
     var LiveApiJs = live_1.live.LiveApiJs;
-    var Logger = logger_1.log.Logger;
     var CuePoint = cue_point_1.cue_point.CuePoint;
     var CuePointDao = cue_point_1.cue_point.CuePointDao;
     var Song = /** @class */ (function () {
@@ -3482,7 +3472,6 @@ var song;
         };
         SongDao.prototype.get_cue_points = function () {
             var data_cue_points = this.song_live.get("cue_points");
-            var logger = new Logger('max');
             var cue_points = [];
             var cue_point = [];
             for (var i_datum in data_cue_points) {
@@ -3493,7 +3482,6 @@ var song;
                     cue_point = [];
                 }
             }
-            logger.log(JSON.stringify(data_cue_points));
             return cue_points.map(function (list_id_cue_point) {
                 return new CuePoint(new CuePointDao(new LiveApiJs(list_id_cue_point.join(' ')), new Messenger('max', 0)));
             });
@@ -3503,7 +3491,7 @@ var song;
     song.SongDao = SongDao;
 })(song = exports.song || (exports.song = {}));
 
-},{"../cue_point/cue_point":13,"../live/live":16,"../log/logger":17,"../message/messenger":18,"../scene/scene":23,"../utils/utils":34}],30:[function(require,module,exports){
+},{"../cue_point/cue_point":13,"../live/live":16,"../message/messenger":18,"../scene/scene":23,"../utils/utils":34}],30:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {Segment} from "../segment/segment";
@@ -4394,20 +4382,16 @@ var trainer;
         Trainer.prototype.advance_loop_song = function () {
             this.advance_segment();
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
-            // TODO: update loops
-            // this.song.stop();
             var endpoints_loop = this.segment_current.get_endpoints_loop();
             this.song.set_loop_start(endpoints_loop[0]);
             this.song.set_loop_length(endpoints_loop[1] - endpoints_loop[0]);
             this.song.set_current_song_time(endpoints_loop[0]);
-            // if this is first segment, don't jump to next cue
             var b_first_segment = this.segment_current.beat_start === 0;
-            // this.song.start();
             if (b_first_segment) {
                 this.song.start();
             }
             else {
-                this.song.jump_to_next_cue();
+                this.segment_current.cue_point.jump();
             }
         };
         // e.g., clips and scenes
