@@ -54,6 +54,8 @@ import Parsed = parsed.Parsed;
 import StructTrain = module_trainer.StructTrain;
 import {targeted} from "../algorithm/targeted";
 import Targeted = targeted.Targeted;
+import {freestyle} from "../algorithm/freestyle";
+import Freestyle = freestyle.Freestyle;
 const _ = require('underscore');
 
 
@@ -118,9 +120,7 @@ let set_algorithm_train = (option) => {
 
     switch (option) {
         case FREESTYLE: {
-            // algorithm_train = new Freestyle(
-            //     user_input_handler
-            // );
+            algorithm_train = new Freestyle();
             break;
         }
         case DETECT: {

@@ -116,7 +116,7 @@ var derive;
     derive.Derive = Derive;
 })(derive = exports.derive || (exports.derive = {}));
 
-},{"../parse/parse":19,"../train/iterate":30,"../train/trainer":31,"./parsed":4,"./trainable":7}],2:[function(require,module,exports){
+},{"../parse/parse":20,"../train/iterate":31,"../train/trainer":32,"./parsed":5,"./trainable":8}],2:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -208,7 +208,114 @@ var detect;
     detect.Detect = Detect;
 })(detect = exports.detect || (exports.detect = {}));
 
-},{"../constants/constants":10,"../music/harmony":17,"../note/note":18,"../train/trainer":31,"./targeted":6,"./trainable":7,"tree-model":37}],3:[function(require,module,exports){
+},{"../constants/constants":11,"../music/harmony":18,"../note/note":19,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38}],3:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var trainer_1 = require("../train/trainer");
+var freestyle;
+(function (freestyle) {
+    var ARRANGEMENT = trainer_1.trainer.ARRANGEMENT;
+    var Freestyle = /** @class */ (function () {
+        function Freestyle() {
+        }
+        Freestyle.prototype.get_view = function () {
+            return ARRANGEMENT;
+        };
+        Freestyle.prototype.advance_scene = function (scene_current, song) {
+            return;
+        };
+        Freestyle.prototype.coord_to_index_clip_render = function (coord) {
+            return 0;
+        };
+        // TODO: this seems important...
+        Freestyle.prototype.coord_to_index_history_user_input = function (coord) {
+            return [];
+        };
+        // TODO: this seems important...
+        Freestyle.prototype.coord_to_index_struct_train = function (coord) {
+            return [];
+        };
+        // TODO: this seems important...
+        Freestyle.prototype.create_struct_train = function (window, segments, track_target, user_input_handler, struct_train) {
+            return null;
+        };
+        Freestyle.prototype.determine_region_present = function (notes_next, segment_current) {
+        };
+        Freestyle.prototype.get_name = function () {
+            return "freestyle";
+        };
+        Freestyle.prototype.get_num_layers_clips_to_render = function () {
+            return 0;
+        };
+        Freestyle.prototype.get_num_layers_input = function () {
+            return 0;
+        };
+        // TODO: look how others handle this - should we advance song's loop here?
+        Freestyle.prototype.handle_command = function (command, trainer) {
+            switch (command) {
+                case 'advance': {
+                    trainer.advance_loop_song();
+                    break;
+                }
+                default: {
+                    throw ['command', command, 'not recognized'].join(' ');
+                }
+            }
+        };
+        Freestyle.prototype.handle_midi = function (pitch, velocity, trainer) {
+        };
+        Freestyle.prototype.initialize_render = function (window, segments, notes_track_target, struct_train) {
+            return null;
+        };
+        Freestyle.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
+        };
+        Freestyle.prototype.initialize_set = function (song) {
+            song.loop(true);
+        };
+        // TODO: see how other's implement
+        Freestyle.prototype.pause = function (song, scene_current) {
+            song.stop();
+        };
+        Freestyle.prototype.postprocess_user_input = function (notes_user_input, subtarget_current) {
+            return [];
+        };
+        Freestyle.prototype.preprocess_history_user_input = function (history_user_input, segments) {
+            return undefined;
+        };
+        Freestyle.prototype.preprocess_struct_train = function (struct_train, segments, notes_target_track) {
+            return null;
+        };
+        Freestyle.prototype.set_depth = function (depth) {
+        };
+        Freestyle.prototype.stream_bounds = function (messenger, subtarget_current, segment_current, segments) {
+        };
+        // TODO: see how others implement
+        Freestyle.prototype.terminate = function (struct_train, segments) {
+            return;
+        };
+        // TODO: see how others implement
+        Freestyle.prototype.unpause = function (song, scene_current) {
+            song.start();
+        };
+        Freestyle.prototype.update_history_user_input = function (input_postprocessed, history_user_input, iterator_matrix_train, trainable) {
+            return null;
+        };
+        Freestyle.prototype.update_struct = function (notes_input_user, struct_train, trainable, iterator_matrix_train) {
+            return null;
+        };
+        // although we should never be giving MIDI input here...
+        Freestyle.prototype.warrants_advance = function (notes_user_input, subtarget_current) {
+            return true;
+        };
+        Freestyle.prototype.get_notes_focus = function (track_target) {
+            return null;
+        };
+        return Freestyle;
+    }());
+    freestyle.Freestyle = Freestyle;
+})(freestyle = exports.freestyle || (exports.freestyle = {}));
+
+},{"../train/trainer":32}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -383,7 +490,7 @@ var parse;
     parse.Parse = Parse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../parse/parse":19,"../train/iterate":30,"../train/trainer":31,"./parsed":4,"./trainable":7}],4:[function(require,module,exports){
+},{"../parse/parse":20,"../train/iterate":31,"../train/trainer":32,"./parsed":5,"./trainable":8}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_1 = require("../parse/parse");
@@ -429,9 +536,6 @@ var parsed;
             ];
         };
         Parsed.prototype.finish_parse = function (struct_parse, segments) {
-        };
-        Parsed.prototype.get_notes_in_region = function (target, segment) {
-            return [segment.get_note()];
         };
         Parsed.prototype.preprocess_struct_train = function (struct_train, segments, notes_target_track) {
             return this.preprocess_struct_parse(struct_train, segments, notes_target_track);
@@ -482,6 +586,9 @@ var parsed;
             // return [coord[0] - 1, coord[1]];
             return coord;
         };
+        Parsed.prototype.get_notes_focus = function (track_target) {
+            return track_target.get_notes();
+        };
         Parsed.prototype.restore = function (trainer, segments_train, matrix_deserialized) {
             trainer.commence();
             var input_left = true;
@@ -503,7 +610,7 @@ var parsed;
     parsed.Parsed = Parsed;
 })(parsed = exports.parsed || (exports.parsed = {}));
 
-},{"../parse/parse":19,"../train/iterate":30}],5:[function(require,module,exports){
+},{"../parse/parse":20,"../train/iterate":31}],6:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -628,7 +735,7 @@ var predict;
     predict.Predict = Predict;
 })(predict = exports.predict || (exports.predict = {}));
 
-},{"../constants/constants":10,"../note/note":18,"../track/track":29,"../train/trainer":31,"./targeted":6,"./trainable":7,"tree-model":37,"underscore":38}],6:[function(require,module,exports){
+},{"../constants/constants":11,"../note/note":19,"../track/track":30,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38,"underscore":39}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var iterate_1 = require("../train/iterate");
@@ -657,11 +764,6 @@ var targeted;
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[0].model.note.get_beat_end()
             ];
-        };
-        Targeted.prototype.get_notes_in_region = function (target, segment) {
-            return target.iterator_subtarget.subtargets.map(function (subtarget) {
-                return subtarget.note;
-            });
         };
         Targeted.prototype.unpause = function (song, scene_current) {
             // not forcing legato so that it starts immediately
@@ -741,6 +843,9 @@ var targeted;
         Targeted.prototype.coord_to_index_struct_train = function (coord) {
             return coord;
         };
+        Targeted.prototype.get_notes_focus = function (track_target) {
+            return track_target.get_notes();
+        };
         Targeted.prototype.restore = function (trainer, notes_thawed) {
             trainer.commence();
             for (var _i = 0, notes_thawed_1 = notes_thawed; _i < notes_thawed_1.length; _i++) {
@@ -753,7 +858,7 @@ var targeted;
     targeted.Targeted = Targeted;
 })(targeted = exports.targeted || (exports.targeted = {}));
 
-},{"../target/target":28,"../train/iterate":30,"../utils/utils":32}],7:[function(require,module,exports){
+},{"../target/target":29,"../train/iterate":31,"../utils/utils":33}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var trainable;
@@ -765,7 +870,7 @@ var trainable;
     trainable_1.FREESTYLE = 'freestyle';
 })(trainable = exports.trainable || (exports.trainable = {}));
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
@@ -1165,7 +1270,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../live/live":14,"../note/note":18,"../utils/utils":32,"tree-model":37}],9:[function(require,module,exports){
+},{"../live/live":15,"../note/note":19,"../utils/utils":33,"tree-model":38}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -1266,7 +1371,7 @@ var clip_slot;
     clip_slot_1.ClipSlotDao = ClipSlotDao;
 })(clip_slot = exports.clip_slot || (exports.clip_slot = {}));
 
-},{"../clip/clip":8,"../live/live":14,"../utils/utils":32}],10:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":15,"../utils/utils":33}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var modes_texture;
@@ -1280,7 +1385,7 @@ var modes_control;
     modes_control.INSTRUMENTAL = 'instrumental';
 })(modes_control = exports.modes_control || (exports.modes_control = {}));
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var user_input;
@@ -1295,7 +1400,7 @@ var user_input;
     user_input.UserInputHandler = UserInputHandler;
 })(user_input = exports.user_input || (exports.user_input = {}));
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var history;
@@ -1319,7 +1424,7 @@ var history;
     history.HistoryUserInput = HistoryUserInput;
 })(history = exports.history || (exports.history = {}));
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file;
@@ -1412,7 +1517,7 @@ var file;
     };
 })(file = exports.file || (exports.file = {}));
 
-},{"fs":33}],14:[function(require,module,exports){
+},{"fs":34}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -1556,7 +1661,7 @@ var live;
     live.LiveClipVirtual = LiveClipVirtual;
 })(live = exports.live || (exports.live = {}));
 
-},{"../clip/clip":8}],15:[function(require,module,exports){
+},{"../clip/clip":9}],16:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var log;
@@ -1649,7 +1754,7 @@ var log;
     log.Logger = Logger;
 })(log = exports.log || (exports.log = {}));
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
@@ -1706,7 +1811,7 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
@@ -1768,7 +1873,7 @@ var harmony;
     harmony.Harmony = Harmony;
 })(harmony = exports.harmony || (exports.harmony = {}));
 
-},{"../note/note":18,"tree-model":37,"underscore":38}],18:[function(require,module,exports){
+},{"../note/note":19,"tree-model":38,"underscore":39}],19:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -1935,7 +2040,7 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":37}],19:[function(require,module,exports){
+},{"tree-model":38}],20:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2081,7 +2186,7 @@ var parse;
     parse.StructParse = StructParse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../note/note":18,"tree-model":37,"underscore":38}],20:[function(require,module,exports){
+},{"../note/note":19,"tree-model":38,"underscore":39}],21:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2375,7 +2480,7 @@ var window;
     window.MatrixWindow = MatrixWindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":8,"../live/live":14,"lodash":35}],21:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":15,"lodash":36}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
@@ -2499,7 +2604,7 @@ var scene;
     scene.SceneIterator = SceneIterator;
 })(scene = exports.scene || (exports.scene = {}));
 
-},{"../utils/utils":32}],22:[function(require,module,exports){
+},{"../utils/utils":33}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -2551,6 +2656,8 @@ var DERIVE = trainable_1.trainable.DERIVE;
 var detect_1 = require("../algorithm/detect");
 var Detect = detect_1.detect.Detect;
 var DETECT = trainable_1.trainable.DETECT;
+var freestyle_1 = require("../algorithm/freestyle");
+var Freestyle = freestyle_1.freestyle.Freestyle;
 var _ = require('underscore');
 var env = 'max';
 if (env === 'max') {
@@ -2596,9 +2703,7 @@ var set_mode_control = function (option) {
 var set_algorithm_train = function (option) {
     switch (option) {
         case FREESTYLE: {
-            // algorithm_train = new Freestyle(
-            //     user_input_handler
-            // );
+            algorithm_train = new Freestyle();
             break;
         }
         case DETECT: {
@@ -2730,7 +2835,7 @@ if (typeof Global !== "undefined") {
     Global.train.set_mode_texture = set_mode_texture;
 }
 
-},{"../algorithm/derive":1,"../algorithm/detect":2,"../algorithm/parse":3,"../algorithm/predict":5,"../algorithm/trainable":7,"../clip/clip":8,"../constants/constants":10,"../control/user_input":11,"../live/live":14,"../log/logger":15,"../message/messenger":16,"../render/window":20,"../scene/scene":21,"../segment/segment":23,"../serialize/freeze":24,"../serialize/thaw":26,"../song/song":27,"../track/track":29,"../train/trainer":31,"../utils/utils":32,"underscore":38}],23:[function(require,module,exports){
+},{"../algorithm/derive":1,"../algorithm/detect":2,"../algorithm/freestyle":3,"../algorithm/parse":4,"../algorithm/predict":6,"../algorithm/trainable":8,"../clip/clip":9,"../constants/constants":11,"../control/user_input":12,"../live/live":15,"../log/logger":16,"../message/messenger":17,"../render/window":21,"../scene/scene":22,"../segment/segment":24,"../serialize/freeze":25,"../serialize/thaw":27,"../song/song":28,"../track/track":30,"../train/trainer":32,"../utils/utils":33,"underscore":39}],24:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -2828,7 +2933,7 @@ var segment;
     segment_1.SegmentIterator = SegmentIterator;
 })(segment = exports.segment || (exports.segment = {}));
 
-},{"../clip/clip":8,"../live/live":14}],24:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":15}],25:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file_1 = require("../io/file");
@@ -2862,7 +2967,7 @@ var freeze;
     freeze.TrainFreezer = TrainFreezer;
 })(freeze = exports.freeze || (exports.freeze = {}));
 
-},{"../io/file":13,"./serialize":25}],25:[function(require,module,exports){
+},{"../io/file":14,"./serialize":26}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var TreeModel = require("tree-model");
@@ -2958,7 +3063,7 @@ var serialize;
     // };
 })(serialize = exports.serialize || (exports.serialize = {}));
 
-},{"tree-model":37}],26:[function(require,module,exports){
+},{"tree-model":38}],27:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file_1 = require("../io/file");
@@ -3014,7 +3119,7 @@ var thaw;
     thaw.TrainThawer = TrainThawer;
 })(thaw = exports.thaw || (exports.thaw = {}));
 
-},{"../io/file":13,"./serialize":25}],27:[function(require,module,exports){
+},{"../io/file":14,"./serialize":26}],28:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -3221,7 +3326,7 @@ var song;
     song.SongDao = SongDao;
 })(song = exports.song || (exports.song = {}));
 
-},{"../live/live":14,"../scene/scene":21,"../utils/utils":32}],28:[function(require,module,exports){
+},{"../live/live":15,"../scene/scene":22,"../utils/utils":33}],29:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {Segment} from "../segment/segment";
@@ -3496,7 +3601,7 @@ var target;
     // }
 })(target = exports.target || (exports.target = {}));
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -3692,7 +3797,7 @@ var track;
     track.TrackDao = TrackDao;
 })(track = exports.track || (exports.track = {}));
 
-},{"../clip/clip":8,"../clip_slot/clip_slot":9,"../live/live":14,"../message/messenger":16,"../utils/utils":32,"underscore":38}],30:[function(require,module,exports){
+},{"../clip/clip":9,"../clip_slot/clip_slot":10,"../live/live":15,"../message/messenger":17,"../utils/utils":33,"underscore":39}],31:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
@@ -3705,6 +3810,7 @@ var iterate;
     var PREDICT = trainable_1.trainable.PREDICT;
     var PARSE = trainable_1.trainable.PARSE;
     var DERIVE = trainable_1.trainable.DERIVE;
+    var FREESTYLE = trainable_1.trainable.FREESTYLE;
     var MatrixIterator = /** @class */ (function () {
         function MatrixIterator(num_rows, num_columns, downward, rightward, start_at_row, stop_at_row) {
             this.num_rows = num_rows;
@@ -3920,6 +4026,10 @@ var iterate;
             var iterator;
             var downward, rightward;
             switch (trainable.get_name()) {
+                case FREESTYLE: {
+                    iterator = new MatrixIterator(1, segments.length);
+                    break;
+                }
                 case DETECT: {
                     iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
                     break;
@@ -3955,7 +4065,7 @@ var iterate;
     iterate.IteratorTrainFactory = IteratorTrainFactory;
 })(iterate = exports.iterate || (exports.iterate = {}));
 
-},{"../algorithm/trainable":7,"../utils/utils":32}],31:[function(require,module,exports){
+},{"../algorithm/trainable":8,"../utils/utils":33}],32:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
@@ -3979,9 +4089,8 @@ var trainer;
             this.user_input_handler = user_input_handler;
             this.segments = segments;
             this.messenger = messenger;
-            this.view = this.trainable.get_view();
             this.virtualized = virtualized;
-            this.notes_target_track = track_target.get_notes();
+            this.notes_target_track = this.trainable.get_notes_focus(track_target);
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_user_input_history(this.trainable, this.segments));
             this.window.initialize_clips(this.trainable, this.segments);
@@ -4119,7 +4228,7 @@ var trainer;
         };
         Trainer.prototype.next_segment = function () {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
-            if (this.view === trainer.SESSION) {
+            if (this.trainable.get_view() === trainer.SESSION) {
                 this.update_session_constucts();
             }
         };
@@ -4152,7 +4261,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../history/history":12,"./iterate":30}],32:[function(require,module,exports){
+},{"../history/history":13,"./iterate":31}],33:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
@@ -4256,9 +4365,9 @@ var utils;
     utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],33:[function(require,module,exports){
-
 },{}],34:[function(require,module,exports){
+
+},{}],35:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -4282,7 +4391,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -21393,7 +21502,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -21445,7 +21554,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -21738,7 +21847,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":34,"mergesort":36}],38:[function(require,module,exports){
+},{"find-insert-index":35,"mergesort":37}],39:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -23434,7 +23543,7 @@ module.exports = (function () {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[22]);
+},{}]},{},[23]);
 
 var load_session = Global.train.load_session;
 var save_session = Global.train.save_session;

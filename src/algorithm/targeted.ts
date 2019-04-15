@@ -35,6 +35,7 @@ export namespace targeted {
     import MatrixWindow = window.MatrixWindow;
     import Logger = log.Logger;
     import Trainer = trainer.Trainer;
+    import Track = track.Track;
 
     export abstract class Targeted implements Targetable {
 
@@ -83,12 +84,6 @@ export namespace targeted {
                 notes_target_next[0].model.note.beat_start,
                 notes_target_next[0].model.note.get_beat_end()
             ]
-        }
-
-        get_notes_in_region(target: target.Target, segment: segment.Segment) {
-            return target.iterator_subtarget.subtargets.map((subtarget) => {
-                return subtarget.note
-            })
         }
 
         public abstract initialize_render(
@@ -220,6 +215,10 @@ export namespace targeted {
         public abstract handle_command(command: string, trainer: trainer.Trainer): void
 
         public abstract handle_midi(pitch: number, velocity: number, trainer: trainer.Trainer): void
+
+        public get_notes_focus(track_target: Track): TreeModel.Node<note.Note>[] {
+            return track_target.get_notes();
+        }
 
         restore(trainer: Trainer, notes_thawed: TreeModel.Node<Note>[]): void {
             trainer.commence();

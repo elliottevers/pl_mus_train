@@ -31,6 +31,7 @@ export namespace parsed {
     import MatrixWindow = window.MatrixWindow;
     import Messenger = message.Messenger;
     import Trainer = trainer.Trainer;
+    import Track = track.Track;
 
     export abstract class Parsed implements Parsable {
 
@@ -128,10 +129,6 @@ export namespace parsed {
 
         public abstract get_coords_notes_to_grow(coords_note_input_current): number[][]
 
-        get_notes_in_region(target: target.Target, segment: segment.Segment) {
-            return [segment.get_note()]
-        }
-
         public abstract grow_layer(notes_user_input_renderable, notes_to_grow)
 
 
@@ -223,6 +220,10 @@ export namespace parsed {
         public abstract handle_command(command: string, trainer: trainer.Trainer): void
 
         public abstract handle_midi(pitch: number, velocity: number, trainer: trainer.Trainer): void
+
+        public get_notes_focus(track_target: Track): TreeModel.Node<note.Note>[] {
+            return track_target.get_notes();
+        }
 
         restore(trainer: Trainer, segments_train: Segment[], matrix_deserialized: StructParse) {
             trainer.commence();

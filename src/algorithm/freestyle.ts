@@ -16,6 +16,7 @@ import TreeModel = require("tree-model");
 export namespace freestyle {
     import Trainable = trainable.Trainable;
     import ARRANGEMENT = trainer.ARRANGEMENT;
+    import Track = track.Track;
 
     export class Freestyle implements Trainable {
         b_parsed: boolean;
@@ -34,14 +35,17 @@ export namespace freestyle {
             return 0;
         }
 
+        // TODO: this seems important...
         coord_to_index_history_user_input(coord: number[]): number[] {
             return [];
         }
 
+        // TODO: this seems important...
         coord_to_index_struct_train(coord: number[]): number[] {
             return [];
         }
 
+        // TODO: this seems important...
         create_struct_train(window: window.MatrixWindow, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
             return null;
         }
@@ -52,10 +56,6 @@ export namespace freestyle {
 
         get_name(): string {
             return "freestyle";
-        }
-
-        get_notes_in_region(target: target.Target, segment: segment.Segment): TreeModel.Node<note.Note>[] {
-            return [];
         }
 
         get_num_layers_clips_to_render(): number {
@@ -124,7 +124,7 @@ export namespace freestyle {
 
         // TODO: see how others implement
         terminate(struct_train: trainer.StructTrain, segments: segment.Segment[]) {
-
+            return
         }
 
         // TODO: see how others implement
@@ -143,6 +143,10 @@ export namespace freestyle {
         // although we should never be giving MIDI input here...
         warrants_advance(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current: target.Subtarget): boolean {
             return true;
+        }
+
+        public get_notes_focus(track_target: Track): TreeModel.Node<note.Note>[] {
+            return null;
         }
 
     }

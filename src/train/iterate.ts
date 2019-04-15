@@ -15,6 +15,7 @@ export namespace iterate {
     import PREDICT = trainable.PREDICT;
     import PARSE = trainable.PARSE;
     import DERIVE = trainable.DERIVE;
+    import FREESTYLE = trainable.FREESTYLE;
 
     export class MatrixIterator {
 
@@ -272,6 +273,13 @@ export namespace iterate {
             let downward, rightward;
 
             switch (trainable.get_name()) {
+                case FREESTYLE: {
+                    iterator = new MatrixIterator(
+                        1,
+                        segments.length
+                    );
+                    break;
+                }
                 case DETECT: {
                     iterator = new MatrixIterator(
                         1,

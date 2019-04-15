@@ -74,8 +74,6 @@ export namespace trainer {
 
         private user_input_handler: UserInputHandler;
 
-        private view: string;
-
         public virtualized: boolean = false;
 
         public done: boolean = false;
@@ -99,10 +97,11 @@ export namespace trainer {
             this.user_input_handler = user_input_handler;
             this.segments = segments;
             this.messenger = messenger;
-            this.view = this.trainable.get_view();
             this.virtualized = virtualized;
 
-            this.notes_target_track = track_target.get_notes();
+            this.notes_target_track = this.trainable.get_notes_focus(
+                track_target
+            );
 
             this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
                 this.trainable,
@@ -369,7 +368,7 @@ export namespace trainer {
         next_segment() {
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
 
-            if (this.view === SESSION) {
+            if (this.trainable.get_view() === SESSION) {
                 this.update_session_constucts()
             }
         }

@@ -57,11 +57,6 @@ export namespace trainable {
             notes_track_target: TreeModel.Node<Note>[],
             struct_train: StructTrain
         ): MatrixWindow
-
-        get_notes_in_region(
-            target: Target,
-            segment: Segment
-        ): TreeModel.Node<Note>[]
     }
 
     // interface that the trainer uses
@@ -165,6 +160,8 @@ export namespace trainable {
         ): void
 
         get_view(): string
+
+        get_notes_focus(track_target: Track): TreeModel.Node<Note>[]
     }
 
     // interface common to both parse and derive, but have different implementations
