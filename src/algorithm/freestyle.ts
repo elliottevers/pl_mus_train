@@ -12,6 +12,7 @@ import {window} from "../render/window";
 import {track} from "../track/track";
 import {iterate} from "../train/iterate";
 import TreeModel = require("tree-model");
+const _ = require('underscore');
 
 export namespace freestyle {
     import Trainable = trainable.Trainable;
@@ -93,8 +94,29 @@ export namespace freestyle {
 
         }
 
-        initialize_set(song: song.Song) {
+        initialize_set(song: song.Song, segments: segment.Segment[]) {
+
             song.loop(true);
+
+            // create cue points based on segments
+
+            for (let segment of segments) {
+                song.set_current_song_time(segment.beat_start);
+                song.set_or_delete_cue()
+            }
+
+            // go to first cue point
+
+            let cue_points = song.get_cue_points();
+
+            let cue_point_first = _.min(
+                cue_points,
+                (cue_point) => {
+                    return cue_point.get_time()
+                }
+            );
+
+            cue_point_first.jump()
         }
 
         // TODO: see how other's implement

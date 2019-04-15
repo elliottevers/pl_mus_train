@@ -35,6 +35,7 @@ export namespace trainer {
     import MatrixWindow = window.MatrixWindow;
     import Trainable = trainable.Trainable;
     import Logger = log.Logger;
+    import FREESTYLE = trainable.FREESTYLE;
 
     export type StructTargets = TargetIterator[][];
 
@@ -144,7 +145,8 @@ export namespace trainer {
             );
 
             this.trainable.initialize_set(
-                this.song
+                this.song,
+                this.segments
             );
 
             this.trainable.initialize_tracks(
@@ -201,6 +203,8 @@ export namespace trainer {
                 this.advance_segment()
             } else if (this.trainable.b_targeted) {
                 this.advance_subtarget()
+            } else if (this.trainable.get_name() === FREESTYLE) {
+                this.advance_loop_song()
             } else {
                 throw 'cannot determine how to advance'
             }
@@ -340,10 +344,11 @@ export namespace trainer {
 
         advance_loop_song() {
             this.advance_segment();
+
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
 
             // TODO: update loops
-            this.song.stop();
+            // this.song.stop();
 
             let endpoints_loop = this.segment_current.get_endpoints_loop();
 
@@ -351,7 +356,18 @@ export namespace trainer {
 
             this.song.set_loop_length(endpoints_loop[1] - endpoints_loop[0]);
 
-            this.song.start();
+            this.song.set_current_song_time(endpoints_loop[0]);
+
+            // if this is first segment, don't jump to next cue
+
+            let b_first_segment = this.segment_current.beat_start === 0;
+
+            // this.song.start();
+            if (b_first_segment) {
+                this.song.start()
+            } else {
+                this.song.jump_to_next_cue()
+            }
         }
 
         // e.g., clips and scenes

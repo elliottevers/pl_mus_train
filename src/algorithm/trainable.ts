@@ -120,14 +120,14 @@ export namespace trainable {
         ): StructTrain
 
         initialize_set(
-            song: Song
+            song: song.Song,
+            segments: segment.Segment[]
         ): void
 
         initialize_tracks(
             segments: segment.Segment[],
             track_target: track.Track,
             track_user_input: track.Track,
-            // matrix_target: TargetIterator[][]
             struct_train: StructTrain
         )
 

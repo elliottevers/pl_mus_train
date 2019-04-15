@@ -116,7 +116,7 @@ var derive;
     derive.Derive = Derive;
 })(derive = exports.derive || (exports.derive = {}));
 
-},{"../parse/parse":20,"../train/iterate":31,"../train/trainer":32,"./parsed":5,"./trainable":8}],2:[function(require,module,exports){
+},{"../parse/parse":21,"../train/iterate":32,"../train/trainer":33,"./parsed":5,"./trainable":8}],2:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -208,10 +208,11 @@ var detect;
     detect.Detect = Detect;
 })(detect = exports.detect || (exports.detect = {}));
 
-},{"../constants/constants":11,"../music/harmony":18,"../note/note":19,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38}],3:[function(require,module,exports){
+},{"../constants/constants":11,"../music/harmony":19,"../note/note":20,"../train/trainer":33,"./targeted":7,"./trainable":8,"tree-model":39}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var trainer_1 = require("../train/trainer");
+var _ = require('underscore');
 var freestyle;
 (function (freestyle) {
     var ARRANGEMENT = trainer_1.trainer.ARRANGEMENT;
@@ -269,8 +270,20 @@ var freestyle;
         };
         Freestyle.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
         };
-        Freestyle.prototype.initialize_set = function (song) {
+        Freestyle.prototype.initialize_set = function (song, segments) {
             song.loop(true);
+            // create cue points based on segments
+            for (var _i = 0, segments_1 = segments; _i < segments_1.length; _i++) {
+                var segment_1 = segments_1[_i];
+                song.set_current_song_time(segment_1.beat_start);
+                song.set_or_delete_cue();
+            }
+            // go to first cue point
+            var cue_points = song.get_cue_points();
+            var cue_point_first = _.min(cue_points, function (cue_point) {
+                return cue_point.get_time();
+            });
+            cue_point_first.jump();
         };
         // TODO: see how other's implement
         Freestyle.prototype.pause = function (song, scene_current) {
@@ -315,7 +328,7 @@ var freestyle;
     freestyle.Freestyle = Freestyle;
 })(freestyle = exports.freestyle || (exports.freestyle = {}));
 
-},{"../train/trainer":32}],4:[function(require,module,exports){
+},{"../train/trainer":33,"underscore":40}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -490,7 +503,7 @@ var parse;
     parse.Parse = Parse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../parse/parse":20,"../train/iterate":31,"../train/trainer":32,"./parsed":5,"./trainable":8}],5:[function(require,module,exports){
+},{"../parse/parse":21,"../train/iterate":32,"../train/trainer":33,"./parsed":5,"./trainable":8}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_1 = require("../parse/parse");
@@ -610,7 +623,7 @@ var parsed;
     parsed.Parsed = Parsed;
 })(parsed = exports.parsed || (exports.parsed = {}));
 
-},{"../parse/parse":20,"../train/iterate":31}],6:[function(require,module,exports){
+},{"../parse/parse":21,"../train/iterate":32}],6:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -735,7 +748,7 @@ var predict;
     predict.Predict = Predict;
 })(predict = exports.predict || (exports.predict = {}));
 
-},{"../constants/constants":11,"../note/note":19,"../track/track":30,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38,"underscore":39}],7:[function(require,module,exports){
+},{"../constants/constants":11,"../note/note":20,"../track/track":31,"../train/trainer":33,"./targeted":7,"./trainable":8,"tree-model":39,"underscore":40}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var iterate_1 = require("../train/iterate");
@@ -858,7 +871,7 @@ var targeted;
     targeted.Targeted = Targeted;
 })(targeted = exports.targeted || (exports.targeted = {}));
 
-},{"../target/target":29,"../train/iterate":31,"../utils/utils":33}],8:[function(require,module,exports){
+},{"../target/target":30,"../train/iterate":32,"../utils/utils":34}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var trainable;
@@ -1270,7 +1283,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../live/live":15,"../note/note":19,"../utils/utils":33,"tree-model":38}],10:[function(require,module,exports){
+},{"../live/live":16,"../note/note":20,"../utils/utils":34,"tree-model":39}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -1371,7 +1384,7 @@ var clip_slot;
     clip_slot_1.ClipSlotDao = ClipSlotDao;
 })(clip_slot = exports.clip_slot || (exports.clip_slot = {}));
 
-},{"../clip/clip":9,"../live/live":15,"../utils/utils":33}],11:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":16,"../utils/utils":34}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var modes_texture;
@@ -1403,6 +1416,61 @@ var user_input;
 },{}],13:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var cue_point;
+(function (cue_point) {
+    var CuePoint = /** @class */ (function () {
+        function CuePoint(cue_point_dao) {
+            this.cue_point_dao = cue_point_dao;
+        }
+        CuePoint.prototype.get_name = function () {
+            return this.cue_point_dao.get_name();
+        };
+        CuePoint.prototype.get_time = function () {
+            return this.cue_point_dao.get_time();
+        };
+        CuePoint.prototype.jump = function () {
+            this.cue_point_dao.jump();
+        };
+        return CuePoint;
+    }());
+    cue_point.CuePoint = CuePoint;
+    var CuePointDaoVirtual = /** @class */ (function () {
+        // TODO: we'll need to pass in dependencies
+        function CuePointDaoVirtual() {
+        }
+        CuePointDaoVirtual.prototype.get_name = function () {
+            return '';
+        };
+        CuePointDaoVirtual.prototype.get_time = function () {
+            return 0;
+        };
+        CuePointDaoVirtual.prototype.jump = function () {
+        };
+        return CuePointDaoVirtual;
+    }());
+    cue_point.CuePointDaoVirtual = CuePointDaoVirtual;
+    var CuePointDao = /** @class */ (function () {
+        function CuePointDao(live_api, messenger) {
+            this.live_api = live_api;
+            this.messenger = messenger;
+        }
+        CuePointDao.prototype.get_name = function () {
+            return this.live_api.get('name');
+        };
+        CuePointDao.prototype.get_time = function () {
+            return this.live_api.get('time');
+        };
+        CuePointDao.prototype.jump = function () {
+            this.live_api.call('jump');
+        };
+        return CuePointDao;
+    }());
+    cue_point.CuePointDao = CuePointDao;
+})(cue_point = exports.cue_point || (exports.cue_point = {}));
+
+},{}],14:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var history;
 (function (history) {
     var HistoryUserInput = /** @class */ (function () {
@@ -1424,7 +1492,7 @@ var history;
     history.HistoryUserInput = HistoryUserInput;
 })(history = exports.history || (exports.history = {}));
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file;
@@ -1517,7 +1585,7 @@ var file;
     };
 })(file = exports.file || (exports.file = {}));
 
-},{"fs":34}],15:[function(require,module,exports){
+},{"fs":35}],16:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -1661,7 +1729,7 @@ var live;
     live.LiveClipVirtual = LiveClipVirtual;
 })(live = exports.live || (exports.live = {}));
 
-},{"../clip/clip":9}],16:[function(require,module,exports){
+},{"../clip/clip":9}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var log;
@@ -1754,7 +1822,7 @@ var log;
     log.Logger = Logger;
 })(log = exports.log || (exports.log = {}));
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
@@ -1811,7 +1879,7 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
@@ -1873,7 +1941,7 @@ var harmony;
     harmony.Harmony = Harmony;
 })(harmony = exports.harmony || (exports.harmony = {}));
 
-},{"../note/note":19,"tree-model":38,"underscore":39}],19:[function(require,module,exports){
+},{"../note/note":20,"tree-model":39,"underscore":40}],20:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2040,7 +2108,7 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":38}],20:[function(require,module,exports){
+},{"tree-model":39}],21:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2186,7 +2254,7 @@ var parse;
     parse.StructParse = StructParse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../note/note":19,"tree-model":38,"underscore":39}],21:[function(require,module,exports){
+},{"../note/note":20,"tree-model":39,"underscore":40}],22:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2480,7 +2548,7 @@ var window;
     window.MatrixWindow = MatrixWindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":9,"../live/live":15,"lodash":36}],22:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":16,"lodash":37}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
@@ -2604,7 +2672,7 @@ var scene;
     scene.SceneIterator = SceneIterator;
 })(scene = exports.scene || (exports.scene = {}));
 
-},{"../utils/utils":33}],23:[function(require,module,exports){
+},{"../utils/utils":34}],24:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -2835,7 +2903,7 @@ if (typeof Global !== "undefined") {
     Global.train.set_mode_texture = set_mode_texture;
 }
 
-},{"../algorithm/derive":1,"../algorithm/detect":2,"../algorithm/freestyle":3,"../algorithm/parse":4,"../algorithm/predict":6,"../algorithm/trainable":8,"../clip/clip":9,"../constants/constants":11,"../control/user_input":12,"../live/live":15,"../log/logger":16,"../message/messenger":17,"../render/window":21,"../scene/scene":22,"../segment/segment":24,"../serialize/freeze":25,"../serialize/thaw":27,"../song/song":28,"../track/track":30,"../train/trainer":32,"../utils/utils":33,"underscore":39}],24:[function(require,module,exports){
+},{"../algorithm/derive":1,"../algorithm/detect":2,"../algorithm/freestyle":3,"../algorithm/parse":4,"../algorithm/predict":6,"../algorithm/trainable":8,"../clip/clip":9,"../constants/constants":11,"../control/user_input":12,"../live/live":16,"../log/logger":17,"../message/messenger":18,"../render/window":22,"../scene/scene":23,"../segment/segment":25,"../serialize/freeze":26,"../serialize/thaw":28,"../song/song":29,"../track/track":31,"../train/trainer":33,"../utils/utils":34,"underscore":40}],25:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -2933,7 +3001,7 @@ var segment;
     segment_1.SegmentIterator = SegmentIterator;
 })(segment = exports.segment || (exports.segment = {}));
 
-},{"../clip/clip":9,"../live/live":15}],25:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":16}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file_1 = require("../io/file");
@@ -2967,7 +3035,7 @@ var freeze;
     freeze.TrainFreezer = TrainFreezer;
 })(freeze = exports.freeze || (exports.freeze = {}));
 
-},{"../io/file":14,"./serialize":26}],26:[function(require,module,exports){
+},{"../io/file":15,"./serialize":27}],27:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var TreeModel = require("tree-model");
@@ -3063,7 +3131,7 @@ var serialize;
     // };
 })(serialize = exports.serialize || (exports.serialize = {}));
 
-},{"tree-model":38}],27:[function(require,module,exports){
+},{"tree-model":39}],28:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file_1 = require("../io/file");
@@ -3119,21 +3187,38 @@ var thaw;
     thaw.TrainThawer = TrainThawer;
 })(thaw = exports.thaw || (exports.thaw = {}));
 
-},{"../io/file":14,"./serialize":26}],28:[function(require,module,exports){
+},{"../io/file":15,"./serialize":27}],29:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var messenger_1 = require("../message/messenger");
 var live_1 = require("../live/live");
 var scene_1 = require("../scene/scene");
 var utils_1 = require("../utils/utils");
+var cue_point_1 = require("../cue_point/cue_point");
 var song;
 (function (song) {
+    var Messenger = messenger_1.message.Messenger;
     var Scene = scene_1.scene.Scene;
     var SceneDao = scene_1.scene.SceneDao;
     var LiveApiJs = live_1.live.LiveApiJs;
+    var CuePoint = cue_point_1.cue_point.CuePoint;
+    var CuePointDao = cue_point_1.cue_point.CuePointDao;
     var Song = /** @class */ (function () {
         function Song(song_dao) {
             this.song_dao = song_dao;
         }
+        Song.prototype.get_cue_points = function () {
+            this.song_dao.get_cue_points();
+        };
+        Song.prototype.set_or_delete_cue = function () {
+            this.song_dao.set_or_delete_cue();
+        };
+        Song.prototype.jump_to_next_cue = function () {
+            this.song_dao.jump_to_next_cue();
+        };
+        Song.prototype.set_current_song_time = function (beat) {
+            this.song_dao.set_current_song_time(beat);
+        };
         Song.prototype.loop = function (status) {
             this.song_dao.loop(status);
         };
@@ -3197,10 +3282,6 @@ var song;
         SongDaoVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
             return;
         };
-        SongDaoVirtual.prototype.is_async = function () {
-            // return this.deferlow
-            return false;
-        };
         SongDaoVirtual.prototype.get_path = function () {
             return 'live_set';
         };
@@ -3236,6 +3317,14 @@ var song;
         };
         SongDaoVirtual.prototype.set_loop_start = function (beat_start) {
         };
+        SongDaoVirtual.prototype.set_current_song_time = function (beat) {
+        };
+        SongDaoVirtual.prototype.jump_to_next_cue = function () {
+        };
+        SongDaoVirtual.prototype.set_or_delete_cue = function () {
+        };
+        SongDaoVirtual.prototype.get_cue_points = function () {
+        };
         return SongDaoVirtual;
     }());
     song.SongDaoVirtual = SongDaoVirtual;
@@ -3249,8 +3338,6 @@ var song;
             this.deferlow = deferlow;
             this.key_route = key_route;
             this.env = env;
-            // automatically set the deferlow path
-            // this.patcher.getnamed('song').message('set', 'session_record', String(int))
         }
         SongDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
@@ -3321,12 +3408,37 @@ var song;
         SongDao.prototype.set_loop_start = function (beat_start) {
             this.song_live.set("loop_start", beat_start);
         };
+        SongDao.prototype.set_current_song_time = function (beat) {
+            this.song_live.set("current_song_time", beat);
+        };
+        SongDao.prototype.jump_to_next_cue = function () {
+            this.song_live.call('jump_to_next_cue');
+        };
+        SongDao.prototype.set_or_delete_cue = function () {
+            this.song_live.call('set_or_delete_cue');
+        };
+        SongDao.prototype.get_cue_points = function () {
+            var data_cue_points = this.song_live.get("cue_points");
+            var cue_points = [];
+            var cue_point = [];
+            for (var i_datum in data_cue_points) {
+                var datum = data_cue_points[Number(i_datum)];
+                cue_point.push(datum);
+                if (Number(i_datum) % 2 === 1) {
+                    cue_points.push(cue_point);
+                    cue_point = [];
+                }
+            }
+            return cue_points.map(function (list_id_cue_point) {
+                return new CuePoint(new CuePointDao(new LiveApiJs(list_id_cue_point.join(' ')), new Messenger('max', 0)));
+            });
+        };
         return SongDao;
     }());
     song.SongDao = SongDao;
 })(song = exports.song || (exports.song = {}));
 
-},{"../live/live":15,"../scene/scene":22,"../utils/utils":33}],29:[function(require,module,exports){
+},{"../cue_point/cue_point":13,"../live/live":16,"../message/messenger":18,"../scene/scene":23,"../utils/utils":34}],30:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {Segment} from "../segment/segment";
@@ -3601,7 +3713,7 @@ var target;
     // }
 })(target = exports.target || (exports.target = {}));
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -3797,7 +3909,7 @@ var track;
     track.TrackDao = TrackDao;
 })(track = exports.track || (exports.track = {}));
 
-},{"../clip/clip":9,"../clip_slot/clip_slot":10,"../live/live":15,"../message/messenger":17,"../utils/utils":33,"underscore":39}],31:[function(require,module,exports){
+},{"../clip/clip":9,"../clip_slot/clip_slot":10,"../live/live":16,"../message/messenger":18,"../utils/utils":34,"underscore":40}],32:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
@@ -4065,16 +4177,18 @@ var iterate;
     iterate.IteratorTrainFactory = IteratorTrainFactory;
 })(iterate = exports.iterate || (exports.iterate = {}));
 
-},{"../algorithm/trainable":8,"../utils/utils":33}],32:[function(require,module,exports){
+},{"../algorithm/trainable":8,"../utils/utils":34}],33:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
 var iterate_1 = require("./iterate");
+var trainable_1 = require("../algorithm/trainable");
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
     var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
+    var FREESTYLE = trainable_1.trainable.FREESTYLE;
     trainer.SESSION = 'session';
     trainer.ARRANGEMENT = 'arrangement';
     var Trainer = /** @class */ (function () {
@@ -4098,7 +4212,7 @@ var trainer;
             this.history_user_input = this.trainable.preprocess_history_user_input(this.history_user_input, this.segments);
             this.struct_train = this.trainable.create_struct_train(this.window, this.segments, this.track_target, this.user_input_handler, this.struct_train);
             this.struct_train = this.trainable.preprocess_struct_train(this.struct_train, this.segments, this.notes_target_track);
-            this.trainable.initialize_set(this.song);
+            this.trainable.initialize_set(this.song, this.segments);
             this.trainable.initialize_tracks(this.segments, this.track_target, this.track_user_input, this.struct_train);
             this.window = this.trainable.initialize_render(this.window, this.segments, this.notes_target_track, this.struct_train);
         }
@@ -4131,6 +4245,9 @@ var trainer;
             }
             else if (this.trainable.b_targeted) {
                 this.advance_subtarget();
+            }
+            else if (this.trainable.get_name() === FREESTYLE) {
+                this.advance_loop_song();
             }
             else {
                 throw 'cannot determine how to advance';
@@ -4213,11 +4330,20 @@ var trainer;
             this.advance_segment();
             this.segment_current = this.segments[this.iterator_matrix_train.get_coord_current()[1]];
             // TODO: update loops
-            this.song.stop();
+            // this.song.stop();
             var endpoints_loop = this.segment_current.get_endpoints_loop();
             this.song.set_loop_start(endpoints_loop[0]);
             this.song.set_loop_length(endpoints_loop[1] - endpoints_loop[0]);
-            this.song.start();
+            this.song.set_current_song_time(endpoints_loop[0]);
+            // if this is first segment, don't jump to next cue
+            var b_first_segment = this.segment_current.beat_start === 0;
+            // this.song.start();
+            if (b_first_segment) {
+                this.song.start();
+            }
+            else {
+                this.song.jump_to_next_cue();
+            }
         };
         // e.g., clips and scenes
         Trainer.prototype.update_session_constucts = function () {
@@ -4261,7 +4387,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../history/history":13,"./iterate":31}],33:[function(require,module,exports){
+},{"../algorithm/trainable":8,"../history/history":14,"./iterate":32}],34:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
@@ -4365,9 +4491,9 @@ var utils;
     utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],34:[function(require,module,exports){
-
 },{}],35:[function(require,module,exports){
+
+},{}],36:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -4391,7 +4517,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -21502,7 +21628,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -21554,7 +21680,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -21847,7 +21973,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":35,"mergesort":37}],39:[function(require,module,exports){
+},{"find-insert-index":36,"mergesort":38}],40:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -23543,7 +23669,7 @@ module.exports = (function () {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[23]);
+},{}]},{},[24]);
 
 var load_session = Global.train.load_session;
 var save_session = Global.train.save_session;

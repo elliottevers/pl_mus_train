@@ -4,6 +4,7 @@ import {scene} from "../scene/scene";
 import {utils} from "../utils/utils";
 import {track} from "../track/track";
 import {log} from "../log/logger";
+import {cue_point} from "../cue_point/cue_point";
 
 export namespace song {
     import Messenger = message.Messenger;
@@ -13,6 +14,8 @@ export namespace song {
     import SceneDao = scene.SceneDao;
     import LiveApiJs = live.LiveApiJs;
     import Logger = log.Logger;
+    import CuePoint = cue_point.CuePoint;
+    import CuePointDao = cue_point.CuePointDao;
 
     export class Song {
 
@@ -22,8 +25,26 @@ export namespace song {
 
         tracks: Track[];
 
+        cue_points: CuePoint[];
+
         constructor(song_dao: iSongDao) {
             this.song_dao = song_dao;
+        }
+
+        get_cue_points() {
+            this.song_dao.get_cue_points()
+        }
+
+        set_or_delete_cue() {
+            this.song_dao.set_or_delete_cue()
+        }
+
+        jump_to_next_cue() {
+            this.song_dao.jump_to_next_cue()
+        }
+
+        set_current_song_time(beat: number) {
+            this.song_dao.set_current_song_time(beat);
         }
 
         loop(status: boolean) {
@@ -98,6 +119,10 @@ export namespace song {
 
     export interface iSongDao {
         key_route;
+        get_cue_points()
+        set_or_delete_cue(): void
+        jump_to_next_cue(): void
+        set_current_song_time(beat: number): void
         loop(status: boolean): void
         set_loop_start(beat_start: number): void
         set_loop_length(length_beats: number): void
@@ -128,11 +153,6 @@ export namespace song {
 
         public set_path_deferlow(key_route_override: string, path_live: string): void {
             return
-        }
-
-        public is_async(): boolean {
-            // return this.deferlow
-            return false
         }
 
         get_path(): string {
@@ -184,7 +204,21 @@ export namespace song {
 
         }
 
+        set_current_song_time(beat: number): void {
 
+        }
+
+        jump_to_next_cue(): void {
+
+        }
+
+        set_or_delete_cue(): void {
+
+        }
+
+        get_cue_points() {
+
+        }
     }
 
     export class SongDao implements iSongDao {
@@ -204,9 +238,6 @@ export namespace song {
             this.deferlow = deferlow;
             this.key_route = key_route;
             this.env = env;
-
-            // automatically set the deferlow path
-            // this.patcher.getnamed('song').message('set', 'session_record', String(int))
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {
@@ -303,6 +334,49 @@ export namespace song {
 
         set_loop_start(beat_start: number) {
             this.song_live.set("loop_start", beat_start)
+        }
+
+        set_current_song_time(beat: number): void {
+            this.song_live.set("current_song_time", beat)
+        }
+
+        jump_to_next_cue(): void {
+            this.song_live.call('jump_to_next_cue')
+        }
+
+        set_or_delete_cue(): void {
+            this.song_live.call('set_or_delete_cue')
+        }
+
+        get_cue_points() {
+            let data_cue_points = this.song_live.get("cue_points");
+
+            let cue_points = [];
+
+            let cue_point = [];
+
+            for (let i_datum in data_cue_points) {
+
+                let datum = data_cue_points[Number(i_datum)];
+
+                cue_point.push(datum);
+
+                if (Number(i_datum) % 2 === 1) {
+                    cue_points.push(cue_point);
+                    cue_point = [];
+                }
+            }
+
+            return cue_points.map((list_id_cue_point) => {
+                return new CuePoint(
+                    new CuePointDao(
+                        new LiveApiJs(
+                            list_id_cue_point.join(' ')
+                        ),
+                        new Messenger('max', 0)
+                    )
+                )
+            });
         }
     }
 }
