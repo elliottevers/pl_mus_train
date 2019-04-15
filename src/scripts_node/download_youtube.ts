@@ -26,6 +26,10 @@ max_api.addHandler('set_project_name', (name) => {
     option_name_project.set(name_project)
 });
 
+max_api.addHandler('include_video', () => {
+    flag_audio_only.set(0)
+});
+
 let download = () => {
 
     let options_python_shell;
