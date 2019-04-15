@@ -42,12 +42,12 @@ export namespace freestyle {
 
         // TODO: this seems important...
         coord_to_index_history_user_input(coord: number[]): number[] {
-            return [];
+            return coord;
         }
 
         // TODO: this seems important...
         coord_to_index_struct_train(coord: number[]): number[] {
-            return [];
+            return coord;
         }
 
         // TODO: this seems important...

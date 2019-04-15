@@ -173,7 +173,6 @@ export namespace iterate {
             } else {
                 return [[coord[0] - 1, coord[1]]]
             }
-            // return [[coord[0] - 1, coord[1]]]
         }
 
         public static get_coords_below(coord): number[][] {

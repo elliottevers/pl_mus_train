@@ -232,11 +232,11 @@ var freestyle;
         };
         // TODO: this seems important...
         Freestyle.prototype.coord_to_index_history_user_input = function (coord) {
-            return [];
+            return coord;
         };
         // TODO: this seems important...
         Freestyle.prototype.coord_to_index_struct_train = function (coord) {
-            return [];
+            return coord;
         };
         // TODO: this seems important...
         Freestyle.prototype.create_struct_train = function (window, segments, track_target, user_input_handler, struct_train) {
@@ -4098,7 +4098,6 @@ var iterate;
             else {
                 return [[coord[0] - 1, coord[1]]];
             }
-            // return [[coord[0] - 1, coord[1]]]
         };
         MatrixIterator.get_coords_below = function (coord) {
             return [[coord[0] + 1, coord[1]]];
