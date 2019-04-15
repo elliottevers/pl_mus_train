@@ -12,12 +12,14 @@ import {window} from "../render/window";
 import {track} from "../track/track";
 import {iterate} from "../train/iterate";
 import TreeModel = require("tree-model");
+import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace freestyle {
     import Trainable = trainable.Trainable;
     import ARRANGEMENT = trainer.ARRANGEMENT;
     import Track = track.Track;
+    import Logger = log.Logger;
 
     export class Freestyle implements Trainable {
         b_parsed: boolean;
@@ -98,25 +100,53 @@ export namespace freestyle {
 
             song.loop(true);
 
+            let logger = new Logger('max');
+
+            // TODO: can we please not use effective setTimeouts here?
+
             // create cue points based on segments
 
-            for (let segment of segments) {
-                song.set_current_song_time(segment.beat_start);
-                song.set_or_delete_cue()
-            }
+            for (let i_segment in segments) {
 
-            // go to first cue point
+                let segment = segments[Number(i_segment)];
 
-            let cue_points = song.get_cue_points();
+                logger.log(String(segment.beat_start));
 
-            let cue_point_first = _.min(
-                cue_points,
-                (cue_point) => {
-                    return cue_point.get_time()
+                let task_set_current_song_time = new Task(
+                    () => {
+                        song.set_current_song_time(segment.beat_start);
+                    }
+                );
+
+                let task_create_cue = new Task(
+                    () => {
+                        song.set_or_delete_cue()
+                    }
+                );
+
+                task_set_current_song_time.schedule(Number(i_segment)*500);
+
+                task_create_cue.schedule(Number(i_segment)*500 + 250);
+
+                if (Number(i_segment) === segments.length - 1) {
+                    let task_jump_to_first = new Task(
+                        () => {
+                            let cue_points = song.get_cue_points();
+
+                            let cue_point_first = _.min(
+                                cue_points,
+                                (cue_point) => {
+                                    return cue_point.get_time()
+                                }
+                            );
+
+                            cue_point_first.jump()
+                        }
+                    );
+
+                    task_jump_to_first.schedule(Number(i_segment)*500 + 500);
                 }
-            );
-
-            cue_point_first.jump()
+            }
         }
 
         // TODO: see how other's implement

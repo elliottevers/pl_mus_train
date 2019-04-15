@@ -212,10 +212,12 @@ var detect;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var trainer_1 = require("../train/trainer");
+var logger_1 = require("../log/logger");
 var _ = require('underscore');
 var freestyle;
 (function (freestyle) {
     var ARRANGEMENT = trainer_1.trainer.ARRANGEMENT;
+    var Logger = logger_1.log.Logger;
     var Freestyle = /** @class */ (function () {
         function Freestyle() {
         }
@@ -272,18 +274,47 @@ var freestyle;
         };
         Freestyle.prototype.initialize_set = function (song, segments) {
             song.loop(true);
+            var logger = new Logger('max');
+            var _loop_1 = function (i_segment) {
+                var segment_1 = segments[Number(i_segment)];
+                logger.log(String(segment_1.beat_start));
+                var task_set_current_song_time = new Task(function () {
+                    song.set_current_song_time(segment_1.beat_start);
+                });
+                var task_create_cue = new Task(function () {
+                    song.set_or_delete_cue();
+                });
+                task_set_current_song_time.schedule(Number(i_segment) * 500);
+                task_create_cue.schedule(Number(i_segment) * 500 + 250);
+                if (Number(i_segment) === segments.length - 1) {
+                    var task_jump_to_first = new Task(function () {
+                        var cue_points = song.get_cue_points();
+                        logger.log(JSON.stringify(cue_points));
+                        logger.log(JSON.stringify(cue_points[0].get_time()));
+                        var cue_point_first = _.min(cue_points, function (cue_point) {
+                            return cue_point.get_time();
+                        });
+                        cue_point_first.jump();
+                    });
+                    task_jump_to_first.schedule(Number(i_segment) * 500 + 500);
+                }
+            };
+            // TODO: can we please not use effective setTimeouts here?
             // create cue points based on segments
-            for (var _i = 0, segments_1 = segments; _i < segments_1.length; _i++) {
-                var segment_1 = segments_1[_i];
-                song.set_current_song_time(segment_1.beat_start);
-                song.set_or_delete_cue();
+            for (var i_segment in segments) {
+                _loop_1(i_segment);
             }
             // go to first cue point
-            var cue_points = song.get_cue_points();
-            var cue_point_first = _.min(cue_points, function (cue_point) {
-                return cue_point.get_time();
-            });
-            cue_point_first.jump();
+            // let cue_points = song.get_cue_points();
+            //
+            // let cue_point_first = _.min(
+            //     cue_points,
+            //     (cue_point) => {
+            //         return cue_point.get_time()
+            //     }
+            // );
+            //
+            // cue_point_first.jump()
         };
         // TODO: see how other's implement
         Freestyle.prototype.pause = function (song, scene_current) {
@@ -328,7 +359,7 @@ var freestyle;
     freestyle.Freestyle = Freestyle;
 })(freestyle = exports.freestyle || (exports.freestyle = {}));
 
-},{"../train/trainer":33,"underscore":40}],4:[function(require,module,exports){
+},{"../log/logger":17,"../train/trainer":33,"underscore":40}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2818,6 +2849,14 @@ var set_segments = function () {
     segments_train = segments;
 };
 var test = function () {
+    set_song();
+    var cue_points = song.get_cue_points();
+    logger.log(JSON.stringify(cue_points));
+    logger.log(JSON.stringify(cue_points[0].get_time()));
+    var cue_point_first = _.min(cue_points, function (cue_point) {
+        return cue_point.get_time();
+    });
+    cue_point_first.jump();
 };
 // TODO: send this via bus based on options in radio
 var set_track_target = function () {
@@ -2901,6 +2940,7 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
+    Global.train.test = test;
 }
 
 },{"../algorithm/derive":1,"../algorithm/detect":2,"../algorithm/freestyle":3,"../algorithm/parse":4,"../algorithm/predict":6,"../algorithm/trainable":8,"../clip/clip":9,"../constants/constants":11,"../control/user_input":12,"../live/live":16,"../log/logger":17,"../message/messenger":18,"../render/window":22,"../scene/scene":23,"../segment/segment":25,"../serialize/freeze":26,"../serialize/thaw":28,"../song/song":29,"../track/track":31,"../train/trainer":33,"../utils/utils":34,"underscore":40}],25:[function(require,module,exports){
@@ -3194,6 +3234,7 @@ var messenger_1 = require("../message/messenger");
 var live_1 = require("../live/live");
 var scene_1 = require("../scene/scene");
 var utils_1 = require("../utils/utils");
+var logger_1 = require("../log/logger");
 var cue_point_1 = require("../cue_point/cue_point");
 var song;
 (function (song) {
@@ -3201,6 +3242,7 @@ var song;
     var Scene = scene_1.scene.Scene;
     var SceneDao = scene_1.scene.SceneDao;
     var LiveApiJs = live_1.live.LiveApiJs;
+    var Logger = logger_1.log.Logger;
     var CuePoint = cue_point_1.cue_point.CuePoint;
     var CuePointDao = cue_point_1.cue_point.CuePointDao;
     var Song = /** @class */ (function () {
@@ -3208,7 +3250,7 @@ var song;
             this.song_dao = song_dao;
         }
         Song.prototype.get_cue_points = function () {
-            this.song_dao.get_cue_points();
+            return this.song_dao.get_cue_points();
         };
         Song.prototype.set_or_delete_cue = function () {
             this.song_dao.set_or_delete_cue();
@@ -3347,15 +3389,11 @@ var song;
             }
             this.messenger.message(mess);
         };
-        SongDao.prototype.is_async = function () {
-            return this.deferlow;
-        };
         SongDao.prototype.set_session_record = function (int) {
             if (this.deferlow) {
                 this.messenger.message([this.key_route, "set", "session_record", String(int)]);
             }
             else {
-                // this.song_live.set("session_record", String(int));
                 this.song_live.set("session_record", int);
             }
         };
@@ -3403,22 +3441,48 @@ var song;
             this.song_live.set("loop", status ? 1 : 0);
         };
         SongDao.prototype.set_loop_length = function (length_beats) {
-            this.song_live.set("loop_length", length_beats);
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "loop_length", String(length_beats)]);
+            }
+            else {
+                this.song_live.set("loop_length", length_beats);
+            }
         };
         SongDao.prototype.set_loop_start = function (beat_start) {
-            this.song_live.set("loop_start", beat_start);
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "loop_start", String(beat_start)]);
+            }
+            else {
+                this.song_live.set("loop_start", beat_start);
+            }
         };
         SongDao.prototype.set_current_song_time = function (beat) {
-            this.song_live.set("current_song_time", beat);
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "current_song_time", String(beat)]);
+            }
+            else {
+                this.song_live.set("current_song_time", String(beat));
+            }
         };
         SongDao.prototype.jump_to_next_cue = function () {
-            this.song_live.call('jump_to_next_cue');
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "call", "jump_to_next_cue"]);
+            }
+            else {
+                this.song_live.call("jump_to_next_cue");
+            }
         };
         SongDao.prototype.set_or_delete_cue = function () {
-            this.song_live.call('set_or_delete_cue');
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "call", "set_or_delete_cue"]);
+            }
+            else {
+                this.song_live.call("set_or_delete_cue");
+            }
         };
         SongDao.prototype.get_cue_points = function () {
             var data_cue_points = this.song_live.get("cue_points");
+            var logger = new Logger('max');
             var cue_points = [];
             var cue_point = [];
             for (var i_datum in data_cue_points) {
@@ -3429,6 +3493,7 @@ var song;
                     cue_point = [];
                 }
             }
+            logger.log(JSON.stringify(data_cue_points));
             return cue_points.map(function (list_id_cue_point) {
                 return new CuePoint(new CuePointDao(new LiveApiJs(list_id_cue_point.join(' ')), new Messenger('max', 0)));
             });
@@ -3438,7 +3503,7 @@ var song;
     song.SongDao = SongDao;
 })(song = exports.song || (exports.song = {}));
 
-},{"../cue_point/cue_point":13,"../live/live":16,"../message/messenger":18,"../scene/scene":23,"../utils/utils":34}],30:[function(require,module,exports){
+},{"../cue_point/cue_point":13,"../live/live":16,"../log/logger":17,"../message/messenger":18,"../scene/scene":23,"../utils/utils":34}],30:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {Segment} from "../segment/segment";
@@ -23685,5 +23750,5 @@ var set_depth_tree = Global.train.set_depth_tree;
 var set_algorithm_train = Global.train.set_algorithm_train;
 var set_mode_control = Global.train.set_mode_control;
 var set_mode_texture = Global.train.set_mode_texture;
-var json_import_test = Global.train.json_import_test;
+var test = Global.train.test;
 Global.train.patcher = this.patcher;

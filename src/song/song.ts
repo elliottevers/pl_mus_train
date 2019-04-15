@@ -32,7 +32,7 @@ export namespace song {
         }
 
         get_cue_points() {
-            this.song_dao.get_cue_points()
+            return this.song_dao.get_cue_points()
         }
 
         set_or_delete_cue() {
@@ -250,15 +250,10 @@ export namespace song {
             this.messenger.message(mess)
         }
 
-        public is_async(): boolean {
-            return this.deferlow;
-        }
-
         set_session_record(int) {
             if (this.deferlow) {
                 this.messenger.message([this.key_route, "set", "session_record", String(int)]);
             } else {
-                // this.song_live.set("session_record", String(int));
                 this.song_live.set("session_record", int);
 
             }
@@ -329,27 +324,49 @@ export namespace song {
         }
 
         set_loop_length(length_beats: number) {
-            this.song_live.set("loop_length", length_beats)
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "loop_length", String(length_beats)]);
+            } else {
+                this.song_live.set("loop_length", length_beats)
+            }
         }
 
         set_loop_start(beat_start: number) {
-            this.song_live.set("loop_start", beat_start)
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "loop_start", String(beat_start)]);
+            } else {
+                this.song_live.set("loop_start", beat_start)
+            }
         }
 
         set_current_song_time(beat: number): void {
-            this.song_live.set("current_song_time", beat)
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "set", "current_song_time", String(beat)]);
+            } else {
+                this.song_live.set("current_song_time", String(beat));
+            }
         }
 
         jump_to_next_cue(): void {
-            this.song_live.call('jump_to_next_cue')
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "call", "jump_to_next_cue"]);
+            } else {
+                this.song_live.call("jump_to_next_cue");
+            }
         }
 
         set_or_delete_cue(): void {
-            this.song_live.call('set_or_delete_cue')
+            if (this.deferlow) {
+                this.messenger.message([this.key_route, "call", "set_or_delete_cue"]);
+            } else {
+                this.song_live.call("set_or_delete_cue");
+            }
         }
 
         get_cue_points() {
             let data_cue_points = this.song_live.get("cue_points");
+
+            let logger = new Logger('max');
 
             let cue_points = [];
 
@@ -366,6 +383,8 @@ export namespace song {
                     cue_point = [];
                 }
             }
+
+            logger.log(JSON.stringify(data_cue_points));
 
             return cue_points.map((list_id_cue_point) => {
                 return new CuePoint(

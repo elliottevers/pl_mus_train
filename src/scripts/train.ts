@@ -226,6 +226,18 @@ let set_segments = () => {
 
 let test = () => {
 
+    // set_song();
+    //
+    // let cue_points = song.get_cue_points();
+    //
+    // let cue_point_first = _.min(
+    //     cue_points,
+    //     (cue_point) => {
+    //         return cue_point.get_time()
+    //     }
+    // );
+    //
+    // cue_point_first.jump()
 };
 
 // TODO: send this via bus based on options in radio
@@ -414,4 +426,5 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
+    Global.train.test = test;
 }
