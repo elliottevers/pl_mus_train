@@ -419,7 +419,8 @@ clips_user_input.push(clip_user_input);
 
 let track_user_input = new Track(
     new TrackDaoVirtual(
-        clips_user_input
+        clips_user_input,
+        new Messenger(env_parse, 0)
     )
 );
 
@@ -472,11 +473,10 @@ clips_target.push(clip_target);
 
 let track_target = new Track(
     new TrackDaoVirtual(
-        clips_target
+        clips_target,
+        new Messenger(env_parse, 0)
     )
 );
-
-
 
 track_target.load_clips();
 
@@ -537,7 +537,7 @@ trainer_local_parse.clear_window(
 
 TrainFreezer.freeze(
     trainer_local_parse,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_parse.json',
     env_parse
 );
 
@@ -555,7 +555,7 @@ trainer_local_parse = new Trainer(
 );
 
 let matrix_deserialized = TrainThawer.thaw_notes_matrix(
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/cache/train_parse.json',
+    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_parse.json',
     env_parse
 );
 

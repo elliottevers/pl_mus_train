@@ -51,7 +51,7 @@ export namespace clip_slot {
         }
     }
 
-    interface iClipSlotDao {
+    export interface iClipSlotDao {
 
         delete_clip()
 

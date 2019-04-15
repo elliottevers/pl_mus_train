@@ -19,6 +19,8 @@ export namespace track {
     import Logger = log.Logger;
     import ClipSlotDaoVirtual = clip_slot.ClipSlotDaoVirtual;
     import iLiveApiJs = live.iLiveApiJs;
+    import iClipSlotDao = clip_slot.iClipSlotDao;
+    import LiveClipVirtual = live.LiveClipVirtual;
 
     export class Track {
 
@@ -31,22 +33,36 @@ export namespace track {
         }
 
         public static get_clip_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): Clip {
-            return new Clip(
-                new ClipDao(
-                    new LiveApiJs(
-                        ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot), 'clip'].join(' ')
-                    ),
-                    messenger
-                )
-            );
+            if (messenger.env === 'max') {
+                return new Clip(
+                    new ClipDao(
+                        new LiveApiJs(
+                            ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot), 'clip'].join(' ')
+                        ),
+                        messenger
+                    )
+                );
+            } else {
+                return new Clip(
+                    new LiveClipVirtual([])
+                );
+            }
         }
 
         public static get_clip_slot_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): ClipSlot {
+            let clip_slot_dao;
+
+            if (messenger.env === 'max') {
+                clip_slot_dao = new LiveApiJs(
+                    ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot)].join(' ')
+                )
+            } else {
+                clip_slot_dao = new LiveClipVirtual([])
+            }
+
             return new ClipSlot(
                 new ClipSlotDao(
-                    new LiveApiJs(
-                        ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot)].join(' ')
-                    ),
+                    clip_slot_dao,
                     messenger
                 )
             );
@@ -133,19 +149,18 @@ export namespace track {
     }
 
     export interface iTrackDao {
-        // get_notes(): TreeModel.Node<Note>[]
         get_clip_slots(int: number)
         get_path()
     }
 
     // TODO: please change everything in here
     export class TrackDaoVirtual implements iTrackDao {
-
-        num_clip_slots: number;
         clips: Clip[];
+        messenger: Messenger;
 
-        constructor(clips: Clip[]) {
+        constructor(clips: Clip[], messenger: Messenger) {
             this.clips = clips;
+            this.messenger = messenger;
         }
 
         mute() {
@@ -183,7 +198,7 @@ export namespace track {
         }
 
         get_path(): string {
-            return
+            return "live_set tracks -1"
         }
     }
 

@@ -4,7 +4,7 @@ export namespace message {
 
     export class Messenger {
 
-        private env: string;
+        public env: string;
 
         private outlet: number;
 
