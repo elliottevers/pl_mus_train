@@ -227,7 +227,7 @@ let note_melody_parsed_2 = tree.parse(
         note: new n.Note(
             53,
             2,
-            2,
+            1.9,
             90,
             0
         ),
@@ -236,7 +236,6 @@ let note_melody_parsed_2 = tree.parse(
         ]
     }
 );
-
 
 
 let note_melody_parsed_3 = tree.parse(
@@ -270,7 +269,6 @@ let note_melody_parsed_4 = tree.parse(
         ]
     }
 );
-
 
 
 let note_summarized_melody_1 = tree.parse(

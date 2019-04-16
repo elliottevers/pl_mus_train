@@ -21,7 +21,6 @@ export namespace message {
         }
 
         message(message: any[], override?: boolean) {
-
             switch (this.env) {
                 case 'max': {
                     if (this.key_route && !override) {
@@ -59,8 +58,8 @@ export namespace message {
         }
 
         message_node_for_max(message: any[]): void {
-            // const Max = require('max-api');
-            // Max.outlet(message);
+            const Max = require('max-api');
+            Max.outlet(message);
         }
     }
 }

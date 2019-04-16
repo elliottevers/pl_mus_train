@@ -1,16 +1,8 @@
 import TreeModel = require("tree-model");
-import p = require("../parse/parse");
-import Note = note.Note;
 
 export namespace note {
 
     interface Parsable {
-        // get_overlap_beats(
-        //     beat_start_former: number,
-        //     beat_end_former: number,
-        //     beat_start_latter: number,
-        //     beat_end_latter: number
-        // )
         get_best_candidate(
             list_candidate_note: TreeModel.Node<Note>[]
         )
@@ -56,12 +48,13 @@ export namespace note {
             } else if (former_starts_before_latter && !former_ends_before_latter) {
                 return a - c;
             } else if (!former_starts_before_latter && !former_ends_before_latter) {
-                return 0;
+                // return 0;
+                return d - a;
             } else if (!former_starts_before_latter && former_ends_before_latter) {
                 return b - a;
             }
 
-            throw 'case not considered'
+            throw 'beats overlap cannot be determined'
 
         }
 

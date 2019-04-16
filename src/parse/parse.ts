@@ -7,7 +7,6 @@ const _ = require("underscore");
 export namespace parse {
     import NoteRenderable = note.NoteRenderable;
     import Parsable = trainable.Parsable;
-    // import Parsable = algorithm.Parsable;
 
     export abstract class ParseTree {
         root: TreeModel.Node<n.NoteRenderable>;
@@ -21,11 +20,6 @@ export namespace parse {
         public get_root(): TreeModel.Node<n.NoteRenderable> {
             return this.root
         }
-
-        // public set_root(root: TreeModel.Node<n.NoteRenderable>): void {
-        //     this.root = root;
-        //     this.coords_roots.push([-1])
-        // }
 
         public static create_root_from_segments(segments): TreeModel.Node<n.NoteRenderable> {
             let note_segment_last = segments[segments.length - 1].get_note();
@@ -130,8 +124,6 @@ export namespace parse {
 
         public set_root(note) {
             let coord_root = [-1];
-            // this.root = NoteRenderable.from_note(note, coord_root)
-            // this.set_root(NoteRenderable.from_note(note, coord_root))
             this.root = NoteRenderable.from_note(note, coord_root);
             this.regions_renderable.push(coord_root);
             this.coords_roots.push(coord_root)
@@ -161,7 +153,6 @@ export namespace parse {
                 return
             }
 
-            // if (!bypass_parse) {
             let coords_notes_to_grow = parsable.get_coords_notes_to_grow(coords_parse);
 
             for (let coord_to_grow of coords_notes_to_grow) {

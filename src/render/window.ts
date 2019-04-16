@@ -369,8 +369,12 @@ export namespace window {
                 let struct_parse = struct_train as StructParse;
 
                 if (iterator_matrix_train.done) {
+                    // interval_current = [
+                    //     struct_parse.get_root().model.note.beat_start,
+                    //     struct_parse.get_root().model.note.get_beat_end()
+                    // ]
                     interval_current = [
-                        struct_parse.get_root().model.note.beat_start,
+                        struct_parse.get_root().model.note.get_beat_end(),
                         struct_parse.get_root().model.note.get_beat_end()
                     ]
                 } else {

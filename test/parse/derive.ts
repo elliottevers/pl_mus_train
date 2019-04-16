@@ -86,6 +86,7 @@ let note_2_3 = tree.parse(
     }
 );
 
+// the following two notes are in the first segment
 let note_3_1 = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
@@ -118,6 +119,7 @@ let note_3_2 = tree.parse(
     }
 );
 
+// the following two notes are in the second segment
 let note_3_3 = tree.parse(
     {
         id: -1, // TODO: hashing scheme for clip id and beat start
@@ -149,6 +151,8 @@ let note_3_4 = tree.parse(
         ]
     }
 );
+
+// the following two notes are in the third segment
 
 let note_3_5 = tree.parse(
     {
@@ -198,24 +202,22 @@ let note_4_1 = tree.parse(
     }
 );
 
-let note_4_2 = tree.parse(
-    {
-        id: -1, // TODO: hashing scheme for clip id and beat start
-        note: new n.Note(
-            51,
-            25,
-            3,
-            90,
-            0
-        ),
-        children: [
-
-        ]
-    }
-);
-
-
-let notes_segments = [note_2_1, note_2_2, note_2_3];
+// NB: this never made sense in the first place, since it doesn't coincide with any of its parent notes anyway
+// let note_4_2 = tree.parse(
+//     {
+//         id: -1, // TODO: hashing scheme for clip id and beat start
+//         note: new n.Note(
+//             51,
+//             25,
+//             3,
+//             90,
+//             0
+//         ),
+//         children: [
+//
+//         ]
+//     }
+// );
 
 let mode_texture = MONOPHONY;
 
@@ -431,9 +433,9 @@ trainer_local.accept_input(
     [note_4_1]
 );
 
-trainer_local.accept_input(
-    [note_4_2]
-);
+// trainer_local.accept_input(
+//     [note_4_2]
+// );
 
 trainer_local.render_window(
 

@@ -51,7 +51,6 @@ export namespace parsed {
 
             struct_parse.add(
                 notes_input_user,
-                // iterator_matrix_train.get_coord_current(),
                 trainable.coord_to_index_struct_train(
                     iterator_matrix_train.get_coord_current()
                 ),
