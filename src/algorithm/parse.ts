@@ -64,9 +64,22 @@ export namespace parse {
             // transfer notes from target track to user input track
             for (let i_segment in segments) {
 
-                let clip_target = track_target.get_clip_at_index(Number(i_segment));
+                // TODO: please make these work
+                // let clip_target = track_target.get_clip_at_index(Number(i_segment));
+                //
+                // let clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
 
-                let clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
+                let clip_target = Track.get_clip_at_index(
+                    track_target.get_index(),
+                    Number(i_segment),
+                    track_target.track_dao.messenger
+                );
+
+                let clip_user_input = Track.get_clip_at_index(
+                    track_user_input.get_index(),
+                    Number(i_segment),
+                    track_target.track_dao.messenger
+                );
 
                 let notes = clip_target.get_notes(
                     clip_target.get_loop_bracket_lower(),

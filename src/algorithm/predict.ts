@@ -9,8 +9,6 @@ import {modes_texture} from "../constants/constants";
 import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
-import {log} from "../log/logger";
-import {message} from "../message/messenger";
 const _ = require('underscore');
 
 export namespace predict {
@@ -22,9 +20,7 @@ export namespace predict {
     import TypeSequenceTarget = history.TypeSequenceTarget;
     import MONOPHONY = modes_texture.MONOPHONY;
     import PREDICT = trainable.PREDICT;
-    import Logger = log.Logger;
     import Track = track.Track;
-    import Messenger = message.Messenger;
     import Trainer = trainer.Trainer;
     import SESSION = trainer.SESSION;
 

@@ -364,6 +364,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var track_1 = require("../track/track");
 var parsed_1 = require("./parsed");
 var trainer_1 = require("../train/trainer");
 var iterate_1 = require("../train/iterate");
@@ -376,6 +377,7 @@ var parse;
     var Parsed = parsed_1.parsed.Parsed;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var PARSE = trainable_1.trainable.PARSE;
+    var Track = track_1.track.Track;
     var SESSION = trainer_1.trainer.SESSION;
     var Parse = /** @class */ (function (_super) {
         __extends(Parse, _super);
@@ -397,8 +399,12 @@ var parse;
         Parse.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             // transfer notes from target track to user input track
             for (var i_segment in segments) {
-                var clip_target = track_target.get_clip_at_index(Number(i_segment));
-                var clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
+                // TODO: please make these work
+                // let clip_target = track_target.get_clip_at_index(Number(i_segment));
+                //
+                // let clip_user_input = track_user_input.get_clip_at_index(Number(i_segment));
+                var clip_target = Track.get_clip_at_index(track_target.get_index(), Number(i_segment), track_target.track_dao.messenger);
+                var clip_user_input = Track.get_clip_at_index(track_user_input.get_index(), Number(i_segment), track_target.track_dao.messenger);
                 var notes = clip_target.get_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
                 clip_user_input.remove_notes(clip_target.get_loop_bracket_lower(), 0, clip_target.get_loop_bracket_upper(), 128);
                 clip_user_input.set_notes(notes);
@@ -523,7 +529,7 @@ var parse;
     parse.Parse = Parse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../parse/parse":21,"../train/iterate":32,"../train/trainer":33,"./parsed":5,"./trainable":8}],5:[function(require,module,exports){
+},{"../parse/parse":21,"../track/track":31,"../train/iterate":32,"../train/trainer":33,"./parsed":5,"./trainable":8}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_1 = require("../parse/parse");
@@ -1888,7 +1894,6 @@ var message;
             console.log(message);
             console.log("\n");
         };
-        // NB: we have to comment out for use in Max for Live
         Messenger.prototype.message_node_for_max = function (message) {
             // const Max = require('max-api');
             // Max.outlet(message);
@@ -4197,7 +4202,7 @@ var iterate;
             var downward, rightward;
             switch (trainable.get_name()) {
                 case FREESTYLE: {
-                    iterator = new MatrixIterator(1, segments.length);
+                    iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
                     break;
                 }
                 case DETECT: {
@@ -4205,7 +4210,7 @@ var iterate;
                     break;
                 }
                 case PREDICT: {
-                    iterator = new MatrixIterator(1, segments.length);
+                    iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
                     break;
                 }
                 case PARSE: {
@@ -4281,9 +4286,6 @@ var trainer;
         };
         Trainer.prototype.render_window = function () {
             if (!this.virtualized) {
-                // if (!this.done) {
-                //     this.window.clear();
-                // }
                 this.window.clear();
                 this.window.render(this.iterator_matrix_train, this.trainable, this.struct_train, this.segment_current);
             }
