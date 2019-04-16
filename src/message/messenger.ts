@@ -57,6 +57,7 @@ export namespace message {
             console.log("\n");
         }
 
+        // NB: we have to comment out for use in Max for Live
         message_node_for_max(message: any[]): void {
             const Max = require('max-api');
             Max.outlet(message);

@@ -275,7 +275,11 @@ export namespace iterate {
                 case FREESTYLE: {
                     iterator = new MatrixIterator(
                         1,
-                        segments.length
+                        segments.length,
+                        true,
+                        true,
+                        0,
+                        1
                     );
                     break;
                 }
@@ -293,7 +297,11 @@ export namespace iterate {
                 case PREDICT: {
                     iterator = new MatrixIterator(
                         1,
-                        segments.length
+                        segments.length,
+                        true,
+                        true,
+                        0,
+                        1
                     );
                     break;
                 }

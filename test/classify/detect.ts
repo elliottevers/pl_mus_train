@@ -415,6 +415,18 @@ trainer_local.accept_input(
     [note_target_3_subtarget_1]
 );
 
+// trainer_local.accept_input(
+//     [note_target_3_subtarget_2]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_4_subtarget_1]
+// );
+//
+// trainer_local.accept_input(
+//     [note_target_4_subtarget_2]
+// );
+
 trainer_local.render_window(
 
 );

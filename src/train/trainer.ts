@@ -173,9 +173,6 @@ export namespace trainer {
         public render_window() {
             if (!this.virtualized) {
 
-                // if (!this.done) {
-                //     this.window.clear();
-                // }
                 this.window.clear();
 
                 this.window.render(

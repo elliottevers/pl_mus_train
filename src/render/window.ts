@@ -348,36 +348,33 @@ export namespace window {
             struct_train: StructTrain,
             segment_current: Segment
         ) {
-            let coord_current = iterator_matrix_train.get_coord_current();
 
             let interval_current;
 
-            // prediction/detection need the current target, while parse/derive need the current segment
-            if (trainable.b_targeted) {
-
-                let struct_targets = struct_train as StructTargets;
-
-                let note = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
-
-                interval_current = trainable.determine_region_present(
-                    [note],
-                    segment_current
-                );
-
+            if (iterator_matrix_train.done) {
+                interval_current = [
+                    segment_current.beat_end,
+                    segment_current.beat_end
+                ]
             } else {
+                let coord_current = iterator_matrix_train.get_coord_current();
 
-                let struct_parse = struct_train as StructParse;
+                // prediction/detection need the current target, while parse/derive need the current segment
+                if (trainable.b_targeted) {
 
-                if (iterator_matrix_train.done) {
-                    // interval_current = [
-                    //     struct_parse.get_root().model.note.beat_start,
-                    //     struct_parse.get_root().model.note.get_beat_end()
-                    // ]
-                    interval_current = [
-                        struct_parse.get_root().model.note.get_beat_end(),
-                        struct_parse.get_root().model.note.get_beat_end()
-                    ]
+                    let struct_targets = struct_train as StructTargets;
+
+                    let note = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
+
+                    interval_current = trainable.determine_region_present(
+                        [note],
+                        segment_current
+                    );
+
                 } else {
+
+                    let struct_parse = struct_train as StructParse;
+
                     let coord_segment = [0, coord_current[1]];
 
                     interval_current = trainable.determine_region_present(
@@ -385,7 +382,6 @@ export namespace window {
                         segment_current
                     );
                 }
-
             }
 
             let quadruplet_region_past = this.get_message_render_region_past(interval_current);

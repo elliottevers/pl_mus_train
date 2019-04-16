@@ -391,6 +391,7 @@ trainer_local.commence(
 
 );
 
+// NB: represents an incorrect response
 trainer_local.accept_input(
     [note_target_1_subtarget_1]
 );
@@ -407,8 +408,13 @@ trainer_local.accept_input(
 //     [note_target_2_subtarget_2]
 // );
 
+// NB: represents an incorrect response
 trainer_local.accept_input(
     [note_target_3_subtarget_1]
+);
+
+trainer_local.accept_input(
+    [note_target_4_subtarget_1]
 );
 
 trainer_local.render_window(
