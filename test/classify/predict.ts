@@ -33,6 +33,8 @@ import TrainThawer = thaw.TrainThawer;
 import MONOPHONY = modes_texture.MONOPHONY;
 import {predict} from "../../src/algorithm/predict";
 import Predict = predict.Predict;
+import {targeted} from "../../src/algorithm/targeted";
+import Targeted = targeted.Targeted;
 
 
 let tree: TreeModel = new TreeModel();
@@ -425,9 +427,11 @@ trainer_local.clear_window(
 
 );
 
+let filepath_save = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_predict.json';
+
 TrainFreezer.freeze(
     trainer_local,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_predict.json',
+    filepath_save,
     env
 );
 
@@ -443,16 +447,29 @@ trainer_local = new Trainer(
     true
 );
 
+// let notes_thawed = TrainThawer.thaw_notes(
+//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_predict.json',
+//     env
+// );
+//
+// trainer_local.commence();
+//
+// for (let note of notes_thawed) {
+//     trainer_local.accept_input([note])
+// }
+//
+// trainer_local.virtualized = false;
+//
+// trainer_local.render_window();
+
 let notes_thawed = TrainThawer.thaw_notes(
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_predict.json',
+    filepath_save,
     env
 );
 
-trainer_local.commence();
+let algorithm_targeted = algorithm_train as Targeted;
 
-for (let note of notes_thawed) {
-    trainer_local.accept_input([note])
-}
+algorithm_targeted.restore(trainer_local, notes_thawed);
 
 trainer_local.virtualized = false;
 

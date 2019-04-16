@@ -10,7 +10,7 @@ import {clip} from "../../src/clip/clip";
 import Clip = clip.Clip;
 import {window} from "../../src/render/window";
 import MatrixWindow = window.MatrixWindow;
-import {trainer as module_trainer} from "../../src/train/trainer";
+import {trainer, trainer as module_trainer} from "../../src/train/trainer";
 import Trainer = module_trainer.Trainer;
 import {modes_control, modes_texture} from "../../src/constants/constants";
 import VOCAL = modes_control.VOCAL;
@@ -32,6 +32,11 @@ import {thaw} from "../../src/serialize/thaw";
 import TrainThawer = thaw.TrainThawer;
 import {derive} from "../../src/algorithm/derive";
 import Derive = derive.Derive;
+import {parsed} from "../../src/algorithm/parsed";
+import Parsed = parsed.Parsed;
+import StructTrain = trainer.StructTrain;
+import {parse} from "../../src/parse/parse";
+import StructParse = parse.StructParse;
 
 
 let tree: TreeModel = new TreeModel();
@@ -445,9 +450,11 @@ trainer_local.clear_window(
 
 );
 
+let filename_save = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_derive.json';
+
 TrainFreezer.freeze(
     trainer_local,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_derive.json',
+    filename_save,
     env
 );
 
@@ -466,37 +473,17 @@ trainer_local = new Trainer(
 );
 
 let matrix_deserialized = TrainThawer.thaw_notes_matrix(
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_derive.json',
+    filename_save,
     env
 );
 
-trainer_local.commence();
+let algorithm_parsed = algorithm_train as Parsed;
 
-// skip over the layer of segments
-
-let input_left = true;
-
-while (input_left) {
-    let coord_current = trainer_local.iterator_matrix_train.get_coord_current();
-
-    let coord_user_input_history = algorithm_train.coord_to_index_history_user_input(coord_current);
-
-    if (trainer_local.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
-
-        algorithm_train.terminate(trainer_local.struct_train, segments);
-
-        algorithm_train.pause(song, trainer_local.segment_current.scene);
-
-        input_left = false;
-
-        continue;
-    }
-
-    trainer_local.accept_input(
-        matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]
-    );
-}
-
+algorithm_parsed.restore(
+    trainer_local,
+    segments,
+    matrix_deserialized as StructTrain as StructParse
+);
 
 trainer_local.virtualized = false;
 

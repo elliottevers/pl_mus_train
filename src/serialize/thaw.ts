@@ -30,7 +30,7 @@ export namespace thaw {
         public static thaw_notes_matrix(filepath: string, env: string) {
             let matrix_deserialized = from_json(filepath, env);
 
-            let matrix_test = matrix_deserialized;
+            let matrix_notes = matrix_deserialized;
 
             // TODO: this is only valid for forward iteration
             for (let i_row in matrix_deserialized) {
@@ -38,7 +38,7 @@ export namespace thaw {
                 for (let i_col in row) {
                     let col = matrix_deserialized[Number(i_row)][Number(i_col)];
                     if (col === null) {
-                        matrix_test[Number(i_row)][Number(i_col)] = [];
+                        matrix_notes[Number(i_row)][Number(i_col)] = [];
                         continue;
                     }
 
@@ -48,11 +48,11 @@ export namespace thaw {
                         notes.push(deserialize_note(note_serialized))
                     }
 
-                    matrix_test[Number(i_row)][Number(i_col)] = notes
+                    matrix_notes[Number(i_row)][Number(i_col)] = notes
                 }
             }
 
-            return matrix_test
+            return matrix_notes
         }
     }
 }

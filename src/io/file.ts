@@ -1,10 +1,7 @@
-import {log} from "../log/logger";
-
 declare let Dict: any;
 
 export namespace file {
 
-    import Logger = log.Logger;
     export let to_json = (string_json, filename: string, env: string) => {
         switch (env) {
             case 'node_for_max': {
@@ -80,7 +77,7 @@ export namespace file {
 
                 dict.import_json(filepath);
 
-                // NB: using "of" looks wrong but it isn't
+                // NB: using "of" looks wrong but it isn't...
                 for (let i_row of dict.get("history_user_input").getkeys()) {
                     matrix_deserialized.push([]);
                     let col = dict.get(["history_user_input", i_row].join('::'));
@@ -95,7 +92,7 @@ export namespace file {
                 break;
             }
             default: {
-                throw 'error in from_json'
+                throw 'error reading json'
             }
 
         }

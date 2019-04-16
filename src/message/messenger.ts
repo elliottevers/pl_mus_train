@@ -58,8 +58,8 @@ export namespace message {
         }
 
         message_node_for_max(message: any[]): void {
-            // const Max = require('max-api');
-            // Max.outlet(message);
+            const Max = require('max-api');
+            Max.outlet(message);
         }
     }
 }

@@ -30,8 +30,13 @@ import {freeze} from "../../src/serialize/freeze";
 import TrainFreezer = freeze.TrainFreezer;
 import {thaw} from "../../src/serialize/thaw";
 import TrainThawer = thaw.TrainThawer;
-import {parse} from "../../src/algorithm/parse";
-import Parse = parse.Parse;
+import {parsed} from "../../src/algorithm/parsed";
+import Parsed = parsed.Parsed;
+import StructTrain = trainer.StructTrain;
+import {parse} from "../../src/parse/parse";
+import StructParse = parse.StructParse;
+import {parse as algo_parse} from "../../src/algorithm/parse";
+import Parse = algo_parse.Parse;
 const _ = require('underscore');
 
 
@@ -533,9 +538,11 @@ trainer_local_parse.clear_window(
 
 );
 
+let filename_save = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_parse.json';
+
 TrainFreezer.freeze(
     trainer_local_parse,
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_parse.json',
+    filename_save,
     env_parse
 );
 
@@ -553,36 +560,17 @@ trainer_local_parse = new Trainer(
 );
 
 let matrix_deserialized = TrainThawer.thaw_notes_matrix(
-    '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_parse.json',
+    filename_save,
     env_parse
 );
 
-trainer_local_parse.commence();
+let algorithm_parsed = algorithm_train_parse as Parsed;
 
-// skip over the layer of segments
-
-let input_left = true;
-
-while (input_left) {
-    let coord_current = trainer_local_parse.iterator_matrix_train.get_coord_current();
-
-    let coord_user_input_history = algorithm_train_parse.coord_to_index_history_user_input(coord_current);
-
-    if (trainer_local_parse.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
-
-        algorithm_train_parse.terminate(trainer_local_parse.struct_train, segments);
-
-        algorithm_train_parse.pause(song_parse, trainer_local_parse.segment_current.scene);
-
-        input_left = false;
-
-        continue;
-    }
-
-    trainer_local_parse.accept_input(
-        matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]
-    );
-}
+algorithm_parsed.restore(
+    trainer_local_parse,
+    segments,
+    matrix_deserialized as StructTrain as StructParse
+);
 
 trainer_local_parse.virtualized = false;
 

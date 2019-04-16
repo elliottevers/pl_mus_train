@@ -1587,7 +1587,8 @@ var file;
             }
             case 'max': {
                 var dict = new Dict();
-                dict.import_json(filepath);
+                // dict.import_json(filepath);
+                dict.import_json('/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/test/detect.json');
                 // NB: using "of" looks wrong but it isn't
                 for (var _i = 0, _a = dict.get("history_user_input").getkeys(); _i < _a.length; _i++) {
                     var i_row = _a[_i];
@@ -2204,40 +2205,6 @@ var parse;
                 return this.matrix_leaves[coord[0]][coord[1]];
             }
         };
-        // TODO: don't delete these 3 until we're sure we don't use them
-        // private static get_diff_index_start(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
-        //     let same_start, same_duration, index_start_diff;
-        //     for (let i=0; i < notes_old.length; i++) {
-        //         same_start = (notes_old[i].model.note.beat_start === notes_new[i].model.note.beat_start);
-        //         same_duration = (notes_old[i].model.note.beats_duration === notes_new[i].model.note.beats_duration);
-        //         if (!(same_start && same_duration)) {
-        //             index_start_diff = i;
-        //             break;
-        //         }
-        //     }
-        //
-        //     return index_start_diff;
-        // }
-        // private static get_diff_index_end(notes_new: TreeModel.Node<n.Note>[], notes_old: TreeModel.Node<n.Note>[]): number {
-        //     let same_start, same_duration, index_end_diff;
-        //     for (let i=-1; i > -1 * (notes_new.length + 1); i--) {
-        //         same_start = (notes_new.slice(i)[0].model.note.beat_start === notes_old.slice(i)[0].model.note.beat_start);
-        //         same_duration = (notes_new.slice(i)[0].model.note.beats_duration === notes_old.slice(i)[0].model.note.beats_duration);
-        //         if (!(same_start && same_duration)) {
-        //             index_end_diff = i;
-        //             break;
-        //         }
-        //     }
-        //
-        //     // NB: add one in order to use with array slice, unless of course the index is -1, then you'll access the front of the array
-        //     return index_end_diff;
-        // }
-        // private static get_diff_index_notes(notes_parent: TreeModel.Node<n.Note>[], notes_child: TreeModel.Node<n.Note>[]): number[] {
-        //     return [
-        //         StructParse.get_diff_index_start(notes_child, notes_parent),
-        //         StructParse.get_diff_index_end(notes_child, notes_parent)
-        //     ];
-        // };
         StructParse.prototype.set_root = function (note) {
             var coord_root = [-1];
             this.root = NoteRenderable.from_note(note, coord_root);
@@ -3091,73 +3058,6 @@ var serialize;
         }
         return notes_serialized;
     };
-    // import Subtarget = target.Subtarget;
-    //
-    // export let serialize_subtarget = (subtarget: Subtarget) => {
-    //     let subtarget_serialized: any;
-    //     // TODO: fix
-    //     // let subtarget_serialized = subtarget;
-    //     subtarget_serialized = subtarget;
-    //     subtarget_serialized.note = serialize_note(subtarget.note);
-    //     return subtarget_serialized;
-    // };
-    //
-    // export let deserialize_subtarget = (subtarget_serialized) => {
-    //     let subtarget_deserialized = subtarget_serialized;
-    //     subtarget_deserialized.note = deserialize_note(subtarget_serialized.note);
-    //     return subtarget_deserialized;
-    // };
-    //
-    // // import SequenceTarget = history.SequenceTarget;
-    //
-    // export let serialize_target_sequence = (sequence_target) => {
-    //     let sequence_target_serialized = sequence_target;
-    //     for (let i_target in sequence_target) {
-    //         let subtargets = sequence_target[Number(i_target)].iterator_subtarget.subtargets;
-    //         for (let i_subtarget in subtargets) {
-    //             let subtarget = subtargets[Number(i_subtarget)];
-    //             sequence_target_serialized[Number(i_target)][Number(i_subtarget)] = serialize_subtarget(subtarget)
-    //         }
-    //     }
-    //     return sequence_target_serialized;
-    // };
-    //
-    // export let deserialize_target_sequence = (sequence_target_serialized) => {
-    //     let sequence_target_deserialized = sequence_target_serialized;
-    //
-    //     for (let i_target in sequence_target_serialized) {
-    //         let subtargets = sequence_target_serialized[Number(i_target)].get_subtargets();
-    //         for (let i_subtarget in subtargets) {
-    //             let subtarget = subtargets[Number(i_subtarget)];
-    //             sequence_target_deserialized[Number(i_target)][Number(i_subtarget)] = deserialize_subtarget(subtarget)
-    //         }
-    //     }
-    //     return sequence_target_deserialized;
-    // };
-    // export let serialize_note_sequence = (sequence_target) => {
-    //     let sequence_target_serialized = sequence_target;
-    //     for (let i_target in sequence_target) {
-    //         let subtargets = sequence_target[Number(i_target)].iterator_subtarget.subtargets;
-    //         for (let i_subtarget in subtargets) {
-    //             let subtarget = subtargets[Number(i_subtarget)];
-    //             sequence_target_serialized[Number(i_target)][Number(i_subtarget)] = serialize_subtarget(subtarget)
-    //         }
-    //     }
-    //     return sequence_target_serialized;
-    // };
-    //
-    // export let deserialize_note_sequence = (sequence_target_serialized) => {
-    //     let sequence_target_deserialized = sequence_target_serialized;
-    //
-    //     for (let i_target in sequence_target_serialized) {
-    //         let subtargets = sequence_target_serialized[Number(i_target)].get_subtargets();
-    //         for (let i_subtarget in subtargets) {
-    //             let subtarget = subtargets[Number(i_subtarget)];
-    //             sequence_target_deserialized[Number(i_target)][Number(i_subtarget)] = deserialize_subtarget(subtarget)
-    //         }
-    //     }
-    //     return sequence_target_deserialized;
-    // };
 })(serialize = exports.serialize || (exports.serialize = {}));
 
 },{"tree-model":39}],28:[function(require,module,exports){
@@ -3191,14 +3091,14 @@ var thaw;
         };
         TrainThawer.thaw_notes_matrix = function (filepath, env) {
             var matrix_deserialized = from_json(filepath, env);
-            var matrix_test = matrix_deserialized;
+            var matrix_notes = matrix_deserialized;
             // TODO: this is only valid for forward iteration
             for (var i_row in matrix_deserialized) {
                 var row = matrix_deserialized[Number(i_row)];
                 for (var i_col in row) {
                     var col = matrix_deserialized[Number(i_row)][Number(i_col)];
                     if (col === null) {
-                        matrix_test[Number(i_row)][Number(i_col)] = [];
+                        matrix_notes[Number(i_row)][Number(i_col)] = [];
                         continue;
                     }
                     var notes = [];
@@ -3206,10 +3106,10 @@ var thaw;
                         var note_serialized = col_1[_i];
                         notes.push(deserialize_note(note_serialized));
                     }
-                    matrix_test[Number(i_row)][Number(i_col)] = notes;
+                    matrix_notes[Number(i_row)][Number(i_col)] = notes;
                 }
             }
-            return matrix_test;
+            return matrix_notes;
         };
         return TrainThawer;
     }());
