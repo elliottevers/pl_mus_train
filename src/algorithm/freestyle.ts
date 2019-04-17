@@ -102,8 +102,6 @@ export namespace freestyle {
 
             song.loop(true);
 
-            let logger = new Logger('max');
-
             // TODO: can we please not use effective setTimeouts here?
 
             // create cue points based on segments
@@ -111,8 +109,6 @@ export namespace freestyle {
             for (let i_segment in segments) {
 
                 let segment = segments[Number(i_segment)];
-
-                logger.log(String(segment.beat_start));
 
                 let task_set_current_song_time = new Task(
                     () => {

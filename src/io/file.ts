@@ -83,9 +83,6 @@ export namespace file {
                     let col = dict.get(["history_user_input", i_row].join('::'));
                     for (let i_col of col.getkeys()) {
                         matrix_deserialized[Number(i_row)].push([]);
-                        // matrix_deserialized[Number(i_row)][Number(i_col)] = [dict.get(
-                        //     ["history_user_input", i_row, i_col].join('::')
-                        // )]
                         let notes = dict.get(
                             ["history_user_input", i_row, i_col].join('::')
                         );
@@ -100,8 +97,6 @@ export namespace file {
                             val = notes
                         }
 
-                        // matrix_deserialized[Number(i_row)][Number(i_col)] = (notes === null || notes.length === 1) ? [notes] : notes
-                        // matrix_deserialized[Number(i_row)][Number(i_col)] = notes
                         matrix_deserialized[Number(i_row)][Number(i_col)] = val
 
                     }
