@@ -176,6 +176,6 @@ export namespace trainable {
     // interface common to both detect and predict, but have different implementations
     export interface Targetable extends Trainable {
         determine_targets(user_input_handler: UserInputHandler, notes_in_segment: TreeModel.Node<Note>[])
-        postprocess_subtarget(subtarget: Subtarget)
+        // postprocess_subtarget(subtarget: Subtarget)
     }
 }

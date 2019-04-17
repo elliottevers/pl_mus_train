@@ -226,18 +226,6 @@ let set_segments = () => {
 
 let test = () => {
 
-    // set_song();
-    //
-    // let cue_points = song.get_cue_points();
-    //
-    // let cue_point_first = _.min(
-    //     cue_points,
-    //     (cue_point) => {
-    //         return cue_point.get_time()
-    //     }
-    // );
-    //
-    // cue_point_first.jump()
 };
 
 // TODO: send this via bus based on options in radio

@@ -1,8 +1,10 @@
 import {note} from "../note/note";
 import TreeModel = require("tree-model");
+import {log} from "../log/logger";
 
 export namespace serialize {
 
+    import Logger = log.Logger;
     export let serialize_note = (note: TreeModel.Node<note.Note>) => {
         return JSON.stringify(note.model);
     };
@@ -13,6 +15,10 @@ export namespace serialize {
         }
 
         let tree = new TreeModel();
+
+        let logger = new Logger('max');
+
+        logger.log(note_serialized);
 
         return tree.parse(JSON.parse(note_serialized));
     };

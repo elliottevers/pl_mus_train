@@ -447,21 +447,6 @@ trainer_local = new Trainer(
     true
 );
 
-// let notes_thawed = TrainThawer.thaw_notes(
-//     '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_ts/test/cache/train_predict.json',
-//     env
-// );
-//
-// trainer_local.commence();
-//
-// for (let note of notes_thawed) {
-//     trainer_local.accept_input([note])
-// }
-//
-// trainer_local.virtualized = false;
-//
-// trainer_local.render_window();
-
 let notes_thawed = TrainThawer.thaw_notes(
     filepath_save,
     env

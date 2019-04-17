@@ -14,6 +14,7 @@ import {song} from "../song/song";
 import {trainable} from "./trainable";
 import TreeModel = require("tree-model");
 import {log} from "../log/logger";
+const _ = require('underscore');
 
 export namespace targeted {
 
@@ -33,9 +34,9 @@ export namespace targeted {
     import TypeSequenceTarget = history.TypeSequenceTarget;
     import Segment = segment.Segment;
     import MatrixWindow = window.MatrixWindow;
-    import Logger = log.Logger;
     import Trainer = trainer.Trainer;
     import Track = track.Track;
+    import Logger = log.Logger;
 
     export abstract class Targeted implements Targetable {
 
@@ -104,7 +105,7 @@ export namespace targeted {
             return [subtarget_current.note];
         }
 
-        public abstract postprocess_subtarget(subtarget: Subtarget)
+        // public abstract postprocess_subtarget(subtarget: Subtarget)
 
         // TODO: verify that we don't need to do anything
         terminate(struct_train: StructTrain, segments: Segment[]) {
@@ -223,7 +224,10 @@ export namespace targeted {
         restore(trainer: Trainer, notes_thawed: TreeModel.Node<Note>[]): void {
             trainer.commence();
 
-            for (let note of notes_thawed) {
+            // for (let note of _.filter(notes_thawed, (note) => {return note !== null})) {
+            //     trainer.accept_input([note])
+            // }
+            for (let note of _.filter(notes_thawed, (note) => {return note !== null})) {
                 trainer.accept_input([note])
             }
         }

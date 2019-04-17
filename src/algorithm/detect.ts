@@ -75,9 +75,9 @@ export namespace detect {
             return SESSION
         }
 
-        postprocess_subtarget(note_subtarget) {
-            return note_subtarget
-        }
+        // postprocess_subtarget(note_subtarget) {
+        //     return note_subtarget
+        // }
 
         // TODO: verify that we don't have to do anything here
         initialize_render(

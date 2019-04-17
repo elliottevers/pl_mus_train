@@ -76,6 +76,7 @@ export namespace predict {
                     notes_grouped.push([partition[partition.length/2]])
                 }
 
+                // return notes_grouped
                 return notes_grouped
 
             } else {
@@ -83,12 +84,12 @@ export namespace predict {
             }
         }
 
-        postprocess_subtarget(note_subtarget) {
-            note_subtarget.model.note.muted = 1;
-            return note_subtarget;
-        }
+        // postprocess_subtarget(note_subtarget) {
+        //     note_subtarget.model.note.muted = 1;
+        //     return note_subtarget;
+        // }
 
-        // TODO: verify that we don't have to do anythiing here
+        // TODO: verify that we don't have to do anything here
         initialize_render(
             window: window.MatrixWindow,
             segments: segment.Segment[],

@@ -238,9 +238,6 @@ export namespace parsed {
 
                     this.terminate(trainer.struct_train, segments_train);
 
-                    // TODO: is this necessary?  This should be a virtual play-through
-                    // this.pause(song, trainer.segment_current.scene);
-
                     input_left = false;
 
                     continue;
