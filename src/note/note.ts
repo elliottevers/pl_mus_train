@@ -79,7 +79,7 @@ export namespace note {
                             note: new Note(
                                 note_to_split.model.note.pitch,
                                 beat_last,
-                                point,
+                                point - beat_last,
                                 note_to_split.model.note.velocity,
                                 note_to_split.model.note.muted
                             ),
@@ -88,8 +88,30 @@ export namespace note {
                             ]
                         }
                     )
-                )
+                );
+
+                beat_last = point
             }
+
+            let tree: TreeModel = new TreeModel();
+
+            segments.push(
+                tree.parse(
+                    {
+                        id: -1, // TODO: hashing scheme for clip id and beat start
+                        note: new Note(
+                            note_to_split.model.note.pitch,
+                            beat_last,
+                            note_to_split.model.note.get_beat_end() - beat_last,
+                            note_to_split.model.note.velocity,
+                            note_to_split.model.note.muted
+                        ),
+                        children: [
+
+                        ]
+                    }
+                )
+            );
 
             return segments
         }

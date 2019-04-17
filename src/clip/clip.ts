@@ -169,21 +169,19 @@ export namespace clip {
                 }
             }
 
-            let logger = new Logger('max');
             for (let split of splits) {
 
                 let note_to_split = split['note'];
 
                 let points = split['points'];
 
-                logger.log(JSON.stringify(note_to_split));
-
-                this.remove_notes(
-                    note_to_split.model.note.beat_start,
-                    0,
-                    note_to_split.model.note.get_beat_end(),
-                    128
-                );
+                // TODO: validate if we need this or not
+                // this.remove_notes(
+                //     note_to_split.model.note.beat_start,
+                //     note_to_split.model.note.pitch,
+                //     note_to_split.model.note.beats_duration,
+                //     note_to_split.model.note.pitch
+                // );
 
                 let replacements = n.Note.split_note_at_points(
                     note_to_split,

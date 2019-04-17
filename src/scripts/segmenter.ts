@@ -387,26 +387,26 @@ let expand_track = (path_track) => {
 };
 
 let test = () => {
-    let track = new Track(
-        new TrackDao(
-            new LiveApiJs(
-                'live_set view selected_track'
-            ),
-            messenger
-        )
-    );
-
-    track.load_clips();
-
-    let clip_slot = track.get_clip_slot_at_index(0);
-
-    clip_slot.load_clip();
-
-    let clip = clip_slot.get_clip();
-
-    let notes_segments = get_notes_segments();
-
-    clip.cut_notes_at_boundaries(notes_segments);
+    // let track = new Track(
+    //     new TrackDao(
+    //         new LiveApiJs(
+    //             'live_set view selected_track'
+    //         ),
+    //         messenger
+    //     )
+    // );
+    //
+    // track.load_clips();
+    //
+    // let clip_slot = track.get_clip_slot_at_index(0);
+    //
+    // clip_slot.load_clip();
+    //
+    // let clip = clip_slot.get_clip();
+    //
+    // let notes_segments = get_notes_segments();
+    //
+    // clip.cut_notes_at_boundaries(notes_segments);
 };
 
 if (typeof Global !== "undefined") {
