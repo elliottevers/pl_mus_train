@@ -28,24 +28,11 @@ let get_selected_track = () => {
         'live_set view selected_track clip_slots 0 clip'
     );
 
-    // let logger = new Logger(env);
-
     let path_live = track_highlighted.get_path();
 
     let messenger = new Messenger(env, 0);
 
     messenger.message(utils.PathLive.to_message(path_live))
-
-
-    // logger.log(
-    //     clip_highlighted.get_path().split(' ')
-    // )
-
-    // track_highlighted.get_children();
-
-    // exporter.set_length(
-    //     clip_highlighted.get("length")
-    // );
 
 };
 

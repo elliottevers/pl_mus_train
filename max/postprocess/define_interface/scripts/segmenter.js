@@ -5,3 +5,5 @@ var expand_segments = Global.segmenter.expand_segments;
 var expand_selected_audio_track = Global.segmenter.expand_selected_audio_track;
 var contract_selected_audio_track = Global.segmenter.contract_selected_audio_track;
 var test = Global.segmenter.test;
+var get_length_beats = Global.segmenter.get_length_beats;
+var set_length_beats = Global.segmenter.set_length_beats;

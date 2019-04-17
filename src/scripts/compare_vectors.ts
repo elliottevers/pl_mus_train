@@ -29,8 +29,6 @@ let vector_radio = [];
 
 // render dependency
 let overlap_at_index = (former, latter, i) => {
-    logger.log(former.toString());
-    logger.log(latter.toString());
     return former[i] === latter[i] ? 1 : 0;
 };
 

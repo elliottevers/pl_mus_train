@@ -8,10 +8,11 @@ import {utils} from "../utils/utils";
 export namespace clip {
 
     import Messenger = message.Messenger;
+    import Logger = log.Logger;
 
     export class Clip {
 
-        public clip_dao; // : ClipLive;
+        public clip_dao;
 
         private notes: TreeModel.Node<n.Note>[];
 
@@ -143,6 +144,54 @@ export namespace clip {
 
         get_ambitus(interval?): number[] {
             return [this.get_pitch_min(interval), this.get_pitch_max(interval)];
+        }
+
+        cut_notes_at_boundaries(notes_boundaries: TreeModel.Node<n.Note>[]) {
+            let notes_clip: TreeModel.Node<n.Note>[] = this.get_notes_within_loop_brackets();
+
+            let splits = [];
+
+            for (let note_clip of notes_clip) {
+
+                let split = {
+                    'note': note_clip,
+                    'points': []
+                };
+
+                for (let note_boundary of notes_boundaries) {
+                    if (note_clip.model.note.contains_beat(note_boundary.model.note.get_beat_end())) {
+                        split['points'].push(note_boundary.model.note.get_beat_end())
+                    }
+                }
+
+                if (split['points'].length > 0) {
+                    splits.push(split)
+                }
+            }
+
+            let logger = new Logger('max');
+            for (let split of splits) {
+
+                let note_to_split = split['note'];
+
+                let points = split['points'];
+
+                logger.log(JSON.stringify(note_to_split));
+
+                this.remove_notes(
+                    note_to_split.model.note.beat_start,
+                    0,
+                    note_to_split.model.note.get_beat_end(),
+                    128
+                );
+
+                let replacements = n.Note.split_note_at_points(
+                    note_to_split,
+                    points
+                );
+
+                this.set_notes(replacements)
+            }
         }
 
         set_loop_bracket_lower(beat: number): void {
@@ -345,11 +394,6 @@ export namespace clip {
             }
 
             notes_parsed.sort(compare);
-
-            // TODO: fail gracefully
-            // if (notes_parsed.length !== num_expected_notes) {
-            //     throw "notes retrieved from clip less than expected"
-            // }
 
             return notes_parsed;
         }

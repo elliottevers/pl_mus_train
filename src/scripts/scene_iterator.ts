@@ -67,10 +67,6 @@ let scene_current: Scene;
 let next = () => {
     let obj_next = scene_iterator.next();
 
-    // let logger = new Logger(env);
-
-    // logger.log(JSON.stringify(obj_next));
-
     if (obj_next.done) {
         song.stop();
 

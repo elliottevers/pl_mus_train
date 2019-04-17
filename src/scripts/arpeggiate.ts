@@ -66,8 +66,6 @@ let toggle = (val: number) => {
         );
 
         for (let group of groups_notes_arpegiatted) {
-            // let logger = new Logger(env);
-            // logger.log(JSON.stringify(group));
             notes_arpegiatted = notes_arpegiatted.concat(group)
         }
 

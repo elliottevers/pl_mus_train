@@ -1,4 +1,5 @@
 import TreeModel = require("tree-model");
+const _ = require('underscore');
 
 export namespace note {
 
@@ -32,7 +33,7 @@ export namespace note {
             this._b_has_chosen = false;
         }
 
-        static get_overlap_beats(
+        public static get_overlap_beats(
             beat_start_former: number,
             beat_end_former: number,
             beat_start_latter: number,
@@ -56,6 +57,45 @@ export namespace note {
 
             throw 'beats overlap cannot be determined'
 
+        }
+
+        public static split_note_at_points(note_to_split: TreeModel.Node<Note>, points: number[]): TreeModel.Node<Note>[] {
+
+            if (points.length === 0) {
+                return [note_to_split]
+            }
+
+            let segments = [];
+
+            let beat_last = note_to_split.model.note.beat_start;
+
+            for (let point of _.sortBy(points, (i) => {return i})) {
+                let tree: TreeModel = new TreeModel();
+
+                segments.push(
+                    tree.parse(
+                        {
+                            id: -1, // TODO: hashing scheme for clip id and beat start
+                            note: new Note(
+                                note_to_split.model.note.pitch,
+                                beat_last,
+                                point,
+                                note_to_split.model.note.velocity,
+                                note_to_split.model.note.muted
+                            ),
+                            children: [
+
+                            ]
+                        }
+                    )
+                )
+            }
+
+            return segments
+        }
+
+        public contains_beat(beat: number): boolean {
+            return this.beat_start < beat && this.get_beat_end() > beat
         }
 
         encode(): string {

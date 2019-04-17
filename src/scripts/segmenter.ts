@@ -35,28 +35,17 @@ if (env === 'max') {
 
 let messenger = new Messenger(env, 0);
 
-// get the first clip and use its start and end markers to determine the length of the entire song
+let length_beats: number = null;
+
+let set_length_beats = (arg_length_beats: number) => {
+    length_beats = arg_length_beats;
+};
+
 let get_length_beats = () => {
-    let this_device = new LiveApiJs('this_device');
-
-    let track = new Track(
-        new TrackDao(
-            new LiveApiJs(
-                utils.get_path_track_from_path_device(this_device.get_path())
-            ),
-            messenger
-        )
-    );
-
-    track.load_clip_slots();
-
-    let clip_slot = track.get_clip_slot_at_index(0);
-
-    clip_slot.load_clip();
-
-    let clip = clip_slot.get_clip();
-
-    return clip.get_end_marker() - clip.get_start_marker()
+    if (length_beats === null) {
+        throw 'length beats has not been set'
+    }
+    return length_beats;
 };
 
 let expand_segments = () => {
@@ -105,9 +94,6 @@ let contract_selected_track = () => {
 // set the notes inside of the single clip
 let contract_track = (path_track) => {
 
-    // length of first clip
-    let length_beats = get_length_beats();
-
     let track = new Track(
         new TrackDao(
             new li.LiveApiJs(
@@ -124,7 +110,7 @@ let contract_track = (path_track) => {
 
     track.delete_clips();
 
-    track.create_clip_at_index(0, length_beats);
+    track.create_clip_at_index(0, get_length_beats());
 
     let clip_slot = track.get_clip_slot_at_index(0);
 
@@ -134,9 +120,9 @@ let contract_track = (path_track) => {
 
     clip.set_notes(notes);
 
-    clip.set_endpoint_markers(0, length_beats);
+    clip.set_endpoint_markers(0, get_length_beats());
 
-    clip.set_endpoints_loop(0, length_beats);
+    clip.set_endpoints_loop(0, get_length_beats());
 };
 
 // TODO: we can't export this, because it could be called from a different track than the one the segments are on...
@@ -158,10 +144,6 @@ let get_notes_segments = () => {
     return track_segments.get_notes();
 };
 
-let test = () => {
-
-};
-
 let expand_selected_audio_track = () => {
     expand_track_audio('live_set view selected_track')
 };
@@ -172,8 +154,6 @@ let contract_selected_audio_track = () => {
 
 // NB: we assume all training data starts on the first beat
 let contract_track_audio = (path_track) => {
-
-    let length_beats = get_length_beats();
 
     let track = new Track(
         new TrackDao(
@@ -198,7 +178,7 @@ let contract_track_audio = (path_track) => {
                 messenger
             );
 
-            clip.set_endpoint_markers(0, length_beats);
+            clip.set_endpoint_markers(0, get_length_beats());
 
             continue
         }
@@ -325,14 +305,16 @@ let expand_track = (path_track) => {
 
     let clip = clip_slot.get_clip();
 
+    let notes_segments = get_notes_segments();
+
+    clip.cut_notes_at_boundaries(notes_segments);
+
     let notes_clip = clip.get_notes(
         clip.get_loop_bracket_lower(),
         0,
         clip.get_loop_bracket_upper(),
         128
     );
-
-    let notes_segments = get_notes_segments();
 
     let segments: Segment[] = [];
 
@@ -353,8 +335,6 @@ let expand_track = (path_track) => {
             false
         )
     );
-
-    let length_beats = get_length_beats();
 
     song_read.load_scenes();
 
@@ -382,7 +362,7 @@ let expand_track = (path_track) => {
             clip_slot.delete_clip()
         }
 
-        clip_slot.create_clip(length_beats);
+        clip_slot.create_clip(get_length_beats());
 
         clip_slot.load_clip();
 
@@ -406,6 +386,29 @@ let expand_track = (path_track) => {
     }
 };
 
+let test = () => {
+    let track = new Track(
+        new TrackDao(
+            new LiveApiJs(
+                'live_set view selected_track'
+            ),
+            messenger
+        )
+    );
+
+    track.load_clips();
+
+    let clip_slot = track.get_clip_slot_at_index(0);
+
+    clip_slot.load_clip();
+
+    let clip = clip_slot.get_clip();
+
+    let notes_segments = get_notes_segments();
+
+    clip.cut_notes_at_boundaries(notes_segments);
+};
+
 if (typeof Global !== "undefined") {
     Global.segmenter = {};
     Global.segmenter.expand_selected_track = expand_selected_track;
@@ -415,4 +418,6 @@ if (typeof Global !== "undefined") {
     Global.segmenter.expand_selected_audio_track = expand_selected_audio_track;
     Global.segmenter.contract_selected_audio_track = contract_selected_audio_track;
     Global.segmenter.test = test;
+    Global.segmenter.get_length_beats = get_length_beats;
+    Global.segmenter.set_length_beats = set_length_beats;
 }
