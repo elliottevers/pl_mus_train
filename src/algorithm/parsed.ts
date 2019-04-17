@@ -236,8 +236,6 @@ export namespace parsed {
 
                 if (trainer.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
 
-                    this.terminate(trainer.struct_train, segments_train);
-
                     input_left = false;
 
                     continue;

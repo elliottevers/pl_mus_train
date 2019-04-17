@@ -609,3 +609,7 @@ trainer_local_parse.virtualized = false;
 trainer_local_parse.restore_user_input();
 
 trainer_local_parse.render_window();
+
+// trainer_local_parse.accept_input(
+//     [note_melody_parsed_3, note_melody_parsed_4]
+// );

@@ -629,7 +629,6 @@ var parsed;
                 var coord_current = trainer.iterator_matrix_train.get_coord_current();
                 var coord_user_input_history = this.coord_to_index_history_user_input(coord_current);
                 if (trainer.iterator_matrix_train.done || matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
-                    this.terminate(trainer.struct_train, segments_train);
                     input_left = false;
                     continue;
                 }
