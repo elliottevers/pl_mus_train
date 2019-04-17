@@ -12,16 +12,12 @@ import {window} from "../render/window";
 import {track} from "../track/track";
 import {iterate} from "../train/iterate";
 import TreeModel = require("tree-model");
-import {log} from "../log/logger";
-import {cue_point} from "../cue_point/cue_point";
 const _ = require('underscore');
 
 export namespace freestyle {
     import Trainable = trainable.Trainable;
     import ARRANGEMENT = trainer.ARRANGEMENT;
     import Track = track.Track;
-    import Logger = log.Logger;
-    import CuePoint = cue_point.CuePoint;
 
     export class Freestyle implements Trainable {
         b_parsed: boolean;
@@ -201,6 +197,5 @@ export namespace freestyle {
         public get_notes_focus(track_target: Track): TreeModel.Node<note.Note>[] {
             return null;
         }
-
     }
 }

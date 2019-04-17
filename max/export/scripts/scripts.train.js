@@ -212,12 +212,10 @@ var detect;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var trainer_1 = require("../train/trainer");
-var logger_1 = require("../log/logger");
 var _ = require('underscore');
 var freestyle;
 (function (freestyle) {
     var ARRANGEMENT = trainer_1.trainer.ARRANGEMENT;
-    var Logger = logger_1.log.Logger;
     var Freestyle = /** @class */ (function () {
         function Freestyle() {
         }
@@ -274,10 +272,8 @@ var freestyle;
         };
         Freestyle.prototype.initialize_set = function (song, segments) {
             song.loop(true);
-            var logger = new Logger('max');
             var _loop_1 = function (i_segment) {
                 var segment_1 = segments[Number(i_segment)];
-                logger.log(String(segment_1.beat_start));
                 var task_set_current_song_time = new Task(function () {
                     song.set_current_song_time(segment_1.beat_start);
                 });
@@ -348,7 +344,7 @@ var freestyle;
     freestyle.Freestyle = Freestyle;
 })(freestyle = exports.freestyle || (exports.freestyle = {}));
 
-},{"../log/logger":17,"../train/trainer":33,"underscore":40}],4:[function(require,module,exports){
+},{"../train/trainer":33,"underscore":40}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -886,9 +882,6 @@ var targeted;
         };
         Targeted.prototype.restore = function (trainer, notes_thawed) {
             trainer.commence();
-            // for (let note of _.filter(notes_thawed, (note) => {return note !== null})) {
-            //     trainer.accept_input([note])
-            // }
             for (var _i = 0, _a = _.filter(notes_thawed, function (note) { return note !== null; }); _i < _a.length; _i++) {
                 var note_1 = _a[_i];
                 trainer.accept_input([note_1]);
@@ -1600,9 +1593,6 @@ var file;
                     for (var _b = 0, _c = col.getkeys(); _b < _c.length; _b++) {
                         var i_col = _c[_b];
                         matrix_deserialized[Number(i_row)].push([]);
-                        // matrix_deserialized[Number(i_row)][Number(i_col)] = [dict.get(
-                        //     ["history_user_input", i_row, i_col].join('::')
-                        // )]
                         var notes = dict.get(["history_user_input", i_row, i_col].join('::'));
                         var val = void 0;
                         if (notes === null) {
@@ -1614,8 +1604,6 @@ var file;
                         else {
                             val = notes;
                         }
-                        // matrix_deserialized[Number(i_row)][Number(i_col)] = (notes === null || notes.length === 1) ? [notes] : notes
-                        // matrix_deserialized[Number(i_row)][Number(i_col)] = notes
                         matrix_deserialized[Number(i_row)][Number(i_col)] = val;
                     }
                 }
@@ -2882,6 +2870,7 @@ var load_session = function (filename) {
         throw 'algorithm not supported';
     }
     trainer.virtualized = false;
+    trainer.stream_bounds();
     trainer.render_window();
 };
 var save_session = function (filename) {
@@ -3037,10 +3026,8 @@ var freeze;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var TreeModel = require("tree-model");
-var logger_1 = require("../log/logger");
 var serialize;
 (function (serialize) {
-    var Logger = logger_1.log.Logger;
     serialize.serialize_note = function (note) {
         return JSON.stringify(note.model);
     };
@@ -3049,8 +3036,6 @@ var serialize;
             return null;
         }
         var tree = new TreeModel();
-        var logger = new Logger('max');
-        logger.log(note_serialized);
         return tree.parse(JSON.parse(note_serialized));
     };
     serialize.serialize_sequence_note = function (notes) {
@@ -3066,17 +3051,15 @@ var serialize;
     };
 })(serialize = exports.serialize || (exports.serialize = {}));
 
-},{"../log/logger":17,"tree-model":39}],28:[function(require,module,exports){
+},{"tree-model":39}],28:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file_1 = require("../io/file");
 var serialize_1 = require("./serialize");
-var logger_1 = require("../log/logger");
 var thaw;
 (function (thaw) {
     var from_json = file_1.file.from_json;
     var deserialize_note = serialize_1.serialize.deserialize_note;
-    var Logger = logger_1.log.Logger;
     var TrainThawer = /** @class */ (function () {
         function TrainThawer() {
         }
@@ -3100,7 +3083,6 @@ var thaw;
         TrainThawer.thaw_notes_matrix = function (filepath, env) {
             var matrix_deserialized = from_json(filepath, env);
             var matrix_notes = matrix_deserialized;
-            var logger = new Logger('max');
             // TODO: this is only valid for forward iteration
             for (var i_row in matrix_deserialized) {
                 var row = matrix_deserialized[Number(i_row)];
@@ -3113,18 +3095,11 @@ var thaw;
                         matrix_notes[Number(i_row)][Number(i_col)] = [];
                         continue;
                     }
-                    var logger_2 = new Logger('max');
-                    logger_2.log(col);
                     var notes = [];
-                    // logger.log(col);
-                    // for (let note_serialized of col) {
-                    //     notes.push(deserialize_note(note_serialized))
-                    // }
                     for (var _i = 0, col_1 = col; _i < col_1.length; _i++) {
                         var note_serialized = col_1[_i];
                         notes.push(deserialize_note(note_serialized));
                     }
-                    // notes.push(deserialize_note(col));
                     matrix_notes[Number(i_row)][Number(i_col)] = notes;
                 }
             }
@@ -3135,7 +3110,7 @@ var thaw;
     thaw.TrainThawer = TrainThawer;
 })(thaw = exports.thaw || (exports.thaw = {}));
 
-},{"../io/file":15,"../log/logger":17,"./serialize":27}],29:[function(require,module,exports){
+},{"../io/file":15,"./serialize":27}],29:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -3410,8 +3385,6 @@ var song;
 },{"../cue_point/cue_point":13,"../live/live":16,"../message/messenger":18,"../scene/scene":23,"../utils/utils":34}],30:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// import {Segment} from "../segment/segment";
-// import {serialize_subtarget} from "../serialize/serialize";
 var target;
 (function (target_1) {
     var Subtarget = /** @class */ (function () {
@@ -3489,8 +3462,6 @@ var target;
                 var subtargets = [];
                 for (var _a = 0, notes_1 = notes; _a < notes_1.length; _a++) {
                     var note = notes_1[_a];
-                    // let logger = new Logger('max');
-                    // logger.log(JSON.stringify(note));
                     subtargets.push(new Subtarget(note));
                 }
                 var iterator_subtarget = new SubtargetIterator(subtargets);
@@ -3546,140 +3517,6 @@ var target;
         return TargetIterator;
     }());
     target_1.TargetIterator = TargetIterator;
-    // export class Target {
-    // notes_grouped: TreeModel.Node<n.Note>[][];
-    //
-    // constructor(notes_grouped: TreeModel.Node<n.Note>[][]) {
-    //     this.notes_grouped = notes_grouped
-    // }
-    // subtargets: Subtarget[]
-    //     note: TreeModel.Node<n.Note>;
-    //     phrase: p.Phrase;
-    //
-    //     constructor(note: TreeModel.Node<n.Note>, phrase: p.Phrase) {
-    //         this.note = note;
-    //         this.phrase = phrase;
-    //     }
-    //
-    //     public value(): number {
-    //         return this.note.model.pitch;
-    //     }
-    //
-    //     public get_note_interval_beats(): number[] {
-    //         return this.note.model.get_interval_beats();
-    //     }
-    //
-    //     public get_phrase_interval_beats(): number[] {
-    //         return this.phrase.get_interval_beats();
-    //     }
-    //
-    //     // TODO: annotate
-    //     public set_note_interval_beats(note_interval_beats: number[], reverse: boolean) {
-    //         let beat_lower = note_interval_beats[0];
-    //         let beat_upper = note_interval_beats[1];
-    //
-    //         if (beat_upper - beat_lower < min_width_clip) {
-    //             beat_upper = beat_lower + min_width_clip;
-    //         }
-    //
-    //         if (reverse) {
-    //             this.phrase.clip.set_clip_endpoint_upper(beat_upper);
-    //             this.phrase.clip.set_clip_endpoint_lower(beat_lower);
-    //         } else {
-    //             this.phrase.clip.set_clip_endpoint_lower(beat_lower);
-    //             this.phrase.clip.set_clip_endpoint_upper(beat_upper);
-    //         }
-    //     }
-    //
-    //     public set_phrase_interval_beats(phrase_interval_beats: number[], reverse: boolean) {
-    //         let beat_lower = phrase_interval_beats[0];
-    //         let beat_upper = phrase_interval_beats[1];
-    //         if (reverse) {
-    //             this.phrase.clip.set_loop_bracket_upper(beat_upper);
-    //             this.phrase.clip.set_loop_bracket_lower(beat_lower);
-    //         } else {
-    //             this.phrase.clip.set_loop_bracket_lower(beat_lower);
-    //             this.phrase.clip.set_loop_bracket_upper(beat_upper);
-    //         }
-    //     }
-    // }
-    //
-    // export class TargetIterator {
-    //     phrase_iterator: p.PhraseIterator;
-    //     i: number;
-    //     current: any;
-    //
-    //     // TODO: figure out how to annotate
-    //     next() {
-    //         this.i += 1;
-    //
-    //         var phrase_current = this.phrase_iterator.current();
-    //
-    //         var note_result_next = phrase_current.note_iterator.next();
-    //
-    //         var note_next = note_result_next.value;
-    //
-    //         if (!note_result_next.done) {
-    //             this.current = new Target(note_next, phrase_current);
-    //             return {
-    //                 value: this.current,
-    //                 done: false
-    //             }
-    //         }
-    //
-    //         var phrase_result_next = this.phrase_iterator.next();
-    //
-    //         if (!phrase_result_next.done) { // note_next.done is true by now
-    //             var phrase_next = this.phrase_iterator.current();
-    //
-    //             note_result_next = phrase_next.note_iterator.next();
-    //
-    //             note_next = note_result_next.value;
-    //
-    //             this.current = new Target(note_next, phrase_next);
-    //
-    //             return {
-    //                 value: this.current,
-    //                 done: false
-    //             }
-    //         }
-    //
-    //         return {
-    //             value: null,
-    //             done: true
-    //         }
-    //     }
-    //
-    //     set_note_interval_beats(): void {
-    //         // TODO: use direction in logic
-    //         if (this.phrase_iterator.current() !== null) {
-    //             var direction_forward = this.phrase_iterator.current().note_iterator.direction_forward;
-    //         }
-    //         var reverse;
-    //         var note_interval = this.current.get_note_interval_beats();
-    //
-    //         if (this.i === 0) {
-    //             this.current.set_note_interval_beats(note_interval);
-    //         } else {
-    //             reverse = true;
-    //             this.current.set_note_interval_beats(note_interval, reverse);
-    //         }
-    //     }
-    //
-    //     set_phrase_interval_beats(): void {
-    //         // TODO: use direction in logic
-    //         var direction_forward = this.phrase_iterator.direction_forward;
-    //         var reverse;
-    //         var phrase_interval_beats = this.current.get_prhrase_interval_beats();
-    //
-    //         if (this.i === 0) {
-    //             this.current.set_phrase_interval_beats(phrase_interval_beats);
-    //         } else {
-    //             reverse = true;
-    //             this.current.set_phrase_interval_beats(phrase_interval_beats, reverse);
-    //         }
-    //     }
-    // }
 })(target = exports.target || (exports.target = {}));
 
 },{}],31:[function(require,module,exports){

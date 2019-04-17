@@ -77,7 +77,6 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let logger = new Logger(env);
 let messenger_render = new Messenger(env, 0, 'render');
 let messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
 let messenger_num_segments = new Messenger(env, 0, 'num_segments');
@@ -385,6 +384,8 @@ let load_session = (filename: string) => {
     }
 
     trainer.virtualized = false;
+
+    trainer.stream_bounds();
 
     trainer.render_window();
 };

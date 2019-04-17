@@ -224,9 +224,6 @@ export namespace targeted {
         restore(trainer: Trainer, notes_thawed: TreeModel.Node<Note>[]): void {
             trainer.commence();
 
-            // for (let note of _.filter(notes_thawed, (note) => {return note !== null})) {
-            //     trainer.accept_input([note])
-            // }
             for (let note of _.filter(notes_thawed, (note) => {return note !== null})) {
                 trainer.accept_input([note])
             }
