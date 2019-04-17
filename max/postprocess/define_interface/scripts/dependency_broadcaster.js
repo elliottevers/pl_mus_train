@@ -1,0 +1,2 @@
+var broadcast_dependencies = Global.dependency_broadcaster.broadcast_dependencies;
+var broadcast_ground_truth = Global.dependency_broadcaster.broadcast_ground_truth;
