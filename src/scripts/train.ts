@@ -3,8 +3,6 @@ import {trainer as module_trainer} from "../train/trainer";
 import Trainer = module_trainer.Trainer;
 import {clip} from "../clip/clip";
 import ClipDao = clip.ClipDao;
-import {log} from "../log/logger";
-import Logger = log.Logger;
 import {segment} from "../segment/segment";
 import Segment = segment.Segment;
 import {modes_control, modes_texture} from "../constants/constants";
@@ -57,7 +55,6 @@ import Targeted = targeted.Targeted;
 import {freestyle} from "../algorithm/freestyle";
 import Freestyle = freestyle.Freestyle;
 const _ = require('underscore');
-
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -386,6 +383,8 @@ let load_session = (filename: string) => {
     trainer.virtualized = false;
 
     trainer.stream_bounds();
+
+    trainer.restore_user_input();
 
     trainer.render_window();
 };

@@ -13,6 +13,7 @@ import {track} from "../track/track";
 import {user_input} from "../control/user_input";
 import {trainable} from "../algorithm/trainable";
 import {log} from "../log/logger";
+const _ = require('underscore');
 
 export namespace trainer {
 
@@ -36,6 +37,9 @@ export namespace trainer {
     import Trainable = trainable.Trainable;
     import Logger = log.Logger;
     import FREESTYLE = trainable.FREESTYLE;
+    import PARSE = trainable.PARSE;
+    import DETECT = trainable.DETECT;
+    import DERIVE = trainable.DERIVE;
 
     export type StructTargets = TargetIterator[][];
 
@@ -434,6 +438,44 @@ export namespace trainer {
 
         public accept_midi(pitch: number, velocity: number) {
             this.trainable.handle_midi(pitch, velocity, this)
+        }
+
+        restore_user_input() {
+
+            if (!_.contains([DERIVE, PARSE], this.trainable.get_name())) {
+                return
+            }
+
+            let struct_parse = this.struct_train as StructParse;
+
+            let inputs_most_recent = struct_parse.get_most_recent_input(this.trainable);
+
+            for (let i_input_most_recent in inputs_most_recent) {
+                let input_most_recent = inputs_most_recent[Number(i_input_most_recent)];
+
+                let segment = this.segments[Number(i_input_most_recent)];
+
+                if (input_most_recent.length === 0) {
+                    continue;
+                }
+
+                let clip_user_input = Track.get_clip_at_index(
+                    this.track_user_input.get_index(),
+                    Number(i_input_most_recent),
+                    this.track_user_input.track_dao.messenger
+                );
+
+                clip_user_input.remove_notes(
+                    segment.beat_start,
+                    0,
+                    segment.beat_end,
+                    128
+                );
+
+                clip_user_input.set_notes(
+                    input_most_recent
+                )
+            }
         }
     }
 }

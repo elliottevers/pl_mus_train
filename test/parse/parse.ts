@@ -606,4 +606,6 @@ algorithm_parsed.restore(
 
 trainer_local_parse.virtualized = false;
 
+trainer_local_parse.restore_user_input();
+
 trainer_local_parse.render_window();

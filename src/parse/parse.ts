@@ -7,6 +7,10 @@ const _ = require("underscore");
 export namespace parse {
     import NoteRenderable = note.NoteRenderable;
     import Parsable = trainable.Parsable;
+    import Note = note.Note;
+    import PARSE = trainable.PARSE;
+    import DERIVE = trainable.DERIVE;
+    import Trainable = trainable.Trainable;
 
     export abstract class ParseTree {
         root: TreeModel.Node<n.NoteRenderable>;
@@ -130,6 +134,55 @@ export namespace parse {
                 coords_notes_to_grow,
                 coords_parse
             );
+        }
+
+        public get_most_recent_input(trainable: Trainable): TreeModel.Node<Note>[][] {
+
+            // this row of the matrix should always contain the segments...
+            let i_row_segments = 1;
+            let num_segments = this.matrix_leaves[i_row_segments].length;
+
+            let notes_leaf_segments = [];
+
+            for (let i_col of _.range(0, num_segments)) {
+
+                let notes_leaf_segment = [];
+
+                let i_start, i_end, offset, direction_increment: any;
+
+                switch (trainable.get_name()) {
+                    // upwards
+                    case PARSE: {
+                        i_start = trainable.depth - 1;
+                        i_end = i_row_segments - 1;
+                        offset = -1;
+                        direction_increment = -1;
+                        break;
+                    }
+                    case DERIVE: {
+                        i_start = i_row_segments - 1;
+                        i_end = trainable.depth;
+                        offset = 1;
+                        direction_increment = 1;
+                        break;
+                    }
+                    default: {
+                        throw 'cannot get most recent input'
+                    }
+                }
+
+                for (let i_row of _.range(i_start, i_end)) {
+                    let notes_encountered = this.matrix_leaves[Number(i_row)][Number(i_col)];
+                    if (notes_encountered.length > 0) {
+                        // we've input notes here....
+                        notes_leaf_segment = notes_encountered;
+                    }
+                }
+
+                notes_leaf_segments.push(notes_leaf_segment)
+            }
+
+            return notes_leaf_segments;
         }
     }
 }

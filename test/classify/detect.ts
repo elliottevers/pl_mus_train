@@ -35,8 +35,6 @@ import Detect = detect.Detect;
 import {targeted} from "../../src/algorithm/targeted";
 import Targeted = targeted.Targeted;
 
-
-
 let tree: TreeModel = new TreeModel();
 
 let segment_note_1 = tree.parse(

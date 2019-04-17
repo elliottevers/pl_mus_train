@@ -487,4 +487,6 @@ algorithm_parsed.restore(
 
 trainer_local.virtualized = false;
 
+trainer_local.restore_user_input();
+
 trainer_local.render_window();
