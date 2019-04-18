@@ -26,15 +26,20 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let length_beats: number;
+let length_beats: number = null;
 
 let set_length_beats = (beats) => {
     length_beats = beats
 };
 
-let import_part = (name_part) => {
+let get_length_beats = () => {
+    if (length_beats === null) {
+        throw 'length is null, cannot determine size of clip'
+    }
+    return length_beats
+};
 
-    let logger = new Logger(env);
+let import_part = (name_part) => {
 
     // TODO: this works when we want to create a clip from scratch - figure out how to work into workflow
 
@@ -53,7 +58,7 @@ let import_part = (name_part) => {
 
     if (!clip_exists) {
         // TODO: get the beat of end of last note
-        clipslot_highlighted.call('create_clip', String(length_beats));
+        clipslot_highlighted.call('create_clip', String(get_length_beats()));
 
         clip_highlighted = new li.LiveApiJs(
             'live_set view highlighted_clip_slot clip'
@@ -92,7 +97,6 @@ let import_part = (name_part) => {
 let test = () => {
 
 };
-
 
 if (typeof Global !== "undefined") {
     Global.clip_importer = {};
