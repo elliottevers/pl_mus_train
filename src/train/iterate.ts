@@ -17,6 +17,9 @@ export namespace iterate {
     import DERIVE = trainable.DERIVE;
     import FREESTYLE = trainable.FREESTYLE;
 
+    export let FORWARDS = 'forwards';
+    export let BACKWARDS = 'backwards';
+
     export class MatrixIterator {
 
         private num_rows: number;
@@ -64,7 +67,9 @@ export namespace iterate {
             } else if (!this.downward && this.rightward) {
                 i_start = (this.num_columns * (this.index_row_start + 2)) - 1 - this.num_columns
             } else if (this.downward && !this.rightward) {
-                throw 'not yet supported'
+                // throw 'not yet supported'
+                // NB: this only works for one row case
+                i_start = this.num_columns
             }
             else if (!this.downward && !this.rightward) {
                 throw 'not yet supported'
@@ -85,7 +90,9 @@ export namespace iterate {
             } else if (!this.downward && this.rightward) {
                 i_stop = (this.index_row_stop - 1) * this.num_columns
             } else if (this.downward && !this.rightward) {
-                throw 'not yet supported'
+                // throw 'not yet supported'
+                // NB: this only works for one row case
+                i_stop = -1
             }
             else if (!this.downward && !this.rightward) {
                 throw 'not yet supported'
@@ -112,9 +119,9 @@ export namespace iterate {
                 // } else {
                 //     this.i--
                 // }
-                throw 'not yet supported'
+                // throw 'not yet supported'
+                this.i--
             } else if (!this.downward && !this.rightward) {
-                // this.i--;
                 throw 'not yet supported'
             } else {
                 throw 'not yet supported'
@@ -277,7 +284,7 @@ export namespace iterate {
                         1,
                         segments.length,
                         true,
-                        true,
+                        trainable.get_direction() === FORWARDS,
                         0,
                         1
                     );
@@ -288,7 +295,7 @@ export namespace iterate {
                         1,
                         segments.length,
                         true,
-                        true,
+                        trainable.get_direction() === FORWARDS,
                         0,
                         1
                     );
@@ -299,7 +306,7 @@ export namespace iterate {
                         1,
                         segments.length,
                         true,
-                        true,
+                        trainable.get_direction() === FORWARDS,
                         0,
                         1
                     );
@@ -307,7 +314,7 @@ export namespace iterate {
                 }
                 case PARSE: {
                     downward = false;
-                    rightward = true;
+                    rightward = trainable.get_direction() === FORWARDS;
                     let index_row_start = trainable.depth - 1;
                     let index_row_stop = 1;
                     iterator = new MatrixIterator(
@@ -322,7 +329,7 @@ export namespace iterate {
                 }
                 case DERIVE: {
                     downward = true;
-                    rightward = true;
+                    rightward = trainable.get_direction() === FORWARDS;
                     let index_row_start = 1;
                     let index_row_stop = trainable.depth;
                     iterator = new MatrixIterator(

@@ -20,14 +20,12 @@ export namespace trainable {
     import MatrixWindow = window.MatrixWindow;
     import StructTrain = trainer.StructTrain;
     import UserInputHandler = user_input.UserInputHandler;
-    import Target = target.Target;
     import Song = song.Song;
     import MatrixIterator = iterate.MatrixIterator;
     import HistoryUserInput = history.HistoryUserInput;
     import Scene = scene.Scene;
     import Track = track.Track;
     import StructParse = parse.StructParse;
-    import Messenger = message.Messenger;
     import Trainer = trainer.Trainer;
 
     export let DETECT = 'detect';
@@ -36,10 +34,11 @@ export namespace trainable {
     export let DERIVE = 'derive';
     export let FREESTYLE = 'freestyle';
 
-    interface Temporal {
-        determine_region_present(
-            notes_next: TreeModel.Node<Note>[],
-            segment_current: Segment
+    interface Segmented {
+        determine_region_focus(
+            segment_current: Segment,
+            struct_train: StructTrain,
+            coord_train_current: number[]
         )
 
         stream_bounds(
@@ -60,10 +59,11 @@ export namespace trainable {
     }
 
     // interface that the trainer uses
-    export interface Trainable extends Temporal, Renderable {
+    export interface Trainable extends Segmented, Renderable {
         depth: number;
         b_parsed: boolean;
         b_targeted: boolean;
+        direction: string
 
         get_name(): string
         get_num_layers_input(): number
@@ -162,6 +162,10 @@ export namespace trainable {
         get_view(): string
 
         get_notes_focus(track_target: Track): TreeModel.Node<Note>[]
+
+        get_direction(): string
+
+        set_direction(direction: string): void
     }
 
     // interface common to both parse and derive, but have different implementations
@@ -176,6 +180,5 @@ export namespace trainable {
     // interface common to both detect and predict, but have different implementations
     export interface Targetable extends Trainable {
         determine_targets(user_input_handler: UserInputHandler, notes_in_segment: TreeModel.Node<Note>[])
-        // postprocess_subtarget(subtarget: Subtarget)
     }
 }

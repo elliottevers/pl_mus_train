@@ -12,4 +12,5 @@ var set_depth_tree = Global.train.set_depth_tree;
 var set_algorithm_train = Global.train.set_algorithm_train;
 var set_mode_control = Global.train.set_mode_control;
 var set_mode_texture = Global.train.set_mode_texture;
+var set_direction = Global.train.set_direction;
 var test = Global.train.test;

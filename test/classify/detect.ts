@@ -34,6 +34,9 @@ import {detect} from "../../src/algorithm/detect";
 import Detect = detect.Detect;
 import {targeted} from "../../src/algorithm/targeted";
 import Targeted = targeted.Targeted;
+import {iterate} from "../../src/train/iterate";
+import FORWARDS = iterate.FORWARDS;
+import BACKWARDS = iterate.BACKWARDS;
 
 let tree: TreeModel = new TreeModel();
 
@@ -378,6 +381,12 @@ for (let i_segment in segments) {
     )
 }
 
+// let direction = BACKWARDS;
+let direction = FORWARDS;
+
+
+algorithm_train.set_direction(direction);
+
 let trainer_local = new Trainer(
     window_train,
     user_input_handler,
@@ -389,43 +398,82 @@ let trainer_local = new Trainer(
     messenger
 );
 
-// test case - 2 segments, 2 notes a piece
+// test case - 2 segments, 2 notes a pieces
 
 trainer_local.commence(
 
 );
 
-trainer_local.accept_input(
-    [note_target_1_subtarget_1]
-);
+if (direction === FORWARDS) {
+    trainer_local.accept_input(
+        [note_target_1_subtarget_1]
+    );
 
-trainer_local.accept_input(
-    [note_target_1_subtarget_2]
-);
+    trainer_local.accept_input(
+        [note_target_1_subtarget_2]
+    );
 
-trainer_local.accept_input(
-    [note_target_2_subtarget_1]
-);
+    trainer_local.accept_input(
+        [note_target_2_subtarget_1]
+    );
 
-trainer_local.accept_input(
-    [note_target_2_subtarget_2]
-);
+    trainer_local.accept_input(
+        [note_target_2_subtarget_2]
+    );
 
-trainer_local.accept_input(
-    [note_target_3_subtarget_1]
-);
+    trainer_local.accept_input(
+        [note_target_3_subtarget_1]
+    );
 
-// trainer_local.accept_input(
-//     [note_target_3_subtarget_2]
-// );
-//
-// trainer_local.accept_input(
-//     [note_target_4_subtarget_1]
-// );
-//
-// trainer_local.accept_input(
-//     [note_target_4_subtarget_2]
-// );
+    // trainer_local.accept_input(
+    //     [note_target_3_subtarget_2]
+    // );
+
+    // trainer_local.accept_input(
+    //     [note_target_4_subtarget_1]
+    // );
+    //
+    // trainer_local.accept_input(
+    //     [note_target_4_subtarget_2]
+    // );
+} else {
+
+    trainer_local.accept_input(
+        [note_target_3_subtarget_1]
+    );
+
+    trainer_local.accept_input(
+        [note_target_3_subtarget_2]
+    );
+
+    trainer_local.accept_input(
+        [note_target_4_subtarget_1]
+    );
+
+    trainer_local.accept_input(
+        [note_target_4_subtarget_2]
+    );
+
+
+
+    trainer_local.accept_input(
+        [note_target_1_subtarget_1]
+    );
+
+    trainer_local.accept_input(
+        [note_target_1_subtarget_2]
+    );
+
+    trainer_local.accept_input(
+        [note_target_2_subtarget_1]
+    );
+
+    trainer_local.accept_input(
+        [note_target_2_subtarget_2]
+    );
+}
+
+
 
 trainer_local.render_window(
 
@@ -455,14 +503,17 @@ trainer_local = new Trainer(
     true
 );
 
-let notes_thawed = TrainThawer.thaw_notes(
+let history_user_input_empty = trainer_local.history_user_input;
+
+let history_user_input_recovered = TrainThawer.recover_history_user_input(
     filepath_save,
-    env
+    env,
+    history_user_input_empty
 );
 
 let algorithm_targeted = algorithm_train as Targeted;
 
-algorithm_targeted.restore(trainer_local, notes_thawed);
+algorithm_targeted.restore(trainer_local, history_user_input_recovered);
 
 trainer_local.virtualized = false;
 

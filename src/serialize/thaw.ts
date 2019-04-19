@@ -2,13 +2,36 @@ import {file} from "../io/file";
 import TreeModel = require("tree-model");
 import {serialize} from "./serialize";
 import {note} from "../note/note";
+import {history} from "../history/history";
 
 export namespace thaw {
     import from_json = file.from_json;
     import deserialize_note = serialize.deserialize_note;
     import Note = note.Note;
+    import HistoryUserInput = history.HistoryUserInput;
 
     export class TrainThawer {
+
+        public static recover_history_user_input(
+            filepath: string,
+            env: string,
+            history_user_input: HistoryUserInput
+        ): HistoryUserInput {
+
+            let matrix = TrainThawer.thaw_notes_matrix(filepath, env);
+
+            for (let key_row of Object.keys(matrix)) {
+                let col = matrix[key_row];
+                for (let key_col of Object.keys(col)) {
+                    for (let note_deserialized of matrix[key_row][key_col]) {
+                        history_user_input.concat([note_deserialized], [Number(key_row), Number(key_col)])
+                    }
+
+                }
+            }
+
+            return history_user_input
+        }
 
         public static thaw_notes(filepath: string, env: string): TreeModel.Node<Note>[] {
             let notes = [];

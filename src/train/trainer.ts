@@ -35,10 +35,8 @@ export namespace trainer {
     import Song = song.Song;
     import MatrixWindow = window.MatrixWindow;
     import Trainable = trainable.Trainable;
-    import Logger = log.Logger;
     import FREESTYLE = trainable.FREESTYLE;
     import PARSE = trainable.PARSE;
-    import DETECT = trainable.DETECT;
     import DERIVE = trainable.DERIVE;
 
     export type StructTargets = TargetIterator[][];
@@ -250,7 +248,9 @@ export namespace trainer {
             if (have_not_begun) {
                 this.iterator_matrix_train.next();
 
-                this.iterator_target_current = matrix_targets[0][0];
+                let coord_current = this.iterator_matrix_train.get_coord_current();
+
+                this.iterator_target_current = matrix_targets[coord_current[0]][coord_current[1]];
 
                 this.iterator_target_current.next();
 

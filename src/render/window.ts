@@ -19,21 +19,33 @@ export namespace window {
     import MatrixIterator = iterate.MatrixIterator;
     import StructParse = parse.StructParse;
     import StructTrain = trainer.StructTrain;
-    import StructTargets = trainer.StructTargets;
     import Trainable = trainable.Trainable;
+    import FORWARDS = iterate.FORWARDS;
 
     const red = [255, 0, 0];
     const white = [255, 255, 255];
+    const blue = [10, 10, 251];
     const black = [0, 0, 0];
     const region_yellow = [254, 254, 10];
     const region_green = [33, 354, 6];
     const region_red = [251, 1, 6];
-    const blue = [10, 10, 251];
 
-    interface Temporal {
-        get_message_render_region_past(interval_current);
-        get_message_render_region_present(interval_current);
-        get_message_render_region_future(interval_current);
+    interface Graduated {
+        get_messages_render_region_seen(
+            trainable: Trainable,
+            segment_current: Segment,
+            interval_current: number[]
+        ): any[][];
+
+        get_messages_render_region_focus(
+            interval_current: number[]
+        ): any[][];
+
+        get_messages_render_region_unseen(
+            trainable: Trainable,
+            segment_current: Segment,
+            interval_current: number[]
+        ): any[][];
     }
 
     export abstract class Window {
@@ -111,14 +123,9 @@ export namespace window {
         };
 
         get_dist_from_top(pitch: number, index_clip: number): number {
-            var clip = this.list_clips[index_clip];
+            let clip = this.list_clips[index_clip];
             let offset = index_clip;
-            // TODO: make this configurable
-            if (false) {
-                offset = this.list_clips.length - 1 - index_clip;
-
-            }
-            var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(index_clip);
+            let dist = (clip.get_pitch_max() - pitch) * this.get_height_note(index_clip);
             return dist + (this.get_height_clip() * offset);
         };
 
@@ -160,11 +167,12 @@ export namespace window {
             if (dist_pitch === 1) {
                 dist_pitch = 3;
             }
+
             return this.get_height_clip() / dist_pitch;
         };
     }
 
-    export class MatrixWindow extends Window implements Temporal {
+    export class MatrixWindow extends Window implements Graduated {
 
         constructor(height, width, messenger) {
             super(height, width, messenger);
@@ -258,8 +266,6 @@ export namespace window {
 
             let index_clip = trainable.coord_to_index_clip_render(coord_clip);
 
-            // TODO: determine how to get the index of the clip from just depth of the node
-
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
             dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, index_clip);
@@ -309,18 +315,48 @@ export namespace window {
             return messages
         }
 
-        public get_message_render_region_past(interval_current) {
+        public get_messages_render_region_seen(
+            trainable: Trainable,
+            segment_current: Segment,
+            interval_current: number[]
+        ) {
+
+            let messages = [];
+
             let offset_left_start, offset_top_start, offset_left_end, offset_top_end;
 
-            offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());
-            offset_left_end = this.get_dist_from_left(interval_current[0]);
+            // segments we've already visited
+
+            offset_left_start = trainable.get_direction() === FORWARDS ? this.get_offset_pixel_leftmost() : this.get_dist_from_left(interval_current[1]);
+
+            offset_left_end = trainable.get_direction() === FORWARDS ? this.get_dist_from_left(interval_current[0]) : this.get_offset_pixel_rightmost();
+
             offset_top_start = this.get_offset_pixel_topmost();
+
             offset_top_end = this.get_offset_pixel_bottommost();
 
-            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end]
+            messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+
+
+            // notes in the current segment that we've already guessed
+
+            offset_left_start = this.get_dist_from_left(segment_current.beat_start);
+
+            offset_left_end = this.get_dist_from_left(interval_current[0]);
+
+            offset_top_start = this.get_offset_pixel_topmost();
+
+            offset_top_end = this.get_offset_pixel_bottommost();
+
+            messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+
+
+            return messages
         }
 
-        public get_message_render_region_present(interval_current) {
+        public get_messages_render_region_focus(
+            interval_current: number[]
+        ) {
             let offset_left_start, offset_top_start, offset_left_end, offset_top_end;
 
             offset_left_start = this.get_dist_from_left(interval_current[0]);
@@ -328,18 +364,48 @@ export namespace window {
             offset_top_start = this.get_offset_pixel_topmost();
             offset_top_end = this.get_offset_pixel_bottommost();
 
-            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end]
+            return [[offset_left_start, offset_top_start, offset_left_end, offset_top_end]]
         }
 
-        public get_message_render_region_future(interval_current) {
+        public get_messages_render_region_unseen(
+            trainable: Trainable,
+            segment_current: Segment,
+            interval_current: number[]
+        ) {
             let offset_left_start, offset_top_start, offset_left_end, offset_top_end;
 
-            offset_left_start = this.get_dist_from_left(interval_current[1]);
-            offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
-            offset_top_start = this.get_offset_pixel_topmost();
-            offset_top_end = this.get_offset_pixel_bottommost();
+            let messages = [];
 
-            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end]
+            if (trainable.get_direction() === FORWARDS) {
+
+                offset_left_start = this.get_dist_from_left(interval_current[1]);
+                offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
+
+                offset_top_start = this.get_offset_pixel_topmost();
+                offset_top_end = this.get_offset_pixel_bottommost();
+
+                messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+            } else {
+
+                offset_left_start = this.get_dist_from_left(interval_current[1]);
+                offset_left_end = this.get_dist_from_left(segment_current.beat_end);
+
+                offset_top_start = this.get_offset_pixel_topmost();
+                offset_top_end = this.get_offset_pixel_bottommost();
+
+                messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+
+
+                offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());
+                offset_left_end = this.get_dist_from_left(segment_current.beat_start);
+
+                offset_top_start = this.get_offset_pixel_topmost();
+                offset_top_end = this.get_offset_pixel_bottommost();
+
+                messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+            }
+
+            return messages
         }
 
         public render_regions(
@@ -352,52 +418,48 @@ export namespace window {
             let interval_current;
 
             if (iterator_matrix_train.done) {
-                interval_current = [
-                    segment_current.beat_end,
-                    segment_current.beat_end
-                ]
+                interval_current = [segment_current.beat_end, segment_current.beat_end];
             } else {
-                let coord_current = iterator_matrix_train.get_coord_current();
-
-                // prediction/detection need the current target, while parse/derive need the current segment
-                if (trainable.b_targeted) {
-
-                    let struct_targets = struct_train as StructTargets;
-
-                    let note = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
-
-                    interval_current = trainable.determine_region_present(
-                        [note],
-                        segment_current
-                    );
-
-                } else {
-
-                    let struct_parse = struct_train as StructParse;
-
-                    let coord_segment = [0, coord_current[1]];
-
-                    interval_current = trainable.determine_region_present(
-                        struct_parse.get_notes_at_coord(coord_segment),
-                        segment_current
-                    );
-                }
+                interval_current = trainable.determine_region_focus(segment_current, struct_train, iterator_matrix_train.get_coord_current())
             }
 
-            let quadruplet_region_past = this.get_message_render_region_past(interval_current);
-            let quadruplet_region_present = this.get_message_render_region_present(interval_current);
-            let quadruplet_region_future = this.get_message_render_region_future(interval_current);
+            let quadruplets_region_seen = this.get_messages_render_region_seen(
+                trainable,
+                segment_current,
+                interval_current
+            );
 
-            quadruplet_region_past.unshift('paintrect');
-            quadruplet_region_past = quadruplet_region_past.concat(region_green);
+            let quadruplets_region_focus = this.get_messages_render_region_focus(
+                interval_current
+            );
 
-            quadruplet_region_present.unshift('paintrect');
-            quadruplet_region_present = quadruplet_region_present.concat(region_red);
+            let quadruplets_region_unseen = this.get_messages_render_region_unseen(
+                trainable,
+                segment_current,
+                interval_current
+            );
 
-            quadruplet_region_future.unshift('paintrect');
-            quadruplet_region_future = quadruplet_region_future.concat(region_yellow);
+            let messages_render = [];
 
-            for (let quadruplet of [quadruplet_region_past, quadruplet_region_present, quadruplet_region_future]) {
+            for (let quadruplet_region_seen of quadruplets_region_seen) {
+                quadruplet_region_seen.unshift('paintrect');
+                quadruplet_region_seen = quadruplet_region_seen.concat(region_green);
+                messages_render.push(quadruplet_region_seen)
+            }
+
+            for (let quadruplet_region_focus of quadruplets_region_focus) {
+                quadruplet_region_focus.unshift('paintrect');
+                quadruplet_region_focus = quadruplet_region_focus.concat(region_red);
+                messages_render.push(quadruplet_region_focus)
+            }
+
+            for (let quadruplet_region_unseen of quadruplets_region_unseen) {
+                quadruplet_region_unseen.unshift('paintrect');
+                quadruplet_region_unseen = quadruplet_region_unseen.concat(region_yellow);
+                messages_render.push(quadruplet_region_unseen)
+            }
+
+            for (let quadruplet of messages_render) {
                 this.messenger.message(quadruplet);
             }
         }

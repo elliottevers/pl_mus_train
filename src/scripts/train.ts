@@ -77,7 +77,7 @@ if (env === 'max') {
 let messenger_render = new Messenger(env, 0, 'render');
 let messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
 let messenger_num_segments = new Messenger(env, 0, 'num_segments');
-let mode_texture, mode_control, song, algorithm_train, user_input_handler, window, segments_train, trainer;
+let mode_texture, mode_control, song, algorithm_train, user_input_handler, window, segments_train, trainer, direction;
 let track_target: Track, track_user_input: Track;
 
 let set_mode_texture = (option) => {
@@ -302,6 +302,8 @@ let initialize = () => {
         mode_control
     );
 
+    algorithm_train.set_direction(direction);
+
     trainer = new Trainer(
         window,
         user_input_handler,
@@ -397,6 +399,10 @@ let save_session = (filename: string) => {
     );
 };
 
+let set_direction = (arg_direction: string) => {
+    direction = arg_direction
+};
+
 if (typeof Global !== "undefined") {
     Global.train = {};
     Global.train.load_session = load_session;
@@ -414,5 +420,6 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
+    Global.train.set_direction = set_direction;
     Global.train.test = test;
 }

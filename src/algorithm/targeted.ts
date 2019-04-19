@@ -13,7 +13,6 @@ import {scene} from "../scene/scene";
 import {song} from "../song/song";
 import {trainable} from "./trainable";
 import TreeModel = require("tree-model");
-import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace targeted {
@@ -36,7 +35,6 @@ export namespace targeted {
     import MatrixWindow = window.MatrixWindow;
     import Trainer = trainer.Trainer;
     import Track = track.Track;
-    import Logger = log.Logger;
 
     export abstract class Targeted implements Targetable {
 
@@ -58,6 +56,7 @@ export namespace targeted {
         public b_parsed: boolean = false;
         public b_targeted: boolean = true;
         public depth: number;
+        direction: string;
 
         public abstract get_name()
 
@@ -80,10 +79,19 @@ export namespace targeted {
             return 1
         }
 
-        public determine_region_present(notes_target_next: TreeModel.Node<Note>[], segment_current: Segment): number[] {
+        public determine_region_focus(
+            segment_current: Segment,
+            struct_train: StructTrain,
+            coord_train_current: number[]
+        ): number[] {
+
+            let struct_targets = struct_train as StructTargets;
+
+            let notes_target_next = struct_targets[coord_train_current[0]][coord_train_current[1]].current().iterator_subtarget.current().note;
+
             return [
-                notes_target_next[0].model.note.beat_start,
-                notes_target_next[0].model.note.get_beat_end()
+                notes_target_next.model.note.beat_start,
+                notes_target_next.model.note.get_beat_end()
             ]
         }
 
@@ -104,8 +112,6 @@ export namespace targeted {
         postprocess_user_input(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current: target.Subtarget): TreeModel.Node<note.Note>[] {
             return [subtarget_current.note];
         }
-
-        // public abstract postprocess_subtarget(subtarget: Subtarget)
 
         // TODO: verify that we don't need to do anything
         terminate(struct_train: StructTrain, segments: Segment[]) {
@@ -221,12 +227,48 @@ export namespace targeted {
             return track_target.get_notes();
         }
 
-        restore(trainer: Trainer, notes_thawed: TreeModel.Node<Note>[]): void {
+        restore(trainer: Trainer, history_user_input_recovered: HistoryUserInput): void {
+
             trainer.commence();
 
-            for (let note of _.filter(notes_thawed, (note) => {return note !== null})) {
-                trainer.accept_input([note])
+            let input_left = true;
+
+            let coord_current: number[];
+
+            while (input_left) {
+                coord_current = trainer.iterator_matrix_train.get_coord_current();
+
+                let coord_user_input_history = this.coord_to_index_history_user_input(
+                    trainer.iterator_matrix_train.get_coord_current()
+                );
+
+                if (trainer.iterator_matrix_train.done || history_user_input_recovered.matrix_data[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
+
+                    input_left = false;
+
+                    continue;
+                }
+
+                let notes_segment = history_user_input_recovered.matrix_data[coord_user_input_history[0]][coord_user_input_history[1]];
+
+                for (let note of notes_segment) {
+                    trainer.accept_input(
+                        [note]
+                    );
+                }
+
+                if (_.isEqual(trainer.iterator_matrix_train.get_coord_current(), coord_current)) {
+                    input_left = false;
+                }
             }
+        }
+
+        get_direction(): string {
+            return this.direction;
+        }
+
+        set_direction(direction: string): void {
+            this.direction = direction
         }
     }
 }

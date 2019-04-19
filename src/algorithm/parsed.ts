@@ -16,7 +16,6 @@ import TreeModel = require("tree-model");
 
 export namespace parsed {
 
-    // logic common to parse and derive
     import Parsable = trainable.Parsable;
     import Scene = scene.Scene;
     import Segment = segment.Segment;
@@ -29,7 +28,6 @@ export namespace parsed {
     import Trainable = trainable.Trainable;
     import StructParse = parse.StructParse;
     import MatrixWindow = window.MatrixWindow;
-    import Messenger = message.Messenger;
     import Trainer = trainer.Trainer;
     import Track = track.Track;
 
@@ -44,6 +42,8 @@ export namespace parsed {
         public abstract get_view(): string
 
         depth: number;
+
+        direction: string;
 
         update_struct(notes_input_user: TreeModel.Node<Note>[], struct_train: StructTrain, trainable: Trainable, iterator_matrix_train: MatrixIterator): StructTrain {
 
@@ -116,7 +116,12 @@ export namespace parsed {
             )
         }
 
-        determine_region_present(notes_target_next: TreeModel.Node<Note>[], segment_current: Segment): number[] {
+        determine_region_focus(
+            segment_current: Segment,
+            struct_train: StructTrain,
+            coord_train_current: number[]
+        ): number[] {
+
             return [
                 segment_current.beat_start,
                 segment_current.beat_end
@@ -212,7 +217,6 @@ export namespace parsed {
 
         // the root is not included in iteration
         coord_to_index_struct_train(coord: number[]): number[] {
-            // return [coord[0] - 1, coord[1]];
             return coord
         }
 
@@ -245,6 +249,14 @@ export namespace parsed {
                     matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]
                 );
             }
+        }
+
+        get_direction(): string {
+            return this.direction;
+        }
+
+        set_direction(direction: string): void {
+            this.direction = direction;
         }
     }
 }
