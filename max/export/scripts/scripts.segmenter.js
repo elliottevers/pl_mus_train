@@ -1141,7 +1141,7 @@ var get_length_beats = function () {
 var expand_segments = function () {
     var this_device = new live_1.live.LiveApiJs('this_device');
     var track = new Track(new TrackDao(new LiveApiJs(utils_1.utils.get_path_track_from_path_device(this_device.get_path())), messenger));
-    expand_track(track.get_path());
+    expand_track(track.get_path(), 'segment');
 };
 var contract_segments = function () {
     var this_device = new live_1.live.LiveApiJs('this_device');
@@ -1154,11 +1154,6 @@ var expand_selected_track = function () {
 var contract_selected_track = function () {
     contract_track('live_set view selected_track');
 };
-// Assumption: all clips on "segment track have same length"
-// NB: works without highlighting any tracks
-// aggregate all the notes in the track's clips
-// delete all the track's clips
-// set the notes inside of the single clip
 var contract_track = function (path_track) {
     var track = new Track(new TrackDao(new live_1.live.LiveApiJs(path_track), messenger));
     // clip_slots and clips
@@ -1239,14 +1234,16 @@ var expand_track_audio = function (path_track) {
         clip.set_endpoint_markers(segment_2.beat_start, segment_2.beat_end);
     }
 };
-var expand_track = function (path_track) {
+var expand_track = function (path_track, name_part) {
     var track = new Track(new TrackDao(new LiveApiJs(path_track), messenger));
     track.load_clips();
     var clip_slot = track.get_clip_slot_at_index(0);
     clip_slot.load_clip();
     var clip = clip_slot.get_clip();
     var notes_segments = get_notes_segments();
-    clip.cut_notes_at_boundaries(notes_segments);
+    if (name_part !== 'segment') {
+        clip.cut_notes_at_boundaries(notes_segments);
+    }
     var notes_clip = clip.get_notes(clip.get_loop_bracket_lower(), 0, clip.get_loop_bracket_upper(), 128);
     var segments = [];
     for (var _i = 0, notes_segments_1 = notes_segments; _i < notes_segments_1.length; _i++) {

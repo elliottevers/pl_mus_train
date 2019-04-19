@@ -60,7 +60,7 @@ let expand_segments = () => {
         )
     );
 
-    expand_track(track.get_path())
+    expand_track(track.get_path(), 'segment')
 };
 
 let contract_segments = () => {
@@ -86,12 +86,6 @@ let contract_selected_track = () => {
     contract_track('live_set view selected_track')
 };
 
-// Assumption: all clips on "segment track have same length"
-
-// NB: works without highlighting any tracks
-// aggregate all the notes in the track's clips
-// delete all the track's clips
-// set the notes inside of the single clip
 let contract_track = (path_track) => {
 
     let track = new Track(
@@ -286,7 +280,7 @@ let expand_track_audio = (path_track) => {
     }
 };
 
-let expand_track = (path_track) => {
+let expand_track = (path_track: string, name_part?: string) => {
 
     let track = new Track(
         new TrackDao(
@@ -307,7 +301,9 @@ let expand_track = (path_track) => {
 
     let notes_segments = get_notes_segments();
 
-    clip.cut_notes_at_boundaries(notes_segments);
+    if (name_part !== 'segment') {
+        clip.cut_notes_at_boundaries(notes_segments);
+    }
 
     let notes_clip = clip.get_notes(
         clip.get_loop_bracket_lower(),
