@@ -67,7 +67,7 @@ export namespace trainer {
 
         public segment_current: Segment;
         public target_current: Target;
-        private subtarget_current: Subtarget;
+        public subtarget_current: Subtarget;
 
         public iterator_matrix_train: MatrixIterator;
         private iterator_target_current: TargetIterator;
