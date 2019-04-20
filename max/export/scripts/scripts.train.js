@@ -27,6 +27,7 @@ var derive;
     var ParseTree = parse_1.parse.ParseTree;
     var StructParse = parse_1.parse.StructParse;
     var SESSION = trainer_1.trainer.SESSION;
+    var FORWARDS = iterate_1.iterate.FORWARDS;
     var Derive = /** @class */ (function (_super) {
         __extends(Derive, _super);
         function Derive() {
@@ -111,6 +112,9 @@ var derive;
         Derive.prototype.handle_midi = function (pitch, velocity, trainer) {
             throw ['algorithm of name', this.get_name(), 'does not support direct midi input'];
         };
+        Derive.prototype.get_iterator_train = function (segments) {
+            return new MatrixIterator(this.get_num_layers_input(), segments.length, true, this.get_direction() === FORWARDS, 1, this.depth);
+        };
         return Derive;
     }(Parsed));
     derive.Derive = Derive;
@@ -139,6 +143,7 @@ var harmony_1 = require("../music/harmony");
 var constants_1 = require("../constants/constants");
 var TreeModel = require("tree-model");
 var trainable_1 = require("./trainable");
+var iterate_1 = require("../train/iterate");
 var detect;
 (function (detect) {
     var Targeted = targeted_1.targeted.Targeted;
@@ -148,6 +153,8 @@ var detect;
     var DETECT = trainable_1.trainable.DETECT;
     var Note = note_1.note.Note;
     var SESSION = trainer_1.trainer.SESSION;
+    var MatrixIterator = iterate_1.iterate.MatrixIterator;
+    var FORWARDS = iterate_1.iterate.FORWARDS;
     var Detect = /** @class */ (function (_super) {
         __extends(Detect, _super);
         function Detect() {
@@ -203,19 +210,25 @@ var detect;
         Detect.prototype.handle_command = function (command, trainer) {
             throw ['algorithm of name', this.get_name(), 'does not support commands'];
         };
+        Detect.prototype.get_iterator_train = function (segments) {
+            return new MatrixIterator(1, segments.length, true, this.get_direction() === FORWARDS, 0, 1);
+        };
         return Detect;
     }(Targeted));
     detect.Detect = Detect;
 })(detect = exports.detect || (exports.detect = {}));
 
-},{"../constants/constants":11,"../music/harmony":18,"../note/note":19,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38}],3:[function(require,module,exports){
+},{"../constants/constants":11,"../music/harmony":18,"../note/note":19,"../train/iterate":31,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var trainer_1 = require("../train/trainer");
+var iterate_1 = require("../train/iterate");
 var _ = require('underscore');
 var freestyle;
 (function (freestyle) {
     var ARRANGEMENT = trainer_1.trainer.ARRANGEMENT;
+    var MatrixIterator = iterate_1.iterate.MatrixIterator;
+    var FORWARDS = iterate_1.iterate.FORWARDS;
     var Freestyle = /** @class */ (function () {
         function Freestyle() {
         }
@@ -339,12 +352,24 @@ var freestyle;
         Freestyle.prototype.get_notes_focus = function (track_target) {
             return null;
         };
+        Freestyle.prototype.get_direction = function () {
+            return this.direction;
+        };
+        Freestyle.prototype.set_direction = function (direction) {
+            this.direction = direction;
+        };
+        Freestyle.prototype.get_iterator_train = function (segments) {
+            return new MatrixIterator(1, segments.length, true, this.get_direction() === FORWARDS, 0, 1);
+        };
+        Freestyle.prototype.determine_region_focus = function (segment_current, struct_train, coord_train_current) {
+            return [0, 0];
+        };
         return Freestyle;
     }());
     freestyle.Freestyle = Freestyle;
 })(freestyle = exports.freestyle || (exports.freestyle = {}));
 
-},{"../train/trainer":32,"underscore":39}],4:[function(require,module,exports){
+},{"../train/iterate":31,"../train/trainer":32,"underscore":39}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -363,18 +388,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var track_1 = require("../track/track");
 var parsed_1 = require("./parsed");
 var trainer_1 = require("../train/trainer");
-var iterate_1 = require("../train/iterate");
 var trainable_1 = require("./trainable");
+var iterate_1 = require("../train/iterate");
 var parse_1 = require("../parse/parse");
-var ParseTree = parse_1.parse.ParseTree;
-var StructParse = parse_1.parse.StructParse;
 var parse;
 (function (parse) {
     var Parsed = parsed_1.parsed.Parsed;
-    var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var PARSE = trainable_1.trainable.PARSE;
     var Track = track_1.track.Track;
     var SESSION = trainer_1.trainer.SESSION;
+    var MatrixIterator = iterate_1.iterate.MatrixIterator;
+    var FORWARDS = iterate_1.iterate.FORWARDS;
+    var StructParse = parse_1.parse.StructParse;
+    var ParseTree = parse_1.parse.ParseTree;
     var Parse = /** @class */ (function (_super) {
         __extends(Parse, _super);
         function Parse() {
@@ -520,6 +546,9 @@ var parse;
         Parse.prototype.handle_midi = function (pitch, velocity, trainer) {
             throw ['algorithm of name', this.get_name(), 'does not support direct midi input'];
         };
+        Parse.prototype.get_iterator_train = function (segments) {
+            return new MatrixIterator(this.get_num_layers_input(), segments.length, false, this.get_direction() === FORWARDS, this.depth - 1, 1);
+        };
         return Parse;
     }(Parsed));
     parse.Parse = Parse;
@@ -562,7 +591,7 @@ var parsed;
         Parsed.prototype.create_struct_parse = function (segments) {
             return new StructParse(FactoryMatrixObjectives.create_matrix_parse(this, segments));
         };
-        Parsed.prototype.determine_region_present = function (notes_target_next, segment_current) {
+        Parsed.prototype.determine_region_focus = function (segment_current, struct_train, coord_train_current) {
             return [
                 segment_current.beat_start,
                 segment_current.beat_end
@@ -616,7 +645,6 @@ var parsed;
         };
         // the root is not included in iteration
         Parsed.prototype.coord_to_index_struct_train = function (coord) {
-            // return [coord[0] - 1, coord[1]];
             return coord;
         };
         Parsed.prototype.get_notes_focus = function (track_target) {
@@ -634,6 +662,12 @@ var parsed;
                 }
                 trainer.accept_input(matrix_deserialized[coord_user_input_history[0]][coord_user_input_history[1]]);
             }
+        };
+        Parsed.prototype.get_direction = function () {
+            return this.direction;
+        };
+        Parsed.prototype.set_direction = function (direction) {
+            this.direction = direction;
         };
         return Parsed;
     }());
@@ -663,6 +697,7 @@ var trainer_1 = require("../train/trainer");
 var constants_1 = require("../constants/constants");
 var TreeModel = require("tree-model");
 var trainable_1 = require("./trainable");
+var iterate_1 = require("../train/iterate");
 var _ = require('underscore');
 var predict;
 (function (predict) {
@@ -673,6 +708,8 @@ var predict;
     var PREDICT = trainable_1.trainable.PREDICT;
     var Track = track_1.track.Track;
     var SESSION = trainer_1.trainer.SESSION;
+    var MatrixIterator = iterate_1.iterate.MatrixIterator;
+    var FORWARDS = iterate_1.iterate.FORWARDS;
     var Predict = /** @class */ (function (_super) {
         __extends(Predict, _super);
         function Predict() {
@@ -724,10 +761,6 @@ var predict;
                 throw ['texture mode', user_input_handler.mode_texture, 'not supported'].join(' ');
             }
         };
-        // postprocess_subtarget(note_subtarget) {
-        //     note_subtarget.model.note.muted = 1;
-        //     return note_subtarget;
-        // }
         // TODO: verify that we don't have to do anything here
         Predict.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             return window;
@@ -761,12 +794,15 @@ var predict;
         Predict.prototype.handle_command = function (command, trainer) {
             throw ['algorithm of name', this.get_name(), 'does not support commands'];
         };
+        Predict.prototype.get_iterator_train = function (segments) {
+            return new MatrixIterator(1, segments.length, true, this.get_direction() === FORWARDS, 0, 1);
+        };
         return Predict;
     }(Targeted));
     predict.Predict = Predict;
 })(predict = exports.predict || (exports.predict = {}));
 
-},{"../constants/constants":11,"../note/note":19,"../track/track":30,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38,"underscore":39}],7:[function(require,module,exports){
+},{"../constants/constants":11,"../note/note":19,"../track/track":30,"../train/iterate":31,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38,"underscore":39}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var iterate_1 = require("../train/iterate");
@@ -791,10 +827,12 @@ var targeted;
         Targeted.prototype.get_num_layers_input = function () {
             return 1;
         };
-        Targeted.prototype.determine_region_present = function (notes_target_next, segment_current) {
+        Targeted.prototype.determine_region_focus = function (segment_current, struct_train, coord_train_current) {
+            var struct_targets = struct_train;
+            var notes_target_next = struct_targets[coord_train_current[0]][coord_train_current[1]].current().iterator_subtarget.current().note;
             return [
-                notes_target_next[0].model.note.beat_start,
-                notes_target_next[0].model.note.get_beat_end()
+                notes_target_next.model.note.beat_start,
+                notes_target_next.model.note.get_beat_end()
             ];
         };
         Targeted.prototype.unpause = function (song, scene_current) {
@@ -806,7 +844,6 @@ var targeted;
         Targeted.prototype.postprocess_user_input = function (notes_user_input, subtarget_current) {
             return [subtarget_current.note];
         };
-        // public abstract postprocess_subtarget(subtarget: Subtarget)
         // TODO: verify that we don't need to do anything
         Targeted.prototype.terminate = function (struct_train, segments) {
             return;
@@ -879,12 +916,32 @@ var targeted;
         Targeted.prototype.get_notes_focus = function (track_target) {
             return track_target.get_notes();
         };
-        Targeted.prototype.restore = function (trainer, notes_thawed) {
+        Targeted.prototype.restore = function (trainer, history_user_input_recovered) {
             trainer.commence();
-            for (var _i = 0, _a = _.filter(notes_thawed, function (note) { return note !== null; }); _i < _a.length; _i++) {
-                var note_1 = _a[_i];
-                trainer.accept_input([note_1]);
+            var input_left = true;
+            var coord_current;
+            while (input_left) {
+                coord_current = trainer.iterator_matrix_train.get_coord_current();
+                var coord_user_input_history = this.coord_to_index_history_user_input(trainer.iterator_matrix_train.get_coord_current());
+                if (trainer.iterator_matrix_train.done || history_user_input_recovered.matrix_data[coord_user_input_history[0]][coord_user_input_history[1]].length === 0) {
+                    input_left = false;
+                    continue;
+                }
+                var notes_segment = history_user_input_recovered.matrix_data[coord_user_input_history[0]][coord_user_input_history[1]];
+                for (var _i = 0, notes_segment_1 = notes_segment; _i < notes_segment_1.length; _i++) {
+                    var note_1 = notes_segment_1[_i];
+                    trainer.accept_input([note_1]);
+                }
+                if (_.isEqual(trainer.iterator_matrix_train.get_coord_current(), coord_current)) {
+                    input_left = false;
+                }
             }
+        };
+        Targeted.prototype.get_direction = function () {
+            return this.direction;
+        };
+        Targeted.prototype.set_direction = function (direction) {
+            this.direction = direction;
         };
         return Targeted;
     }());
@@ -1002,6 +1059,40 @@ var clip;
         };
         Clip.prototype.get_ambitus = function (interval) {
             return [this.get_pitch_min(interval), this.get_pitch_max(interval)];
+        };
+        Clip.prototype.cut_notes_at_boundaries = function (notes_boundaries) {
+            var notes_clip = this.get_notes_within_loop_brackets();
+            var splits = [];
+            for (var _i = 0, notes_clip_1 = notes_clip; _i < notes_clip_1.length; _i++) {
+                var note_clip = notes_clip_1[_i];
+                var split = {
+                    'note': note_clip,
+                    'points': []
+                };
+                for (var _a = 0, notes_boundaries_1 = notes_boundaries; _a < notes_boundaries_1.length; _a++) {
+                    var note_boundary = notes_boundaries_1[_a];
+                    if (note_clip.model.note.contains_beat(note_boundary.model.note.get_beat_end())) {
+                        split['points'].push(note_boundary.model.note.get_beat_end());
+                    }
+                }
+                if (split['points'].length > 0) {
+                    splits.push(split);
+                }
+            }
+            for (var _b = 0, splits_1 = splits; _b < splits_1.length; _b++) {
+                var split = splits_1[_b];
+                var note_to_split = split['note'];
+                var points = split['points'];
+                // TODO: validate if we need this or not
+                // this.remove_notes(
+                //     note_to_split.model.note.beat_start,
+                //     note_to_split.model.note.pitch,
+                //     note_to_split.model.note.beats_duration,
+                //     note_to_split.model.note.pitch
+                // );
+                var replacements = note_1.note.Note.split_note_at_points(note_to_split, points);
+                this.set_notes(replacements);
+            }
         };
         Clip.prototype.set_loop_bracket_lower = function (beat) {
             this.clip_dao.set_loop_bracket_lower(beat);
@@ -1125,10 +1216,6 @@ var clip;
                 return 0;
             }
             notes_parsed.sort(compare);
-            // TODO: fail gracefully
-            // if (notes_parsed.length !== num_expected_notes) {
-            //     throw "notes retrieved from clip less than expected"
-            // }
             return notes_parsed;
         };
         Clip.prototype.get_name = function () {
@@ -1497,10 +1584,6 @@ var history;
         function HistoryUserInput(matrix) {
             this.matrix_data = matrix;
         }
-        // TODO: does this only work for parsing/deriving?
-        // add(struct: any, coord: number[]) {
-        //     this.matrix_data[coord[0]][coord[1]] = struct;
-        // }
         HistoryUserInput.prototype.concat = function (struct, coord) {
             this.matrix_data[coord[0]][coord[1]] = this.matrix_data[coord[0]][coord[1]].concat(struct);
         };
@@ -1896,6 +1979,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var TreeModel = require("tree-model");
+var _ = require('underscore');
 var note;
 (function (note_1) {
     var Note = /** @class */ (function () {
@@ -1926,6 +2010,33 @@ var note;
                 return b - a;
             }
             throw 'beats overlap cannot be determined';
+        };
+        Note.split_note_at_points = function (note_to_split, points) {
+            if (points.length === 0) {
+                return [note_to_split];
+            }
+            var segments = [];
+            var beat_last = note_to_split.model.note.beat_start;
+            for (var _i = 0, _a = _.sortBy(points, function (i) { return i; }); _i < _a.length; _i++) {
+                var point = _a[_i];
+                var tree_1 = new TreeModel();
+                segments.push(tree_1.parse({
+                    id: -1,
+                    note: new Note(note_to_split.model.note.pitch, beat_last, point - beat_last, note_to_split.model.note.velocity, note_to_split.model.note.muted),
+                    children: []
+                }));
+                beat_last = point;
+            }
+            var tree = new TreeModel();
+            segments.push(tree.parse({
+                id: -1,
+                note: new Note(note_to_split.model.note.pitch, beat_last, note_to_split.model.note.get_beat_end() - beat_last, note_to_split.model.note.velocity, note_to_split.model.note.muted),
+                children: []
+            }));
+            return segments;
+        };
+        Note.prototype.contains_beat = function (beat) {
+            return this.beat_start < beat && this.get_beat_end() > beat;
         };
         Note.prototype.encode = function () {
             return this.to_array().join(' ');
@@ -2047,7 +2158,7 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":38}],20:[function(require,module,exports){
+},{"tree-model":38,"underscore":39}],20:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2214,16 +2325,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
 var live_1 = require("../live/live");
 var _ = require("lodash");
+var iterate_1 = require("../train/iterate");
 var window;
 (function (window) {
     var LiveClipVirtual = live_1.live.LiveClipVirtual;
+    var FORWARDS = iterate_1.iterate.FORWARDS;
     var red = [255, 0, 0];
     var white = [255, 255, 255];
+    var blue = [10, 10, 251];
     var black = [0, 0, 0];
     var region_yellow = [254, 254, 10];
     var region_green = [33, 354, 6];
     var region_red = [251, 1, 6];
-    var blue = [10, 10, 251];
     var Window = /** @class */ (function () {
         function Window(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
@@ -2289,10 +2402,6 @@ var window;
         Window.prototype.get_dist_from_top = function (pitch, index_clip) {
             var clip = this.list_clips[index_clip];
             var offset = index_clip;
-            // TODO: make this configurable
-            if (false) {
-                offset = this.list_clips.length - 1 - index_clip;
-            }
             var dist = (clip.get_pitch_max() - pitch) * this.get_height_note(index_clip);
             return dist + (this.get_height_clip() * offset);
         };
@@ -2388,7 +2497,6 @@ var window;
             var dist_from_left_beat_start, dist_from_left_beat_end, dist_from_top_note_top, dist_from_top_note_bottom;
             var coord_clip = node.model.note.get_coordinates_matrix();
             var index_clip = trainable.coord_to_index_clip_render(coord_clip);
-            // TODO: determine how to get the index of the clip from just depth of the node
             dist_from_left_beat_start = this.get_dist_from_left(node.model.note.beat_start);
             dist_from_left_beat_end = this.get_dist_from_left(node.model.note.beat_start + node.model.note.beats_duration);
             dist_from_top_note_top = this.get_dist_from_top(node.model.note.pitch, index_clip);
@@ -2424,63 +2532,87 @@ var window;
             }
             return messages;
         };
-        MatrixWindow.prototype.get_message_render_region_past = function (interval_current) {
+        MatrixWindow.prototype.get_messages_render_region_seen = function (trainable, segment_current, interval_current) {
+            var messages = [];
             var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
-            offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());
+            // segments we've already visited
+            offset_left_start = trainable.get_direction() === FORWARDS ? this.get_offset_pixel_leftmost() : this.get_dist_from_left(interval_current[1]);
+            offset_left_end = trainable.get_direction() === FORWARDS ? this.get_dist_from_left(interval_current[0]) : this.get_offset_pixel_rightmost();
+            offset_top_start = this.get_offset_pixel_topmost();
+            offset_top_end = this.get_offset_pixel_bottommost();
+            messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+            // notes in the current segment that we've already guessed
+            offset_left_start = this.get_dist_from_left(segment_current.beat_start);
             offset_left_end = this.get_dist_from_left(interval_current[0]);
             offset_top_start = this.get_offset_pixel_topmost();
             offset_top_end = this.get_offset_pixel_bottommost();
-            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
+            messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+            return messages;
         };
-        MatrixWindow.prototype.get_message_render_region_present = function (interval_current) {
+        MatrixWindow.prototype.get_messages_render_region_focus = function (interval_current) {
             var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
             offset_left_start = this.get_dist_from_left(interval_current[0]);
             offset_left_end = this.get_dist_from_left(interval_current[1]);
             offset_top_start = this.get_offset_pixel_topmost();
             offset_top_end = this.get_offset_pixel_bottommost();
-            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
+            return [[offset_left_start, offset_top_start, offset_left_end, offset_top_end]];
         };
-        MatrixWindow.prototype.get_message_render_region_future = function (interval_current) {
+        MatrixWindow.prototype.get_messages_render_region_unseen = function (trainable, segment_current, interval_current) {
             var offset_left_start, offset_top_start, offset_left_end, offset_top_end;
-            offset_left_start = this.get_dist_from_left(interval_current[1]);
-            offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
-            offset_top_start = this.get_offset_pixel_topmost();
-            offset_top_end = this.get_offset_pixel_bottommost();
-            return [offset_left_start, offset_top_start, offset_left_end, offset_top_end];
+            var messages = [];
+            if (trainable.get_direction() === FORWARDS) {
+                offset_left_start = this.get_dist_from_left(interval_current[1]);
+                offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
+                offset_top_start = this.get_offset_pixel_topmost();
+                offset_top_end = this.get_offset_pixel_bottommost();
+                messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+            }
+            else {
+                offset_left_start = this.get_dist_from_left(interval_current[1]);
+                offset_left_end = this.get_dist_from_left(segment_current.beat_end);
+                offset_top_start = this.get_offset_pixel_topmost();
+                offset_top_end = this.get_offset_pixel_bottommost();
+                messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+                offset_left_start = this.get_dist_from_left(this.get_offset_pixel_leftmost());
+                offset_left_end = this.get_dist_from_left(segment_current.beat_start);
+                offset_top_start = this.get_offset_pixel_topmost();
+                offset_top_end = this.get_offset_pixel_bottommost();
+                messages.push([offset_left_start, offset_top_start, offset_left_end, offset_top_end]);
+            }
+            return messages;
         };
         MatrixWindow.prototype.render_regions = function (iterator_matrix_train, trainable, struct_train, segment_current) {
             var interval_current;
             if (iterator_matrix_train.done) {
-                interval_current = [
-                    segment_current.beat_end,
-                    segment_current.beat_end
-                ];
+                interval_current = [segment_current.beat_end, segment_current.beat_end];
             }
             else {
-                var coord_current = iterator_matrix_train.get_coord_current();
-                // prediction/detection need the current target, while parse/derive need the current segment
-                if (trainable.b_targeted) {
-                    var struct_targets = struct_train;
-                    var note = struct_targets[coord_current[0]][coord_current[1]].current().iterator_subtarget.current().note;
-                    interval_current = trainable.determine_region_present([note], segment_current);
-                }
-                else {
-                    var struct_parse = struct_train;
-                    var coord_segment = [0, coord_current[1]];
-                    interval_current = trainable.determine_region_present(struct_parse.get_notes_at_coord(coord_segment), segment_current);
-                }
+                interval_current = trainable.determine_region_focus(segment_current, struct_train, iterator_matrix_train.get_coord_current());
             }
-            var quadruplet_region_past = this.get_message_render_region_past(interval_current);
-            var quadruplet_region_present = this.get_message_render_region_present(interval_current);
-            var quadruplet_region_future = this.get_message_render_region_future(interval_current);
-            quadruplet_region_past.unshift('paintrect');
-            quadruplet_region_past = quadruplet_region_past.concat(region_green);
-            quadruplet_region_present.unshift('paintrect');
-            quadruplet_region_present = quadruplet_region_present.concat(region_red);
-            quadruplet_region_future.unshift('paintrect');
-            quadruplet_region_future = quadruplet_region_future.concat(region_yellow);
-            for (var _i = 0, _a = [quadruplet_region_past, quadruplet_region_present, quadruplet_region_future]; _i < _a.length; _i++) {
-                var quadruplet = _a[_i];
+            var quadruplets_region_seen = this.get_messages_render_region_seen(trainable, segment_current, interval_current);
+            var quadruplets_region_focus = this.get_messages_render_region_focus(interval_current);
+            var quadruplets_region_unseen = this.get_messages_render_region_unseen(trainable, segment_current, interval_current);
+            var messages_render = [];
+            for (var _i = 0, quadruplets_region_seen_1 = quadruplets_region_seen; _i < quadruplets_region_seen_1.length; _i++) {
+                var quadruplet_region_seen = quadruplets_region_seen_1[_i];
+                quadruplet_region_seen.unshift('paintrect');
+                quadruplet_region_seen = quadruplet_region_seen.concat(region_green);
+                messages_render.push(quadruplet_region_seen);
+            }
+            for (var _a = 0, quadruplets_region_focus_1 = quadruplets_region_focus; _a < quadruplets_region_focus_1.length; _a++) {
+                var quadruplet_region_focus = quadruplets_region_focus_1[_a];
+                quadruplet_region_focus.unshift('paintrect');
+                quadruplet_region_focus = quadruplet_region_focus.concat(region_red);
+                messages_render.push(quadruplet_region_focus);
+            }
+            for (var _b = 0, quadruplets_region_unseen_1 = quadruplets_region_unseen; _b < quadruplets_region_unseen_1.length; _b++) {
+                var quadruplet_region_unseen = quadruplets_region_unseen_1[_b];
+                quadruplet_region_unseen.unshift('paintrect');
+                quadruplet_region_unseen = quadruplet_region_unseen.concat(region_yellow);
+                messages_render.push(quadruplet_region_unseen);
+            }
+            for (var _c = 0, messages_render_1 = messages_render; _c < messages_render_1.length; _c++) {
+                var quadruplet = messages_render_1[_c];
                 this.messenger.message(quadruplet);
             }
         };
@@ -2489,7 +2621,7 @@ var window;
     window.MatrixWindow = MatrixWindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":9,"../live/live":16,"lodash":36}],22:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":16,"../train/iterate":31,"lodash":36}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
@@ -2674,7 +2806,7 @@ if (env === 'max') {
 var messenger_render = new Messenger(env, 0, 'render');
 var messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
 var messenger_num_segments = new Messenger(env, 0, 'num_segments');
-var mode_texture, mode_control, song, algorithm_train, user_input_handler, window, segments_train, trainer;
+var mode_texture, mode_control, song, algorithm_train, user_input_handler, window, segments_train, trainer, direction;
 var track_target, track_user_input;
 var set_mode_texture = function (option) {
     switch (option) {
@@ -2783,6 +2915,7 @@ var initialize = function () {
     set_track_user_input();
     set_song();
     user_input_handler = new UserInputHandler(mode_texture, mode_control);
+    algorithm_train.set_direction(direction);
     trainer = new Trainer(window, user_input_handler, algorithm_train, track_target, track_user_input, song, segments_train, messenger_render);
 };
 var commence = function () {
@@ -2809,9 +2942,18 @@ var load_session = function (filename) {
         algorithm_parsed.restore(trainer, segments_train, matrix_deserialized);
     }
     else if (_.contains([DETECT, PREDICT], algorithm_train.get_name())) {
-        var notes_thawed = TrainThawer.thaw_notes(filename, env);
+        // let notes_thawed = TrainThawer.thaw_notes(
+        //     filename,
+        //     env
+        // );
+        //
+        // let algorithm_targeted = algorithm_train as Targeted;
+        //
+        // algorithm_targeted.restore(trainer, notes_thawed)
+        var history_user_input_empty = trainer.history_user_input;
+        var history_user_input_recovered = TrainThawer.recover_history_user_input(filename, env, history_user_input_empty);
         var algorithm_targeted = algorithm_train;
-        algorithm_targeted.restore(trainer, notes_thawed);
+        algorithm_targeted.restore(trainer, history_user_input_recovered);
     }
     else {
         throw 'algorithm not supported';
@@ -2823,6 +2965,9 @@ var load_session = function (filename) {
 };
 var save_session = function (filename) {
     TrainFreezer.freeze(trainer, filename, env);
+};
+var set_direction = function (arg_direction) {
+    direction = arg_direction;
 };
 if (typeof Global !== "undefined") {
     Global.train = {};
@@ -2841,6 +2986,7 @@ if (typeof Global !== "undefined") {
     Global.train.set_algorithm_train = set_algorithm_train;
     Global.train.set_mode_control = set_mode_control;
     Global.train.set_mode_texture = set_mode_texture;
+    Global.train.set_direction = set_direction;
     Global.train.test = test;
 }
 
@@ -3011,6 +3157,21 @@ var thaw;
     var TrainThawer = /** @class */ (function () {
         function TrainThawer() {
         }
+        TrainThawer.recover_history_user_input = function (filepath, env, history_user_input) {
+            var matrix = TrainThawer.thaw_notes_matrix(filepath, env);
+            for (var _i = 0, _a = Object.keys(matrix); _i < _a.length; _i++) {
+                var key_row = _a[_i];
+                var col = matrix[key_row];
+                for (var _b = 0, _c = Object.keys(col); _b < _c.length; _b++) {
+                    var key_col = _c[_b];
+                    for (var _d = 0, _e = matrix[key_row][key_col]; _d < _e.length; _d++) {
+                        var note_deserialized = _e[_d];
+                        history_user_input.concat([note_deserialized], [Number(key_row), Number(key_col)]);
+                    }
+                }
+            }
+            return history_user_input;
+        };
         TrainThawer.thaw_notes = function (filepath, env) {
             var notes = [];
             // TODO: this is only valid for forward iteration
@@ -3690,7 +3851,8 @@ var iterate;
     var PREDICT = trainable_1.trainable.PREDICT;
     var PARSE = trainable_1.trainable.PARSE;
     var DERIVE = trainable_1.trainable.DERIVE;
-    var FREESTYLE = trainable_1.trainable.FREESTYLE;
+    iterate.FORWARDS = 'forwards';
+    iterate.BACKWARDS = 'backwards';
     var MatrixIterator = /** @class */ (function () {
         function MatrixIterator(num_rows, num_columns, downward, rightward, start_at_row, stop_at_row) {
             this.num_rows = num_rows;
@@ -3701,7 +3863,7 @@ var iterate;
             this.index_row_stop = stop_at_row;
             this.determine_index_start();
             this.determine_index_stop();
-            this.i = this.index_start ? this.index_start : -1;
+            this.i = this.index_start;
             this.history = [];
             this.done = false;
             this.b_started = false;
@@ -3709,16 +3871,16 @@ var iterate;
         MatrixIterator.prototype.determine_index_start = function () {
             var i_start;
             if (this.downward && this.rightward) {
-                i_start = -1 + (this.num_columns * this.index_row_start);
+                i_start = this.num_columns * this.index_row_start - 1;
             }
             else if (!this.downward && this.rightward) {
                 i_start = (this.num_columns * (this.index_row_start + 2)) - 1 - this.num_columns;
             }
             else if (this.downward && !this.rightward) {
-                throw 'not yet supported';
+                i_start = (this.index_row_start - 1) * this.num_columns;
             }
             else if (!this.downward && !this.rightward) {
-                throw 'not yet supported';
+                i_start = this.index_row_start * this.num_columns;
             }
             else {
                 throw 'not yet supported';
@@ -3734,10 +3896,10 @@ var iterate;
                 i_stop = (this.index_row_stop - 1) * this.num_columns;
             }
             else if (this.downward && !this.rightward) {
-                throw 'not yet supported';
+                i_stop = this.index_start + (this.index_row_stop - this.index_row_start + 2) * this.num_columns - 1;
             }
             else if (!this.downward && !this.rightward) {
-                throw 'not yet supported';
+                i_stop = this.num_columns * this.index_row_stop - 1;
             }
             else {
                 throw 'not yet supported';
@@ -3750,23 +3912,22 @@ var iterate;
             }
             else if (!this.downward && this.rightward) {
                 if (remainder(this.i + 1, this.num_columns) === 0) {
-                    this.i = this.i - (this.num_columns - 1) - this.num_columns;
+                    this.i = this.i - 2 * this.num_columns + 1;
                 }
                 else {
                     this.i++;
                 }
             }
             else if (this.downward && !this.rightward) {
-                // if (remainder(this.i + 1, this.num_rows) === 0) {
-                //     this.i = this.i + (this.num_columns - 1) + this.num_columns
-                // } else {
-                //     this.i--
-                // }
-                throw 'not yet supported';
+                if (remainder(this.i, this.num_columns) === 0) {
+                    this.i = this.i + 2 * this.num_columns - 1;
+                }
+                else {
+                    this.i--;
+                }
             }
             else if (!this.downward && !this.rightward) {
-                // this.i--;
-                throw 'not yet supported';
+                this.i--;
             }
             else {
                 throw 'not yet supported';
@@ -3898,50 +4059,6 @@ var iterate;
         return FactoryMatrixObjectives;
     }());
     iterate.FactoryMatrixObjectives = FactoryMatrixObjectives;
-    var IteratorTrainFactory = /** @class */ (function () {
-        function IteratorTrainFactory() {
-        }
-        IteratorTrainFactory.get_iterator_train = function (trainable, segments) {
-            var iterator;
-            var downward, rightward;
-            switch (trainable.get_name()) {
-                case FREESTYLE: {
-                    iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
-                    break;
-                }
-                case DETECT: {
-                    iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
-                    break;
-                }
-                case PREDICT: {
-                    iterator = new MatrixIterator(1, segments.length, true, true, 0, 1);
-                    break;
-                }
-                case PARSE: {
-                    downward = false;
-                    rightward = true;
-                    var index_row_start = trainable.depth - 1;
-                    var index_row_stop = 1;
-                    iterator = new MatrixIterator(trainable.get_num_layers_input(), segments.length, downward, rightward, index_row_start, index_row_stop);
-                    break;
-                }
-                case DERIVE: {
-                    downward = true;
-                    rightward = true;
-                    var index_row_start = 1;
-                    var index_row_stop = trainable.depth;
-                    iterator = new MatrixIterator(trainable.get_num_layers_input(), segments.length, downward, rightward, index_row_start, index_row_stop);
-                    break;
-                }
-                default: {
-                    throw ['algorithm of name', trainable.get_name(), 'not supported'].join(' ');
-                }
-            }
-            return iterator;
-        };
-        return IteratorTrainFactory;
-    }());
-    iterate.IteratorTrainFactory = IteratorTrainFactory;
 })(iterate = exports.iterate || (exports.iterate = {}));
 
 },{"../algorithm/trainable":8,"../utils/utils":33}],32:[function(require,module,exports){
@@ -3955,7 +4072,6 @@ var _ = require('underscore');
 var trainer;
 (function (trainer) {
     var HistoryUserInput = history_1.history.HistoryUserInput;
-    var IteratorTrainFactory = iterate_1.iterate.IteratorTrainFactory;
     var Track = track_1.track.Track;
     var FactoryMatrixObjectives = iterate_1.iterate.FactoryMatrixObjectives;
     var FREESTYLE = trainable_1.trainable.FREESTYLE;
@@ -3977,7 +4093,7 @@ var trainer;
             this.messenger = messenger;
             this.virtualized = virtualized;
             this.notes_target_track = this.trainable.get_notes_focus(track_target);
-            this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(this.trainable, this.segments);
+            this.iterator_matrix_train = this.trainable.get_iterator_train(this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_user_input_history(this.trainable, this.segments));
             this.window.initialize_clips(this.trainable, this.segments);
             this.window.set_length_beats(this.segments[this.segments.length - 1].beat_end);
@@ -4047,7 +4163,8 @@ var trainer;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {
                 this.iterator_matrix_train.next();
-                this.iterator_target_current = matrix_targets[0][0];
+                var coord_current = this.iterator_matrix_train.get_coord_current();
+                this.iterator_target_current = matrix_targets[coord_current[0]][coord_current[1]];
                 this.iterator_target_current.next();
                 this.target_current = this.iterator_target_current.current();
                 this.iterator_subtarget_current = this.target_current.iterator_subtarget;
@@ -23468,5 +23585,6 @@ var set_depth_tree = Global.train.set_depth_tree;
 var set_algorithm_train = Global.train.set_algorithm_train;
 var set_mode_control = Global.train.set_mode_control;
 var set_mode_texture = Global.train.set_mode_texture;
+var set_direction = Global.train.set_direction;
 var test = Global.train.test;
 Global.train.patcher = this.patcher;
