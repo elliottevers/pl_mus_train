@@ -29,6 +29,8 @@ export namespace window {
     const region_yellow = [254, 254, 10];
     const region_green = [33, 354, 6];
     const region_red = [251, 1, 6];
+    const horizontal_roundness = 20;
+    const vertical_roundness = 50;
 
     interface Graduated {
         get_messages_render_region_seen(
@@ -105,9 +107,8 @@ export namespace window {
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {
-                let message = <any>["paintrect"].concat(tuplet);
-                message = message.concat(black);
-                return message;
+                // @ts-ignore
+                return ["paintroundrect"].concat(tuplet).concat([horizontal_roundness, vertical_roundness]).concat(black);
             })
         };
 
