@@ -166,6 +166,8 @@ export namespace trainable {
         get_direction(): string
 
         set_direction(direction: string): void
+
+        get_iterator_train(segments: Segment[]): MatrixIterator
     }
 
     // interface common to both parse and derive, but have different implementations

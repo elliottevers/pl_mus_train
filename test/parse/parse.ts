@@ -37,6 +37,9 @@ import {parse} from "../../src/parse/parse";
 import StructParse = parse.StructParse;
 import {parse as algo_parse} from "../../src/algorithm/parse";
 import Parse = algo_parse.Parse;
+import {iterate} from "../../src/train/iterate";
+import FORWARDS = iterate.FORWARDS;
+import BACKWARDS = iterate.BACKWARDS;
 const _ = require('underscore');
 
 
@@ -536,6 +539,11 @@ for (let i_segment in segments) {
     )
 }
 
+// let direction = BACKWARDS;
+let direction = FORWARDS;
+
+algorithm_train_parse.set_direction(direction);
+
 let trainer_local_parse = new Trainer(
     window_local_parse,
     user_input_handler_parse,
@@ -553,13 +561,24 @@ trainer_local_parse.commence(
 
 );
 
-trainer_local_parse.accept_input(
-    [note_melody_parsed_1, note_melody_parsed_2]
-);
+if (direction === FORWARDS) {
+    trainer_local_parse.accept_input(
+        [note_melody_parsed_1, note_melody_parsed_2]
+    );
 
-// trainer_local_parse.accept_input(
-//     [note_melody_parsed_3, note_melody_parsed_4]
-// );
+    // trainer_local_parse.accept_input(
+    //     [note_melody_parsed_3, note_melody_parsed_4]
+    // );
+} else {
+
+    trainer_local_parse.accept_input(
+        [note_melody_parsed_3, note_melody_parsed_4]
+    );
+
+    // trainer_local_parse.accept_input(
+    //     [note_melody_parsed_1, note_melody_parsed_2]
+    // );
+}
 
 trainer_local_parse.render_window(
 
@@ -612,4 +631,8 @@ trainer_local_parse.render_window();
 
 // trainer_local_parse.accept_input(
 //     [note_melody_parsed_3, note_melody_parsed_4]
+// );
+
+// trainer_local_parse.accept_input(
+//     [note_melody_parsed_1, note_melody_parsed_2]
 // );

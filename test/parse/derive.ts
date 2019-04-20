@@ -37,6 +37,9 @@ import Parsed = parsed.Parsed;
 import StructTrain = trainer.StructTrain;
 import {parse} from "../../src/parse/parse";
 import StructParse = parse.StructParse;
+import {iterate} from "../../src/train/iterate";
+import FORWARDS = iterate.FORWARDS;
+import BACKWARDS = iterate.BACKWARDS;
 
 
 let tree: TreeModel = new TreeModel();
@@ -404,6 +407,10 @@ for (let i_segment in segments) {
     )
 }
 
+let direction = BACKWARDS;
+// let direction = FORWARDS;
+
+algorithm_train.set_direction(direction);
 
 let trainer_local = new Trainer(
     window_local,
@@ -420,27 +427,52 @@ let trainer_local = new Trainer(
 
 trainer_local.commence();
 
-trainer_local.render_window();
+if (direction === FORWARDS) {
+    trainer_local.accept_input(
+        [note_3_1, note_3_2]
+    );
 
-trainer_local.accept_input(
-    [note_3_1, note_3_2]
-);
+    trainer_local.accept_input(
+        [note_3_3, note_3_4]
+    );
 
-trainer_local.accept_input(
-    [note_3_3, note_3_4]
-);
+    trainer_local.accept_input(
+        [note_3_5, note_3_6]
+    );
 
-trainer_local.accept_input(
-    [note_3_5, note_3_6]
-);
+    trainer_local.accept_input(
+        [note_4_1]
+    );
 
-trainer_local.accept_input(
-    [note_4_1]
-);
+    // trainer_local.accept_input(
+    //     [note_4_2]
+    // );
+} else {
+    trainer_local.accept_input(
+        [note_3_5, note_3_6]
+    );
 
-// trainer_local.accept_input(
-//     [note_4_2]
-// );
+    trainer_local.accept_input(
+        [note_3_3, note_3_4]
+    );
+
+    trainer_local.accept_input(
+        [note_3_1, note_3_2]
+    );
+
+
+    trainer_local.accept_input(
+        [note_3_5, note_3_6]
+    );
+
+    // trainer_local.accept_input(
+    //     [note_3_3, note_3_4]
+    // );
+    //
+    // trainer_local.accept_input(
+    //     [note_3_1, note_3_2]
+    // );
+}
 
 trainer_local.render_window(
 

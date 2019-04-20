@@ -18,11 +18,14 @@ export namespace freestyle {
     import Trainable = trainable.Trainable;
     import ARRANGEMENT = trainer.ARRANGEMENT;
     import Track = track.Track;
+    import MatrixIterator = iterate.MatrixIterator;
+    import FORWARDS = iterate.FORWARDS;
 
     export class Freestyle implements Trainable {
         b_parsed: boolean;
         b_targeted: boolean;
         depth: number;
+        direction: string;
 
         public get_view(): string {
             return ARRANGEMENT
@@ -196,6 +199,29 @@ export namespace freestyle {
 
         public get_notes_focus(track_target: Track): TreeModel.Node<note.Note>[] {
             return null;
+        }
+
+        get_direction(): string {
+            return this.direction;
+        }
+
+        set_direction(direction: string): void {
+            this.direction = direction
+        }
+
+        get_iterator_train(segments: segment.Segment[]): MatrixIterator {
+            return new MatrixIterator(
+                1,
+                segments.length,
+                true,
+                this.get_direction() === FORWARDS,
+                0,
+                1
+            );
+        }
+
+        determine_region_focus(segment_current: segment.Segment, struct_train: trainer.StructTrain, coord_train_current: number[]) {
+            return [0, 0]
         }
     }
 }

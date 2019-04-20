@@ -166,8 +166,8 @@ export namespace targeted {
             messenger.message(
                 [
                     'bounds',
-                    subtarget_current.note.model.note.beat_start/duration_training_data,
-                    subtarget_current.note.model.note.get_beat_end()/duration_training_data
+                    subtarget_current.note.model.note.beat_start / duration_training_data,
+                    subtarget_current.note.model.note.get_beat_end() / duration_training_data
                 ],
                 true
             )
@@ -270,5 +270,7 @@ export namespace targeted {
         set_direction(direction: string): void {
             this.direction = direction
         }
+
+        public abstract get_iterator_train(segments: segment.Segment[]): iterate.MatrixIterator
     }
 }

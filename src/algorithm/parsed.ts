@@ -258,5 +258,7 @@ export namespace parsed {
         set_direction(direction: string): void {
             this.direction = direction;
         }
+
+        public abstract get_iterator_train(segments: segment.Segment[]): iterate.MatrixIterator
     }
 }

@@ -8,7 +8,6 @@ import {trainable} from "./trainable";
 import {parse} from "../parse/parse";
 import {window} from "../render/window";
 import TreeModel = require("tree-model");
-import {message} from "../message/messenger";
 import {song} from "../song/song";
 
 export namespace derive {
@@ -21,8 +20,8 @@ export namespace derive {
     import StructParse = parse.StructParse;
     import Segment = segment.Segment;
     import MatrixWindow = window.MatrixWindow;
-    import Messenger = message.Messenger;
     import SESSION = trainer.SESSION;
+    import FORWARDS = iterate.FORWARDS;
 
     export class Derive extends Parsed {
 
@@ -180,6 +179,17 @@ export namespace derive {
 
         handle_midi(pitch: number, velocity: number, trainer: trainer.Trainer): void {
             throw ['algorithm of name', this.get_name(), 'does not support direct midi input']
+        }
+
+        get_iterator_train(segments: segment.Segment[]): MatrixIterator {
+            return new MatrixIterator(
+                this.get_num_layers_input(),
+                segments.length,
+                true,
+                this.get_direction() === FORWARDS,
+                1,
+                this.depth
+            );
         }
     }
 }

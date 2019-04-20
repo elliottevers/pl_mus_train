@@ -384,7 +384,6 @@ for (let i_segment in segments) {
 // let direction = BACKWARDS;
 let direction = FORWARDS;
 
-
 algorithm_train.set_direction(direction);
 
 let trainer_local = new Trainer(

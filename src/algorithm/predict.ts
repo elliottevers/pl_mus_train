@@ -9,6 +9,7 @@ import {modes_texture} from "../constants/constants";
 import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
+import {iterate} from "../train/iterate";
 const _ = require('underscore');
 
 export namespace predict {
@@ -23,6 +24,8 @@ export namespace predict {
     import Track = track.Track;
     import Trainer = trainer.Trainer;
     import SESSION = trainer.SESSION;
+    import MatrixIterator = iterate.MatrixIterator;
+    import FORWARDS = iterate.FORWARDS;
 
     export class Predict extends Targeted {
 
@@ -83,11 +86,6 @@ export namespace predict {
                 throw ['texture mode', user_input_handler.mode_texture, 'not supported'].join(' ')
             }
         }
-
-        // postprocess_subtarget(note_subtarget) {
-        //     note_subtarget.model.note.muted = 1;
-        //     return note_subtarget;
-        // }
 
         // TODO: verify that we don't have to do anything here
         initialize_render(
@@ -166,6 +164,17 @@ export namespace predict {
 
         handle_command(command: string, trainer: trainer.Trainer): void {
             throw ['algorithm of name', this.get_name(), 'does not support commands']
+        }
+
+        get_iterator_train(segments: segment.Segment[]): MatrixIterator {
+            return new MatrixIterator(
+                1,
+                segments.length,
+                true,
+                this.get_direction() === FORWARDS,
+                0,
+                1
+            );
         }
     }
 }

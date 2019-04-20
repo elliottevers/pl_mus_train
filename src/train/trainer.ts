@@ -12,7 +12,6 @@ import {window} from "../render/window";
 import {track} from "../track/track";
 import {user_input} from "../control/user_input";
 import {trainable} from "../algorithm/trainable";
-import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace trainer {
@@ -27,7 +26,6 @@ export namespace trainer {
     import SubtargetIterator = target.SubtargetIterator;
     import StructParse = parse.StructParse;
     import MatrixIterator = iterate.MatrixIterator;
-    import IteratorTrainFactory = iterate.IteratorTrainFactory;
     import Note = note.Note;
     import Track = track.Track;
     import FactoryMatrixObjectives = iterate.FactoryMatrixObjectives;
@@ -106,10 +104,7 @@ export namespace trainer {
                 track_target
             );
 
-            this.iterator_matrix_train = IteratorTrainFactory.get_iterator_train(
-                this.trainable,
-                this.segments
-            );
+            this.iterator_matrix_train = this.trainable.get_iterator_train(this.segments);
 
             this.history_user_input = new HistoryUserInput(
                 FactoryMatrixObjectives.create_matrix_user_input_history(

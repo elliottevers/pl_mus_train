@@ -11,6 +11,7 @@ import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
 import {message} from "../message/messenger";
+import {iterate} from "../train/iterate";
 
 export namespace detect {
 
@@ -23,10 +24,11 @@ export namespace detect {
     import MatrixWindow = window.MatrixWindow;
     import MONOPHONY = modes_texture.MONOPHONY;
     import DETECT = trainable.DETECT;
-    import Messenger = message.Messenger;
     import Note = note.Note;
     import Trainer = trainer.Trainer;
     import SESSION = trainer.SESSION;
+    import MatrixIterator = iterate.MatrixIterator;
+    import FORWARDS = iterate.FORWARDS;
 
     export class Detect extends Targeted {
 
@@ -122,6 +124,17 @@ export namespace detect {
 
         handle_command(command: string, trainer: trainer.Trainer): void {
             throw ['algorithm of name', this.get_name(), 'does not support commands']
+        }
+
+        get_iterator_train(segments: segment.Segment[]): MatrixIterator {
+            return new MatrixIterator(
+                1,
+                segments.length,
+                true,
+                this.get_direction() === FORWARDS,
+                0,
+                1
+            );
         }
     }
 }

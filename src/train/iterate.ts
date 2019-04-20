@@ -15,7 +15,6 @@ export namespace iterate {
     import PREDICT = trainable.PREDICT;
     import PARSE = trainable.PARSE;
     import DERIVE = trainable.DERIVE;
-    import FREESTYLE = trainable.FREESTYLE;
 
     export let FORWARDS = 'forwards';
     export let BACKWARDS = 'backwards';
@@ -52,7 +51,7 @@ export namespace iterate {
             this.determine_index_start();
             this.determine_index_stop();
 
-            this.i = this.index_start ? this.index_start : -1;
+            this.i = this.index_start;
             this.history = [];
             this.done = false;
             this.b_started = false;
@@ -63,16 +62,14 @@ export namespace iterate {
             let i_start;
 
             if (this.downward && this.rightward) {
-                i_start = -1 + (this.num_columns * this.index_row_start)
+                i_start = this.num_columns * this.index_row_start - 1
             } else if (!this.downward && this.rightward) {
                 i_start = (this.num_columns * (this.index_row_start + 2)) - 1 - this.num_columns
             } else if (this.downward && !this.rightward) {
-                // throw 'not yet supported'
-                // NB: this only works for one row case
-                i_start = this.num_columns
+                i_start = (this.index_row_start - 1) * this.num_columns
             }
             else if (!this.downward && !this.rightward) {
-                throw 'not yet supported'
+                i_start = this.index_row_start * this.num_columns
             }
             else {
                 throw 'not yet supported'
@@ -90,12 +87,10 @@ export namespace iterate {
             } else if (!this.downward && this.rightward) {
                 i_stop = (this.index_row_stop - 1) * this.num_columns
             } else if (this.downward && !this.rightward) {
-                // throw 'not yet supported'
-                // NB: this only works for one row case
-                i_stop = -1
+                i_stop = this.index_start + (this.index_row_stop - this.index_row_start + 2) * this.num_columns - 1
             }
             else if (!this.downward && !this.rightward) {
-                throw 'not yet supported'
+                i_stop = this.num_columns * this.index_row_stop - 1
             }
             else {
                 throw 'not yet supported'
@@ -109,20 +104,18 @@ export namespace iterate {
                 this.i++;
             } else if (!this.downward && this.rightward) {
                 if (remainder(this.i + 1, this.num_columns) === 0) {
-                    this.i = this.i - (this.num_columns - 1) - this.num_columns
+                    this.i = this.i - 2 * this.num_columns + 1
                 } else {
                     this.i++
                 }
             } else if (this.downward && !this.rightward) {
-                // if (remainder(this.i + 1, this.num_rows) === 0) {
-                //     this.i = this.i + (this.num_columns - 1) + this.num_columns
-                // } else {
-                //     this.i--
-                // }
-                // throw 'not yet supported'
-                this.i--
+                if (remainder(this.i, this.num_columns) === 0) {
+                    this.i = this.i + 2 * this.num_columns - 1
+                } else {
+                    this.i--
+                }
             } else if (!this.downward && !this.rightward) {
-                throw 'not yet supported'
+                this.i--
             } else {
                 throw 'not yet supported'
             }
@@ -268,85 +261,6 @@ export namespace iterate {
                 }
             }
             return matrix_data;
-        }
-    }
-
-    export class IteratorTrainFactory {
-        public static get_iterator_train(trainable: Trainable, segments: Segment[]) {
-
-            let iterator: MatrixIterator;
-
-            let downward, rightward;
-
-            switch (trainable.get_name()) {
-                case FREESTYLE: {
-                    iterator = new MatrixIterator(
-                        1,
-                        segments.length,
-                        true,
-                        trainable.get_direction() === FORWARDS,
-                        0,
-                        1
-                    );
-                    break;
-                }
-                case DETECT: {
-                    iterator = new MatrixIterator(
-                        1,
-                        segments.length,
-                        true,
-                        trainable.get_direction() === FORWARDS,
-                        0,
-                        1
-                    );
-                    break;
-                }
-                case PREDICT: {
-                    iterator = new MatrixIterator(
-                        1,
-                        segments.length,
-                        true,
-                        trainable.get_direction() === FORWARDS,
-                        0,
-                        1
-                    );
-                    break;
-                }
-                case PARSE: {
-                    downward = false;
-                    rightward = trainable.get_direction() === FORWARDS;
-                    let index_row_start = trainable.depth - 1;
-                    let index_row_stop = 1;
-                    iterator = new MatrixIterator(
-                        trainable.get_num_layers_input(),
-                        segments.length,
-                        downward,
-                        rightward,
-                        index_row_start,
-                        index_row_stop
-                    );
-                    break;
-                }
-                case DERIVE: {
-                    downward = true;
-                    rightward = trainable.get_direction() === FORWARDS;
-                    let index_row_start = 1;
-                    let index_row_stop = trainable.depth;
-                    iterator = new MatrixIterator(
-                        trainable.get_num_layers_input(),
-                        segments.length,
-                        downward,
-                        rightward,
-                        index_row_start,
-                        index_row_stop
-                    );
-                    break;
-                }
-                default: {
-                    throw ['algorithm of name', trainable.get_name(), 'not supported'].join(' ')
-                }
-            }
-            return iterator
         }
     }
 }

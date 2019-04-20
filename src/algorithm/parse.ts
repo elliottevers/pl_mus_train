@@ -2,31 +2,29 @@ import {segment} from "../segment/segment";
 import {track} from "../track/track";
 import {parsed} from "./parsed";
 import {trainer} from "../train/trainer";
-import {iterate} from "../train/iterate";
 import {note} from "../note/note";
 import {window as module_window} from "../render/window";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
-import {parse as module_parse} from "../parse/parse";
-import ParseTree = module_parse.ParseTree;
-import StructParse = module_parse.StructParse;
-import {message} from "../message/messenger";
-import {log} from "../log/logger";
 import {song} from "../song/song";
+import {iterate} from "../train/iterate";
+import {parse as module_parse} from "../parse/parse"
+
 
 export namespace parse {
     import Parsed = parsed.Parsed;
     import StructTrain = trainer.StructTrain;
-    import MatrixIterator = iterate.MatrixIterator;
     import Note = note.Note;
     import MatrixWindow = module_window.MatrixWindow;
     import Segment = segment.Segment;
     import PARSE = trainable.PARSE;
-    import Messenger = message.Messenger;
     import Trainer = trainer.Trainer;
     import Track = track.Track;
-    import Logger = log.Logger;
     import SESSION = trainer.SESSION;
+    import MatrixIterator = iterate.MatrixIterator;
+    import FORWARDS = iterate.FORWARDS;
+    import StructParse = module_parse.StructParse;
+    import ParseTree = module_parse.ParseTree;
 
     export class Parse extends Parsed {
 
@@ -308,6 +306,17 @@ export namespace parse {
 
         handle_midi(pitch: number, velocity: number, trainer: trainer.Trainer): void {
             throw ['algorithm of name', this.get_name(), 'does not support direct midi input']
+        }
+
+        get_iterator_train(segments: segment.Segment[]): MatrixIterator {
+            return new MatrixIterator(
+                this.get_num_layers_input(),
+                segments.length,
+                false,
+                this.get_direction() === FORWARDS,
+                this.depth - 1,
+                1
+            );
         }
     }
 }
