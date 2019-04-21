@@ -84,8 +84,12 @@ export namespace song {
             this.song_dao.set_overdub(int);
         }
 
-        set_tempo(int) {
+        set_tempo(int): void {
             this.song_dao.set_tempo(int);
+        }
+
+        get_tempo(): number {
+            return this.song_dao.get_tempo();
         }
 
         start() {
@@ -129,6 +133,7 @@ export namespace song {
         set_session_record(int: number)
         set_overdub(int: number)
         set_tempo(int: number)
+        get_tempo(): number
         start(): void
         stop(): void
         get_scenes(): any[]
@@ -182,6 +187,10 @@ export namespace song {
 
         set_tempo(int: number) {
             return
+        }
+
+        get_tempo(): number {
+            return 0
         }
 
         start(): void {
@@ -271,6 +280,10 @@ export namespace song {
 
         set_tempo(int) {
             this.song_live.set("tempo", int);
+        }
+
+        get_tempo(): number {
+            return this.song_live.get("tempo");
         }
 
         start() {

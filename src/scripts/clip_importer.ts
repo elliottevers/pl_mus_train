@@ -2,8 +2,6 @@ import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live as li} from "../live/live";
 import {clip, clip as c} from "../clip/clip";
-import {log} from "../log/logger";
-import Logger = log.Logger;
 import {io} from "../io/io";
 import Clip = clip.Clip;
 import ClipDao = clip.ClipDao;

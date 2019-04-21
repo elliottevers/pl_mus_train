@@ -5,6 +5,12 @@ import {utils} from "../utils/utils";
 import {track} from "../track/track";
 import TrackDao = track.TrackDao;
 import Track = track.Track;
+import {song} from "../song/song";
+import Song = song.Song;
+import SongDao = song.SongDao;
+import {clip} from "../clip/clip";
+import Clip = clip.Clip;
+import ClipDao = clip.ClipDao;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -26,8 +32,62 @@ if (env === 'max') {
 
 let messenger = new Messenger(env, 0);
 
+let s_beat_start, s_beat_end;
 
-let extract_beatmap_manual = () => {
+let set_beat_start = () => {
+
+    let clip_highlighted = new Clip(
+        new ClipDao(
+            new li.LiveApiJs(
+                'live_set view highlighted_clip_slot clip'
+            ),
+            messenger
+        )
+    );
+
+    s_beat_start = clip_highlighted.get_playing_position();
+
+    // NB: DO NOT set the start marker, since we want the clip to play from the beginning
+};
+
+let set_beat_end = () => {
+
+    let clip_highlighted = new Clip(
+        new ClipDao(
+            new li.LiveApiJs(
+                'live_set view highlighted_clip_slot clip'
+            ),
+            messenger
+        )
+    );
+
+    s_beat_end = clip_highlighted.get_playing_position();
+
+    // NB: DO NOT set the end marker
+};
+
+let extract_beatmap_raw = () => {
+
+    let song = new Song(
+        new SongDao(
+            new li.LiveApiJs(
+                'live_set'
+            ),
+            new Messenger(env, 0),
+            false
+        )
+    );
+
+    messenger.message(['s_beat_start', s_beat_start]);
+
+    messenger.message(['s_beat_end', s_beat_end]);
+
+    messenger.message(['tempo', song.get_tempo()]);
+
+    messenger.message(['run', 'bang']);
+};
+
+let extract_beatmap_warped = () => {
 
     let this_device = new li.LiveApiJs('this_device');
 
@@ -37,6 +97,16 @@ let extract_beatmap_manual = () => {
                 utils.get_path_track_from_path_device(this_device.get_path())
             ),
             messenger
+        )
+    );
+
+    let song = new Song(
+        new SongDao(
+            new li.LiveApiJs(
+                'live_set'
+            ),
+            new Messenger(env, 0),
+            false
         )
     );
 
@@ -52,21 +122,17 @@ let extract_beatmap_manual = () => {
 
     let beat_end_marker = clip_audio_warped.get_end_marker();
 
-    let loop_bracket_lower = clip_audio_warped.get_loop_bracket_lower();
-
-    let loop_bracket_upper = clip_audio_warped.get_loop_bracket_upper();
-
     let length_beats = (clip_audio_warped.get_end_marker() - clip_audio_warped.get_start_marker());
 
-    messenger.message(['beat_start_marker', beat_start_marker]);
+    messenger.message(['beat_start', beat_start_marker]);
 
-    messenger.message(['beat_end_marker', beat_end_marker]);
+    messenger.message(['beat_end', beat_end_marker]);
 
-    messenger.message(['loop_bracket_lower', loop_bracket_lower]);
+    messenger.message(['length_beats', length_beats]);
 
-    messenger.message(['loop_bracket_upper', loop_bracket_upper]);
+    messenger.message(['tempo', song.get_tempo()]);
 
-    messenger.message(['length-beats', length_beats]);
+    messenger.message(['manual', 'bang']);
 
     messenger.message(['run', 'bang']);
 };
@@ -78,5 +144,6 @@ let test = () => {
 
 if (typeof Global !== "undefined") {
     Global.extract_beatmap = {};
-    Global.extract_beatmap.extract_beatmap_manual = extract_beatmap_manual;
+    Global.extract_beatmap.extract_beatmap_warped = extract_beatmap_warped;
+    Global.extract_beatmap.extract_beatmap_raw = extract_beatmap_raw;
 }

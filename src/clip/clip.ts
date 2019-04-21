@@ -2,13 +2,11 @@ import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {live} from "../live/live";
 import {message} from "../message/messenger";
-import {log} from "../log/logger";
 import {utils} from "../utils/utils";
 
 export namespace clip {
 
     import Messenger = message.Messenger;
-    import Logger = log.Logger;
 
     export class Clip {
 
@@ -31,6 +29,10 @@ export namespace clip {
                     messenger
                 )
             )
+        }
+
+        public get_playing_position() {
+            return this.clip_dao.get_playing_position();
         }
 
         public set_endpoints_loop(beat_start, beat_end) {
@@ -419,6 +421,10 @@ export namespace clip {
             this.deferlow = deferlow;
             this.key_route = key_route;
             this.env = env;
+        }
+
+        get_playing_position(): number {
+            return this.clip_live.get('playing_position')
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {
