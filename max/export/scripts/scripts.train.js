@@ -741,10 +741,15 @@ var predict;
             else if (user_input_handler.mode_texture === MONOPHONY) {
                 var notes_grouped = [];
                 // partition segment into measures
-                var position_measure = function (node) {
-                    return Math.floor(node.model.note.beat_start / 4);
+                // TODO: make configurable
+                // let position_measure = (node) => {
+                //     return Math.floor(node.model.note.beat_start/4)
+                // };
+                var position_bimeasure = function (node) {
+                    return Math.floor(node.model.note.beat_start / 8);
                 };
-                var note_partitions = _.groupBy(notes_segment_next, position_measure);
+                // let logger = new Logger('max');
+                var note_partitions = _.groupBy(notes_segment_next, position_bimeasure);
                 // for (let partition of note_partitions) {
                 //     // get the middle note of the measure
                 //     notes_grouped.push([partition[partition.length/2]])
@@ -752,9 +757,9 @@ var predict;
                 for (var _i = 0, _a = Object.keys(note_partitions); _i < _a.length; _i++) {
                     var key_partition = _a[_i];
                     var partition = note_partitions[key_partition];
+                    // logger.log(JSON.stringify(partition));
                     notes_grouped.push([partition[partition.length / 2]]);
                 }
-                // return notes_grouped
                 return notes_grouped;
             }
             else {
@@ -773,10 +778,10 @@ var predict;
                 var targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
-                    var note_2 = targeted_notes_in_segment_1[_i];
+                    var note = targeted_notes_in_segment_1[_i];
                     clip.set_path_deferlow('clip_target');
-                    clip.remove_notes(note_2.model.note.beat_start, 0, note_2.model.note.get_beat_end(), 128);
-                    var note_muted = note_2;
+                    clip.remove_notes(note.model.note.beat_start, 0, note.model.note.get_beat_end(), 128);
+                    var note_muted = note;
                     note_muted.model.note.muted = 1;
                     clip.set_notes([note_muted]);
                 }
@@ -977,6 +982,9 @@ var clip;
             //@ts-ignore
             var LiveApiJs = live_1.live.LiveApiJs;
             return new Clip(new ClipDao(new LiveApiJs(path), messenger));
+        };
+        Clip.prototype.get_playing_position = function () {
+            return this.clip_dao.get_playing_position();
         };
         Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
             if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
@@ -1235,6 +1243,9 @@ var clip;
             this.key_route = key_route;
             this.env = env;
         }
+        ClipDao.prototype.get_playing_position = function () {
+            return this.clip_live.get('playing_position');
+        };
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
             for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
@@ -2337,6 +2348,8 @@ var window;
     var region_yellow = [254, 254, 10];
     var region_green = [33, 354, 6];
     var region_red = [251, 1, 6];
+    var horizontal_roundness = 20;
+    var vertical_roundness = 50;
     var Window = /** @class */ (function () {
         function Window(height, width, messenger) {
             this.beat_to_pixel = function (beat) {
@@ -2384,9 +2397,8 @@ var window;
                 quadruplets.push(this.get_position_quadruplet(node, index_clip));
             }
             return quadruplets.map(function (tuplet) {
-                var message = ["paintrect"].concat(tuplet);
-                message = message.concat(black);
-                return message;
+                // @ts-ignore
+                return ["paintroundrect"].concat(tuplet).concat([horizontal_roundness, vertical_roundness]).concat(black);
             });
         };
         ;
@@ -2942,14 +2954,6 @@ var load_session = function (filename) {
         algorithm_parsed.restore(trainer, segments_train, matrix_deserialized);
     }
     else if (_.contains([DETECT, PREDICT], algorithm_train.get_name())) {
-        // let notes_thawed = TrainThawer.thaw_notes(
-        //     filename,
-        //     env
-        // );
-        //
-        // let algorithm_targeted = algorithm_train as Targeted;
-        //
-        // algorithm_targeted.restore(trainer, notes_thawed)
         var history_user_input_empty = trainer.history_user_input;
         var history_user_input_recovered = TrainThawer.recover_history_user_input(filename, env, history_user_input_empty);
         var algorithm_targeted = algorithm_train;
@@ -3283,6 +3287,9 @@ var song;
         Song.prototype.set_tempo = function (int) {
             this.song_dao.set_tempo(int);
         };
+        Song.prototype.get_tempo = function () {
+            return this.song_dao.get_tempo();
+        };
         Song.prototype.start = function () {
             this.song_dao.start();
         };
@@ -3336,6 +3343,9 @@ var song;
         };
         SongDaoVirtual.prototype.set_tempo = function (int) {
             return;
+        };
+        SongDaoVirtual.prototype.get_tempo = function () {
+            return 0;
         };
         SongDaoVirtual.prototype.start = function () {
             return;
@@ -3398,6 +3408,9 @@ var song;
         };
         SongDao.prototype.set_tempo = function (int) {
             this.song_live.set("tempo", int);
+        };
+        SongDao.prototype.get_tempo = function () {
+            return this.song_live.get("tempo");
         };
         SongDao.prototype.start = function () {
             this.song_live.set("is_playing", 1);

@@ -1,4 +1,4 @@
-import {note, note as n} from "../note/note";
+import {note as n} from "../note/note";
 import {window} from "../render/window";
 import {segment} from "../segment/segment";
 import {track} from "../track/track";
@@ -10,6 +10,7 @@ import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
 import {iterate} from "../train/iterate";
+import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace predict {
@@ -17,7 +18,7 @@ export namespace predict {
     import Targeted = targeted.Targeted;
     import StructTrain = trainer.StructTrain;
     import POLYPHONY = modes_texture.POLYPHONY;
-    import Note = note.Note;
+    import Note = n.Note;
     import TypeSequenceTarget = history.TypeSequenceTarget;
     import MONOPHONY = modes_texture.MONOPHONY;
     import PREDICT = trainable.PREDICT;
@@ -26,6 +27,7 @@ export namespace predict {
     import SESSION = trainer.SESSION;
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
+    import Logger = log.Logger;
 
     export class Predict extends Targeted {
 
@@ -63,11 +65,15 @@ export namespace predict {
 
                 // partition segment into measures
 
-                let position_measure = (node) => {
-                    return Math.floor(node.model.note.beat_start/4)
+                // TODO: make configurable
+                // let position_measure = (node) => {
+                //     return Math.floor(node.model.note.beat_start/4)
+                // };
+                let position_bimeasure = (node) => {
+                    return Math.floor(node.model.note.beat_start/8)
                 };
 
-                let note_partitions: TreeModel.Node<Note>[][] = _.groupBy(notes_segment_next, position_measure);
+                let note_partitions: TreeModel.Node<Note>[][] = _.groupBy(notes_segment_next, position_bimeasure);
 
                 // for (let partition of note_partitions) {
                 //     // get the middle note of the measure
@@ -79,7 +85,6 @@ export namespace predict {
                     notes_grouped.push([partition[partition.length/2]])
                 }
 
-                // return notes_grouped
                 return notes_grouped
 
             } else {
@@ -91,7 +96,7 @@ export namespace predict {
         initialize_render(
             window: window.MatrixWindow,
             segments: segment.Segment[],
-            notes_target_track: TreeModel.Node<note.Note>[],
+            notes_target_track: TreeModel.Node<n.Note>[],
             struct_train: StructTrain
         ) {
             return window

@@ -1,4 +1,4 @@
-import {note as n} from "../../src/note/note";
+import {note, note as n} from "../../src/note/note";
 import TreeModel = require("tree-model");
 import {user_input} from "../../src/control/user_input";
 import UserInputHandler = user_input.UserInputHandler;
@@ -47,7 +47,7 @@ let segment_note_1 = tree.parse(
         note: new n.Note(
             51,
             0,
-            4,
+            8,
             90,
             0
         ),
@@ -62,8 +62,8 @@ let segment_note_2 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             51,
-            4,
-            4,
+            8,
+            8,
             90,
             0
         ),
@@ -81,7 +81,7 @@ let note_target_1_subtarget_1 = tree.parse(
         note: new n.Note(
             51,
             0,
-            2,
+            4,
             90,
             0
         ),
@@ -114,8 +114,8 @@ let note_target_2_subtarget_1 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             52,
-            2,
-            2,
+            4,
+            4,
             90,
             0
         ),
@@ -148,8 +148,8 @@ let note_target_3_subtarget_1 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             53,
+            8,
             4,
-            2,
             90,
             0
         ),
@@ -182,8 +182,8 @@ let note_target_4_subtarget_1 = tree.parse(
         id: -1, // TODO: hashing scheme for clip id and beat start
         note: new n.Note(
             54,
-            6,
-            2,
+            12,
+            4,
             90,
             0
         ),
@@ -220,7 +220,7 @@ let user_input_handler = new UserInputHandler(
 );
 
 let env: string = 'node_for_max';
-// env = 'node';
+env = 'node';
 
 
 let messenger = new Messenger(env, 0, 'render_predict');
@@ -320,7 +320,7 @@ clip_dao_virtual = new LiveClipVirtual(
 
 clip_dao_virtual.beat_start = 0;
 
-clip_dao_virtual.beat_end = 4;
+clip_dao_virtual.beat_end = 8;
 
 clip_target = new Clip(
     clip_dao_virtual
@@ -337,9 +337,9 @@ clip_dao_virtual = new LiveClipVirtual(
     ]
 );
 
-clip_dao_virtual.beat_start = 4;
+clip_dao_virtual.beat_start = 8;
 
-clip_dao_virtual.beat_end = 8;
+clip_dao_virtual.beat_end = 16;
 
 clip_target = new Clip(
     clip_dao_virtual

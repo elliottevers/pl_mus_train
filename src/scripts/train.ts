@@ -369,15 +369,6 @@ let load_session = (filename: string) => {
 
     } else if (_.contains([DETECT, PREDICT], algorithm_train.get_name())) {
 
-        // let notes_thawed = TrainThawer.thaw_notes(
-        //     filename,
-        //     env
-        // );
-        //
-        // let algorithm_targeted = algorithm_train as Targeted;
-        //
-        // algorithm_targeted.restore(trainer, notes_thawed)
-
         let history_user_input_empty = trainer.history_user_input;
 
         let history_user_input_recovered = TrainThawer.recover_history_user_input(
