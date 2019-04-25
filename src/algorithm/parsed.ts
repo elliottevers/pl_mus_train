@@ -197,7 +197,7 @@ export namespace parsed {
         }
 
         advance_scene(scene_current: scene.Scene, song: song.Song) {
-            scene_current.fire(true);
+            scene_current.fire(false);
 
             song.set_overdub(1);
 

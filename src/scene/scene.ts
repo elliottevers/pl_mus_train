@@ -92,8 +92,11 @@ export namespace scene {
             if (this.deferlow) {
                 this.messenger.message([this.key_route, "call", "fire", force_legato ? '1' : '0']);
             } else {
-                this.live_api.call("fire", force_legato ? '1' : '0')
-
+                if (force_legato) {
+                    this.live_api.call("fire", '1')
+                } else {
+                    this.live_api.call("fire")
+                }
             }
         }
 

@@ -101,7 +101,8 @@ var derive;
                     break;
                 }
                 case 'erase': {
-                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    var epsilon = .5;
+                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start - epsilon, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start + epsilon, 128);
                     break;
                 }
                 default: {
@@ -535,7 +536,9 @@ var parse;
                     break;
                 }
                 case 'erase': {
-                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start, 128);
+                    // sometimes notes aren't removed at the boundaries
+                    var epsilon = .5;
+                    trainer.clip_user_input.remove_notes(trainer.segment_current.beat_start - epsilon, 0, trainer.segment_current.beat_end - trainer.segment_current.beat_start + epsilon, 128);
                     break;
                 }
                 default: {
@@ -748,7 +751,6 @@ var predict;
                 var position_bimeasure = function (node) {
                     return Math.floor(node.model.note.beat_start / 8);
                 };
-                // let logger = new Logger('max');
                 var note_partitions = _.groupBy(notes_segment_next, position_bimeasure);
                 // for (let partition of note_partitions) {
                 //     // get the middle note of the measure
@@ -757,7 +759,6 @@ var predict;
                 for (var _i = 0, _a = Object.keys(note_partitions); _i < _a.length; _i++) {
                     var key_partition = _a[_i];
                     var partition = note_partitions[key_partition];
-                    // logger.log(JSON.stringify(partition));
                     notes_grouped.push([partition[partition.length / 2]]);
                 }
                 return notes_grouped;
@@ -901,7 +902,7 @@ var targeted;
         Targeted.prototype.set_depth = function () {
         };
         Targeted.prototype.advance_scene = function (scene_current, song) {
-            scene_current.fire(true);
+            scene_current.fire(false);
         };
         Targeted.prototype.preprocess_history_user_input = function (history_user_input, segments) {
             return history_user_input;
@@ -2703,7 +2704,12 @@ var scene;
                 this.messenger.message([this.key_route, "call", "fire", force_legato ? '1' : '0']);
             }
             else {
-                this.live_api.call("fire", force_legato ? '1' : '0');
+                if (force_legato) {
+                    this.live_api.call("fire", '1');
+                }
+                else {
+                    this.live_api.call("fire");
+                }
             }
         };
         SceneDao.prototype.get_path = function () {

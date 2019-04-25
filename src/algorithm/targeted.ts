@@ -103,7 +103,6 @@ export namespace targeted {
         ): MatrixWindow
 
         unpause(song: Song, scene_current: Scene) {
-            // not forcing legato so that it starts immediately
             scene_current.fire(false);
             song.set_session_record(1);
             song.set_overdub(1);
@@ -196,7 +195,7 @@ export namespace targeted {
         }
 
         advance_scene(scene_current: scene.Scene, song: song.Song) {
-            scene_current.fire(true);
+            scene_current.fire(false);
         }
 
         preprocess_history_user_input(history_user_input: history.HistoryUserInput, segments: segment.Segment[]): HistoryUserInput {
