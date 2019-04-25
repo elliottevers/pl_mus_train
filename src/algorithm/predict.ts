@@ -10,7 +10,6 @@ import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
 import {iterate} from "../train/iterate";
-import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace predict {
@@ -27,7 +26,6 @@ export namespace predict {
     import SESSION = trainer.SESSION;
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
-    import Logger = log.Logger;
 
     export class Predict extends Targeted {
 

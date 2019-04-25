@@ -290,10 +290,12 @@ export namespace parse {
                     break;
                 }
                 case 'erase': {
+                    // sometimes notes aren't removed at the boundaries
+                    let epsilon = .5;
                     trainer.clip_user_input.remove_notes(
-                        trainer.segment_current.beat_start,
+                        trainer.segment_current.beat_start - epsilon,
                         0,
-                        trainer.segment_current.beat_end - trainer.segment_current.beat_start,
+                        trainer.segment_current.beat_end - trainer.segment_current.beat_start + epsilon,
                         128
                     );
                     break;
