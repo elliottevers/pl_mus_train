@@ -34,7 +34,7 @@ let download = () => {
 
     let options_python_shell;
 
-    let path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/master_36/bin/python';
+    let path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/requirements_tk_music/bin/python';
 
     let dir_scripts_python = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/scripts/';
 
@@ -54,11 +54,16 @@ let download = () => {
         args: script.get_run_parameters().split(' ')
     };
 
+    max_api.post(path_interpreter);
+
+    max_api.post(script.get_run_parameters().split(' '));
+
     PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err) throw err;
         // results is an array consisting of messages collected during execution
-        max_api.outlet(results.toString().trim());
-        // console.log(results);
+        let message_trimmed = results.toString().trim();
+        let message_split = message_trimmed.split(' ');
+        max_api.outlet(message_split)
     });
 };
 

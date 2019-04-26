@@ -11,7 +11,7 @@ let options_python_shell;
 
 let path_script;
 
-let path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/master_36/bin/python';
+let path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/requirements_tk_music/bin/python';
 
 let dir_scripts_python = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/scripts/';
 
@@ -94,13 +94,9 @@ let run = () => {
         pythonPath: path_interpreter,
     };
 
-    // console.log(script.get_run_parameters().split(' '));
-
     if (parameters_exist) {
         options_python_shell['args'] = script.get_run_parameters().split(' ')
     }
-
-    // max_api.post(script.get_run_parameters().split(' '));
 
     PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err) throw err;

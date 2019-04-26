@@ -435,7 +435,7 @@ export namespace trainer {
             this.trainable.handle_midi(pitch, velocity, this)
         }
 
-        restore_user_input() {
+        public restore_user_input() {
 
             if (!_.contains([DERIVE, PARSE], this.trainable.get_name())) {
                 return
