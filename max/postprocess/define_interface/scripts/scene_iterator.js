@@ -1,1 +1,0 @@
-var next = Global.scene_iterator.next;

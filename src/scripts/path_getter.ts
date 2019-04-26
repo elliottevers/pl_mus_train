@@ -1,8 +1,6 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live as li} from "../live/live";
-import {log} from "../log/logger";
-import Logger = log.Logger;
 import {utils} from "../utils/utils";
 
 declare let autowatch: any;

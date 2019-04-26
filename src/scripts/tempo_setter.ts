@@ -1,12 +1,9 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {map} from "../control/map";
-import FretMapper = map.FretMapper;
 import {live as li} from "../live/live";
 import {song} from "../song/song";
 import SongDao = song.SongDao;
 import Song = song.Song;
-import {user_input} from "../control/user_input";
 
 declare let autowatch: any;
 declare let inlets: any;
