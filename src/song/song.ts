@@ -3,7 +3,6 @@ import {live} from "../live/live";
 import {scene} from "../scene/scene";
 import {utils} from "../utils/utils";
 import {track} from "../track/track";
-import {log} from "../log/logger";
 import {cue_point} from "../cue_point/cue_point";
 
 export namespace song {
@@ -13,7 +12,6 @@ export namespace song {
     import Track = track.Track;
     import SceneDao = scene.SceneDao;
     import LiveApiJs = live.LiveApiJs;
-    import Logger = log.Logger;
     import CuePoint = cue_point.CuePoint;
     import CuePointDao = cue_point.CuePointDao;
 
@@ -283,7 +281,7 @@ export namespace song {
         }
 
         get_tempo(): number {
-            return this.song_live.get("tempo");
+            return Number(this.song_live.get("tempo"));
         }
 
         start() {

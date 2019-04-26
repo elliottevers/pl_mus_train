@@ -277,7 +277,7 @@ var clip;
             this.env = env;
         }
         ClipDao.prototype.get_playing_position = function () {
-            return this.clip_live.get('playing_position');
+            return Number(this.clip_live.get('playing_position'));
         };
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
@@ -1057,7 +1057,12 @@ var scene;
                 this.messenger.message([this.key_route, "call", "fire", force_legato ? '1' : '0']);
             }
             else {
-                this.live_api.call("fire", force_legato ? '1' : '0');
+                if (force_legato) {
+                    this.live_api.call("fire", '1');
+                }
+                else {
+                    this.live_api.call("fire");
+                }
             }
         };
         SceneDao.prototype.get_path = function () {
@@ -1133,7 +1138,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 var messenger = new Messenger(env, 0);
-var s_beat_start, s_beat_end;
+var s_beat_start, s_beat_end = null;
 var set_beat_start = function () {
     var clip_highlighted = new Clip(new ClipDao(new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip'), messenger));
     s_beat_start = clip_highlighted.get_playing_position();
@@ -1146,6 +1151,15 @@ var set_beat_end = function () {
 };
 var extract_beatmap_raw = function () {
     var song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
+    // let logger = new Logger('max');
+    // logger.log(s_beat_start);
+    //
+    // logger.log(s_beat_end);
+    //
+    // logger.log(String(song.get_tempo()));
+    //
+    // let tempo = song.get_tempo();
+    // let tempo = 72.5;
     messenger.message(['s_beat_start', s_beat_start]);
     messenger.message(['s_beat_end', s_beat_end]);
     messenger.message(['tempo', song.get_tempo()]);
@@ -1175,6 +1189,8 @@ if (typeof Global !== "undefined") {
     Global.extract_beatmap = {};
     Global.extract_beatmap.extract_beatmap_warped = extract_beatmap_warped;
     Global.extract_beatmap.extract_beatmap_raw = extract_beatmap_raw;
+    Global.extract_beatmap.set_beat_start = set_beat_start;
+    Global.extract_beatmap.set_beat_end = set_beat_end;
 }
 
 },{"../clip/clip":1,"../live/live":4,"../message/messenger":5,"../song/song":9,"../track/track":10,"../utils/utils":11}],9:[function(require,module,exports){
@@ -1364,7 +1380,7 @@ var song;
             this.song_live.set("tempo", int);
         };
         SongDao.prototype.get_tempo = function () {
-            return this.song_live.get("tempo");
+            return Number(this.song_live.get("tempo"));
         };
         SongDao.prototype.start = function () {
             this.song_live.set("is_playing", 1);
@@ -3841,3 +3857,5 @@ module.exports = (function () {
 
 var extract_beatmap_warped = Global.extract_beatmap.extract_beatmap_warped;
 var extract_beatmap_raw = Global.extract_beatmap.extract_beatmap_raw;
+var set_beat_start = Global.extract_beatmap.set_beat_start;
+var set_beat_end = Global.extract_beatmap.set_beat_end;

@@ -32,7 +32,7 @@ if (env === 'max') {
 
 let messenger = new Messenger(env, 0);
 
-let s_beat_start, s_beat_end;
+let s_beat_start, s_beat_end = null;
 
 let set_beat_start = () => {
 
@@ -146,4 +146,6 @@ if (typeof Global !== "undefined") {
     Global.extract_beatmap = {};
     Global.extract_beatmap.extract_beatmap_warped = extract_beatmap_warped;
     Global.extract_beatmap.extract_beatmap_raw = extract_beatmap_raw;
+    Global.extract_beatmap.set_beat_start = set_beat_start;
+    Global.extract_beatmap.set_beat_end = set_beat_end;
 }

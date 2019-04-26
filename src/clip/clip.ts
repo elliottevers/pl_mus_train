@@ -424,7 +424,7 @@ export namespace clip {
         }
 
         get_playing_position(): number {
-            return this.clip_live.get('playing_position')
+            return Number(this.clip_live.get('playing_position'))
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {
