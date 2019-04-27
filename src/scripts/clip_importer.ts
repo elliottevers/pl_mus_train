@@ -56,7 +56,7 @@ let import_part = (name_part) => {
 
     if (!clip_exists) {
         // TODO: get the beat of end of last note
-        clipslot_highlighted.call('create_clip', String(get_length_beats()));
+        clipslot_highlighted.call('create_clip', Number(get_length_beats()));
 
         clip_highlighted = new li.LiveApiJs(
             'live_set view highlighted_clip_slot clip'

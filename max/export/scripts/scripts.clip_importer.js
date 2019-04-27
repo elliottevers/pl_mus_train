@@ -16,6 +16,9 @@ var clip;
             var LiveApiJs = live_1.live.LiveApiJs;
             return new Clip(new ClipDao(new LiveApiJs(path), messenger));
         };
+        Clip.prototype.get_playing_position = function () {
+            return this.clip_dao.get_playing_position();
+        };
         Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
             if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
                 this.clip_dao.set_loop_bracket_upper(beat_end);
@@ -273,6 +276,9 @@ var clip;
             this.key_route = key_route;
             this.env = env;
         }
+        ClipDao.prototype.get_playing_position = function () {
+            return Number(this.clip_live.get('playing_position'));
+        };
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
             for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
@@ -937,7 +943,7 @@ var import_part = function (name_part) {
     var clip_exists = Number(clip_highlighted.get_id()) !== 0;
     if (!clip_exists) {
         // TODO: get the beat of end of last note
-        clipslot_highlighted.call('create_clip', String(get_length_beats()));
+        clipslot_highlighted.call('create_clip', Number(get_length_beats()));
         clip_highlighted = new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip');
     }
     clip = new Clip(new ClipDao(clip_highlighted, new Messenger(env, 0)));
