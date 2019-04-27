@@ -56,7 +56,6 @@ max_api.addHandler("set_path_interpreter", (path) => {
 });
 
 max_api.addHandler("set_path_script", (filename_script) => {
-    // max_api.post(filename_script);
     path_script = dir_scripts_python + filename_script
 });
 

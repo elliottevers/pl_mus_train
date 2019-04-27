@@ -1,8 +1,6 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live, live as li} from "../live/live";
-import {log} from "../log/logger";
-import Logger = log.Logger;
 import {utils} from "../utils/utils";
 import {segment} from "../segment/segment";
 import Segment = segment.Segment;
@@ -117,6 +115,8 @@ let contract_track = (path_track) => {
     clip.set_endpoint_markers(0, get_length_beats());
 
     clip.set_endpoints_loop(0, get_length_beats());
+
+    messenger.message(['done', 'bang'])
 };
 
 // TODO: we can't export this, because it could be called from a different track than the one the segments are on...
@@ -181,6 +181,8 @@ let contract_track_audio = (path_track) => {
             clip_slot_audio.delete_clip()
         }
     }
+
+    messenger.message(['done', 'bang'])
 };
 
 let expand_track_audio = (path_track) => {
@@ -278,6 +280,8 @@ let expand_track_audio = (path_track) => {
             segment.beat_end
         );
     }
+
+    messenger.message(['done', 'bang'])
 };
 
 let expand_track = (path_track: string, name_part?: string) => {
@@ -380,6 +384,8 @@ let expand_track = (path_track: string, name_part?: string) => {
 
         clip.set_notes(notes_within_segment)
     }
+
+    messenger.message(['done', 'bang'])
 };
 
 let test = () => {
