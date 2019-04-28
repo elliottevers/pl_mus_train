@@ -1,7 +1,6 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {map} from "../control/map";
-import FretMapper = map.FretMapper;
+const _ = require('underscore');
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -102,6 +101,24 @@ let render_default_lemur = (r,g,b) => {
     messenger.message(colormap_default[[r,g,b].toString()])
 };
 
+let clear_lemur = () => {
+    for (let i_string of _.range(1, 6 + 1)) {
+        for (let i_fret of _.range(1, 12 + 1)) {
+            // /string_6_fret_6 @color 8355711 0
+            messenger.message(
+                [
+                    '/string' + '_' + i_string + '_' + 'fret' + '_' + i_fret,
+                    '@color',
+                    colormap_default["255,255,255"],
+                    colormap_default["0,0,0"]
+                ]
+            )
+        }
+        // /nut_1 @color 8355711
+        messenger.message(['/nut_' + i_string, '@color', colormap_default["255,255,255"]])
+    }
+};
+
 // test();
 
 if (typeof Global !== "undefined") {
@@ -109,4 +126,5 @@ if (typeof Global !== "undefined") {
     Global.color_getter.render_lemur = render_lemur;
     Global.color_getter.render_default_lemur = render_default_lemur;
     Global.color_getter.feedback_lemur = feedback_lemur;
+    Global.color_getter.clear_lemur = clear_lemur;
 }

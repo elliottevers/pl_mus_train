@@ -100,6 +100,9 @@ export namespace trainer {
             this.messenger = messenger;
             this.virtualized = virtualized;
 
+            // TODO: put in 'initialize_render', make configurable
+            this.messenger.message(['pensize', 3, 3]);
+
             this.notes_target_track = this.trainable.get_notes_focus(
                 track_target
             );

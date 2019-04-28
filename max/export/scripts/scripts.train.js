@@ -138,6 +138,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
+var track_1 = require("../track/track");
 var targeted_1 = require("./targeted");
 var trainer_1 = require("../train/trainer");
 var harmony_1 = require("../music/harmony");
@@ -156,6 +157,7 @@ var detect;
     var SESSION = trainer_1.trainer.SESSION;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var FORWARDS = iterate_1.iterate.FORWARDS;
+    var Track = track_1.track.Track;
     var Detect = /** @class */ (function (_super) {
         __extends(Detect, _super);
         function Detect() {
@@ -189,14 +191,20 @@ var detect;
         Detect.prototype.get_view = function () {
             return SESSION;
         };
-        // postprocess_subtarget(note_subtarget) {
-        //     return note_subtarget
-        // }
-        // TODO: verify that we don't have to do anything here
         Detect.prototype.initialize_render = function (window, segments, notes_target_track, struct_train) {
             return window;
         };
         Detect.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
+            for (var i_segment in segments) {
+                var segment_1 = segments[Number(i_segment)];
+                var clip_user_input = Track.get_clip_at_index(track_user_input.get_index(), Number(i_segment), track_user_input.track_dao.messenger);
+                clip_user_input.set_path_deferlow('clip_user_input');
+                var note_segment = segment_1.get_note();
+                clip_user_input.remove_notes(note_segment.model.note.beat_start, 0, note_segment.model.note.get_beat_end(), 128);
+                var note_segment_muted = note_segment;
+                note_segment_muted.model.note.muted = 1;
+                clip_user_input.set_notes([note_segment_muted]);
+            }
             track_target.unmute();
         };
         Detect.prototype.handle_midi = function (pitch, velocity, trainer) {
@@ -219,7 +227,7 @@ var detect;
     detect.Detect = Detect;
 })(detect = exports.detect || (exports.detect = {}));
 
-},{"../constants/constants":11,"../music/harmony":18,"../note/note":19,"../train/iterate":31,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38}],3:[function(require,module,exports){
+},{"../constants/constants":11,"../music/harmony":18,"../note/note":19,"../track/track":30,"../train/iterate":31,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var trainer_1 = require("../train/trainer");
@@ -635,7 +643,7 @@ var parsed;
             return this.create_struct_parse(segments);
         };
         Parsed.prototype.advance_scene = function (scene_current, song) {
-            scene_current.fire(true);
+            scene_current.fire(false);
             song.set_overdub(1);
             song.set_session_record(1);
         };
@@ -775,16 +783,24 @@ var predict;
         Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             var matrix_targets = struct_train;
             for (var i_segment in segments) {
-                var clip = Track.get_clip_at_index(track_target.get_index(), Number(i_segment), track_target.track_dao.messenger);
+                var segment_1 = segments[Number[i_segment]];
+                var clip_target = Track.get_clip_at_index(track_target.get_index(), Number(i_segment), track_target.track_dao.messenger);
+                var clip_user_input = Track.get_clip_at_index(track_user_input.get_index(), Number(i_segment), track_user_input.track_dao.messenger);
+                clip_user_input.set_path_deferlow('clip_user_input');
+                var note_segment = segment_1.get_note();
+                clip_user_input.remove_notes(note_segment.model.note.beat_start, 0, note_segment.model.note.get_beat_end(), 128);
+                var note_segment_muted = note_segment;
+                note_segment_muted.model.note.muted = 1;
+                clip_user_input.set_notes([note_segment_muted]);
                 var targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
                     var note = targeted_notes_in_segment_1[_i];
-                    clip.set_path_deferlow('clip_target');
-                    clip.remove_notes(note.model.note.beat_start, 0, note.model.note.get_beat_end(), 128);
+                    clip_target.set_path_deferlow('clip_target');
+                    clip_target.remove_notes(note.model.note.beat_start, 0, note.model.note.get_beat_end(), 128);
                     var note_muted = note;
                     note_muted.model.note.muted = 1;
-                    clip.set_notes([note_muted]);
+                    clip_target.set_notes([note_muted]);
                 }
             }
         };
@@ -842,7 +858,6 @@ var targeted;
             ];
         };
         Targeted.prototype.unpause = function (song, scene_current) {
-            // not forcing legato so that it starts immediately
             scene_current.fire(false);
             song.set_session_record(1);
             song.set_overdub(1);
@@ -1245,7 +1260,7 @@ var clip;
             this.env = env;
         }
         ClipDao.prototype.get_playing_position = function () {
-            return this.clip_live.get('playing_position');
+            return Number(this.clip_live.get('playing_position'));
         };
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
@@ -1616,8 +1631,8 @@ var file;
         switch (env) {
             case 'node_for_max': {
                 console.log('writing json');
-                var fs = require("fs");
-                fs.writeFileSync(filename, JSON.stringify(string_json), 'utf8', function (err, data) {
+                var fs_1 = require("fs");
+                fs_1.writeFileSync(filename, JSON.stringify(string_json), 'utf8', function (err, data) {
                     if (err) {
                         console.log('error writing json');
                     }
@@ -1626,8 +1641,8 @@ var file;
             }
             case 'node': {
                 console.log('writing json');
-                var fs = require("fs");
-                fs.writeFileSync(filename, JSON.stringify(string_json), 'utf8', function (err, data) {
+                var fs_2 = require("fs");
+                fs_2.writeFileSync(filename, JSON.stringify(string_json), 'utf8', function (err, data) {
                     if (err) {
                         console.log('error writing json');
                     }
@@ -1656,9 +1671,9 @@ var file;
         switch (env) {
             case 'node_for_max': {
                 console.log('reading json');
-                var fs = require("fs");
+                var fs_3 = require("fs");
                 // TODO: fix in node_for_max
-                matrix_deserialized = JSON.parse(fs.readFileSync(filepath, 'utf8', function (err, data) {
+                matrix_deserialized = JSON.parse(fs_3.readFileSync(filepath, 'utf8', function (err, data) {
                     if (err) {
                         console.log(err);
                     }
@@ -1667,9 +1682,9 @@ var file;
             }
             case 'node': {
                 console.log('reading json');
-                var fs = require("fs");
+                var fs_4 = require("fs");
                 // TODO: fix in node_for_max
-                matrix_deserialized = JSON.parse(fs.readFileSync(filepath, 'utf8', function (err, data) {
+                matrix_deserialized = JSON.parse(fs_4.readFileSync(filepath, 'utf8', function (err, data) {
                     if (err) {
                         console.log(err);
                     }
@@ -2882,7 +2897,7 @@ var set_algorithm_train = function (option) {
             post('error setting algorithm');
         }
     }
-    window = new MatrixWindow(384, 384, messenger_render);
+    window = new MatrixWindow(384 * 2 * 2, 384 * 2 * 2, messenger_render);
 };
 var set_depth_tree = function (depth) {
     algorithm_train.set_depth(depth);
@@ -3416,7 +3431,7 @@ var song;
             this.song_live.set("tempo", int);
         };
         SongDao.prototype.get_tempo = function () {
-            return this.song_live.get("tempo");
+            return Number(this.song_live.get("tempo"));
         };
         SongDao.prototype.start = function () {
             this.song_live.set("is_playing", 1);
@@ -4111,6 +4126,8 @@ var trainer;
             this.segments = segments;
             this.messenger = messenger;
             this.virtualized = virtualized;
+            // TODO: put in 'initialize_render', make configurable
+            this.messenger.message(['pensize', 3, 3]);
             this.notes_target_track = this.trainable.get_notes_focus(track_target);
             this.iterator_matrix_train = this.trainable.get_iterator_train(this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_user_input_history(this.trainable, this.segments));

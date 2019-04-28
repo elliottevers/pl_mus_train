@@ -141,8 +141,8 @@ let set_algorithm_train = (option) => {
     }
 
     window = new MatrixWindow(
-        384,
-        384,
+        384*2*2,
+        384*2*2,
         messenger_render
     );
 };

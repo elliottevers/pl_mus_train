@@ -10,7 +10,6 @@ import {modes_texture} from "../constants/constants";
 import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
-import {message} from "../message/messenger";
 import {iterate} from "../train/iterate";
 
 export namespace detect {
@@ -29,6 +28,7 @@ export namespace detect {
     import SESSION = trainer.SESSION;
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
+    import Track = track.Track;
 
     export class Detect extends Targeted {
 
@@ -77,11 +77,6 @@ export namespace detect {
             return SESSION
         }
 
-        // postprocess_subtarget(note_subtarget) {
-        //     return note_subtarget
-        // }
-
-        // TODO: verify that we don't have to do anything here
         initialize_render(
             window: window.MatrixWindow,
             segments: segment.Segment[],
@@ -97,6 +92,36 @@ export namespace detect {
             track_user_input: track.Track,
             struct_train: StructTrain
         ) {
+
+            for (let i_segment in segments) {
+                let segment = segments[Number(i_segment)];
+
+                let clip_user_input = Track.get_clip_at_index(
+                    track_user_input.get_index(),
+                    Number(i_segment),
+                    track_user_input.track_dao.messenger
+                );
+
+                clip_user_input.set_path_deferlow('clip_user_input');
+
+                let note_segment = segment.get_note();
+
+                clip_user_input.remove_notes(
+                    note_segment.model.note.beat_start,
+                    0,
+                    note_segment.model.note.get_beat_end(),
+                    128
+                );
+
+                let note_segment_muted = note_segment;
+
+                note_segment_muted.model.note.muted = 1;
+
+                clip_user_input.set_notes(
+                    [note_segment_muted]
+                );
+            }
+
             track_target.unmute()
         }
 

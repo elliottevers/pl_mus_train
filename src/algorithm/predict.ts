@@ -112,10 +112,37 @@ export namespace predict {
 
             for (let i_segment in segments) {
 
-                let clip = Track.get_clip_at_index(
+                let segment = segments[Number[i_segment]];
+
+                let clip_target = Track.get_clip_at_index(
                     track_target.get_index(),
                     Number(i_segment),
                     track_target.track_dao.messenger
+                );
+
+                let clip_user_input = Track.get_clip_at_index(
+                    track_user_input.get_index(),
+                    Number(i_segment),
+                    track_user_input.track_dao.messenger
+                );
+
+                clip_user_input.set_path_deferlow('clip_user_input');
+
+                let note_segment = segment.get_note();
+
+                clip_user_input.remove_notes(
+                    note_segment.model.note.beat_start,
+                    0,
+                    note_segment.model.note.get_beat_end(),
+                    128
+                );
+
+                let note_segment_muted = note_segment;
+
+                note_segment_muted.model.note.muted = 1;
+
+                clip_user_input.set_notes(
+                    [note_segment_muted]
                 );
 
                 let targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
@@ -123,9 +150,9 @@ export namespace predict {
                 // TODO: this won't work for polyphony
                 for (let note of targeted_notes_in_segment) {
 
-                    clip.set_path_deferlow('clip_target');
+                    clip_target.set_path_deferlow('clip_target');
 
-                    clip.remove_notes(
+                    clip_target.remove_notes(
                         note.model.note.beat_start,
                         0,
                         note.model.note.get_beat_end(),
@@ -136,7 +163,7 @@ export namespace predict {
 
                     note_muted.model.note.muted = 1;
 
-                    clip.set_notes(
+                    clip_target.set_notes(
                         [note_muted]
                     )
                 }
