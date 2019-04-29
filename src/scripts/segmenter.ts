@@ -260,6 +260,7 @@ let expand_track_audio = (path_track) => {
         // TODO: do we need to add this back?
         // clip_slot.create_clip(length_beats);
         //
+
         clip_slot.load_clip();
 
         let clip = Track.get_clip_at_index(
@@ -382,7 +383,8 @@ let expand_track = (path_track: string, name_part?: string) => {
             node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
         );
 
-        clip.set_notes(notes_within_segment)
+        // TODO: non-native scope object is here
+        clip.set_notes(notes_within_segment);
     }
 
     messenger.message(['done', 'bang'])

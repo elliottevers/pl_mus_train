@@ -5,7 +5,6 @@ import {note} from "../note/note";
 import TreeModel = require("tree-model");
 import {clip_slot} from "../clip_slot/clip_slot";
 import {utils} from "../utils/utils";
-import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace track {
@@ -16,10 +15,8 @@ export namespace track {
     import ClipSlot = clip_slot.ClipSlot;
     import ClipSlotDao = clip_slot.ClipSlotDao;
     import ClipDao = clip.ClipDao;
-    import Logger = log.Logger;
     import ClipSlotDaoVirtual = clip_slot.ClipSlotDaoVirtual;
     import iLiveApiJs = live.iLiveApiJs;
-    import iClipSlotDao = clip_slot.iClipSlotDao;
     import LiveClipVirtual = live.LiveClipVirtual;
 
     export class Track {

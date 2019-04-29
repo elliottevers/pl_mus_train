@@ -7,7 +7,6 @@ export namespace utils {
 
     // accepts a path directly from the DAO object
     export let cleanse_path = (path): string => {
-        // return path.replace('/"', '')
         return String(path).split(' ').map((text) => {
             return text.replace('\"', '')
         }).join(' ')
