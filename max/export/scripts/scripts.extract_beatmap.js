@@ -1138,31 +1138,13 @@ if (env === 'max') {
     autowatch = 1;
 }
 var messenger = new Messenger(env, 0);
-var s_beat_start, s_beat_end = null;
-var set_beat_start = function () {
-    var clip_highlighted = new Clip(new ClipDao(new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip'), messenger));
-    s_beat_start = clip_highlighted.get_playing_position();
-    // NB: DO NOT set the start marker, since we want the clip to play from the beginning
-};
-var set_beat_end = function () {
-    var clip_highlighted = new Clip(new ClipDao(new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip'), messenger));
-    s_beat_end = clip_highlighted.get_playing_position();
-    // NB: DO NOT set the end marker
-};
 var extract_beatmap_raw = function () {
     var song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
-    // let logger = new Logger('max');
-    // logger.log(s_beat_start);
-    //
-    // logger.log(s_beat_end);
-    //
-    // logger.log(String(song.get_tempo()));
-    //
-    // let tempo = song.get_tempo();
-    // let tempo = 72.5;
-    messenger.message(['s_beat_start', s_beat_start]);
-    messenger.message(['s_beat_end', s_beat_end]);
+    var clip_highlighted = new Clip(new ClipDao(new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip'), messenger));
+    messenger.message(['s_beat_start', clip_highlighted.get_start_marker()]);
+    messenger.message(['s_beat_end', clip_highlighted.get_loop_bracket_upper()]);
     messenger.message(['tempo', song.get_tempo()]);
+    messenger.message(['manual', 0, 'bang']);
     messenger.message(['run', 'bang']);
 };
 var extract_beatmap_warped = function () {
@@ -1180,7 +1162,7 @@ var extract_beatmap_warped = function () {
     messenger.message(['beat_end', beat_end_marker]);
     messenger.message(['length_beats', length_beats]);
     messenger.message(['tempo', song.get_tempo()]);
-    messenger.message(['manual', 'bang']);
+    messenger.message(['manual', 1, 'bang']);
     messenger.message(['run', 'bang']);
 };
 var test = function () {
@@ -1189,8 +1171,6 @@ if (typeof Global !== "undefined") {
     Global.extract_beatmap = {};
     Global.extract_beatmap.extract_beatmap_warped = extract_beatmap_warped;
     Global.extract_beatmap.extract_beatmap_raw = extract_beatmap_raw;
-    Global.extract_beatmap.set_beat_start = set_beat_start;
-    Global.extract_beatmap.set_beat_end = set_beat_end;
 }
 
 },{"../clip/clip":1,"../live/live":4,"../message/messenger":5,"../song/song":9,"../track/track":10,"../utils/utils":11}],9:[function(require,module,exports){
@@ -1694,7 +1674,6 @@ var utils;
     };
     // accepts a path directly from the DAO object
     utils.cleanse_path = function (path) {
-        // return path.replace('/"', '')
         return String(path).split(' ').map(function (text) {
             return text.replace('\"', '');
         }).join(' ');

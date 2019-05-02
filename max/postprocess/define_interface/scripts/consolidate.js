@@ -1,1 +1,1 @@
-var toggle = Global.consolidate.toggle;
+var consolidate = Global.consolidate.consolidate;

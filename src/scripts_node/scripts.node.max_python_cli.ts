@@ -17,6 +17,8 @@ let dir_scripts_python = '/Users/elliottevers/Documents/DocumentsSymlinked/git-r
 
 
 max_api.addHandler("set_arg", (name_arg, val_arg) => {
+    // max_api.post(name_arg);
+    // max_api.post(val_arg);
     if (_.contains(args.map((arg) => {return arg.name}), name_arg)) {
         let arg_existing = args.filter(arg => arg.name === name_arg)[0];
         arg_existing.set(val_arg);
@@ -28,9 +30,14 @@ max_api.addHandler("set_arg", (name_arg, val_arg) => {
 });
 
 max_api.addHandler("set_flag", (name_flag, val_flag) => {
+    max_api.post('current flags');
+    max_api.post(flags.map((flag) => {return flag.name}));
+    max_api.post('current flags');
     if (_.contains(flags.map((flag) => {return flag.name}), name_flag)) {
         let flag_existing = flags.filter(flag => flag.name === name_flag)[0];
         flag_existing.set(val_flag);
+        max_api.post(name_flag);
+        max_api.post(val_flag);
     } else {
         let flag = new cli.Flag(name_flag);
         flag.set(val_flag);
@@ -39,8 +46,8 @@ max_api.addHandler("set_flag", (name_flag, val_flag) => {
 });
 
 max_api.addHandler("set_option", (name_opt, val_opt) => {
-    max_api.post(name_opt);
-    max_api.post(val_opt);
+    // max_api.post(name_opt);
+    // max_api.post(val_opt);
     if (_.contains(options.map((opt) => {return opt.name}), name_opt)) {
         let opt_existing = options.filter(opt => opt.name === name_opt)[0];
         opt_existing.set(val_opt);
@@ -96,6 +103,8 @@ let run = () => {
     if (parameters_exist) {
         options_python_shell['args'] = script.get_run_parameters().split(' ')
     }
+
+    max_api.post(JSON.stringify(script.get_run_parameters().split(' ')));
 
     PythonShell.run(script.script, options_python_shell, function (err, results) {
         if (err) throw err;

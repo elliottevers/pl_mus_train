@@ -3,16 +3,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
-var logger_1 = require("../log/logger");
+var live_1 = require("../live/live");
 var utils_1 = require("../utils/utils");
 var clip;
 (function (clip) {
-    var Logger = logger_1.log.Logger;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
-            this.logger = new Logger('max');
         }
+        Clip.from_path = function (path, messenger) {
+            //@ts-ignore
+            var LiveApiJs = live_1.live.LiveApiJs;
+            return new Clip(new ClipDao(new LiveApiJs(path), messenger));
+        };
+        Clip.prototype.get_playing_position = function () {
+            return this.clip_dao.get_playing_position();
+        };
         Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
             if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
                 this.clip_dao.set_loop_bracket_upper(beat_end);
@@ -33,6 +39,9 @@ var clip;
                 this.clip_dao.set_clip_endpoint_upper(beat_end);
             }
         };
+        Clip.prototype.get_index_track = function () {
+            return this.clip_dao.get_path().split(' ')[2];
+        };
         Clip.prototype.get_beat_start = function () {
             return this.clip_dao.beat_start;
         };
@@ -42,8 +51,11 @@ var clip;
         Clip.prototype.get_path = function () {
             return this.clip_dao.get_path();
         };
+        Clip.prototype.get_id = function () {
+            return this.clip_dao.get_id();
+        };
         Clip.prototype.set_path_deferlow = function (key_route) {
-            this.clip_dao.set_path_deferlow(key_route, this.get_path());
+            this.clip_dao.set_path_deferlow('set_path_' + key_route, this.get_path());
         };
         Clip.prototype.get_num_measures = function () {
             return (this.get_end_marker() - this.get_start_marker()) / 4;
@@ -88,6 +100,40 @@ var clip;
         };
         Clip.prototype.get_ambitus = function (interval) {
             return [this.get_pitch_min(interval), this.get_pitch_max(interval)];
+        };
+        Clip.prototype.cut_notes_at_boundaries = function (notes_boundaries) {
+            var notes_clip = this.get_notes_within_loop_brackets();
+            var splits = [];
+            for (var _i = 0, notes_clip_1 = notes_clip; _i < notes_clip_1.length; _i++) {
+                var note_clip = notes_clip_1[_i];
+                var split = {
+                    'note': note_clip,
+                    'points': []
+                };
+                for (var _a = 0, notes_boundaries_1 = notes_boundaries; _a < notes_boundaries_1.length; _a++) {
+                    var note_boundary = notes_boundaries_1[_a];
+                    if (note_clip.model.note.contains_beat(note_boundary.model.note.get_beat_end())) {
+                        split['points'].push(note_boundary.model.note.get_beat_end());
+                    }
+                }
+                if (split['points'].length > 0) {
+                    splits.push(split);
+                }
+            }
+            for (var _b = 0, splits_1 = splits; _b < splits_1.length; _b++) {
+                var split = splits_1[_b];
+                var note_to_split = split['note'];
+                var points = split['points'];
+                // TODO: validate if we need this or not
+                // this.remove_notes(
+                //     note_to_split.model.note.beat_start,
+                //     note_to_split.model.note.pitch,
+                //     note_to_split.model.note.beats_duration,
+                //     note_to_split.model.note.pitch
+                // );
+                var replacements = note_1.note.Note.split_note_at_points(note_to_split, points);
+                this.set_notes(replacements);
+            }
         };
         Clip.prototype.set_loop_bracket_lower = function (beat) {
             this.clip_dao.set_loop_bracket_lower(beat);
@@ -211,11 +257,10 @@ var clip;
                 return 0;
             }
             notes_parsed.sort(compare);
-            // TODO: fail gracefully
-            // if (notes_parsed.length !== num_expected_notes) {
-            //     throw "notes retrieved from clip less than expected"
-            // }
             return notes_parsed;
+        };
+        Clip.prototype.get_name = function () {
+            return this.clip_dao.get_name();
         };
         return Clip;
     }());
@@ -231,6 +276,9 @@ var clip;
             this.key_route = key_route;
             this.env = env;
         }
+        ClipDao.prototype.get_playing_position = function () {
+            return Number(this.clip_live.get('playing_position'));
+        };
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
             for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
@@ -248,7 +296,7 @@ var clip;
             return this.clip_live.get('start_marker')[0];
         };
         ClipDao.prototype.get_path = function () {
-            return this.clip_live.get_path();
+            return utils_1.utils.cleanse_path(this.clip_live.get_path());
         };
         ClipDao.prototype.set_loop_bracket_lower = function (beat) {
             if (this.deferlow) {
@@ -375,15 +423,22 @@ var clip;
                 this.clip_live.call("done");
             }
         };
+        ClipDao.prototype.get_name = function () {
+            return this.clip_live.get('name');
+        };
+        ClipDao.prototype.get_id = function () {
+            return this.clip_live.get_id();
+        };
         return ClipDao;
     }());
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../log/logger":3,"../note/note":6,"../utils/utils":8,"tree-model":11}],2:[function(require,module,exports){
+},{"../live/live":2,"../note/note":5,"../utils/utils":7,"tree-model":10}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
+// declare let LiveAPI: any;
 var live;
 (function (live) {
     var Clip = clip_1.clip.Clip;
@@ -421,18 +476,11 @@ var live;
         return LiveApiJs;
     }());
     live.LiveApiJs = LiveApiJs;
+    // simulate dao
     var LiveClipVirtual = /** @class */ (function () {
         function LiveClipVirtual(notes) {
             this.notes = notes;
         }
-        // load_notes_within_loop_brackets(): void {
-        //     this.notes = this.get_notes(
-        //         this.get_loop_bracket_lower(),
-        //         0,
-        //         this.get_loop_bracket_upper(),
-        //         128
-        //     )
-        // }
         LiveClipVirtual.prototype.append = function (note) {
             var test = this.notes;
             test.push(note);
@@ -519,105 +567,18 @@ var live;
         LiveClipVirtual.prototype.remove_notes = function (beat_start, pitch_midi_min, beat_end, pitch_midi_max) {
             return;
         };
+        LiveClipVirtual.prototype.set_path_deferlow = function (key_route_override, path_live) {
+            return;
+        };
+        LiveClipVirtual.prototype.get_path = function () {
+            return '';
+        };
         return LiveClipVirtual;
     }());
     live.LiveClipVirtual = LiveClipVirtual;
 })(live = exports.live || (exports.live = {}));
 
 },{"../clip/clip":1}],3:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var log;
-(function (log) {
-    var Logger = /** @class */ (function () {
-        function Logger(env) {
-            this.env = env;
-        }
-        Logger.log_max_static = function (message) {
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    post(s);
-                }
-                else if (message === null) {
-                    post("<null>");
-                }
-                else {
-                    post(message);
-                }
-            }
-            post("\n");
-        };
-        Logger.prototype.log = function (message) {
-            if (this.env === 'max') {
-                this.log_max(message);
-            }
-            else if (this.env === 'node') {
-                this.log_node(message);
-            }
-            else {
-                post('env: ' + this.env);
-                post('\n');
-                throw 'environment invalid';
-            }
-        };
-        // TODO: make static
-        Logger.prototype.log_max = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                var message = arguments[i];
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    post(s);
-                }
-                else if (message === null) {
-                    post("<null>");
-                }
-                else {
-                    post(message);
-                }
-            }
-            post("\n");
-        };
-        // TODO: make static
-        Logger.prototype.log_node = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                var message = arguments[i];
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    console.log(s);
-                }
-                else if (message === null) {
-                    console.log("<null>");
-                }
-                else {
-                    console.log(message);
-                }
-            }
-            console.log("\n");
-        };
-        return Logger;
-    }());
-    log.Logger = Logger;
-})(log = exports.log || (exports.log = {}));
-
-},{}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
@@ -631,24 +592,24 @@ var message;
         Messenger.prototype.get_key_route = function () {
             return this.key_route;
         };
-        Messenger.prototype.message = function (message) {
+        Messenger.prototype.message = function (message, override) {
             switch (this.env) {
                 case 'max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_max(message);
                     break;
                 }
                 case 'node': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node(message);
                     break;
                 }
                 case 'node_for_max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node_for_max(message);
@@ -674,7 +635,7 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
@@ -736,7 +697,7 @@ var harmony;
     harmony.Harmony = Harmony;
 })(harmony = exports.harmony || (exports.harmony = {}));
 
-},{"../note/note":6,"tree-model":11,"underscore":12}],6:[function(require,module,exports){
+},{"../note/note":5,"tree-model":10,"underscore":11}],5:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -753,6 +714,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var TreeModel = require("tree-model");
+var _ = require('underscore');
 var note;
 (function (note_1) {
     var Note = /** @class */ (function () {
@@ -776,12 +738,40 @@ var note;
                 return a - c;
             }
             else if (!former_starts_before_latter && !former_ends_before_latter) {
-                return 0;
+                // return 0;
+                return d - a;
             }
             else if (!former_starts_before_latter && former_ends_before_latter) {
                 return b - a;
             }
-            throw 'case not considered';
+            throw 'beats overlap cannot be determined';
+        };
+        Note.split_note_at_points = function (note_to_split, points) {
+            if (points.length === 0) {
+                return [note_to_split];
+            }
+            var segments = [];
+            var beat_last = note_to_split.model.note.beat_start;
+            for (var _i = 0, _a = _.sortBy(points, function (i) { return i; }); _i < _a.length; _i++) {
+                var point = _a[_i];
+                var tree_1 = new TreeModel();
+                segments.push(tree_1.parse({
+                    id: -1,
+                    note: new Note(note_to_split.model.note.pitch, beat_last, point - beat_last, note_to_split.model.note.velocity, note_to_split.model.note.muted),
+                    children: []
+                }));
+                beat_last = point;
+            }
+            var tree = new TreeModel();
+            segments.push(tree.parse({
+                id: -1,
+                note: new Note(note_to_split.model.note.pitch, beat_last, note_to_split.model.note.get_beat_end() - beat_last, note_to_split.model.note.velocity, note_to_split.model.note.muted),
+                children: []
+            }));
+            return segments;
+        };
+        Note.prototype.contains_beat = function (beat) {
+            return this.beat_start < beat && this.get_beat_end() > beat;
         };
         Note.prototype.encode = function () {
             return this.to_array().join(' ');
@@ -903,7 +893,7 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":11}],7:[function(require,module,exports){
+},{"tree-model":10,"underscore":11}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -920,47 +910,69 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-var notes_polyphonic = [];
-var notes_arpegiatted = [];
-var cached = false;
+// let notes_polyphonic = [];
+// let notes_arpegiatted = [];
+// let cached: boolean = false;
 var toggle = function (val) {
-    var arpeggiate = Boolean(val);
-    var this_device = new live_1.live.LiveApiJs('this_device');
-    var path_this_device = this_device.get_path();
-    var list_this_device = path_this_device.split(' ');
-    var index_this_track = Number(list_this_device[2]);
-    var path_clip = ['live_set', 'tracks', index_this_track, 'clip_slots', 0, 'clip'].join(' ');
+    // let arpeggiate = Boolean(val);
+    // let this_device = new li.LiveApiJs('this_device');
+    //
+    // let path_this_device = this_device.get_path();
+    //
+    // let list_this_device = path_this_device.split(' ');
+    //
+    // let index_this_track = Number(list_this_device[2]);
+    //
+    // let path_clip = ['live_set', 'tracks', index_this_track, 'clip_slots', 0, 'clip'].join(' ');
+    var path_clip = 'live_set view highlighted_clip_slot clip';
     var clip = new Clip(new ClipDao(new LiveApiJs(path_clip), new Messenger(env, 0)));
-    if (!cached) {
-        notes_polyphonic = clip.get_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
-        var groups_notes_arpegiatted = Harmony.arpeggiate(notes_polyphonic);
-        for (var _i = 0, groups_notes_arpegiatted_1 = groups_notes_arpegiatted; _i < groups_notes_arpegiatted_1.length; _i++) {
-            var group = groups_notes_arpegiatted_1[_i];
-            // let logger = new Logger(env);
-            // logger.log(JSON.stringify(group));
-            notes_arpegiatted = notes_arpegiatted.concat(group);
-        }
-        cached = true;
+    // if (!cached) {
+    var notes_polyphonic = clip.get_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
+    var groups_notes_arpegiatted = Harmony.arpeggiate(notes_polyphonic);
+    var notes_arpegiatted = [];
+    for (var _i = 0, groups_notes_arpegiatted_1 = groups_notes_arpegiatted; _i < groups_notes_arpegiatted_1.length; _i++) {
+        var group = groups_notes_arpegiatted_1[_i];
+        notes_arpegiatted = notes_arpegiatted.concat(group);
     }
-    if (arpeggiate) {
-        clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
-        clip.set_notes(notes_arpegiatted);
-    }
-    else {
-        clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
-        clip.set_notes(notes_polyphonic);
-    }
+    //     cached = true;
+    // }
+    // if (arpeggiate) {
+    clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
+    clip.set_notes(notes_arpegiatted);
+    // } else {
+    //     clip.remove_notes(
+    //         clip.get_start_marker(),
+    //         0,
+    //         clip.get_end_marker(),
+    //         128
+    //     );
+    //     clip.set_notes(
+    //         notes_polyphonic
+    //     )
+    // }
 };
 if (typeof Global !== "undefined") {
     Global.arpeggiate = {};
     Global.arpeggiate.toggle = toggle;
 }
 
-},{"../clip/clip":1,"../live/live":2,"../message/messenger":4,"../music/harmony":5}],8:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../message/messenger":3,"../music/harmony":4}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
 (function (utils) {
+    utils.cleanse_id = function (string_id) {
+        return String(string_id).split(',').join(' ');
+    };
+    // accepts a path directly from the DAO object
+    utils.cleanse_path = function (path) {
+        return String(path).split(' ').map(function (text) {
+            return text.replace('\"', '');
+        }).join(' ');
+    };
+    utils.get_path_track_from_path_device = function (path) {
+        return path.split(' ').slice(0, 3).join(' ');
+    };
     var PathLive = /** @class */ (function () {
         function PathLive() {
         }
@@ -989,18 +1001,17 @@ var utils;
         return PathLive;
     }());
     utils.PathLive = PathLive;
+    utils.path_clip_from_list_path_device = function (list_path_device) {
+        list_path_device[list_path_device.length - 2] = 'clip_slots';
+        list_path_device.push('clip');
+        var path_clip = list_path_device.join(' ');
+        return path_clip;
+    };
     utils.remainder = function (top, bottom) {
         return ((top % bottom) + bottom) % bottom;
     };
     utils.division_int = function (top, bottom) {
         return Math.floor(top / bottom);
-    };
-    utils.path_clip_from_list_path_device = function (list_path_device) {
-        // list_path_device.shift();
-        list_path_device[list_path_device.length - 2] = 'clip_slots';
-        list_path_device.push('clip');
-        var path_clip = list_path_device.join(' ');
-        return path_clip;
     };
     var Set = /** @class */ (function () {
         function Set(items) {
@@ -1048,7 +1059,7 @@ var utils;
     utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1072,7 +1083,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1124,7 +1135,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -1417,7 +1428,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":9,"mergesort":10}],12:[function(require,module,exports){
+},{"find-insert-index":8,"mergesort":9}],11:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -3113,6 +3124,6 @@ module.exports = (function () {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[7]);
+},{}]},{},[6]);
 
 var toggle = Global.arpeggiate.toggle;

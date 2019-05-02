@@ -66,8 +66,6 @@ export namespace cli {
         }
 
         public get_run_parameters() {
-            // let command_exec: string = this.get_command_exec();
-
             let argv: string[] = [];
 
             for (let flag of this.flags) {
@@ -90,7 +88,6 @@ export namespace cli {
                 }
             }
 
-            // return command_exec + ' ' + argv.join(' ');
             return argv.join(' ');
         }
 
@@ -139,8 +136,7 @@ export namespace cli {
             if (unset_params.length > 0) {
                 throw 'unset parameters: ' + unset_params
             }
-            let command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
-            return command_full
+            return [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
         };
     }
 
@@ -172,8 +168,7 @@ export namespace cli {
             if (unset_params.length > 0) {
                 throw 'unset parameters: ' + unset_params
             }
-            let command_full = [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
-            return command_full
+            return [this.get_command_exec()].concat(this.get_run_parameters().split(' '));
         };
 
         public run() {
@@ -265,7 +260,7 @@ export namespace cli {
         }
 
         public set(val) {
-            this.val = val;
+            this.val = (Number(val) === 1);
         }
 
         public get_name_exec() {
@@ -273,7 +268,7 @@ export namespace cli {
         }
 
         public b_set(): boolean {
-            return this.val
+            return Boolean(this.val)
         }
     }
 

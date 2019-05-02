@@ -16,6 +16,9 @@ var clip;
             var LiveApiJs = live_1.live.LiveApiJs;
             return new Clip(new ClipDao(new LiveApiJs(path), messenger));
         };
+        Clip.prototype.get_playing_position = function () {
+            return this.clip_dao.get_playing_position();
+        };
         Clip.prototype.set_endpoints_loop = function (beat_start, beat_end) {
             if (beat_start >= this.clip_dao.get_loop_bracket_upper()) {
                 this.clip_dao.set_loop_bracket_upper(beat_end);
@@ -97,6 +100,40 @@ var clip;
         };
         Clip.prototype.get_ambitus = function (interval) {
             return [this.get_pitch_min(interval), this.get_pitch_max(interval)];
+        };
+        Clip.prototype.cut_notes_at_boundaries = function (notes_boundaries) {
+            var notes_clip = this.get_notes_within_loop_brackets();
+            var splits = [];
+            for (var _i = 0, notes_clip_1 = notes_clip; _i < notes_clip_1.length; _i++) {
+                var note_clip = notes_clip_1[_i];
+                var split = {
+                    'note': note_clip,
+                    'points': []
+                };
+                for (var _a = 0, notes_boundaries_1 = notes_boundaries; _a < notes_boundaries_1.length; _a++) {
+                    var note_boundary = notes_boundaries_1[_a];
+                    if (note_clip.model.note.contains_beat(note_boundary.model.note.get_beat_end())) {
+                        split['points'].push(note_boundary.model.note.get_beat_end());
+                    }
+                }
+                if (split['points'].length > 0) {
+                    splits.push(split);
+                }
+            }
+            for (var _b = 0, splits_1 = splits; _b < splits_1.length; _b++) {
+                var split = splits_1[_b];
+                var note_to_split = split['note'];
+                var points = split['points'];
+                // TODO: validate if we need this or not
+                // this.remove_notes(
+                //     note_to_split.model.note.beat_start,
+                //     note_to_split.model.note.pitch,
+                //     note_to_split.model.note.beats_duration,
+                //     note_to_split.model.note.pitch
+                // );
+                var replacements = note_1.note.Note.split_note_at_points(note_to_split, points);
+                this.set_notes(replacements);
+            }
         };
         Clip.prototype.set_loop_bracket_lower = function (beat) {
             this.clip_dao.set_loop_bracket_lower(beat);
@@ -220,10 +257,6 @@ var clip;
                 return 0;
             }
             notes_parsed.sort(compare);
-            // TODO: fail gracefully
-            // if (notes_parsed.length !== num_expected_notes) {
-            //     throw "notes retrieved from clip less than expected"
-            // }
             return notes_parsed;
         };
         Clip.prototype.get_name = function () {
@@ -243,6 +276,9 @@ var clip;
             this.key_route = key_route;
             this.env = env;
         }
+        ClipDao.prototype.get_playing_position = function () {
+            return Number(this.clip_live.get('playing_position'));
+        };
         ClipDao.prototype.set_path_deferlow = function (key_route_override, path_live) {
             var mess = [key_route_override];
             for (var _i = 0, _a = utils_1.utils.PathLive.to_message(path_live); _i < _a.length; _i++) {
@@ -398,7 +434,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../live/live":2,"../note/note":5,"../utils/utils":7,"tree-model":10}],2:[function(require,module,exports){
+},{"../live/live":2,"../note/note":4,"../utils/utils":6,"tree-model":9}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -545,99 +581,6 @@ var live;
 },{"../clip/clip":1}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var log;
-(function (log) {
-    var Logger = /** @class */ (function () {
-        function Logger(env) {
-            this.env = env;
-        }
-        Logger.log_max_static = function (message) {
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    post(s);
-                }
-                else if (message === null) {
-                    post("<null>");
-                }
-                else {
-                    post(message);
-                }
-            }
-            post("\n");
-        };
-        Logger.prototype.log = function (message) {
-            if (this.env === 'max') {
-                this.log_max(message);
-            }
-            else if (this.env === 'node') {
-                this.log_node(message);
-            }
-            else {
-                post('env: ' + this.env);
-                post('\n');
-                throw 'environment invalid';
-            }
-        };
-        // TODO: make static
-        Logger.prototype.log_max = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                var message = arguments[i];
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    post(s);
-                }
-                else if (message === null) {
-                    post("<null>");
-                }
-                else {
-                    post(message);
-                }
-            }
-            post("\n");
-        };
-        // TODO: make static
-        Logger.prototype.log_node = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                var message = arguments[i];
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    console.log(s);
-                }
-                else if (message === null) {
-                    console.log("<null>");
-                }
-                else {
-                    console.log(message);
-                }
-            }
-            console.log("\n");
-        };
-        return Logger;
-    }());
-    log.Logger = Logger;
-})(log = exports.log || (exports.log = {}));
-
-},{}],4:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var message;
 (function (message_1) {
     var Messenger = /** @class */ (function () {
@@ -692,7 +635,7 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -709,6 +652,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var TreeModel = require("tree-model");
+var _ = require('underscore');
 var note;
 (function (note_1) {
     var Note = /** @class */ (function () {
@@ -732,12 +676,40 @@ var note;
                 return a - c;
             }
             else if (!former_starts_before_latter && !former_ends_before_latter) {
-                return 0;
+                // return 0;
+                return d - a;
             }
             else if (!former_starts_before_latter && former_ends_before_latter) {
                 return b - a;
             }
-            throw 'case not considered';
+            throw 'beats overlap cannot be determined';
+        };
+        Note.split_note_at_points = function (note_to_split, points) {
+            if (points.length === 0) {
+                return [note_to_split];
+            }
+            var segments = [];
+            var beat_last = note_to_split.model.note.beat_start;
+            for (var _i = 0, _a = _.sortBy(points, function (i) { return i; }); _i < _a.length; _i++) {
+                var point = _a[_i];
+                var tree_1 = new TreeModel();
+                segments.push(tree_1.parse({
+                    id: -1,
+                    note: new Note(note_to_split.model.note.pitch, beat_last, point - beat_last, note_to_split.model.note.velocity, note_to_split.model.note.muted),
+                    children: []
+                }));
+                beat_last = point;
+            }
+            var tree = new TreeModel();
+            segments.push(tree.parse({
+                id: -1,
+                note: new Note(note_to_split.model.note.pitch, beat_last, note_to_split.model.note.get_beat_end() - beat_last, note_to_split.model.note.velocity, note_to_split.model.note.muted),
+                children: []
+            }));
+            return segments;
+        };
+        Note.prototype.contains_beat = function (beat) {
+            return this.beat_start < beat && this.get_beat_end() > beat;
         };
         Note.prototype.encode = function () {
             return this.to_array().join(' ');
@@ -859,7 +831,7 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":10}],6:[function(require,module,exports){
+},{"tree-model":9,"underscore":10}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -871,68 +843,43 @@ var ClipDao = clip_1.clip.ClipDao;
 var Clip = clip_1.clip.Clip;
 var TreeModel = require("tree-model");
 var note_1 = require("../note/note");
-var logger_1 = require("../log/logger");
-var Logger = logger_1.log.Logger;
 var _ = require('underscore');
 var env = 'max';
 if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-var notes_raw = [];
-var notes_consolidated = [];
-var cached = false;
-var toggle = function (val) {
-    var consolidate = Boolean(val);
-    var this_device = new live_1.live.LiveApiJs('this_device');
-    var path_this_device = this_device.get_path();
-    var list_this_device = path_this_device.split(' ');
-    var index_this_track = Number(list_this_device[2]);
-    var path_clip = ['live_set', 'tracks', index_this_track, 'clip_slots', 0, 'clip'].join(' ');
+var consolidate = function () {
+    var path_clip = 'live_set view highlighted_clip_slot clip';
     var clip = new Clip(new ClipDao(new LiveApiJs(path_clip), new Messenger(env, 0)));
-    if (!cached) {
-        notes_raw = clip.get_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
-        cached = true;
-        var note_group_head = notes_raw[0];
-        // let acc_beat_end: number;
-        var logger = new Logger('max');
-        logger.log(String(notes_raw.length));
-        // we used the beat end of one note before we should have
-        for (var _i = 0, _a = _.range(1, notes_raw.length); _i < _a.length; _i++) {
-            var i_note = _a[_i];
-            logger.log(i_note);
-            var note_2 = notes_raw[Number(i_note)];
-            var note_last = notes_raw[Number(i_note) - 1];
-            if (note_group_head.model.note.pitch === note_2.model.note.pitch) {
-                continue;
-            }
-            var tree = new TreeModel();
-            var note_consolidated = tree.parse({
-                id: -1,
-                note: new note_1.note.Note(note_group_head.model.note.pitch, note_group_head.model.note.beat_start, note_last.model.note.get_beat_end() - note_group_head.model.note.beat_start, note_group_head.model.note.velocity, 0),
-                children: []
-            });
-            // acc_beat_end = note.model.note.get_beat_end();
-            notes_consolidated.push(note_consolidated);
-            note_group_head = note_2;
-            // acc_beat_end = 0;
+    var notes_raw = clip.get_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
+    var notes_consolidated = [];
+    var note_group_head = notes_raw[0];
+    for (var _i = 0, _a = _.range(1, notes_raw.length); _i < _a.length; _i++) {
+        var i_note = _a[_i];
+        var note_2 = notes_raw[Number(i_note)];
+        var note_last = notes_raw[Number(i_note) - 1];
+        if (note_group_head.model.note.pitch === note_2.model.note.pitch) {
+            continue;
         }
+        var tree = new TreeModel();
+        var note_consolidated = tree.parse({
+            id: -1,
+            note: new note_1.note.Note(note_group_head.model.note.pitch, note_group_head.model.note.beat_start, note_last.model.note.get_beat_end() - note_group_head.model.note.beat_start, note_group_head.model.note.velocity, 0),
+            children: []
+        });
+        notes_consolidated.push(note_consolidated);
+        note_group_head = note_2;
     }
-    if (consolidate) {
-        clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
-        clip.set_notes(notes_consolidated);
-    }
-    else {
-        clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
-        clip.set_notes(notes_raw);
-    }
+    clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
+    clip.set_notes(notes_consolidated);
 };
 if (typeof Global !== "undefined") {
     Global.consolidate = {};
-    Global.consolidate.toggle = toggle;
+    Global.consolidate.consolidate = consolidate;
 }
 
-},{"../clip/clip":1,"../live/live":2,"../log/logger":3,"../message/messenger":4,"../note/note":5,"tree-model":10,"underscore":11}],7:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":2,"../message/messenger":3,"../note/note":4,"tree-model":9,"underscore":10}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
@@ -942,7 +889,6 @@ var utils;
     };
     // accepts a path directly from the DAO object
     utils.cleanse_path = function (path) {
-        // return path.replace('/"', '')
         return String(path).split(' ').map(function (text) {
             return text.replace('\"', '');
         }).join(' ');
@@ -1036,7 +982,7 @@ var utils;
     utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1060,7 +1006,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -1112,7 +1058,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -1405,7 +1351,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":8,"mergesort":9}],11:[function(require,module,exports){
+},{"find-insert-index":7,"mergesort":8}],10:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -3101,6 +3047,6 @@ module.exports = (function () {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[6]);
+},{}]},{},[5]);
 
-var toggle = Global.consolidate.toggle;
+var consolidate = Global.consolidate.consolidate;

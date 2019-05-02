@@ -1,6 +1,6 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live, live as li} from "../live/live";
+import {live} from "../live/live";
 import {clip} from "../clip/clip";
 import LiveApiJs = live.LiveApiJs;
 import {harmony} from "../music/harmony";
@@ -26,23 +26,9 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let notes_polyphonic = [];
-let notes_arpegiatted = [];
-let cached: boolean = false;
+let arpeggiate = () => {
 
-let toggle = (val: number) => {
-
-    let arpeggiate = Boolean(val);
-
-    let this_device = new li.LiveApiJs('this_device');
-
-    let path_this_device = this_device.get_path();
-
-    let list_this_device = path_this_device.split(' ');
-
-    let index_this_track = Number(list_this_device[2]);
-
-    let path_clip = ['live_set', 'tracks', index_this_track, 'clip_slots', 0, 'clip'].join(' ');
+    let path_clip = 'live_set view highlighted_clip_slot clip';
 
     let clip = new Clip(
         new ClipDao(
@@ -53,49 +39,35 @@ let toggle = (val: number) => {
         )
     );
 
-    if (!cached) {
-        notes_polyphonic = clip.get_notes(
-            clip.get_start_marker(),
-            0,
-            clip.get_end_marker(),
-            128
-        );
+    let notes_polyphonic = clip.get_notes(
+        clip.get_start_marker(),
+        0,
+        clip.get_end_marker(),
+        128
+    );
 
-        let groups_notes_arpegiatted = Harmony.arpeggiate(
-            notes_polyphonic
-        );
+    let groups_notes_arpegiatted = Harmony.arpeggiate(
+        notes_polyphonic
+    );
 
-        for (let group of groups_notes_arpegiatted) {
-            notes_arpegiatted = notes_arpegiatted.concat(group)
-        }
+    let notes_arpegiatted = [];
 
-        cached = true;
+    for (let group of groups_notes_arpegiatted) {
+        notes_arpegiatted = notes_arpegiatted.concat(group)
     }
 
-    if (arpeggiate) {
-        clip.remove_notes(
-            clip.get_start_marker(),
-            0,
-            clip.get_end_marker(),
-            128
-        );
-        clip.set_notes(
-            notes_arpegiatted
-        )
-    } else {
-        clip.remove_notes(
-            clip.get_start_marker(),
-            0,
-            clip.get_end_marker(),
-            128
-        );
-        clip.set_notes(
-            notes_polyphonic
-        )
-    }
+    clip.remove_notes(
+        clip.get_start_marker(),
+        0,
+        clip.get_end_marker(),
+        128
+    );
+    clip.set_notes(
+        notes_arpegiatted
+    )
 };
 
 if (typeof Global !== "undefined") {
     Global.arpeggiate = {};
-    Global.arpeggiate.toggle = toggle;
+    Global.arpeggiate.arpeggiate = arpeggiate;
 }

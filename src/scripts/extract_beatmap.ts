@@ -11,6 +11,8 @@ import SongDao = song.SongDao;
 import {clip} from "../clip/clip";
 import Clip = clip.Clip;
 import ClipDao = clip.ClipDao;
+import {log} from "../log/logger";
+import Logger = log.Logger;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -32,40 +34,6 @@ if (env === 'max') {
 
 let messenger = new Messenger(env, 0);
 
-let s_beat_start, s_beat_end = null;
-
-let set_beat_start = () => {
-
-    let clip_highlighted = new Clip(
-        new ClipDao(
-            new li.LiveApiJs(
-                'live_set view highlighted_clip_slot clip'
-            ),
-            messenger
-        )
-    );
-
-    s_beat_start = clip_highlighted.get_playing_position();
-
-    // NB: DO NOT set the start marker, since we want the clip to play from the beginning
-};
-
-let set_beat_end = () => {
-
-    let clip_highlighted = new Clip(
-        new ClipDao(
-            new li.LiveApiJs(
-                'live_set view highlighted_clip_slot clip'
-            ),
-            messenger
-        )
-    );
-
-    s_beat_end = clip_highlighted.get_playing_position();
-
-    // NB: DO NOT set the end marker
-};
-
 let extract_beatmap_raw = () => {
 
     let song = new Song(
@@ -78,11 +46,24 @@ let extract_beatmap_raw = () => {
         )
     );
 
-    messenger.message(['s_beat_start', s_beat_start]);
+    let clip_highlighted = new Clip(
+        new ClipDao(
+            new li.LiveApiJs(
+                'live_set view highlighted_clip_slot clip'
+            ),
+            messenger
+        )
+    );
 
-    messenger.message(['s_beat_end', s_beat_end]);
+    // NB: these are in seconds because the clip is presumed to not be in "warp" mode
+
+    messenger.message(['s_beat_start', clip_highlighted.get_start_marker()]);
+
+    messenger.message(['s_beat_end', clip_highlighted.get_loop_bracket_upper()]);
 
     messenger.message(['tempo', song.get_tempo()]);
+
+    messenger.message(['manual', 0, 'bang']);
 
     messenger.message(['run', 'bang']);
 };
@@ -132,7 +113,7 @@ let extract_beatmap_warped = () => {
 
     messenger.message(['tempo', song.get_tempo()]);
 
-    messenger.message(['manual', 'bang']);
+    messenger.message(['manual', 1, 'bang']);
 
     messenger.message(['run', 'bang']);
 };
@@ -146,6 +127,4 @@ if (typeof Global !== "undefined") {
     Global.extract_beatmap = {};
     Global.extract_beatmap.extract_beatmap_warped = extract_beatmap_warped;
     Global.extract_beatmap.extract_beatmap_raw = extract_beatmap_raw;
-    Global.extract_beatmap.set_beat_start = set_beat_start;
-    Global.extract_beatmap.set_beat_end = set_beat_end;
 }

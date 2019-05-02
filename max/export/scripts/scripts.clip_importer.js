@@ -973,7 +973,6 @@ var utils;
     };
     // accepts a path directly from the DAO object
     utils.cleanse_path = function (path) {
-        // return path.replace('/"', '')
         return String(path).split(' ').map(function (text) {
             return text.replace('\"', '');
         }).join(' ');
