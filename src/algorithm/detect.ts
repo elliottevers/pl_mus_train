@@ -109,7 +109,7 @@ export namespace detect {
                 clip_user_input.remove_notes(
                     note_segment.model.note.beat_start,
                     0,
-                    note_segment.model.note.get_beat_end(),
+                    note_segment.model.note.beats_duration,
                     128
                 );
 
@@ -148,7 +148,17 @@ export namespace detect {
         }
 
         handle_command(command: string, trainer: trainer.Trainer): void {
-            throw ['algorithm of name', this.get_name(), 'does not support commands']
+            switch(command) {
+                case 'advance_target': {
+
+                    trainer.accept_input([trainer.subtarget_current.note]);
+
+                    break;
+                }
+                default: {
+                    throw ['command', command, 'not recognized'].join(' ')
+                }
+            }
         }
 
         get_iterator_train(segments: segment.Segment[]): MatrixIterator {

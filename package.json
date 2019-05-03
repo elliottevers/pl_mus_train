@@ -10,7 +10,7 @@
     "to_max": {
       "command": "./build_object_max.sh",
       "env": {
-        "JS_OBJ_MAX_EXPORT": "consolidate"
+        "JS_OBJ_MAX_EXPORT": "train"
       }
     }
   },

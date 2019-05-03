@@ -36,6 +36,7 @@ export namespace trainer {
     import FREESTYLE = trainable.FREESTYLE;
     import PARSE = trainable.PARSE;
     import DERIVE = trainable.DERIVE;
+    import PREDICT = trainable.PREDICT;
 
     export type StructTargets = TargetIterator[][];
 
@@ -102,6 +103,14 @@ export namespace trainer {
 
             // TODO: put in 'initialize_render', make configurable
             this.messenger.message(['pensize', 3, 3]);
+
+            // TODO: put this elsewhere
+            if (this.trainable.get_name() === PREDICT) {
+                this.messenger.message(['switch_suppress', 0], true);
+            } else {
+                this.messenger.message(['switch_suppress', 1], true);
+                this.messenger.message(['gate_suppress', 1], true);
+            }
 
             this.notes_target_track = this.trainable.get_notes_focus(
                 track_target

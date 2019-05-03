@@ -121,7 +121,7 @@ var derive;
     derive.Derive = Derive;
 })(derive = exports.derive || (exports.derive = {}));
 
-},{"../parse/parse":20,"../train/iterate":31,"../train/trainer":32,"./parsed":5,"./trainable":8}],2:[function(require,module,exports){
+},{"../parse/parse":21,"../train/iterate":32,"../train/trainer":33,"./parsed":5,"./trainable":8}],2:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -200,7 +200,7 @@ var detect;
                 var clip_user_input = Track.get_clip_at_index(track_user_input.get_index(), Number(i_segment), track_user_input.track_dao.messenger);
                 clip_user_input.set_path_deferlow('clip_user_input');
                 var note_segment = segment_1.get_note();
-                clip_user_input.remove_notes(note_segment.model.note.beat_start, 0, note_segment.model.note.get_beat_end(), 128);
+                clip_user_input.remove_notes(note_segment.model.note.beat_start, 0, note_segment.model.note.beats_duration, 128);
                 var note_segment_muted = note_segment;
                 note_segment_muted.model.note.muted = 1;
                 clip_user_input.set_notes([note_segment_muted]);
@@ -217,7 +217,15 @@ var detect;
             trainer.accept_input([note]);
         };
         Detect.prototype.handle_command = function (command, trainer) {
-            throw ['algorithm of name', this.get_name(), 'does not support commands'];
+            switch (command) {
+                case 'advance_target': {
+                    trainer.accept_input([trainer.subtarget_current.note]);
+                    break;
+                }
+                default: {
+                    throw ['command', command, 'not recognized'].join(' ');
+                }
+            }
         };
         Detect.prototype.get_iterator_train = function (segments) {
             return new MatrixIterator(1, segments.length, true, this.get_direction() === FORWARDS, 0, 1);
@@ -227,7 +235,7 @@ var detect;
     detect.Detect = Detect;
 })(detect = exports.detect || (exports.detect = {}));
 
-},{"../constants/constants":11,"../music/harmony":18,"../note/note":19,"../track/track":30,"../train/iterate":31,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38}],3:[function(require,module,exports){
+},{"../constants/constants":11,"../music/harmony":19,"../note/note":20,"../track/track":31,"../train/iterate":32,"../train/trainer":33,"./targeted":7,"./trainable":8,"tree-model":39}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var trainer_1 = require("../train/trainer");
@@ -276,7 +284,7 @@ var freestyle;
         // TODO: look how others handle this - should we advance song's loop here?
         Freestyle.prototype.handle_command = function (command, trainer) {
             switch (command) {
-                case 'advance': {
+                case 'advance_segment': {
                     trainer.advance_loop_song();
                     break;
                 }
@@ -378,7 +386,7 @@ var freestyle;
     freestyle.Freestyle = Freestyle;
 })(freestyle = exports.freestyle || (exports.freestyle = {}));
 
-},{"../train/iterate":31,"../train/trainer":32,"underscore":39}],4:[function(require,module,exports){
+},{"../train/iterate":32,"../train/trainer":33,"underscore":40}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -565,7 +573,7 @@ var parse;
     parse.Parse = Parse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../parse/parse":20,"../track/track":30,"../train/iterate":31,"../train/trainer":32,"./parsed":5,"./trainable":8}],5:[function(require,module,exports){
+},{"../parse/parse":21,"../track/track":31,"../train/iterate":32,"../train/trainer":33,"./parsed":5,"./trainable":8}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_1 = require("../parse/parse");
@@ -685,7 +693,7 @@ var parsed;
     parsed.Parsed = Parsed;
 })(parsed = exports.parsed || (exports.parsed = {}));
 
-},{"../parse/parse":20,"../train/iterate":31}],6:[function(require,module,exports){
+},{"../parse/parse":21,"../train/iterate":32}],6:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -709,6 +717,7 @@ var constants_1 = require("../constants/constants");
 var TreeModel = require("tree-model");
 var trainable_1 = require("./trainable");
 var iterate_1 = require("../train/iterate");
+var logger_1 = require("../log/logger");
 var _ = require('underscore');
 var predict;
 (function (predict) {
@@ -721,6 +730,7 @@ var predict;
     var SESSION = trainer_1.trainer.SESSION;
     var MatrixIterator = iterate_1.iterate.MatrixIterator;
     var FORWARDS = iterate_1.iterate.FORWARDS;
+    var Logger = logger_1.log.Logger;
     var Predict = /** @class */ (function (_super) {
         __extends(Predict, _super);
         function Predict() {
@@ -767,7 +777,7 @@ var predict;
                 for (var _i = 0, _a = Object.keys(note_partitions); _i < _a.length; _i++) {
                     var key_partition = _a[_i];
                     var partition = note_partitions[key_partition];
-                    notes_grouped.push([partition[partition.length / 2]]);
+                    notes_grouped.push([partition[Math.round(partition.length / 2)]]);
                 }
                 return notes_grouped;
             }
@@ -783,7 +793,7 @@ var predict;
         Predict.prototype.initialize_tracks = function (segments, track_target, track_user_input, struct_train) {
             var matrix_targets = struct_train;
             for (var i_segment in segments) {
-                var segment_1 = segments[Number[i_segment]];
+                var segment_1 = segments[Number(i_segment)];
                 var clip_target = Track.get_clip_at_index(track_target.get_index(), Number(i_segment), track_target.track_dao.messenger);
                 var clip_user_input = Track.get_clip_at_index(track_user_input.get_index(), Number(i_segment), track_user_input.track_dao.messenger);
                 clip_user_input.set_path_deferlow('clip_user_input');
@@ -793,11 +803,13 @@ var predict;
                 note_segment_muted.model.note.muted = 1;
                 clip_user_input.set_notes([note_segment_muted]);
                 var targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
+                var logger = new Logger('max');
+                logger.log(JSON.stringify(targeted_notes_in_segment));
                 // TODO: this won't work for polyphony
                 for (var _i = 0, targeted_notes_in_segment_1 = targeted_notes_in_segment; _i < targeted_notes_in_segment_1.length; _i++) {
                     var note = targeted_notes_in_segment_1[_i];
                     clip_target.set_path_deferlow('clip_target');
-                    clip_target.remove_notes(note.model.note.beat_start, 0, note.model.note.get_beat_end(), 128);
+                    clip_target.remove_notes(note.model.note.beat_start, 0, note.model.note.beats_duration, 128);
                     var note_muted = note;
                     note_muted.model.note.muted = 1;
                     clip_target.set_notes([note_muted]);
@@ -814,7 +826,15 @@ var predict;
             trainer.accept_input([note]);
         };
         Predict.prototype.handle_command = function (command, trainer) {
-            throw ['algorithm of name', this.get_name(), 'does not support commands'];
+            switch (command) {
+                case 'advance_target': {
+                    trainer.accept_input([trainer.subtarget_current.note]);
+                    break;
+                }
+                default: {
+                    throw ['command', command, 'not recognized'].join(' ');
+                }
+            }
         };
         Predict.prototype.get_iterator_train = function (segments) {
             return new MatrixIterator(1, segments.length, true, this.get_direction() === FORWARDS, 0, 1);
@@ -824,7 +844,7 @@ var predict;
     predict.Predict = Predict;
 })(predict = exports.predict || (exports.predict = {}));
 
-},{"../constants/constants":11,"../note/note":19,"../track/track":30,"../train/iterate":31,"../train/trainer":32,"./targeted":7,"./trainable":8,"tree-model":38,"underscore":39}],7:[function(require,module,exports){
+},{"../constants/constants":11,"../log/logger":17,"../note/note":20,"../track/track":31,"../train/iterate":32,"../train/trainer":33,"./targeted":7,"./trainable":8,"tree-model":39,"underscore":40}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var iterate_1 = require("../train/iterate");
@@ -969,7 +989,7 @@ var targeted;
     targeted.Targeted = Targeted;
 })(targeted = exports.targeted || (exports.targeted = {}));
 
-},{"../target/target":29,"../train/iterate":31,"../utils/utils":33,"underscore":39}],8:[function(require,module,exports){
+},{"../target/target":30,"../train/iterate":32,"../utils/utils":34,"underscore":40}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var trainable;
@@ -1417,7 +1437,7 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../live/live":16,"../note/note":19,"../utils/utils":33,"tree-model":38}],10:[function(require,module,exports){
+},{"../live/live":16,"../note/note":20,"../utils/utils":34,"tree-model":39}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -1518,7 +1538,7 @@ var clip_slot;
     clip_slot_1.ClipSlotDao = ClipSlotDao;
 })(clip_slot = exports.clip_slot || (exports.clip_slot = {}));
 
-},{"../clip/clip":9,"../live/live":16,"../utils/utils":33}],11:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":16,"../utils/utils":34}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var modes_texture;
@@ -1726,7 +1746,7 @@ var file;
     };
 })(file = exports.file || (exports.file = {}));
 
-},{"fs":34}],16:[function(require,module,exports){
+},{"fs":35}],16:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -1873,6 +1893,99 @@ var live;
 },{"../clip/clip":9}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var log;
+(function (log) {
+    var Logger = /** @class */ (function () {
+        function Logger(env) {
+            this.env = env;
+        }
+        Logger.log_max_static = function (message) {
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    post(s);
+                }
+                else if (message === null) {
+                    post("<null>");
+                }
+                else {
+                    post(message);
+                }
+            }
+            post("\n");
+        };
+        Logger.prototype.log = function (message) {
+            if (this.env === 'max') {
+                this.log_max(message);
+            }
+            else if (this.env === 'node') {
+                this.log_node(message);
+            }
+            else {
+                post('env: ' + this.env);
+                post('\n');
+                throw 'environment invalid';
+            }
+        };
+        // TODO: make static
+        Logger.prototype.log_max = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                var message = arguments[i];
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    post(s);
+                }
+                else if (message === null) {
+                    post("<null>");
+                }
+                else {
+                    post(message);
+                }
+            }
+            post("\n");
+        };
+        // TODO: make static
+        Logger.prototype.log_node = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                var message = arguments[i];
+                if (message && message.toString) {
+                    var s = message.toString();
+                    if (s.indexOf("[object ") >= 0) {
+                        s = JSON.stringify(message);
+                    }
+                    console.log(s);
+                }
+                else if (message === null) {
+                    console.log("<null>");
+                }
+                else {
+                    console.log(message);
+                }
+            }
+            console.log("\n");
+        };
+        return Logger;
+    }());
+    log.Logger = Logger;
+})(log = exports.log || (exports.log = {}));
+
+},{}],18:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var message;
 (function (message_1) {
     var Messenger = /** @class */ (function () {
@@ -1927,7 +2040,7 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var note_1 = require("../note/note");
@@ -1989,7 +2102,7 @@ var harmony;
     harmony.Harmony = Harmony;
 })(harmony = exports.harmony || (exports.harmony = {}));
 
-},{"../note/note":19,"tree-model":38,"underscore":39}],19:[function(require,module,exports){
+},{"../note/note":20,"tree-model":39,"underscore":40}],20:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2185,7 +2298,7 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":38,"underscore":39}],20:[function(require,module,exports){
+},{"tree-model":39,"underscore":40}],21:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2333,7 +2446,7 @@ var parse;
     parse.StructParse = StructParse;
 })(parse = exports.parse || (exports.parse = {}));
 
-},{"../algorithm/trainable":8,"../note/note":19,"tree-model":38,"underscore":39}],21:[function(require,module,exports){
+},{"../algorithm/trainable":8,"../note/note":20,"tree-model":39,"underscore":40}],22:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2649,7 +2762,7 @@ var window;
     window.MatrixWindow = MatrixWindow;
 })(window = exports.window || (exports.window = {}));
 
-},{"../clip/clip":9,"../live/live":16,"../train/iterate":31,"lodash":36}],22:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":16,"../train/iterate":32,"lodash":37}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
@@ -2778,7 +2891,7 @@ var scene;
     scene.SceneIterator = SceneIterator;
 })(scene = exports.scene || (exports.scene = {}));
 
-},{"../utils/utils":33}],23:[function(require,module,exports){
+},{"../utils/utils":34}],24:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -3015,7 +3128,7 @@ if (typeof Global !== "undefined") {
     Global.train.test = test;
 }
 
-},{"../algorithm/derive":1,"../algorithm/detect":2,"../algorithm/freestyle":3,"../algorithm/parse":4,"../algorithm/predict":6,"../algorithm/trainable":8,"../clip/clip":9,"../constants/constants":11,"../control/user_input":12,"../live/live":16,"../message/messenger":17,"../render/window":21,"../scene/scene":22,"../segment/segment":24,"../serialize/freeze":25,"../serialize/thaw":27,"../song/song":28,"../track/track":30,"../train/trainer":32,"../utils/utils":33,"underscore":39}],24:[function(require,module,exports){
+},{"../algorithm/derive":1,"../algorithm/detect":2,"../algorithm/freestyle":3,"../algorithm/parse":4,"../algorithm/predict":6,"../algorithm/trainable":8,"../clip/clip":9,"../constants/constants":11,"../control/user_input":12,"../live/live":16,"../message/messenger":18,"../render/window":22,"../scene/scene":23,"../segment/segment":25,"../serialize/freeze":26,"../serialize/thaw":28,"../song/song":29,"../track/track":31,"../train/trainer":33,"../utils/utils":34,"underscore":40}],25:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -3112,7 +3225,7 @@ var segment;
     segment_1.SegmentIterator = SegmentIterator;
 })(segment = exports.segment || (exports.segment = {}));
 
-},{"../clip/clip":9,"../live/live":16}],25:[function(require,module,exports){
+},{"../clip/clip":9,"../live/live":16}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file_1 = require("../io/file");
@@ -3141,7 +3254,7 @@ var freeze;
     freeze.TrainFreezer = TrainFreezer;
 })(freeze = exports.freeze || (exports.freeze = {}));
 
-},{"../io/file":15,"./serialize":26}],26:[function(require,module,exports){
+},{"../io/file":15,"./serialize":27}],27:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var TreeModel = require("tree-model");
@@ -3170,7 +3283,7 @@ var serialize;
     };
 })(serialize = exports.serialize || (exports.serialize = {}));
 
-},{"tree-model":38}],27:[function(require,module,exports){
+},{"tree-model":39}],28:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var file_1 = require("../io/file");
@@ -3244,7 +3357,7 @@ var thaw;
     thaw.TrainThawer = TrainThawer;
 })(thaw = exports.thaw || (exports.thaw = {}));
 
-},{"../io/file":15,"./serialize":26}],28:[function(require,module,exports){
+},{"../io/file":15,"./serialize":27}],29:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -3525,7 +3638,7 @@ var song;
     song.SongDao = SongDao;
 })(song = exports.song || (exports.song = {}));
 
-},{"../cue_point/cue_point":13,"../live/live":16,"../message/messenger":17,"../scene/scene":22,"../utils/utils":33}],29:[function(require,module,exports){
+},{"../cue_point/cue_point":13,"../live/live":16,"../message/messenger":18,"../scene/scene":23,"../utils/utils":34}],30:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var target;
@@ -3662,7 +3775,7 @@ var target;
     target_1.TargetIterator = TargetIterator;
 })(target = exports.target || (exports.target = {}));
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -3872,7 +3985,7 @@ var track;
     track.TrackDao = TrackDao;
 })(track = exports.track || (exports.track = {}));
 
-},{"../clip/clip":9,"../clip_slot/clip_slot":10,"../live/live":16,"../message/messenger":17,"../utils/utils":33,"underscore":39}],31:[function(require,module,exports){
+},{"../clip/clip":9,"../clip_slot/clip_slot":10,"../live/live":16,"../message/messenger":18,"../utils/utils":34,"underscore":40}],32:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
@@ -4095,7 +4208,7 @@ var iterate;
     iterate.FactoryMatrixObjectives = FactoryMatrixObjectives;
 })(iterate = exports.iterate || (exports.iterate = {}));
 
-},{"../algorithm/trainable":8,"../utils/utils":33}],32:[function(require,module,exports){
+},{"../algorithm/trainable":8,"../utils/utils":34}],33:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var history_1 = require("../history/history");
@@ -4111,6 +4224,7 @@ var trainer;
     var FREESTYLE = trainable_1.trainable.FREESTYLE;
     var PARSE = trainable_1.trainable.PARSE;
     var DERIVE = trainable_1.trainable.DERIVE;
+    var PREDICT = trainable_1.trainable.PREDICT;
     trainer.SESSION = 'session';
     trainer.ARRANGEMENT = 'arrangement';
     var Trainer = /** @class */ (function () {
@@ -4128,6 +4242,14 @@ var trainer;
             this.virtualized = virtualized;
             // TODO: put in 'initialize_render', make configurable
             this.messenger.message(['pensize', 3, 3]);
+            // TODO: put this elsewhere
+            if (this.trainable.get_name() === PREDICT) {
+                this.messenger.message(['switch_suppress', 0], true);
+            }
+            else {
+                this.messenger.message(['switch_suppress', 1], true);
+                this.messenger.message(['gate_suppress', 1], true);
+            }
             this.notes_target_track = this.trainable.get_notes_focus(track_target);
             this.iterator_matrix_train = this.trainable.get_iterator_train(this.segments);
             this.history_user_input = new HistoryUserInput(FactoryMatrixObjectives.create_matrix_user_input_history(this.trainable, this.segments));
@@ -4194,7 +4316,6 @@ var trainer;
             this.next_segment();
         };
         Trainer.prototype.advance_subtarget = function () {
-            // let logger = new Logger('max');
             var matrix_targets = this.struct_train;
             var have_not_begun = (!this.iterator_matrix_train.b_started);
             if (have_not_begun) {
@@ -4323,7 +4444,7 @@ var trainer;
     trainer.Trainer = Trainer;
 })(trainer = exports.trainer || (exports.trainer = {}));
 
-},{"../algorithm/trainable":8,"../history/history":14,"../track/track":30,"./iterate":31,"underscore":39}],33:[function(require,module,exports){
+},{"../algorithm/trainable":8,"../history/history":14,"../track/track":31,"./iterate":32,"underscore":40}],34:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
@@ -4333,7 +4454,6 @@ var utils;
     };
     // accepts a path directly from the DAO object
     utils.cleanse_path = function (path) {
-        // return path.replace('/"', '')
         return String(path).split(' ').map(function (text) {
             return text.replace('\"', '');
         }).join(' ');
@@ -4427,9 +4547,9 @@ var utils;
     utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],34:[function(require,module,exports){
-
 },{}],35:[function(require,module,exports){
+
+},{}],36:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -4453,7 +4573,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -21564,7 +21684,7 @@ module.exports = (function () {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -21616,7 +21736,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -21909,7 +22029,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":35,"mergesort":37}],39:[function(require,module,exports){
+},{"find-insert-index":36,"mergesort":38}],40:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -23605,7 +23725,7 @@ module.exports = (function () {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[23]);
+},{}]},{},[24]);
 
 var load_session = Global.train.load_session;
 var save_session = Global.train.save_session;

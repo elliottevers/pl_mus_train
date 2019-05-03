@@ -910,23 +910,9 @@ if (env === 'max') {
     post('recompile successful');
     autowatch = 1;
 }
-// let notes_polyphonic = [];
-// let notes_arpegiatted = [];
-// let cached: boolean = false;
-var toggle = function (val) {
-    // let arpeggiate = Boolean(val);
-    // let this_device = new li.LiveApiJs('this_device');
-    //
-    // let path_this_device = this_device.get_path();
-    //
-    // let list_this_device = path_this_device.split(' ');
-    //
-    // let index_this_track = Number(list_this_device[2]);
-    //
-    // let path_clip = ['live_set', 'tracks', index_this_track, 'clip_slots', 0, 'clip'].join(' ');
+var arpeggiate = function () {
     var path_clip = 'live_set view highlighted_clip_slot clip';
     var clip = new Clip(new ClipDao(new LiveApiJs(path_clip), new Messenger(env, 0)));
-    // if (!cached) {
     var notes_polyphonic = clip.get_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
     var groups_notes_arpegiatted = Harmony.arpeggiate(notes_polyphonic);
     var notes_arpegiatted = [];
@@ -934,26 +920,12 @@ var toggle = function (val) {
         var group = groups_notes_arpegiatted_1[_i];
         notes_arpegiatted = notes_arpegiatted.concat(group);
     }
-    //     cached = true;
-    // }
-    // if (arpeggiate) {
     clip.remove_notes(clip.get_start_marker(), 0, clip.get_end_marker(), 128);
     clip.set_notes(notes_arpegiatted);
-    // } else {
-    //     clip.remove_notes(
-    //         clip.get_start_marker(),
-    //         0,
-    //         clip.get_end_marker(),
-    //         128
-    //     );
-    //     clip.set_notes(
-    //         notes_polyphonic
-    //     )
-    // }
 };
 if (typeof Global !== "undefined") {
     Global.arpeggiate = {};
-    Global.arpeggiate.toggle = toggle;
+    Global.arpeggiate.arpeggiate = arpeggiate;
 }
 
 },{"../clip/clip":1,"../live/live":2,"../message/messenger":3,"../music/harmony":4}],7:[function(require,module,exports){

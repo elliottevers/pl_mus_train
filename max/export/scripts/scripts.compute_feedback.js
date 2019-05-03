@@ -216,8 +216,6 @@ var map;
 Object.defineProperty(exports, "__esModule", { value: true });
 var message;
 (function (message_1) {
-    // TODO: the following
-    // type Env = 'max' | 'node';
     var Messenger = /** @class */ (function () {
         function Messenger(env, outlet, key_route) {
             this.env = env;
@@ -227,18 +225,29 @@ var message;
         Messenger.prototype.get_key_route = function () {
             return this.key_route;
         };
-        Messenger.prototype.message = function (message) {
-            if (this.env === 'max') {
-                if (this.key_route) {
-                    message.unshift(this.key_route);
+        Messenger.prototype.message = function (message, override) {
+            switch (this.env) {
+                case 'max': {
+                    if (this.key_route && !override) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_max(message);
+                    break;
                 }
-                this.message_max(message);
-            }
-            else if (this.env === 'node') {
-                if (this.key_route) {
-                    message.unshift(this.key_route);
+                case 'node': {
+                    if (this.key_route && !override) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node(message);
+                    break;
                 }
-                this.message_node(message);
+                case 'node_for_max': {
+                    if (this.key_route && !override) {
+                        message.unshift(this.key_route);
+                    }
+                    this.message_node_for_max(message);
+                    break;
+                }
             }
         };
         Messenger.prototype.message_max = function (message) {
@@ -249,6 +258,10 @@ var message;
             console.log("\n");
             console.log(message);
             console.log("\n");
+        };
+        Messenger.prototype.message_node_for_max = function (message) {
+            // const Max = require('max-api');
+            // Max.outlet(message);
         };
         return Messenger;
     }());
@@ -277,7 +290,6 @@ var accept = function (user_input, ground_truth) {
 if (typeof Global !== "undefined") {
     Global.compute_feedback = {};
     Global.compute_feedback.accept = accept;
-    // Global.color_getter.render_default_lemur = render_default_lemur;
 }
 
 },{"../control/map":2,"../message/messenger":3}],5:[function(require,module,exports){

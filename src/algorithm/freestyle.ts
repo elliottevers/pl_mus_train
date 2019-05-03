@@ -73,7 +73,7 @@ export namespace freestyle {
         // TODO: look how others handle this - should we advance song's loop here?
         handle_command(command: string, trainer: trainer.Trainer): void {
             switch(command) {
-                case 'advance': {
+                case 'advance_segment': {
 
                     trainer.advance_loop_song();
 

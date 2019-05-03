@@ -188,24 +188,24 @@ var message;
         Messenger.prototype.get_key_route = function () {
             return this.key_route;
         };
-        Messenger.prototype.message = function (message) {
+        Messenger.prototype.message = function (message, override) {
             switch (this.env) {
                 case 'max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_max(message);
                     break;
                 }
                 case 'node': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node(message);
                     break;
                 }
                 case 'node_for_max': {
-                    if (this.key_route) {
+                    if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node_for_max(message);
@@ -268,9 +268,6 @@ var returns = function (index_callable, val_return) {
     executor.return(index_callable, val_return);
     var next_result = executor.next();
     if (!next_result.done) {
-        // let logger = new Logger(env);
-        //
-        // logger.log(JSON.stringify(next_result));
         var next_callable = next_result.value['callable'];
         next_callable.call(next_result.value['index']);
         return;

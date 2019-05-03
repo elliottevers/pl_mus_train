@@ -5,10 +5,8 @@ var note_1 = require("../note/note");
 var TreeModel = require("tree-model");
 var live_1 = require("../live/live");
 var utils_1 = require("../utils/utils");
-var logger_1 = require("../log/logger");
 var clip;
 (function (clip) {
-    var Logger = logger_1.log.Logger;
     var Clip = /** @class */ (function () {
         function Clip(clip_dao) {
             this.clip_dao = clip_dao;
@@ -16,8 +14,6 @@ var clip;
         Clip.from_path = function (path, messenger) {
             //@ts-ignore
             var LiveApiJs = live_1.live.LiveApiJs;
-            var logger = new Logger('max');
-            logger.log(path);
             return new Clip(new ClipDao(new LiveApiJs(path), messenger));
         };
         Clip.prototype.get_playing_position = function () {
@@ -438,19 +434,17 @@ var clip;
     clip.ClipDao = ClipDao;
 })(clip = exports.clip || (exports.clip = {}));
 
-},{"../live/live":4,"../log/logger":5,"../note/note":7,"../utils/utils":13,"tree-model":16}],2:[function(require,module,exports){
+},{"../live/live":4,"../note/note":6,"../utils/utils":12,"tree-model":15}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
 var clip_1 = require("../clip/clip");
 var LiveApiJs = live_1.live.LiveApiJs;
 var utils_1 = require("../utils/utils");
-var logger_1 = require("../log/logger");
 var clip_slot;
 (function (clip_slot_1) {
     var Clip = clip_1.clip.Clip;
     var ClipDao = clip_1.clip.ClipDao;
-    var Logger = logger_1.log.Logger;
     var ClipSlot = /** @class */ (function () {
         function ClipSlot(clip_slot_dao) {
             this.clip_slot_dao = clip_slot_dao;
@@ -528,10 +522,7 @@ var clip_slot;
             this.live_api.call("duplicate_clip_to", ['id', id].join(' '));
         };
         ClipSlotDao.prototype.get_clip = function () {
-            var logger = new Logger('max');
-            // let path_live = utils.cleanse_id(this.live_api.get('clip'));
-            logger.log(JSON.stringify(typeof this.live_api.get('clip').join(' ')));
-            return new Clip(new ClipDao(new LiveApiJs(String(this.live_api.get('clip').join(' '))), this.messenger));
+            return new Clip(new ClipDao(new LiveApiJs(utils_1.utils.cleanse_id(this.live_api.get('clip'))), this.messenger));
         };
         ClipSlotDao.prototype.get_path = function () {
             return utils_1.utils.cleanse_path(this.live_api.get_path());
@@ -544,7 +535,7 @@ var clip_slot;
     clip_slot_1.ClipSlotDao = ClipSlotDao;
 })(clip_slot = exports.clip_slot || (exports.clip_slot = {}));
 
-},{"../clip/clip":1,"../live/live":4,"../log/logger":5,"../utils/utils":13}],3:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":4,"../utils/utils":12}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var cue_point;
@@ -746,99 +737,6 @@ var live;
 },{"../clip/clip":1}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var log;
-(function (log) {
-    var Logger = /** @class */ (function () {
-        function Logger(env) {
-            this.env = env;
-        }
-        Logger.log_max_static = function (message) {
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    post(s);
-                }
-                else if (message === null) {
-                    post("<null>");
-                }
-                else {
-                    post(message);
-                }
-            }
-            post("\n");
-        };
-        Logger.prototype.log = function (message) {
-            if (this.env === 'max') {
-                this.log_max(message);
-            }
-            else if (this.env === 'node') {
-                this.log_node(message);
-            }
-            else {
-                post('env: ' + this.env);
-                post('\n');
-                throw 'environment invalid';
-            }
-        };
-        // TODO: make static
-        Logger.prototype.log_max = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                var message = arguments[i];
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    post(s);
-                }
-                else if (message === null) {
-                    post("<null>");
-                }
-                else {
-                    post(message);
-                }
-            }
-            post("\n");
-        };
-        // TODO: make static
-        Logger.prototype.log_node = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            for (var i = 0, len = arguments.length; i < len; i++) {
-                var message = arguments[i];
-                if (message && message.toString) {
-                    var s = message.toString();
-                    if (s.indexOf("[object ") >= 0) {
-                        s = JSON.stringify(message);
-                    }
-                    console.log(s);
-                }
-                else if (message === null) {
-                    console.log("<null>");
-                }
-                else {
-                    console.log(message);
-                }
-            }
-            console.log("\n");
-        };
-        return Logger;
-    }());
-    log.Logger = Logger;
-})(log = exports.log || (exports.log = {}));
-
-},{}],6:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var message;
 (function (message_1) {
     var Messenger = /** @class */ (function () {
@@ -893,7 +791,7 @@ var message;
     message_1.Messenger = Messenger;
 })(message = exports.message || (exports.message = {}));
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -1089,7 +987,7 @@ var note;
     note_1.NoteIterator = NoteIterator;
 })(note = exports.note || (exports.note = {}));
 
-},{"tree-model":16,"underscore":17}],8:[function(require,module,exports){
+},{"tree-model":15,"underscore":16}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
@@ -1218,7 +1116,7 @@ var scene;
     scene.SceneIterator = SceneIterator;
 })(scene = exports.scene || (exports.scene = {}));
 
-},{"../utils/utils":13}],9:[function(require,module,exports){
+},{"../utils/utils":12}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -1234,8 +1132,6 @@ var LiveApiJs = live_1.live.LiveApiJs;
 var track_1 = require("../track/track");
 var TrackDao = track_1.track.TrackDao;
 var Track = track_1.track.Track;
-var logger_1 = require("../log/logger");
-var Logger = logger_1.log.Logger;
 var _ = require('underscore');
 var env = 'max';
 if (env === 'max') {
@@ -1317,8 +1213,6 @@ var contract_track_audio = function (path_track) {
     messenger.message(['done', 'bang']);
 };
 var expand_track_audio = function (path_track) {
-    var logger = new Logger('max');
-    logger.log(JSON.stringify(path_track));
     var track = new Track(new TrackDao(new LiveApiJs(path_track), messenger));
     track.load_clip_slots();
     var clip_slot_audio = track.get_clip_slot_at_index(0);
@@ -1360,8 +1254,6 @@ var expand_track = function (path_track, name_part) {
     var clip_slot = track.get_clip_slot_at_index(0);
     clip_slot.load_clip();
     var clip = clip_slot.get_clip();
-    var logger = new Logger('max');
-    logger.log('loaded all clips, then got first clip');
     var notes_segments = get_notes_segments();
     if (name_part !== 'segment') {
         clip.cut_notes_at_boundaries(notes_segments);
@@ -1389,13 +1281,11 @@ var expand_track = function (path_track, name_part) {
         clip_slot_1.create_clip(get_length_beats());
         clip_slot_1.load_clip();
         var clip_1 = clip_slot_1.get_clip();
-        logger.log('got clip in segment loop');
         clip_1.set_endpoints_loop(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
         clip_1.set_endpoint_markers(segment_3.get_endpoints_loop()[0], segment_3.get_endpoints_loop()[1]);
         var notes_within_segment = notes_clip.filter(function (node) { return node.model.note.beat_start >= segment_3.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment_3.get_endpoints_loop()[1]; });
         // TODO: non-native scope object is here
         clip_1.set_notes(notes_within_segment);
-        logger.log('set notes');
     };
     for (var i_segment in segments) {
         _loop_1(i_segment);
@@ -1437,7 +1327,7 @@ if (typeof Global !== "undefined") {
     Global.segmenter.set_length_beats = set_length_beats;
 }
 
-},{"../live/live":4,"../log/logger":5,"../message/messenger":6,"../segment/segment":10,"../song/song":11,"../track/track":12,"../utils/utils":13,"underscore":17}],10:[function(require,module,exports){
+},{"../live/live":4,"../message/messenger":5,"../segment/segment":9,"../song/song":10,"../track/track":11,"../utils/utils":12,"underscore":16}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var clip_1 = require("../clip/clip");
@@ -1534,7 +1424,7 @@ var segment;
     segment_1.SegmentIterator = SegmentIterator;
 })(segment = exports.segment || (exports.segment = {}));
 
-},{"../clip/clip":1,"../live/live":4}],11:[function(require,module,exports){
+},{"../clip/clip":1,"../live/live":4}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var messenger_1 = require("../message/messenger");
@@ -1815,7 +1705,7 @@ var song;
     song.SongDao = SongDao;
 })(song = exports.song || (exports.song = {}));
 
-},{"../cue_point/cue_point":3,"../live/live":4,"../message/messenger":6,"../scene/scene":8,"../utils/utils":13}],12:[function(require,module,exports){
+},{"../cue_point/cue_point":3,"../live/live":4,"../message/messenger":5,"../scene/scene":7,"../utils/utils":12}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var live_1 = require("../live/live");
@@ -2025,7 +1915,7 @@ var track;
     track.TrackDao = TrackDao;
 })(track = exports.track || (exports.track = {}));
 
-},{"../clip/clip":1,"../clip_slot/clip_slot":2,"../live/live":4,"../message/messenger":6,"../utils/utils":13,"underscore":17}],13:[function(require,module,exports){
+},{"../clip/clip":1,"../clip_slot/clip_slot":2,"../live/live":4,"../message/messenger":5,"../utils/utils":12,"underscore":16}],12:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
@@ -2128,7 +2018,7 @@ var utils;
     utils.Set = Set;
 })(utils = exports.utils || (exports.utils = {}));
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -2152,7 +2042,7 @@ module.exports = (function () {
   return findInsertIndex;
 })();
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = (function () {
   'use strict';
 
@@ -2204,7 +2094,7 @@ module.exports = (function () {
   return mergeSort;
 })();
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var mergeSort, findInsertIndex;
 mergeSort = require('mergesort');
 findInsertIndex = require('find-insert-index');
@@ -2497,7 +2387,7 @@ module.exports = (function () {
   return TreeModel;
 })();
 
-},{"find-insert-index":14,"mergesort":15}],17:[function(require,module,exports){
+},{"find-insert-index":13,"mergesort":14}],16:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -4193,7 +4083,7 @@ module.exports = (function () {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[9]);
+},{}]},{},[8]);
 
 var expand_selected_track = Global.segmenter.expand_selected_track;
 var contract_selected_track = Global.segmenter.contract_selected_track;

@@ -10,6 +10,7 @@ import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
 import {iterate} from "../train/iterate";
+import {log} from "../log/logger";
 const _ = require('underscore');
 
 export namespace predict {
@@ -26,6 +27,7 @@ export namespace predict {
     import SESSION = trainer.SESSION;
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
+    import Logger = log.Logger;
 
     export class Predict extends Targeted {
 
@@ -80,7 +82,7 @@ export namespace predict {
 
                 for (let key_partition of Object.keys(note_partitions)) {
                     let partition = note_partitions[key_partition];
-                    notes_grouped.push([partition[partition.length/2]])
+                    notes_grouped.push([partition[Math.round(partition.length/2)]])
                 }
 
                 return notes_grouped
@@ -112,7 +114,7 @@ export namespace predict {
 
             for (let i_segment in segments) {
 
-                let segment = segments[Number[i_segment]];
+                let segment = segments[Number(i_segment)];
 
                 let clip_target = Track.get_clip_at_index(
                     track_target.get_index(),
@@ -155,7 +157,7 @@ export namespace predict {
                     clip_target.remove_notes(
                         note.model.note.beat_start,
                         0,
-                        note.model.note.get_beat_end(),
+                        note.model.note.beats_duration,
                         128
                     );
 
@@ -193,7 +195,17 @@ export namespace predict {
         }
 
         handle_command(command: string, trainer: trainer.Trainer): void {
-            throw ['algorithm of name', this.get_name(), 'does not support commands']
+            switch(command) {
+                case 'advance_target': {
+
+                    trainer.accept_input([trainer.subtarget_current.note]);
+
+                    break;
+                }
+                default: {
+                    throw ['command', command, 'not recognized'].join(' ')
+                }
+            }
         }
 
         get_iterator_train(segments: segment.Segment[]): MatrixIterator {

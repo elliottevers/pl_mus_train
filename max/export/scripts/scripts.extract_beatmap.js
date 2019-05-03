@@ -1141,6 +1141,7 @@ var messenger = new Messenger(env, 0);
 var extract_beatmap_raw = function () {
     var song = new Song(new SongDao(new live_1.live.LiveApiJs('live_set'), new Messenger(env, 0), false));
     var clip_highlighted = new Clip(new ClipDao(new live_1.live.LiveApiJs('live_set view highlighted_clip_slot clip'), messenger));
+    // NB: these are in seconds because the clip is presumed to not be in "warp" mode
     messenger.message(['s_beat_start', clip_highlighted.get_start_marker()]);
     messenger.message(['s_beat_end', clip_highlighted.get_loop_bracket_upper()]);
     messenger.message(['tempo', song.get_tempo()]);
