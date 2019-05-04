@@ -18,8 +18,6 @@ export namespace execute {
         }
 
         public next() {
-            // this.index_to_run += 1;
-
             this.index_to_run = this.index_to_run + 1;
 
             if (this.index_to_run < this.callables.length) {
