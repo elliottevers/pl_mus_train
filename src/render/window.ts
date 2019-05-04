@@ -380,7 +380,9 @@ export namespace window {
             if (trainable.get_direction() === FORWARDS) {
 
                 offset_left_start = this.get_dist_from_left(interval_current[1]);
-                offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
+                // offset_left_end = this.get_dist_from_left(this.get_offset_pixel_rightmost());
+                offset_left_end = Math.min(this.get_dist_from_left(this.get_offset_pixel_rightmost()), this.width);
+
 
                 offset_top_start = this.get_offset_pixel_topmost();
                 offset_top_end = this.get_offset_pixel_bottommost();

@@ -3098,4 +3098,4 @@ module.exports = (function () {
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}]},{},[6]);
 
-var toggle = Global.arpeggiate.toggle;
+var arpeggiate = Global.arpeggiate.arpeggiate;

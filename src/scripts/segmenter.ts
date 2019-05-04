@@ -174,6 +174,8 @@ let contract_track_audio = (path_track) => {
 
             clip.set_endpoint_markers(0, get_length_beats());
 
+            clip.set_endpoints_loop(0, get_length_beats());
+
             continue
         }
 

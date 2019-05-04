@@ -124,13 +124,23 @@ var colormap_default = {
     "0,0,0": 0
 };
 var messenger = new Messenger(env, 0);
+var b_feedback = false;
 var test = function () {
+};
+var set_feedback = function (val) {
+    b_feedback = Boolean(val);
 };
 var render_lemur = function (r, g, b) {
     messenger.message(colormap_render[[r, g, b].toString()]);
 };
 var feedback_lemur = function (diff) {
-    messenger.message([map_feedback[diff]]);
+    if (b_feedback) {
+        messenger.message([map_feedback[diff]]);
+    }
+    else {
+        // black
+        messenger.message([0]);
+    }
 };
 var render_default_lemur = function (r, g, b) {
     messenger.message(colormap_default[[r, g, b].toString()]);
@@ -159,6 +169,7 @@ if (typeof Global !== "undefined") {
     Global.color_getter.render_default_lemur = render_default_lemur;
     Global.color_getter.feedback_lemur = feedback_lemur;
     Global.color_getter.clear_lemur = clear_lemur;
+    Global.color_getter.set_feedback = set_feedback;
 }
 
 },{"../message/messenger":1,"underscore":3}],3:[function(require,module,exports){
@@ -1863,3 +1874,4 @@ var render_lemur = Global.color_getter.render_lemur;
 var render_default_lemur = Global.color_getter.render_default_lemur;
 var feedback_lemur = Global.color_getter.feedback_lemur;
 var clear_lemur = Global.color_getter.clear_lemur;
+var set_feedback = Global.color_getter.set_feedback;

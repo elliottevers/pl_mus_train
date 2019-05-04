@@ -85,8 +85,14 @@ let colormap_default = {
 
 let messenger: Messenger = new Messenger(env, 0);
 
+let b_feedback = false;
+
 let test = () => {
 
+};
+
+let set_feedback = (val) => {
+    b_feedback = Boolean(val)
 };
 
 let render_lemur = (r,g,b) => {
@@ -94,7 +100,12 @@ let render_lemur = (r,g,b) => {
 };
 
 let feedback_lemur = (diff) => {
-    messenger.message([map_feedback[diff]])
+    if (b_feedback) {
+        messenger.message([map_feedback[diff]])
+    } else {
+        // black
+        messenger.message([0])
+    }
 };
 
 let render_default_lemur = (r,g,b) => {
@@ -127,4 +138,5 @@ if (typeof Global !== "undefined") {
     Global.color_getter.render_default_lemur = render_default_lemur;
     Global.color_getter.feedback_lemur = feedback_lemur;
     Global.color_getter.clear_lemur = clear_lemur;
+    Global.color_getter.set_feedback = set_feedback;
 }

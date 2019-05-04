@@ -1,1 +1,1 @@
-var toggle = Global.arpeggiate.toggle;
+var arpeggiate = Global.arpeggiate.arpeggiate;
