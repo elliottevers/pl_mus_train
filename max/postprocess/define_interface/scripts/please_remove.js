@@ -1,1 +1,0 @@
-var filter = Global.please_remove.filter;

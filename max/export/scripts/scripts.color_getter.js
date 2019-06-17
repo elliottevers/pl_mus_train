@@ -94,6 +94,20 @@ var map_feedback = [
     6651698,
     4161027
 ];
+var map_feedback_fz = [
+    [2, 15, 0],
+    [2, 15, 15],
+    [1, 8, 15],
+    [0, 0, 15],
+    [8, 0, 15],
+    [15, 0, 15],
+    [15, 0, 1],
+    [15, 8, 1],
+    [15, 12, 7],
+    [15, 15, 7],
+    [12, 15, 7],
+    [8, 15, 0] // 12
+];
 // needs feedback values as keys, and Lemur codes as values
 var colormap_feedback = {
     "33,254,6": 1080834,
@@ -107,7 +121,7 @@ var colormap_feedback = {
     "253,204,101": 8283442,
     "255,255,102": 8355634,
     "204,255,102": 6651698,
-    "127,254,7": 4161027
+    "127,254,7": 4161027 // 12
 };
 // needs RGB as keys, and Lemur codes as values, since that's what user will be picking
 var colormap_render = {
@@ -132,6 +146,15 @@ var set_feedback = function (val) {
 };
 var render_lemur = function (r, g, b) {
     messenger.message(colormap_render[[r, g, b].toString()]);
+};
+var feedback_fz = function (diff) {
+    if (b_feedback) {
+        messenger.message(map_feedback_fz[diff]);
+    }
+    else {
+        // white
+        messenger.message([15, 15, 15]);
+    }
 };
 var feedback_lemur = function (diff) {
     if (b_feedback) {
@@ -167,6 +190,7 @@ if (typeof Global !== "undefined") {
     Global.color_getter = {};
     Global.color_getter.render_lemur = render_lemur;
     Global.color_getter.render_default_lemur = render_default_lemur;
+    Global.color_getter.feedback_fz = feedback_fz;
     Global.color_getter.feedback_lemur = feedback_lemur;
     Global.color_getter.clear_lemur = clear_lemur;
     Global.color_getter.set_feedback = set_feedback;
@@ -1872,6 +1896,7 @@ if (typeof Global !== "undefined") {
 
 var render_lemur = Global.color_getter.render_lemur;
 var render_default_lemur = Global.color_getter.render_default_lemur;
+var feedback_fz = Global.color_getter.feedback_fz;
 var feedback_lemur = Global.color_getter.feedback_lemur;
 var clear_lemur = Global.color_getter.clear_lemur;
 var set_feedback = Global.color_getter.set_feedback;

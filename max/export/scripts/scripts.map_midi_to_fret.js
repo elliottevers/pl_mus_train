@@ -128,9 +128,10 @@ var map;
         }
         FretMapper.prototype.play = function (note_midi) {
             var coordinate = this.map(note_midi);
-            if (this.coordinate_last_played != null) {
-                this.messenger.message(this.coordinate_last_played.concat([0]));
-            }
+            // TODO: verify we don't need this for the Fret Zealot
+            // if (this.coordinate_last_played != null) {
+            //     this.messenger.message(this.coordinate_last_played.concat([0]));
+            // }
             this.messenger.message(coordinate.concat([1]));
             this.coordinate_last_played = coordinate;
         };

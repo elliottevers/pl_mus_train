@@ -76,35 +76,6 @@ function b_stream_ground_truth() {
     )
 }
 
-// let test = () => {
-//
-//     // let vector_checkbox_test = [1, 1, 0, 0, 0];
-//     //
-//     // let vector_radio_key_center = [1, 0, 0, 0, 0];
-//
-//     let vector_checkbox_test = [0, 1, 0, 0, 0];
-//
-//     let vector_radio_key_center = [1, 0, 0, 0, 0];
-//
-//     // @ts-ignore
-//     set_vector_radio(vector_radio_key_center);
-//
-//     // @ts-ignore
-//     b_stream_dependency(vector_checkbox_test);
-//
-//     let vector_checkbox_test_2 = [1, 0, 0, 0, 0];
-//
-//     let vector_radio_bass = [0, 1, 0, 0, 0];
-//
-//     // @ts-ignore
-//     set_vector_radio(vector_radio_bass);
-//
-//     // @ts-ignore
-//     b_stream_dependency(vector_checkbox_test_2);
-// };
-//
-// test();
-
 if (typeof Global !== "undefined") {
     Global.compare_vectors = {};
     Global.compare_vectors.set_vector_radio = set_vector_radio;
