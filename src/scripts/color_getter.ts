@@ -107,9 +107,24 @@ let test = () => {
 
 };
 
+let rgb_to_fz = (r, g, b) => {
+
+    messenger.message(
+        [
+            Math.floor(r/16),
+            Math.floor(g/16),
+            Math.floor(b/16)
+        ]
+    )
+};
+
 let set_feedback = (val) => {
     b_feedback = Boolean(val)
 };
+
+// let render_fz = (r,g,b) => {
+//     messenger.message([r,g,b])
+// };
 
 let render_lemur = (r,g,b) => {
     messenger.message(colormap_render[[r,g,b].toString()])
@@ -165,4 +180,5 @@ if (typeof Global !== "undefined") {
     Global.color_getter.feedback_lemur = feedback_lemur;
     Global.color_getter.clear_lemur = clear_lemur;
     Global.color_getter.set_feedback = set_feedback;
+    Global.color_getter.rgb_to_fz = rgb_to_fz;
 }

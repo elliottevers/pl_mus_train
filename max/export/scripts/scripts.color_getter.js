@@ -141,9 +141,19 @@ var messenger = new Messenger(env, 0);
 var b_feedback = false;
 var test = function () {
 };
+var rgb_to_fz = function (r, g, b) {
+    messenger.message([
+        Math.floor(r / 16),
+        Math.floor(g / 16),
+        Math.floor(b / 16)
+    ]);
+};
 var set_feedback = function (val) {
     b_feedback = Boolean(val);
 };
+// let render_fz = (r,g,b) => {
+//     messenger.message([r,g,b])
+// };
 var render_lemur = function (r, g, b) {
     messenger.message(colormap_render[[r, g, b].toString()]);
 };
@@ -194,6 +204,7 @@ if (typeof Global !== "undefined") {
     Global.color_getter.feedback_lemur = feedback_lemur;
     Global.color_getter.clear_lemur = clear_lemur;
     Global.color_getter.set_feedback = set_feedback;
+    Global.color_getter.rgb_to_fz = rgb_to_fz;
 }
 
 },{"../message/messenger":1,"underscore":3}],3:[function(require,module,exports){
@@ -1900,3 +1911,4 @@ var feedback_fz = Global.color_getter.feedback_fz;
 var feedback_lemur = Global.color_getter.feedback_lemur;
 var clear_lemur = Global.color_getter.clear_lemur;
 var set_feedback = Global.color_getter.set_feedback;
+var rgb_to_fz = Global.color_getter.rgb_to_fz;
