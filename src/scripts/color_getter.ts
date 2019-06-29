@@ -130,6 +130,11 @@ let render_lemur = (r,g,b) => {
     messenger.message(colormap_render[[r,g,b].toString()])
 };
 
+// TODO: implement
+let render_touch_osc = () => {
+
+};
+
 let feedback_fz = (diff) => {
     if (b_feedback) {
         messenger.message(map_feedback_fz[diff])
@@ -146,6 +151,11 @@ let feedback_lemur = (diff) => {
         // black
         messenger.message([0])
     }
+};
+
+// TODO: implement
+let feedback_touch_osc = () => {
+
 };
 
 let render_default_lemur = (r,g,b) => {
