@@ -2,48 +2,168 @@ export {};
 
 // const max_api = require('max-api');
 
-const noble = require('noble');
+const noble = require('@abandonware/noble');
+
+var async = require('async');
+
+const includes = require('array-includes');
+
+// var peripheralIdOrAddress = process.argv[2].toLowerCase();
+
+var ids = [
+    '28a78aea2d8e4ba69e67377ca5b236bf'
+];
 
 noble.on('stateChange', function(state) {
-    if (state === 'poweredOn')
+    if (state === 'poweredOn') {
         noble.startScanning();
-    else
+    } else {
         noble.stopScanning();
+    }
 });
 
-// noble.startScanning(); // any service UUID, no duplicates
-//
-//
-// noble.startScanning([], true); // any service UUID, allow duplicates
+noble.on('discover', function(peripheral) {
+    if (includes(ids, peripheral.id) || includes(ids, peripheral.address)) {
+    // if (false) {
+        noble.stopScanning();
 
+        console.log('peripheral with ID ' + peripheral.id + ' found');
+        var advertisement = peripheral.advertisement;
 
-// var serviceUUIDs = ["<service UUID 1>", ...] // default: [] => all
-// var allowDuplicates = <false|true>; // default: false
+        var localName = advertisement.localName;
+        var txPowerLevel = advertisement.txPowerLevel;
+        var manufacturerData = advertisement.manufacturerData;
+        var serviceData = advertisement.serviceData;
+        var serviceUuids = advertisement.serviceUuids;
 
-// noble.startScanning(serviceUUIDs, allowDuplicates[, callback(error)]); // particular UUID's
+        if (localName) {
+            console.log('  Local Name        = ' + localName);
+        }
 
+        if (txPowerLevel) {
+            console.log('  TX Power Level    = ' + txPowerLevel);
+        }
 
-// const fs = require('fs');
+        if (manufacturerData) {
+            console.log('  Manufacturer Data = ' + manufacturerData.toString('hex'));
+        }
 
-// let file_log_max = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/.log_max.txt';
+        if (serviceData) {
+            console.log('  Service Data      = ' + JSON.stringify(serviceData, null, 2));
+        }
 
-// const handlers = {
-//     ['all']: (handled, ...args) => {
-//         fs.appendFileSync(file_log_max, '\n', (err) => {
-//             if (err) throw err;
-//             max_api.post('error writing to log file')
-//         });
-//
-//         fs.appendFileSync(file_log_max, JSON.stringify(args), (err) => {
-//             if (err) throw err;
-//             max_api.post('error writing to log file')
-//         });
-//
-//         fs.appendFileSync(file_log_max, '\n', (err) => {
-//             if (err) throw err;
-//             max_api.post('error writing to log file')
-//         });
-//     }
-// };
+        if (serviceUuids) {
+            console.log('  Service UUIDs     = ' + serviceUuids);
+        }
 
-// max_api.addHandlers(handlers);
+        console.log();
+
+        explore(peripheral);
+    } else {
+        console.log(peripheral.id)
+    }
+});
+
+function explore(peripheral) {
+    console.log('services and characteristics:');
+
+    peripheral.on('disconnect', function() {
+        process.exit(0);
+    });
+
+    peripheral.connect(function(error) {
+        peripheral.discoverServices([], function(error, services) {
+            var serviceIndex = 0;
+
+            async.whilst(
+                function () {
+                    return (serviceIndex < services.length);
+                },
+                function(callback) {
+                    var service = services[serviceIndex];
+                    var serviceInfo = service.uuid;
+
+                    if (service.name) {
+                        serviceInfo += ' (' + service.name + ')';
+                    }
+                    console.log(serviceInfo);
+
+                    service.discoverCharacteristics([], function(error, characteristics) {
+                        var characteristicIndex = 0;
+
+                        async.whilst(
+                            function () {
+                                return (characteristicIndex < characteristics.length);
+                            },
+                            function(callback) {
+                                var characteristic = characteristics[characteristicIndex];
+                                var characteristicInfo = '  ' + characteristic.uuid;
+
+                                if (characteristic.name) {
+                                    characteristicInfo += ' (' + characteristic.name + ')';
+                                }
+
+                                async.series([
+                                    function(callback) {
+                                        characteristic.discoverDescriptors(function(error, descriptors) {
+                                            async.detect(
+                                                descriptors,
+                                                function(descriptor, callback) {
+                                                    if (descriptor.uuid === '2901') {
+                                                        return callback(descriptor);
+                                                    } else {
+                                                        return callback();
+                                                    }
+                                                },
+                                                function(userDescriptionDescriptor){
+                                                    if (userDescriptionDescriptor) {
+                                                        userDescriptionDescriptor.readValue(function(error, data) {
+                                                            if (data) {
+                                                                characteristicInfo += ' (' + data.toString() + ')';
+                                                            }
+                                                            callback();
+                                                        });
+                                                    } else {
+                                                        callback();
+                                                    }
+                                                }
+                                            );
+                                        });
+                                    },
+                                    function(callback) {
+                                        characteristicInfo += '\n    properties  ' + characteristic.properties.join(', ');
+
+                                        if (characteristic.properties.indexOf('read') !== -1) {
+                                            characteristic.read(function(error, data) {
+                                                if (data) {
+                                                    var string = data.toString('ascii');
+
+                                                    characteristicInfo += '\n    value       ' + data.toString('hex') + ' | \'' + string + '\'';
+                                                }
+                                                callback();
+                                            });
+                                        } else {
+                                            callback();
+                                        }
+                                    },
+                                    function() {
+                                        console.log(characteristicInfo);
+                                        characteristicIndex++;
+                                        callback();
+                                    }
+                                ]);
+                            },
+                            function(error) {
+                                serviceIndex++;
+                                callback();
+                            }
+                        );
+                    });
+                },
+                function (err) {
+                    peripheral.disconnect();
+                }
+            );
+        });
+    });
+}

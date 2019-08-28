@@ -31,6 +31,9 @@
     "typescript": "^3.2.4"
   },
   "dependencies": {
+    "@abandonware/noble": "git+https://github.com/abandonware/noble.git",
+    "array-includes": "^3.0.3",
+    "async": "^3.1.0",
     "browser-or-node": "^1.1.0",
     "filereader": "^0.10.3",
     "lodash": "^4.17.11",
