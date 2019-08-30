@@ -1,14 +1,10 @@
 export {};
 
-// const max_api = require('max-api');
-
 const noble = require('@abandonware/noble');
 
 var async = require('async');
 
 const includes = require('array-includes');
-
-// var peripheralIdOrAddress = process.argv[2].toLowerCase();
 
 var ids = [
     '28a78aea2d8e4ba69e67377ca5b236bf'
@@ -58,11 +54,61 @@ noble.on('discover', function(peripheral) {
 
         console.log();
 
-        explore(peripheral);
+        // explore(peripheral);
+
+        peripheral.connect(error => {
+            console.log('Connected to', peripheral.id);
+
+            // specify the services and characteristics to discover
+            const serviceUUIDs = 'serviceUUIDs';// [ECHO_SERVICE_UUID];
+            const characteristicUUIDs = 'characteristicUUIDs';// [ECHO_CHARACTERISTIC_UUID];
+
+            peripheral.discoverSomeServicesAndCharacteristics(
+                serviceUUIDs,
+                characteristicUUIDs,
+                onServicesAndCharacteristicsDiscovered
+            );
+        });
+
     } else {
         console.log(peripheral.id)
     }
 });
+
+function onServicesAndCharacteristicsDiscovered(error, services, characteristics) {
+    console.log('Discovered services and characteristics');
+
+    var charLed = characteristics[2];
+
+    charLed.write(new Buffer([0x00, 0x00, 0x00, 0x00]), true, function(error) {
+        console.log('wrote?');
+    });
+
+    const echoCharacteristic = characteristics[0];
+
+    // data callback receives notifications
+    echoCharacteristic.on('data', (data, isNotification) => {
+        console.log('Received: "' + data + '"');
+    });
+
+    // subscribe to be notified whenever the peripheral update the characteristic
+    echoCharacteristic.subscribe(error => {
+        if (error) {
+            console.error('Error subscribing to echoCharacteristic');
+        } else {
+            console.log('Subscribed for echoCharacteristic notifications');
+        }
+    });
+
+    // create an interval to send data to the service
+    let count = 0;
+    setInterval(() => {
+        count++;
+        const message = new Buffer('hello, ble ' + count, 'utf-8');
+        console.log("Sending:  '" + message + "'");
+        echoCharacteristic.write(message);
+    }, 2500);
+}
 
 function explore(peripheral) {
     console.log('services and characteristics:');
