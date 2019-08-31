@@ -18,8 +18,7 @@ server.on('message', (msg, rinfo) => {
     var test = 1;
     console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
     var parsed = msg.toString().split(' ');
-    send(0x00, 0, parseInt(parsed[0]), parseInt(parsed[2]), parseInt(parsed[3]), parseInt(parsed[4]), parseInt(parsed[1]))
-    // var string = new TextDecoder(encoding).decode(uint8array);
+    send(0x00, 0, parseInt(parsed[1]), parseInt(parsed[2]), parseInt(parsed[3]), parseInt(parsed[4]), parseInt(parsed[0]) - 1)
 });
 
 server.on('listening', () => {
