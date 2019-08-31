@@ -22,6 +22,7 @@ export namespace live {
             if (env == 'node') {
 
             } else {
+                // @ts-ignore
                 this.live_api = new LiveAPI(null, path);
             }
         }

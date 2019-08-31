@@ -29,13 +29,16 @@ export namespace file {
                 break;
             }
             case 'max': {
+                // @ts-ignore
                 let f = new File(filename,"write","JSON");
 
                 if (f.isopen) {
+                    // @ts-ignore
                     post("writing json");
                     f.writestring(JSON.stringify(string_json));
                     f.close();
                 } else {
+                    // @ts-ignore
                     post("could not save session");
                 }
                 break;

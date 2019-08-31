@@ -109,12 +109,14 @@ export namespace freestyle {
 
                 let segment = segments[Number(i_segment)];
 
+                // @ts-ignore
                 let task_set_current_song_time = new Task(
                     () => {
                         song.set_current_song_time(segment.beat_start);
                     }
                 );
 
+                // @ts-ignore
                 let task_create_cue = new Task(
                     () => {
                         song.set_or_delete_cue()
@@ -126,6 +128,7 @@ export namespace freestyle {
                 task_create_cue.schedule(Number(i_segment)*500 + 250);
 
                 if (Number(i_segment) === segments.length - 1) {
+                    // @ts-ignore
                     let task_jump_to_first = new Task(
                         () => {
                             let cue_points = song.get_cue_points();
