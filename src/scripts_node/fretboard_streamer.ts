@@ -1,26 +1,44 @@
 export {}
 const max_api = require('max-api');
 const noble = require('@abandonware/noble');
-const includes = require('array-includes');
 const dgram = require('dgram');
+const includes = require('array-includes');
+
+let port = 8001;
+
+let command_set = 0x00;
+let command_clear = 0x04;
+
+let uuid_peripheral = '28a78aea2d8e4ba69e67377ca5b236bf';
+let uuid_characteristic_led = '6e400002b5a3f393e0a9e50e24dcca9e';
 
 max_api.addHandler("start", () => {
 
     const server = dgram.createSocket('udp4');
-
-    let characteristic_led = '28a78aea2d8e4ba69e67377ca5b236bf';
-    let port = 8001;
 
     server.on('error', (err) => {
         console.log(`server error:\n${err.stack}`);
         server.close();
     });
 
+    // TODO: split multiple commands into array
     server.on('message', (msg, rinfo) => {
-        var test = 1;
-        console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
-        var parsed = msg.toString().split(' ');
-        send(0x00, 0, parseInt(parsed[1]), parseInt(parsed[2]), parseInt(parsed[3]), parseInt(parsed[4]), parseInt(parsed[0]) - 1)
+        if (msg.toString() == 'clear') {
+            send(command_clear, 0, 0, 0, 0, 0, 0);
+            return
+        }
+
+        let parsed = msg.toString().split(' ');
+
+        let part = String(parsed[10]);
+
+        if (part == 'vocal') {
+            send(command_clear, 0, 0, 0, 0, 0, 0);
+
+        } else {
+            send(command_set, 0, parseInt(parsed[6]), parseInt(parsed[7]), parseInt(parsed[8]), parseInt(parsed[9]), parseInt(parsed[5]) - 1);
+            send(command_set, 0, parseInt(parsed[1]), parseInt(parsed[2]), parseInt(parsed[3]), parseInt(parsed[4]), parseInt(parsed[0]) - 1);
+        }
     });
 
     server.on('listening', () => {
@@ -42,7 +60,7 @@ max_api.addHandler("start", () => {
     }
 
     var ids = [
-        characteristic_led
+        uuid_peripheral
     ];
 
     noble.on('stateChange', function(state) {
@@ -55,9 +73,11 @@ max_api.addHandler("start", () => {
 
     noble.on('discover', function(peripheral) {
         if (includes(ids, peripheral.id) || includes(ids, peripheral.address)) {
+
             noble.stopScanning();
 
             console.log('peripheral with ID ' + peripheral.id + ' found');
+
             var advertisement = peripheral.advertisement;
 
             var localName = advertisement.localName;
@@ -66,18 +86,12 @@ max_api.addHandler("start", () => {
                 console.log('Local Name = ' + localName);
             }
 
-            console.log();
-
             peripheral.connect(error => {
                 console.log('Connected to', peripheral.id);
 
-                // specify the services and characteristics to discover
-                const serviceUUIDs = 'serviceUUIDs';
-                const characteristicUUIDs = 'characteristicUUIDs';
-
                 peripheral.discoverSomeServicesAndCharacteristics(
-                    serviceUUIDs,
-                    characteristicUUIDs,
+                    [],
+                    [uuid_characteristic_led],
                     onServicesAndCharacteristicsDiscovered
                 );
             });
@@ -92,23 +106,6 @@ max_api.addHandler("start", () => {
     function onServicesAndCharacteristicsDiscovered(error, services, characteristics) {
         console.log('Discovered services and characteristics');
 
-        // TODO: search by key
-        charLed = characteristics[2];
-
-        const echoCharacteristic = characteristics[0];
-
-        // data callback receives notifications
-        echoCharacteristic.on('data', (data, isNotification) => {
-            console.log('Received: "' + data + '"');
-        });
-
-        // subscribe to be notified whenever the peripheral update the characteristic
-        echoCharacteristic.subscribe(error => {
-            if (error) {
-                console.error('Error subscribing to echoCharacteristic');
-            } else {
-                console.log('Subscribed for echoCharacteristic notifications');
-            }
-        });
+        charLed = characteristics[0];
     }
 });
