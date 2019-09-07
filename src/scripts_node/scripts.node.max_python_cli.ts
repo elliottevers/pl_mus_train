@@ -13,7 +13,7 @@ let path_script;
 
 let path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/requirements_tk_music/bin/python';
 
-let dir_scripts_python = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/music/src/scripts/';
+let dir_scripts_python = '/Users/elliottevers/Documents/git-repos.nosync/tk_music_py/src/scripts/';
 
 
 max_api.addHandler("set_arg", (name_arg, val_arg) => {
