@@ -35,24 +35,17 @@ let points: Array<Array<number>> = [];
 
 let frame_duples: Array<Array<number>> = [];
 
+let bars: Array<number> = [];
+
 let done = false;
 
 let i_current = -1;
 
 let length_frames;
 
-// let get_length_frames = () => {
-//     messenger.message(['length_frames', length_frames])
-// };
-
 let set_length_frames = (val) => {
     length_frames = val
 };
-
-// let init = () => {
-//     // TODO:
-//     get_length_frames()
-// };
 
 let looppoints = (frame_loop_begin, frame_loop_end) => {
     messenger.message(
@@ -109,13 +102,30 @@ let clear_beats = () => {
     point_beat_estimates = []
 };
 
-let set_beats = () => {
-    // for (let i_point in point_beat_estimates) {
-    //     if (parseInt(i_point) % 8 == 0) {
-    //         // @ts-ignore
-    //         messenger.message(['point'].concat(point_beat_estimates[i_point]))
-    //     }
-    // }
+
+
+let quantize_point = (beat_raw) => {
+    let beat_quantized =  bars.reduce(function(prev, curr) {
+        return (Math.abs(curr - beat_raw) < Math.abs(prev - beat_raw) ? curr : prev);
+    });
+    messenger.message(['point_quantized', beat_quantized, 0])
+};
+
+// theoretically, the onset of measures
+let calculate_bars = () => {
+    for (let i_point in point_beat_estimates) {
+        if (parseInt(i_point) % 4 == 0) {
+            // @ts-ignore
+            // messenger.message(['point'].concat(point_beat_estimates[i_point]))
+            bars = bars.concat(point_beat_estimates[i_point])
+        }
+    }
+};
+
+let set_bars = () => {
+    for (let bar of bars) {
+        messenger.message(['point'].concat(bar))
+    }
 };
 
 let process_beat_relative = (beat_relative: string) => {
@@ -129,7 +139,7 @@ let test = () => {
 if (typeof Global !== "undefined") {
     Global.function_manager = {};
     Global.function_manager.process_beat_relative = process_beat_relative;
-    Global.function_manager.set_beats = set_beats;
+    Global.function_manager.set_bars = set_bars;
     Global.function_manager.clear_beats = clear_beats;
     Global.function_manager.next = next;
     Global.function_manager.parse_dump = parse_dump;
