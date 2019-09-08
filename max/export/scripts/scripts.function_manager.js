@@ -68,7 +68,7 @@ if (env === 'max') {
 // workflow:
 // 1. load video
 // 2. set frame length
-// 3. set cut points (snap to beat estimates)
+// 3. dump cut points (snap to beat estimates)
 // 4. affirm cut points
 // 5. start iteration
 // 6. hit play button
@@ -89,6 +89,18 @@ var set_length_frames = function (val) {
 //     // TODO:
 //     get_length_frames()
 // };
+var looppoints = function (frame_loop_begin, frame_loop_end) {
+    messenger.message([
+        'loop_endpoints_function',
+        frame_loop_begin / length_frames,
+        0
+    ]);
+    messenger.message([
+        'loop_endpoints_function',
+        frame_loop_end / length_frames,
+        0
+    ]);
+};
 var next = function () {
     if (!done) {
         i_current += 1;
@@ -142,6 +154,7 @@ if (typeof Global !== "undefined") {
     Global.function_manager.clear_points = clear_points;
     Global.function_manager.affirm_cuts = affirm_cuts;
     Global.function_manager.set_length_frames = set_length_frames;
+    Global.function_manager.looppoints = looppoints;
 }
 
 },{"../message/messenger":1}]},{},[2]);
@@ -154,3 +167,4 @@ var parse_dump = Global.function_manager.parse_dump;
 var clear_points = Global.function_manager.clear_points;
 var affirm_cuts = Global.function_manager.affirm_cuts;
 var set_length_frames = Global.function_manager.set_length_frames;
+var looppoints = Global.function_manager.looppoints;

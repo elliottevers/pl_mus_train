@@ -19,8 +19,6 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-// TODO: start at beginning of loop
-
 // workflow:
 // 1. load video
 // 2. set frame length
@@ -55,6 +53,24 @@ let set_length_frames = (val) => {
 //     // TODO:
 //     get_length_frames()
 // };
+
+let looppoints = (frame_loop_begin, frame_loop_end) => {
+    messenger.message(
+        [
+            'loop_endpoints_function',
+            frame_loop_begin/length_frames,
+            0
+        ]
+    );
+
+    messenger.message(
+        [
+            'loop_endpoints_function',
+            frame_loop_end/length_frames,
+            0
+        ]
+    );
+};
 
 let next = () => {
     if (!done) {
@@ -120,4 +136,5 @@ if (typeof Global !== "undefined") {
     Global.function_manager.clear_points = clear_points;
     Global.function_manager.affirm_cuts = affirm_cuts;
     Global.function_manager.set_length_frames = set_length_frames;
+    Global.function_manager.looppoints = looppoints;
 }

@@ -6,3 +6,4 @@ var parse_dump = Global.function_manager.parse_dump;
 var clear_points = Global.function_manager.clear_points;
 var affirm_cuts = Global.function_manager.affirm_cuts;
 var set_length_frames = Global.function_manager.set_length_frames;
+var looppoints = Global.function_manager.looppoints;
