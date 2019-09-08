@@ -12,12 +12,14 @@ export namespace video {
 
         public static beat_to_point;
 
-        private beat_estimates: number[];
+        private beat_estimates: BeatPositionPercentile[];
 
         private bars: number[];
 
         // list of duples of floats
-        private cuts: number[][];
+        private cuts: FramePositionPercentile[][];
+
+        private length_video: Frame;
 
         public set_beat_estimates(estimates_beat_position_percentile: number[]) {
             this.beat_estimates = estimates_beat_position_percentile;
@@ -35,6 +37,16 @@ export namespace video {
 
         public get_bar() {
             return this.beat_estimates
+        }
+
+        // create rightmost cut from current playback time
+        public add_cut() {
+
+        }
+
+        public update_cuts_from_loop(frame_loop_start: Frame, frame_loop_end: Frame): void {
+            frame_loop_start/this.length_video
+            frame_loop_end/this.length_video
         }
     }
 }
