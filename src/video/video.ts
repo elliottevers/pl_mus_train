@@ -1,12 +1,36 @@
+import {name_objects_patcher} from "../constants/constants";
+
 const _ = require('underscore');
 
 export namespace video {
+
+    import JIT_MOVIE = name_objects_patcher.JIT_MOVIE;
 
     type Frame = number;
 
     type FramePositionPercentile = number;
 
     type BeatPositionPercentile = number;
+
+    export class Video {
+
+        private path_file: string;
+
+        private patcher: any;
+
+        private length: Frame;
+
+        constructor(path_file: string, patcher: any) {
+            this.path_file = path_file;
+            this.patcher = patcher;
+        }
+
+        public get_length(): Frame {
+            return this.patcher.getnamed(JIT_MOVIE).message();
+            return 0
+        }
+
+    }
 
     export class Looper {
 

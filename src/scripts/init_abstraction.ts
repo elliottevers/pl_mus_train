@@ -1,7 +1,5 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {log} from "../log/logger";
-import Logger = log.Logger;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -166,10 +164,10 @@ let init_setter = (index) => {
     ran_init_setter = true;
 };
 
-let test = () => {
-    init_call_receiver(0);
-    init_call_sender('first', 0, 'last', 3);
-};
+// let test = () => {
+//     init_call_receiver(0);
+//     init_call_sender('first', 0, 'last', 3);
+// };
 
 // test();
 
