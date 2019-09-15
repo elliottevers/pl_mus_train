@@ -1,5 +1,10 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
+import {video as v} from "../video/video";
+import Video = v.Video;
+import {execute} from "../execute/executor";
+import CallableMax = execute.CallableMax;
+import SynchronousDagExecutor = execute.SynchronousDagExecutor;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -19,6 +24,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 
+// TODO: beat estimes
 // workflow:
 // 1. load video
 // 2. set frame length
@@ -74,6 +80,141 @@ let set_bars = () => {
         messenger.message(['point'].concat(bar))
     }
 };
+
+// executor = new SynchronousDagExecutor(
+//     [
+//         new CallableMax( // 0
+//             "load",
+//             null,
+//             null,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 1
+//             'set_length_frame',
+//             null,
+//             null,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 2
+//             'estimate_beats',
+//             null,
+//             hook_set_length,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 3
+//             'min',
+//             null,
+//             null,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 4
+//             'min',
+//             null,
+//             hook_set_min,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 5
+//             'max',
+//             null,
+//             null,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 6
+//             'max',
+//             null,
+//             hook_set_max,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 7
+//             Mode.BulkWrite,
+//             null,
+//             null,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 8
+//             null,
+//             null,
+//             null,
+//             hook_calculate_scale_factor,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 9
+//             null,
+//             null,
+//             null,
+//             hook_get_length,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 10
+//             0,
+//             null,
+//             null,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 11
+//             'clear',
+//             null,
+//             null,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 12 - initialize buffer size
+//             null,
+//             null,
+//             null,
+//             hook_get_length,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 13
+//             'dump',
+//             null,
+//             null,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 14 - send size of buffer out of outlet
+//             null,
+//             null,
+//             null,
+//             hook_get_length,
+//             null,
+//             messenger_execute
+//         ),
+//         new CallableMax( // 15
+//             Mode.Stream,
+//             null,
+//             null,
+//             null,
+//             null,
+//             messenger_execute
+//         ),
+//     ],
+//     messenger_execute
+// );
+
 
 // let point_beat_estimates: Array<Array<number>> = [];
 //
