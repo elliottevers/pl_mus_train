@@ -185,7 +185,6 @@ export namespace window {
             struct_train: StructTrain,
             segment_current: Segment
         ) {
-
             this.render_regions(
                 iterator_matrix_train,
                 trainable,

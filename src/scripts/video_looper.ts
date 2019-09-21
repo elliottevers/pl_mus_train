@@ -24,7 +24,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-// TODO: beat estimes
+// TODO: beat estimates
 // workflow:
 // 1. load video
 // 2. set frame length
@@ -41,13 +41,15 @@ let video = new Video('/Users/elliottevers/Downloads/white-t-shirt.mp4', patcher
 
 video.load();
 
+video.estimate_beats();
+
 let looper_video = new VideoLooper(video);
 
 let path_video: string;
 
 let set_path_video = (path) => {
     path_video = path;
-}
+};
 
 let set_loop_points = () => {
     let frame_lower = 0;
@@ -75,11 +77,11 @@ let set_cuts = () => {
 
 };
 
-let set_bars = () => {
-    for (let bar of looper_video.get_bars()) {
-        messenger.message(['point'].concat(bar))
-    }
-};
+// let set_bars = () => {
+//     for (let bar of looper_video.get_bars()) {
+//         messenger.message(['point'].concat(bar))
+//     }
+// };
 
 // executor = new SynchronousDagExecutor(
 //     [

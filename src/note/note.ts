@@ -56,7 +56,6 @@ export namespace note {
             }
 
             throw 'beats overlap cannot be determined'
-
         }
 
         public static split_note_at_points(note_to_split: TreeModel.Node<Note>, points: number[]): TreeModel.Node<Note>[] {

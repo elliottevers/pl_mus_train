@@ -14,7 +14,7 @@ describe('Pwindow', test(()=>{
     it('incrementally renders notes of tree (does not need to render an entire clip at once)', test(()=>{
         let env: string = 'node';
 
-        let pwindow = new w.Pwindow(
+        let pwindow = new w.Window(
             60,
             8,
             new m.Messenger(env, 0)
