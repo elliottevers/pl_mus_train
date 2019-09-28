@@ -1,0 +1,1 @@
+var test_generator = Global.video_looper.test_generator;

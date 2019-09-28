@@ -124,7 +124,7 @@ let calculate_bars = () => {
 
 let set_bars = () => {
     for (let bar of bars) {
-        messenger.message(['point'].concat(bar))
+        // messenger.message(['point'].concat(bar))
     }
 };
 

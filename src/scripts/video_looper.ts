@@ -39,11 +39,11 @@ let messenger = new Messenger(env, 0);
 
 let video = new Video('/Users/elliottevers/Downloads/white-t-shirt.mp4', patcher);
 
-video.load();
-
-video.estimate_beats();
-
-let looper_video = new VideoLooper(video);
+// video.load();
+//
+// video.estimate_beats();
+//
+// let looper_video = new VideoLooper(video);
 
 let path_video: string;
 
@@ -75,6 +75,19 @@ let set_beat_estimates = () => {
 
 let set_cuts = () => {
 
+};
+
+let test_generator = () => {
+    function * generatorFunction() { // Line 1
+        // console.log('This will be executed first.');
+        yield 'Hello, ';   // Line 2
+        // console.log('I will be printed after the pause');
+        yield 'World!';
+    }
+    const generatorObject = generatorFunction(); // Line 3
+    messenger.message([generatorObject.next().value]); // Line 4
+    messenger.message([generatorObject.next().value]); // Line 5
+    messenger.message([generatorObject.next().value]); // Line 6
 };
 
 // let set_bars = () => {
@@ -326,7 +339,7 @@ let set_cuts = () => {
 
 if (typeof Global !== "undefined") {
     Global.video_looper = {};
-    // Global.function_manager.process_beat_relative = process_beat_relative;
+    Global.video_looper.test_generator = test_generator;
     // Global.function_manager.set_bars = set_bars;
     // Global.function_manager.clear_beats = clear_beats;
     // Global.function_manager.next = next;
