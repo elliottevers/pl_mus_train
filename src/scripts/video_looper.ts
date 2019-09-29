@@ -2,9 +2,6 @@ import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {video as v} from "../video/video";
 import Video = v.Video;
-import {execute} from "../execute/executor";
-import CallableMax = execute.CallableMax;
-import SynchronousDagExecutor = execute.SynchronousDagExecutor;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -28,16 +25,30 @@ if (env === 'max') {
 // workflow:
 // 1. load video
 // 2. set frame length
+// 2.5. get beat estimates
+
+// user cuts
+
 // 3. dump cut points (snap to beat estimates)
 // 4. affirm cut points
 // 5. start iteration
 // 6. hit play button
 
-declare let patcher: any;
-
 let messenger = new Messenger(env, 0);
 
-let video = new Video('/Users/elliottevers/Downloads/white-t-shirt.mp4', patcher);
+let initialize = () => {
+    messenger.message(["load_video"]);
+    messenger.message(["getduration"]);
+};
+
+let set_length_frames = (length_frames) => {
+
+};
+
+// declare let patcher: any;
+
+
+// let video = new Video('/Users/elliottevers/Downloads/white-t-shirt.mp4', patcher);
 
 // video.load();
 //
@@ -77,17 +88,42 @@ let set_cuts = () => {
 
 };
 
-let test_generator = () => {
-    function * generatorFunction() { // Line 1
-        // console.log('This will be executed first.');
-        yield 'Hello, ';   // Line 2
-        // console.log('I will be printed after the pause');
-        yield 'World!';
-    }
-    const generatorObject = generatorFunction(); // Line 3
-    messenger.message([generatorObject.next().value]); // Line 4
-    messenger.message([generatorObject.next().value]); // Line 5
-    messenger.message([generatorObject.next().value]); // Line 6
+let attribute = 0;
+
+let set_attribute = () => {
+    attribute += 1
+};
+
+let bang = () => {
+    // function * generatorFunction() { // Line 1
+    //     // console.log('This will be executed first.');
+    //     yield 'Hello, ';   // Line 2
+    //     // console.log('I will be printed after the pause');
+    //     yield 'World!';
+    // }
+    // const generatorObject = generatorFunction(); // Line 3
+    // messenger.message([generatorObject.next().value]); // Line 4
+    // messenger.message([generatorObject.next().value]); // Line 5
+    // messenger.message([generatorObject.next().value]); // Line 6
+
+
+    // outlet(0, "bang");
+    // outlet(0, "anything");
+    //
+    // outlet(0, "set_attribute");
+    // outlet(0, attribute)
+
+    var handler = {
+        get: function(target, name) {
+            return name in target ? target[name] : 42;
+        }
+    };
+
+    var p = new Proxy({}, handler);
+    p.a = 1;
+    // console.log(p.a, p.b); // 1, 42
+    post(p.a);
+    post(p.b);
 };
 
 // let set_bars = () => {
@@ -95,141 +131,6 @@ let test_generator = () => {
 //         messenger.message(['point'].concat(bar))
 //     }
 // };
-
-// executor = new SynchronousDagExecutor(
-//     [
-//         new CallableMax( // 0
-//             "load",
-//             null,
-//             null,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 1
-//             'set_length_frame',
-//             null,
-//             null,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 2
-//             'estimate_beats',
-//             null,
-//             hook_set_length,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 3
-//             'min',
-//             null,
-//             null,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 4
-//             'min',
-//             null,
-//             hook_set_min,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 5
-//             'max',
-//             null,
-//             null,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 6
-//             'max',
-//             null,
-//             hook_set_max,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 7
-//             Mode.BulkWrite,
-//             null,
-//             null,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 8
-//             null,
-//             null,
-//             null,
-//             hook_calculate_scale_factor,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 9
-//             null,
-//             null,
-//             null,
-//             hook_get_length,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 10
-//             0,
-//             null,
-//             null,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 11
-//             'clear',
-//             null,
-//             null,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 12 - initialize buffer size
-//             null,
-//             null,
-//             null,
-//             hook_get_length,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 13
-//             'dump',
-//             null,
-//             null,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 14 - send size of buffer out of outlet
-//             null,
-//             null,
-//             null,
-//             hook_get_length,
-//             null,
-//             messenger_execute
-//         ),
-//         new CallableMax( // 15
-//             Mode.Stream,
-//             null,
-//             null,
-//             null,
-//             null,
-//             messenger_execute
-//         ),
-//     ],
-//     messenger_execute
-// );
-
 
 // let point_beat_estimates: Array<Array<number>> = [];
 //
@@ -339,7 +240,8 @@ let test_generator = () => {
 
 if (typeof Global !== "undefined") {
     Global.video_looper = {};
-    Global.video_looper.test_generator = test_generator;
+    Global.video_looper.bang = bang;
+    Global.video_looper.set_attribute = set_attribute;
     // Global.function_manager.set_bars = set_bars;
     // Global.function_manager.clear_beats = clear_beats;
     // Global.function_manager.next = next;

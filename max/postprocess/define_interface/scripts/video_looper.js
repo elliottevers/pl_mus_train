@@ -1,1 +1,2 @@
-var test_generator = Global.video_looper.test_generator;
+var bang = Global.video_looper.bang;
+var set_attribute = Global.video_looper.set_attribute;
