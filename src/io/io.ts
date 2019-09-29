@@ -5,7 +5,7 @@ import {message} from "../message/messenger";
 
 export namespace io {
 
-    let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
+    let dir_projects = '/Users/elliottevers/Documents/git-repos.nosync/tk_music_projects/';
 
     export let file_json_comm = dir_projects + 'json_live.json';
 

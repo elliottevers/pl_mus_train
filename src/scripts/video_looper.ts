@@ -94,6 +94,70 @@ let set_attribute = () => {
     attribute += 1
 };
 
+// TODO: beat estimates
+// workflow:
+// 1. load video
+// 2. set frame length
+// 2.5. get beat estimates
+
+// user cuts
+
+// 3. dump cut points (snap to beat estimates)
+// 4. affirm cut points
+// 5. start iteration
+// 6. hit play button
+
+let test = () => {
+    post("hello world!");
+};
+
+let receive_message_saga = (name_saga, val_saga) => {
+    // post(Global);
+    // this["test"]()
+    // eval(name_saga + ".next();")
+    // saga_dance.next()
+};
+
+// TODO: do we ever need to use yield to set value of variable?
+// TODO: what about using libraries in between async calls?
+let saga_dance = function* () {
+    post("loading video...");
+    messenger.message(["load_video"]);
+    yield;
+    post("setting frame length...");
+    messenger.message(["set_frame_length"]);
+    yield;
+    post("getting beat estimates...");
+    messenger.message(["get_beat_estimates"]);
+}();
+
+let start_saga_dance = () => {
+    saga_dance.next();
+    saga_dance.next();
+    saga_dance.next();
+};
+
+
+
+let saga = function* () {
+    post("doing first thing...");
+    yield;
+    post("doing second thing...");
+    yield;
+    post("doing third thing...");
+}();
+
+let advanceSaga = () => {
+    saga.next();
+};
+
+// var test = function*(){
+//     console.log(1);
+//     yield
+//     console.log(2);
+//     yield
+// }
+
 let bang = () => {
     // function * generatorFunction() { // Line 1
     //     // console.log('This will be executed first.');
@@ -242,6 +306,10 @@ if (typeof Global !== "undefined") {
     Global.video_looper = {};
     Global.video_looper.bang = bang;
     Global.video_looper.set_attribute = set_attribute;
+    Global.video_looper.receive_message_saga = receive_message_saga;
+    Global.video_looper.start_saga_dance = start_saga_dance;
+    // Global.video_looper.saga_dance = saga_dance();
+    // Global.video_looper.test = test;
     // Global.function_manager.set_bars = set_bars;
     // Global.function_manager.clear_beats = clear_beats;
     // Global.function_manager.next = next;

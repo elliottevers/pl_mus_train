@@ -81,14 +81,6 @@ export namespace segment {
         public set_scene(scene: Scene) {
             this.scene = scene;
         }
-
-        // public get_beat_lower() {
-        //     return this.clip.get_loop_bracket_lower()
-        // }
-        //
-        // public get_beat_upper() {
-        //     return this.clip.get_loop_bracket_upper()
-        // }
     }
 
     export class SegmentIterator {

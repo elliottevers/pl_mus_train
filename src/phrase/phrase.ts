@@ -1,12 +1,8 @@
 import n = require('../note/note');
 import c = require('../clip/clip');
-import TreeModel = require("tree-model");
-import {clip} from "../clip/clip";
 
 // TODO: use namespaces better
 export namespace phrase {
-
-    import Clip = clip.Clip;
 
     export class Phrase {
 
@@ -21,51 +17,13 @@ export namespace phrase {
             this.clip = clip;
         }
 
-        // public static parse(clip_segments: Clip, beat_start, beat_end) {
-        //     let endpoints_segments = [];
-        //     for (let note of clip_segments.get_notes(beat_start, 0, beat_end, 0)) {
-        //
-        //     }
-        //     notes = clip_segments.get_notes()
-        //     return segments
-        // }
-
-        public set_note_iterator(notes: TreeModel.Node<n.note.Note>[], direction_forward: boolean): void {
-            this.note_iterator = new n.note.NoteIterator(
-                notes,
-                direction_forward
-            );
-        }
-
         public get_interval_beats(): number[] {
             return [this.beat_start, this.beat_end];
         }
-
-        public load_notes(): void {
-            let notes = this.clip.get_notes(
-                this.beat_start,
-                0,
-                this.beat_end,
-                128
-            );
-
-            this.set_note_iterator(
-                notes,
-                true
-            );
-        }
-
-        // TODO: make 'direction' a type alias
-        // TODO: why is this referencing an non-existant method? Have we regressed?
-        // public load_notes_within_markers(direction_forward: boolean) {
-        //     this.set_note_iterator(this._parse_notes(this._get_notes()), direction_forward);
-        // }
-
     }
 
     export class PhraseIterator {
         private phrases: Phrase[];
-        private clip: c.clip.Clip;
         public direction_forward: boolean;
         private i: number;
 

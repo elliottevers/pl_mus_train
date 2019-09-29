@@ -1,4 +1,3 @@
-import {message} from "../message/messenger";
 import {control} from "./control";
 const _ = require("underscore");
 
