@@ -183,9 +183,20 @@ var saga_dance = function () {
 }();
 var start_saga_dance = function () {
     saga_dance.next();
-    saga_dance.next();
-    saga_dance.next();
+    // saga_dance.next();
+    // saga_dance.next();
 };
+// let saga = function* () {
+//     post("doing first thing...");
+//     yield;
+//     post("doing second thing...");
+//     yield;
+//     post("doing third thing...");
+// }();
+//
+// let advanceSaga = () => {
+//     saga.next();
+// };
 // var test = function*(){
 //     console.log(1);
 //     yield

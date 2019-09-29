@@ -1,7 +1,7 @@
 const max_api = require('max-api');
 const fs = require('fs');
 
-let file_log_max = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/.log_max.txt';
+let file_log_max = '/Users/elliottevers/Documents/git-repos.nosync/tk_music_projects/.log_max.txt';
 
 const handlers = {
     ['all']: (handled, ...args) => {

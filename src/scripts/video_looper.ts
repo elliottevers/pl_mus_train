@@ -133,23 +133,21 @@ let saga_dance = function* () {
 
 let start_saga_dance = () => {
     saga_dance.next();
-    saga_dance.next();
-    saga_dance.next();
+    // saga_dance.next();
+    // saga_dance.next();
 };
 
-
-
-let saga = function* () {
-    post("doing first thing...");
-    yield;
-    post("doing second thing...");
-    yield;
-    post("doing third thing...");
-}();
-
-let advanceSaga = () => {
-    saga.next();
-};
+// let saga = function* () {
+//     post("doing first thing...");
+//     yield;
+//     post("doing second thing...");
+//     yield;
+//     post("doing third thing...");
+// }();
+//
+// let advanceSaga = () => {
+//     saga.next();
+// };
 
 // var test = function*(){
 //     console.log(1);
