@@ -17,7 +17,7 @@ export namespace window {
     import Segment = module_segment.Segment;
     import Clip = clip.Clip;
     import MatrixIterator = iterate.MatrixIterator;
-    import StructParse = parse.StructParse;
+    import MatrixParseForest = parse.MatrixParseForest;
     import StructTrain = trainer.StructTrain;
     import Trainable = trainable.Trainable;
     import FORWARDS = iterate.FORWARDS;
@@ -216,17 +216,17 @@ export namespace window {
                 return []
             }
 
-            let struct_parse = struct_train as StructParse;
+            let matrix_parse_forest = struct_train as MatrixParseForest;
 
             let color: number[];
             let messages: any[] = [];
             let message: any[];
 
-            for (let coord of struct_parse.coords_roots) {
+            for (let coord of matrix_parse_forest.coords_roots) {
 
                 let roots_parse_tree;
 
-                roots_parse_tree = struct_parse.get_notes_at_coord(coord);
+                roots_parse_tree = matrix_parse_forest.get_notes_at_coord(coord);
 
                 for (let root of roots_parse_tree) {
                     root.walk((node)=>{
@@ -299,9 +299,9 @@ export namespace window {
 
             } else {
 
-                let struct_parse = struct_train as StructParse;
+                let matrix_parse_forest = struct_train as MatrixParseForest;
 
-                for (let coord of struct_parse.get_regions_renderable()) {
+                for (let coord of matrix_parse_forest.get_regions_renderable()) {
                     messages.push(
                         this.get_messages_render_clip(
                             trainable.coord_to_index_clip_render(

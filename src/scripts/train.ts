@@ -32,7 +32,7 @@ import Track = track.Track;
 import {window as module_window} from "../render/window";
 import MatrixWindow = module_window.MatrixWindow;
 import {parse} from "../parse/parse";
-import StructParse = parse.StructParse;
+import MatrixParseForest = parse.MatrixParseForest;
 import {trainable} from "../algorithm/trainable";
 import FREESTYLE = trainable.FREESTYLE;
 import {predict} from "../algorithm/predict";
@@ -364,7 +364,7 @@ let load_session = (filename: string) => {
         algorithm_parsed.restore(
             trainer,
             segments_train,
-            matrix_deserialized as StructTrain as StructParse
+            matrix_deserialized as StructTrain as MatrixParseForest
         )
 
     } else if (_.contains([DETECT, PREDICT], algorithm_train.get_name())) {

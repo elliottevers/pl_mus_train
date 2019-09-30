@@ -24,7 +24,7 @@ export namespace trainer {
     import Messenger = message.Messenger;
     import Clip = clip.Clip;
     import SubtargetIterator = target.SubtargetIterator;
-    import StructParse = parse.StructParse;
+    import MatrixParseForest = parse.MatrixParseForest;
     import MatrixIterator = iterate.MatrixIterator;
     import Note = note.Note;
     import Track = track.Track;
@@ -40,7 +40,7 @@ export namespace trainer {
 
     export type StructTargets = TargetIterator[][];
 
-    export type StructTrain = StructParse | StructTargets;
+    export type StructTrain = MatrixParseForest | StructTargets;
 
     export let SESSION = 'session';
 
@@ -48,10 +48,10 @@ export namespace trainer {
 
     export class Trainer {
 
-        private window: MatrixWindow;
-        public trainable: Trainable; // TODO: type
+        public trainable: Trainable;
         public clip_user_input: Clip;
 
+        private window: MatrixWindow;
         private notes_target_track: TreeModel.Node<Note>[];
         private track_target: Track;
         private track_user_input: Track;
@@ -451,9 +451,9 @@ export namespace trainer {
                 return
             }
 
-            let struct_parse = this.struct_train as StructParse;
+            let matrix_parse_forest = this.struct_train as MatrixParseForest;
 
-            let inputs_most_recent = struct_parse.get_most_recent_input(this.trainable);
+            let inputs_most_recent = matrix_parse_forest.get_most_recent_input(this.trainable);
 
             for (let i_input_most_recent in inputs_most_recent) {
                 let input_most_recent = inputs_most_recent[Number(i_input_most_recent)];

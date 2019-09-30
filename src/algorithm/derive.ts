@@ -16,8 +16,8 @@ export namespace derive {
     import MatrixIterator = iterate.MatrixIterator;
     import Note = note.Note;
     import DERIVE = trainable.DERIVE;
-    import ParseTree = parse.ParseTree;
-    import StructParse = parse.StructParse;
+    import ParseForest = parse.ParseForest;
+    import MatrixParseForest = parse.MatrixParseForest;
     import Segment = segment.Segment;
     import MatrixWindow = window.MatrixWindow;
     import SESSION = trainer.SESSION;
@@ -38,7 +38,7 @@ export namespace derive {
         }
 
         grow_layer(notes_user_input_renderable, notes_to_grow) {
-            ParseTree.add_layer(
+            ParseForest.add_layer(
                 notes_to_grow,
                 notes_user_input_renderable,
                 -1
@@ -58,10 +58,10 @@ export namespace derive {
             track_target.mute();
         }
 
-        preprocess_struct_parse(struct_parse: StructParse, segments: Segment[]): StructParse {
+        preprocess_matrix_parse_forest(matrix_parse_forest: MatrixParseForest, segments: Segment[]): MatrixParseForest {
             // add the root to the tree immediately
-            struct_parse.set_root(
-                ParseTree.create_root_from_segments(
+            matrix_parse_forest.set_root(
+                ParseForest.create_root_from_segments(
                     segments
                 )
             );
@@ -74,14 +74,14 @@ export namespace derive {
 
                 let coord_current_virtual = [0, Number(i_segment)];
 
-                struct_parse.add(
+                matrix_parse_forest.add(
                     [note],
                     coord_current_virtual,
                     this
                 );
             }
 
-            return struct_parse
+            return matrix_parse_forest
         }
 
         initialize_render(
@@ -92,7 +92,7 @@ export namespace derive {
         ): MatrixWindow {
             // first layer (root)
             window.add_note_to_clip_root(
-                StructParse.create_root_from_segments(
+                MatrixParseForest.create_root_from_segments(
                     segments
                 )
             );
@@ -117,7 +117,7 @@ export namespace derive {
             return window
         }
 
-        finish_parse(struct_parse: StructParse, segments: Segment[]): void {
+        finish_parse(matrix_parse_forest: MatrixParseForest, segments: Segment[]): void {
             return
         }
 
@@ -151,12 +151,12 @@ export namespace derive {
                 case 'reset': {
                     let coords_current = trainer.iterator_matrix_train.get_coord_current();
 
-                    let struct_parse = trainer.struct_train as StructParse;
+                    let matrix_parse_forest = trainer.struct_train as MatrixParseForest;
 
                     let notes_struct_above = this.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
 
                     trainer.clip_user_input.set_notes(
-                        struct_parse.get_notes_at_coord(notes_struct_above)
+                        matrix_parse_forest.get_notes_at_coord(notes_struct_above)
                     );
 
 

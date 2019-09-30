@@ -25,7 +25,7 @@ export namespace trainable {
     import HistoryUserInput = history.HistoryUserInput;
     import Scene = scene.Scene;
     import Track = track.Track;
-    import StructParse = parse.StructParse;
+    import MatrixParseForest = parse.MatrixParseForest;
     import Trainer = trainer.Trainer;
 
     export let DETECT = 'detect';
@@ -172,8 +172,8 @@ export namespace trainable {
 
     // interface common to both parse and derive, but have different implementations
     export interface Parsable extends Trainable {
-        preprocess_struct_parse(struct_parse, segments, track_target)
-        finish_parse(struct_parse: StructParse, segments: Segment[]): void;
+        preprocess_matrix_parse_forest(matrix_parse_forest, segments, track_target)
+        finish_parse(matrix_parse_forest: MatrixParseForest, segments: Segment[]): void;
         update_roots(coords_roots_previous: number[][], coords_notes_to_grow: number[][], coord_notes_current: number[])
         get_coords_notes_to_grow(coords_note_input_current): number[][]
         grow_layer(notes_user_input_renderable, notes_to_grow)

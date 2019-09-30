@@ -23,8 +23,8 @@ export namespace parse {
     import SESSION = trainer.SESSION;
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
-    import StructParse = module_parse.StructParse;
-    import ParseTree = module_parse.ParseTree;
+    import MatrixParseForest = module_parse.MatrixParseForest;
+    import ParseForest = module_parse.ParseForest;
 
     export class Parse extends Parsed {
 
@@ -41,7 +41,7 @@ export namespace parse {
         }
 
         grow_layer(notes_user_input_renderable, notes_to_grow) {
-            ParseTree.add_layer(
+            ParseForest.add_layer(
                 notes_user_input_renderable,
                 notes_to_grow,
                 -1
@@ -113,15 +113,15 @@ export namespace parse {
         ): MatrixWindow {
             // first layer
             window.add_note_to_clip_root(
-                StructParse.create_root_from_segments(
+                MatrixParseForest.create_root_from_segments(
                     segments
                 )
             );
 
             // @ts-ignore
-            let struct_parse = struct_train as StructParse;
+            let matrix_parse_forest = struct_train as MatrixParseForest;
 
-            struct_parse.regions_renderable.push(
+            matrix_parse_forest.regions_renderable.push(
                 [-1]
             );
 
@@ -147,7 +147,7 @@ export namespace parse {
                     )
                 );
 
-                struct_parse.regions_renderable.push(
+                matrix_parse_forest.regions_renderable.push(
                     this.coord_to_index_struct_train(
                         coord_current_virtual_second_layer
                     )
@@ -192,7 +192,7 @@ export namespace parse {
         // adding the leaf notes to the actual parse tree
         // DO NOT set the root or the segments as nodes immediately below that - do that at the end
         // set the leaf notes as the notes in the target track
-        preprocess_struct_parse(struct_parse: StructParse, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]) {
+        preprocess_matrix_parse_forest(matrix_parse_forest: MatrixParseForest, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]) {
             // this is to set the leaves as the notes of the target clip
 
             for (let i_segment in segments) {
@@ -204,7 +204,7 @@ export namespace parse {
 
                 let coord_parse_current_virtual_leaf = [this.depth - 1, Number(i_segment)];
 
-                struct_parse.add(
+                matrix_parse_forest.add(
                     notes,
                     coord_parse_current_virtual_leaf,
                     this,
@@ -212,10 +212,10 @@ export namespace parse {
                 );
             }
 
-            return struct_parse
+            return matrix_parse_forest
         }
 
-        finish_parse(struct_parse: StructParse, segments: Segment[]): void {
+        finish_parse(matrix_parse_forest: MatrixParseForest, segments: Segment[]): void {
 
             let coords_to_grow = [];
 
@@ -223,31 +223,31 @@ export namespace parse {
             for (let i_segment in segments) {
                 coords_to_grow.push([0, Number(i_segment)]);
                 let segment = segments[Number(i_segment)];
-                struct_parse.add(
+                matrix_parse_forest.add(
                     [segment.get_note()],
                     [0, Number(i_segment)],
                     this
                 );
             }
 
-            struct_parse.set_root(
-                StructParse.create_root_from_segments(
+            matrix_parse_forest.set_root(
+                MatrixParseForest.create_root_from_segments(
                     segments
                 )
             );
 
             for (let coord_to_grow of coords_to_grow) {
 
-                let notes_to_grow = struct_parse.get_notes_at_coord(coord_to_grow);
+                let notes_to_grow = matrix_parse_forest.get_notes_at_coord(coord_to_grow);
 
                 this.grow_layer(
-                    [struct_parse.get_root()],
+                    [matrix_parse_forest.root],
                     notes_to_grow
                 );
             }
 
-            struct_parse.coords_roots = this.update_roots(
-                struct_parse.coords_roots,
+            matrix_parse_forest.coords_roots = this.update_roots(
+                matrix_parse_forest.coords_roots,
                 coords_to_grow,
                 [-1]
             );
@@ -279,12 +279,12 @@ export namespace parse {
                 case 'reset': {
                     let coords_current = trainer.iterator_matrix_train.get_coord_current();
 
-                    let struct_parse = trainer.struct_train as StructParse;
+                    let matrix_parse_forest = trainer.struct_train as MatrixParseForest;
 
                     let notes_struct_below = this.coord_to_index_struct_train([coords_current[0] + 1, coords_current[1]]);
 
                     trainer.clip_user_input.set_notes(
-                        struct_parse.get_notes_at_coord(notes_struct_below)
+                        matrix_parse_forest.get_notes_at_coord(notes_struct_below)
                     );
 
                     break;

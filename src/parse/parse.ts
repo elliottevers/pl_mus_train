@@ -3,7 +3,6 @@ import TreeModel = require("tree-model");
 import {trainable} from "../algorithm/trainable";
 const _ = require("underscore");
 
-
 export namespace parse {
     import NoteRenderable = note.NoteRenderable;
     import Parsable = trainable.Parsable;
@@ -12,19 +11,19 @@ export namespace parse {
     import DERIVE = trainable.DERIVE;
     import Trainable = trainable.Trainable;
 
-    export abstract class ParseTree {
+    export abstract class ParseForest {
+        // this could presumably be null?  What if we have multiple roots, as suggested by coords_roots?
         root: TreeModel.Node<n.NoteRenderable>;
 
-        coords_roots: number[][]; // list of coordinates
+        // list of coordinates
+        // this structure has many parse trees, making it more of a ParseForest
+        coords_roots: number[][];
 
         constructor() {
 
         }
 
-        public get_root(): TreeModel.Node<n.NoteRenderable> {
-            return this.root
-        }
-
+        // happens at the end of a parse - builds the singular root note
         public static create_root_from_segments(segments): TreeModel.Node<n.NoteRenderable> {
             let note_segment_last = segments[segments.length - 1].get_note();
 
@@ -65,31 +64,36 @@ export namespace parse {
         };
     }
 
-    export class StructParse extends ParseTree {
+    // more of a MatrixParseForest
+    export class MatrixParseForest extends ParseForest {
 
         root: TreeModel.Node<n.NoteRenderable>;
 
-        matrix_leaves: TreeModel.Node<n.NoteRenderable>[][][];
+        elements: TreeModel.Node<n.NoteRenderable>[][][];
 
         // theoretically we can render these regions to the user
         regions_renderable: number[][];
 
         constructor(matrix) {
             super();
-            this.matrix_leaves = matrix;
+            this.elements = matrix;
             this.coords_roots = [];
             this.regions_renderable = [];
         }
 
+        // why are we storing the root separate from the elements?
+        // is this because the root (singular note per song) doesn't really have "segments"?
         public get_notes_at_coord(coord: number[]) {
+            // TODO: get rid of -1
             if (coord[0] === -1) {
                 return [this.root]
             } else {
-                return this.matrix_leaves[coord[0]][coord[1]]
+                return this.elements[coord[0]][coord[1]]
             }
         }
 
         public set_root(note) {
+            // TODO: get rid of -1
             let coord_root = [-1];
             this.root = NoteRenderable.from_note(note, coord_root);
             this.regions_renderable.push(coord_root);
@@ -107,7 +111,7 @@ export namespace parse {
                 return NoteRenderable.from_note(note, coords_parse)
             });
 
-            this.matrix_leaves[coords_parse[0]][coords_parse[1]] = notes_user_input_renderable;
+            this.elements[coords_parse[0]][coords_parse[1]] = notes_user_input_renderable;
 
             this.regions_renderable.push(coords_parse);
 
@@ -140,7 +144,7 @@ export namespace parse {
 
             // this row of the matrix should always contain the segments...
             let i_row_segments = 1;
-            let num_segments = this.matrix_leaves[i_row_segments].length;
+            let num_segments = this.elements[i_row_segments].length;
 
             let notes_leaf_segments = [];
 
@@ -150,6 +154,8 @@ export namespace parse {
 
                 let i_start, i_end, offset, direction_increment: any;
 
+                // TODO: put these in trainable
+                // TODO: use object deconstruction assignment
                 switch (trainable.get_name()) {
                     // upwards
                     case PARSE: {
@@ -172,7 +178,7 @@ export namespace parse {
                 }
 
                 for (let i_row of _.range(i_start, i_end)) {
-                    let notes_encountered = this.matrix_leaves[Number(i_row)][Number(i_col)];
+                    let notes_encountered = this.elements[Number(i_row)][Number(i_col)];
                     if (notes_encountered.length > 0) {
                         // we've input notes here....
                         notes_leaf_segment = notes_encountered;

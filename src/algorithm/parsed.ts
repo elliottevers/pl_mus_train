@@ -26,7 +26,7 @@ export namespace parsed {
     import Note = note.Note;
     import HistoryUserInput = history.HistoryUserInput;
     import Trainable = trainable.Trainable;
-    import StructParse = parse.StructParse;
+    import MatrixParseForest = parse.MatrixParseForest;
     import MatrixWindow = window.MatrixWindow;
     import Trainer = trainer.Trainer;
     import Track = track.Track;
@@ -47,9 +47,9 @@ export namespace parsed {
 
         update_struct(notes_input_user: TreeModel.Node<Note>[], struct_train: StructTrain, trainable: Trainable, iterator_matrix_train: MatrixIterator): StructTrain {
 
-            let struct_parse = struct_train as StructParse;
+            let matrix_parse_forest = struct_train as MatrixParseForest;
 
-            struct_parse.add(
+            matrix_parse_forest.add(
                 notes_input_user,
                 trainable.coord_to_index_struct_train(
                     iterator_matrix_train.get_coord_current()
@@ -57,7 +57,7 @@ export namespace parsed {
                 trainable as Parsable
             );
 
-            return struct_parse
+            return matrix_parse_forest
         }
 
         public abstract initialize_render(
@@ -100,6 +100,7 @@ export namespace parsed {
         }
 
         coord_to_index_clip_render(coord: number[]): number {
+            // TODO: get rid of -1
             if (coord[0] === -1) {
                 return 0
             } else {
@@ -107,8 +108,8 @@ export namespace parsed {
             }
         }
 
-        create_struct_parse(segments: Segment[]): StructParse {
-            return new StructParse(
+        create_matrix_parse_forest(segments: Segment[]): MatrixParseForest {
+            return new MatrixParseForest(
                 FactoryMatrixObjectives.create_matrix_parse(
                     this,
                     segments
@@ -128,7 +129,7 @@ export namespace parsed {
             ]
         }
 
-        finish_parse(struct_parse: parse.StructParse, segments: segment.Segment[]): void {
+        finish_parse(matrix_parse_forest: parse.MatrixParseForest, segments: segment.Segment[]): void {
         }
 
         public abstract get_coords_notes_to_grow(coords_note_input_current): number[][]
@@ -137,10 +138,10 @@ export namespace parsed {
 
 
         preprocess_struct_train(struct_train: StructTrain, segments: Segment[], notes_target_track: TreeModel.Node<Note>[]): StructTrain {
-            return this.preprocess_struct_parse(struct_train as StructParse, segments, notes_target_track)
+            return this.preprocess_matrix_parse_forest(struct_train as MatrixParseForest, segments, notes_target_track)
         }
 
-        public abstract preprocess_struct_parse(struct_parse, segments, track_target)
+        public abstract preprocess_matrix_parse_forest(matrix_parse_forest, segments, track_target)
 
         pause(song: Song, scene_current: Scene) {
 
@@ -175,7 +176,7 @@ export namespace parsed {
         }
 
         terminate(struct_train: StructTrain, segments: Segment[]) {
-            this.finish_parse(struct_train as StructParse, segments)
+            this.finish_parse(struct_train as MatrixParseForest, segments)
         }
 
         unpause(song: Song, scene_current: Scene) {
@@ -193,7 +194,7 @@ export namespace parsed {
         }
 
         create_struct_train(window: window.MatrixWindow, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
-            return this.create_struct_parse(segments);
+            return this.create_matrix_parse_forest(segments);
         }
 
         advance_scene(scene_current: scene.Scene, song: song.Song) {
@@ -228,7 +229,7 @@ export namespace parsed {
             return track_target.get_notes();
         }
 
-        restore(trainer: Trainer, segments_train: Segment[], matrix_deserialized: StructParse) {
+        restore(trainer: Trainer, segments_train: Segment[], matrix_deserialized: MatrixParseForest) {
             trainer.commence();
 
             let input_left = true;
