@@ -40,6 +40,7 @@ export namespace parse {
                         (note_segment_last.model.note.beat_start + note_segment_last.model.note.beats_duration) - note_segment_first.model.note.beat_start,
                         note_segment_last.model.note.velocity,
                         note_segment_last.model.note.muted,
+                        // TODO: -1
                         [-1]
                     ),
                     children: [
@@ -84,7 +85,7 @@ export namespace parse {
         // why are we storing the root separate from the elements?
         // is this because the root (singular note per song) doesn't really have "segments"?
         public get_notes_at_coord(coord: number[]) {
-            // TODO: get rid of -1
+            // TODO: -1
             if (coord[0] === -1) {
                 return [this.root]
             } else {
@@ -93,7 +94,7 @@ export namespace parse {
         }
 
         public set_root(note) {
-            // TODO: get rid of -1
+            // TODO: -1
             let coord_root = [-1];
             this.root = NoteRenderable.from_note(note, coord_root);
             this.regions_renderable.push(coord_root);

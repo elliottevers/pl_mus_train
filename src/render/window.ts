@@ -94,6 +94,7 @@ export namespace window {
             }
         }
 
+        // fine
         add_note_to_clip_root(note) {
             this.list_clips[0].set_notes(
                 [note]
@@ -224,11 +225,9 @@ export namespace window {
 
             for (let coord of matrix_parse_forest.coords_roots) {
 
-                let roots_parse_tree;
+                let roots_parse_forest = matrix_parse_forest.get_notes_at_coord(coord);
 
-                roots_parse_tree = matrix_parse_forest.get_notes_at_coord(coord);
-
-                for (let root of roots_parse_tree) {
+                for (let root of roots_parse_forest) {
                     root.walk((node)=>{
 
                         if (node.hasChildren()) {

@@ -169,6 +169,7 @@ export namespace iterate {
 
         public static get_coords_above(coord): number[][] {
             if (coord[0] === 0) {
+                // TODO: -1
                 return [[-1]]
             } else {
                 return [[coord[0] - 1, coord[1]]]

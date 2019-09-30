@@ -64,7 +64,6 @@ export namespace trainer {
 
         private counter_user_input: number;
         private limit_user_input: number;
-        private limit_input_reached: boolean;
 
         public segment_current: Segment;
         public target_current: Target;
@@ -395,11 +394,6 @@ export namespace trainer {
             this.counter_user_input++;
 
             if (this.counter_user_input >= this.limit_user_input) {
-                this.limit_input_reached = true
-            }
-
-            if (this.limit_input_reached) {
-                // completely ignore
                 return
             }
 
