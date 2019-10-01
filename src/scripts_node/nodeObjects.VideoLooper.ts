@@ -145,27 +145,53 @@ const max_api = require('max-api');
 
 let durationFrames = 0;
 
+let pointBeatEstimates = [];
+
+
+max_api.addHandler("processBeatRelative", (beat) => {
+    pointBeatEstimates = pointBeatEstimates.concat([[parseFloat(beat), 0]])
+});
+
 
 // actions
 let actionLoadVideo = 'loadVideo';
 let actionQueryLength = 'queryLength';
+let actionGetBeatEstimates = 'getBeatEstimates';
 
+
+// action handlers
 max_api.addHandler(actionLoadVideo, () => {
     sagaLoopVideo.next();
 });
 
 max_api.addHandler(actionQueryLength, (duration) => {
     durationFrames = duration;
+    // sagaLoopVideo.next(durationFrames);
     sagaLoopVideo.next(durationFrames);
+});
+
+max_api.addHandler(actionGetBeatEstimates, () => {
+    sagaLoopVideo.next();
 });
 
 
 let sagaLoopVideo = function* () {
     max_api.outlet(actionLoadVideo, 'read', '/Users/elliottevers/Downloads/white-t-shirt.mp4');
+
     yield;
+
     max_api.outlet(actionQueryLength, 'getduration');
-    let d = yield;
-    max_api.post("duration is " + d);
+    // let d = yield;
+    yield;
+    // max_api.post("duration is " + d);
+    max_api.outlet(actionGetBeatEstimates, 'getBeatEstimates');
+
+    yield;
+
+    for (let beat of pointBeatEstimates) {
+        max_api.post(beat);
+    }
+
 }();
 //
 // let start_saga_dance = () => {
