@@ -158,6 +158,7 @@ max_api.addHandler(actionGetTime, (f) => {
 
 });
 
+
 // workflow:
 // 1. load video
 // 2. set frame length
@@ -220,7 +221,7 @@ let sageFinalizeCuts = function* () {
 let sagaInitializeVideo = function* (pathVideo) {
     // max_api.outlet(actionLoadVideo, 'read', '/Users/elliottevers/Downloads/white-t-shirt.mp4');
 
-    video = new v.Video(pathVideo);
+    video = new v.Video(pathVideo, messenger);
 
     video.load();
 
