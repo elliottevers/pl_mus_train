@@ -8,4 +8,4 @@ test/*/*.js.map
 test/*/*.js
 dist
 *.DS_Store*
-max/export*
+max/export/scripts/*.js
