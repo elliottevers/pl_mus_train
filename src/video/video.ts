@@ -1,10 +1,13 @@
 import {name_objects_patcher} from "../constants/constants";
+import {message} from "../message/messenger";
 
 const _ = require('underscore');
 
 export namespace video {
 
-    import JIT_MOVIE = name_objects_patcher.JIT_MOVIE;
+    // import JIT_MOVIE = name_objects_patcher.JIT_MOVIE;
+
+    import Messenger = message.Messenger;
 
     type Frame = number;
 
@@ -16,23 +19,27 @@ export namespace video {
 
         private path_file: string;
 
-        private patcher: any;
+        private messenger: Messenger;
 
         private length: Frame;
 
-        constructor(path_file: string, patcher: any) {
+        constructor(path_file: string, messenger: Messenger) {
             this.path_file = path_file;
-            this.patcher = patcher;
+            this.messenger = messenger;
         }
 
-        public get_length(): Frame {
-            return this.patcher.getnamed(JIT_MOVIE).message();
-            return 0
+        public getLength(): Frame {
+            // this.messenger.message([0])
+            return this.length;
         }
 
+        public loadLength(): void {
+            this.messenger.message(['loadLength'])
+        }
     }
 
-    export class Looper {
+    // step function
+    export class Function {
 
         public static beat_to_point;
 
@@ -71,6 +78,71 @@ export namespace video {
         public update_cuts_from_loop(frame_loop_start: Frame, frame_loop_end: Frame): void {
             frame_loop_start/this.length_video
             frame_loop_end/this.length_video
+        }
+    }
+
+    export class Interval {
+        private start: number;
+        private end: number;
+
+        constructor(start: number, end: number) {
+            this.start = start;
+            this.end = end;
+        }
+
+        public get(): Array<number> {
+            return [this.start, this.end]
+        }
+    }
+
+    export class Iterator {
+
+        public intervals: Interval[];
+
+        i: number;
+
+        constructor(intervals: Interval[]) {
+            this.intervals = intervals;
+
+            this.i = -1;
+        }
+
+        public next() {
+            let value_increment = 1;
+
+            this.i += value_increment;
+
+            if (this.i < 0) {
+                throw 'interval iterator < 0'
+            }
+
+            if (this.i < this.intervals.length) {
+                return {
+                    value: this.intervals[this.i],
+                    done: false
+                }
+            } else {
+                return {
+                    value: null,
+                    done: true
+                }
+            }
+        }
+
+        public current() {
+            if (this.i > -1) {
+                return this.intervals[this.i];
+            } else {
+                return null;
+            }
+        }
+
+        public reset() {
+            this.i = -1;
+        }
+
+        public get_index_current() {
+            return this.i;
         }
     }
 }

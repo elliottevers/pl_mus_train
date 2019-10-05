@@ -1,3 +1,6 @@
+import {video} from "../video/video";
+import Video = video.Video;
+
 export {}
 const max_api = require('max-api');
 
@@ -129,6 +132,39 @@ const max_api = require('max-api');
 // // TODO: what about using libraries in between async calls?
 
 
+
+let durationFrames = 0;
+
+let pointBeatEstimates = [];
+
+
+
+max_api.addHandler("processBeatRelative", (beat) => {
+    pointBeatEstimates = pointBeatEstimates.concat([[parseFloat(beat), 0]])
+});
+
+// actions
+let actionLoadVideo = 'loadVideo';
+let actionQueryLength = 'loadLength';
+let actionGetBeatEstimates = 'getBeatEstimates';
+
+
+// action handlers
+max_api.addHandler(actionLoadVideo, () => {
+    sagaLoopVideo.next();
+});
+
+max_api.addHandler(actionQueryLength, (duration) => {
+    durationFrames = duration;
+    // sagaLoopVideo.next(durationFdrames);
+    sagaLoopVideo.next(durationFrames);
+});
+
+max_api.addHandler(actionGetBeatEstimates, () => {
+    sagaLoopVideo.next();
+});
+
+
 // workflow:
 // 1. load video
 // 2. set frame length
@@ -142,48 +178,27 @@ const max_api = require('max-api');
 // 6. hit play button
 
 
+let sagaLoopVideo = function* (pathVideo) {
+    // max_api.outlet(actionLoadVideo, 'read', '/Users/elliottevers/Downloads/white-t-shirt.mp4');
 
-let durationFrames = 0;
+    let video = new Video(pathVideo);
 
-let pointBeatEstimates = [];
-
-
-max_api.addHandler("processBeatRelative", (beat) => {
-    pointBeatEstimates = pointBeatEstimates.concat([[parseFloat(beat), 0]])
-});
-
-
-// actions
-let actionLoadVideo = 'loadVideo';
-let actionQueryLength = 'queryLength';
-let actionGetBeatEstimates = 'getBeatEstimates';
-
-
-// action handlers
-max_api.addHandler(actionLoadVideo, () => {
-    sagaLoopVideo.next();
-});
-
-max_api.addHandler(actionQueryLength, (duration) => {
-    durationFrames = duration;
-    // sagaLoopVideo.next(durationFrames);
-    sagaLoopVideo.next(durationFrames);
-});
-
-max_api.addHandler(actionGetBeatEstimates, () => {
-    sagaLoopVideo.next();
-});
-
-
-let sagaLoopVideo = function* () {
-    max_api.outlet(actionLoadVideo, 'read', '/Users/elliottevers/Downloads/white-t-shirt.mp4');
+    video.load();
 
     yield;
 
-    max_api.outlet(actionQueryLength, 'getduration');
+    // max_api.outlet(actionQueryLength, 'getduration');
+
+    video.loadLength();
+
     // let d = yield;
     yield;
+
+
+    // yield;
     // max_api.post("duration is " + d);
+
+
     max_api.outlet(actionGetBeatEstimates, 'getBeatEstimates');
 
     yield;
@@ -200,6 +215,6 @@ let sagaLoopVideo = function* () {
 //     // saga_dance.next();
 // };
 
-max_api.addHandler("startSaga", () => {
-    sagaLoopVideo.next();
+max_api.addHandler("startSaga", (pathVideo) => {
+    sagaLoopVideo.next(pathVideo);
 });
