@@ -1,1 +1,0 @@
-Global.init_abstraction.patcher = this.patcher;

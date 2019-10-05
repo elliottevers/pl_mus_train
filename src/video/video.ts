@@ -10,11 +10,12 @@ export namespace video {
 
     export type Percentile = number;
 
-    export type FramePositionPercentile = Percentile;
+    // TODO: confirm FramePositionPercentile = BeatPositionPercentile
+    // export type FramePositionPercentile = Percentile;
 
-    export type BeatPositionPercentile = Percentile;
+    // export type BeatPositionPercentile = Percentile;
 
-    export type Point = [FramePositionPercentile, number];  // the second value is the height
+    export type Point = [Percentile, number];  // the second value is the height
 
     export class Video {
 
@@ -24,14 +25,14 @@ export namespace video {
 
         private duration: Frame;
 
-        private beatEstimatesRelative: BeatPositionPercentile[];
+        private beatEstimatesRelative: Percentile[];
 
         constructor(path_file: string, messenger: Messenger) {
             this.path_file = path_file;
             this.messenger = messenger;
         }
 
-        public setBeatEstimatesRelative(beatsRelative: BeatPositionPercentile[]): void {
+        public setBeatEstimatesRelative(beatsRelative: Percentile[]): void {
             this.beatEstimatesRelative = beatsRelative;
         }
 
@@ -52,7 +53,7 @@ export namespace video {
             this.messenger.message(['loadDuration'])
         }
 
-        public getIntervals(): Interval<BeatPositionPercentile>[] {
+        public getIntervals(): Interval<Percentile>[] {
 
             return []
         }
@@ -91,7 +92,6 @@ export namespace video {
         public getCuts(): Point[] {
             return this.cuts;
         }
-
 
         // private length_video: Frame;
         //

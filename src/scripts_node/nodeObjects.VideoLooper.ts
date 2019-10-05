@@ -1,7 +1,7 @@
 import {video as v} from "../video/video";
 import BreakpointFunction = v.BreakpointFunction;
 import Point = v.Point;
-import BeatPositionPercentile = v.BeatPositionPercentile;
+import Percentile = v.Percentile;
 import Interval = v.Interval;
 import Frame = v.Frame;
 import {message} from "../message/messenger";
@@ -11,32 +11,12 @@ export {}
 const max_api = require('max-api');
 
 
-
-
 // let set_bars = () => {
 //     for (let bar of looper_video.get_bars()) {
 //         messenger.message(['point'].concat(bar))
 //     }
 // };
 
-// let point_beat_estimates: Array<Array<number>> = [];
-//
-// let points: Array<Array<number>> = [];
-//
-// let frame_duples: Array<Array<number>> = [];
-//
-// let bars: Array<number> = [];
-//
-// let done = false;
-//
-// let i_current = -1;
-//
-// let length_frames;
-//
-// let set_length_frames = (val) => {
-//     length_frames = val
-// };
-//
 // let looppoints = (frame_loop_begin, frame_loop_end) => {
 //     messenger.message(
 //         [
@@ -54,15 +34,7 @@ const max_api = require('max-api');
 //         ]
 //     );
 // };
-//
-// let next = () => {
-//     if (!done) {
-//         i_current += 1;
-//         done = i_current > frame_duples.length - 1;
-//         set_loop_endpoints()
-//     }
-// };
-//
+
 // let affirm_cuts = () => {
 //     calculate_frame_duples()
 // };
@@ -83,16 +55,6 @@ const max_api = require('max-api');
 // let parse_dump = (x: string, y: string) => {
 //     points = points.concat([[parseFloat(x), parseFloat(y)]])
 // };
-//
-// let clear_points = () => {
-//     points = []
-// };
-//
-// let clear_beats = () => {
-//     point_beat_estimates = []
-// };
-//
-//
 // let quantize_point = (beat_raw) => {
 //     let beat_quantized =  bars.reduce(function(prev, curr) {
 //         return (Math.abs(curr - beat_raw) < Math.abs(prev - beat_raw) ? curr : prev);
@@ -117,29 +79,9 @@ const max_api = require('max-api');
 //     }
 // };
 //
-// let process_beat_relative = (beat_relative: string) => {
-//     point_beat_estimates = point_beat_estimates.concat([[parseFloat(beat_relative), 0]])
-// };
-//
-// let test = () => {
-//
-// };
 
 
-
-// let receive_message_saga = (name_saga, val_saga) => {
-//     // post(Global);
-//     // this["test"]()
-//     // eval(name_saga + ".next();")
-//     // saga_dance.next()
-// };
-//
-// // TODO: do we ever need to use yield to set value of variable?
-// // TODO: what about using libraries in between async calls?
-
-
-
-let beatEstimatesRelative: BeatPositionPercentile[] = [];
+let beatEstimatesRelative: Percentile[] = [];
 
 let cuts: Point[] = [];
 
@@ -150,6 +92,8 @@ let video: v.Video;
 let breakpointFunction: BreakpointFunction;
 
 let intervalIterator: v.Iterator<Interval<Frame>>;
+
+let frameCurrent: Frame;
 
 
 max_api.addHandler("processBeatRelative", (beat) => {
@@ -169,6 +113,10 @@ max_api.addHandler("processCut", (x, y) => {
     cuts = cuts.concat([parseFloat(x), parseFloat(y)])
 });
 
+max_api.addHandler("addCutButton", () => {
+    sagaSetCutButton.next();
+});
+
 // actions
 let actionLoadVideo = 'loadVideo';
 let actionQueryLength = 'loadLength';
@@ -178,6 +126,8 @@ let actionUpdateCuts = 'updateCuts';
 
 let actionAdvanceInterval = 'advanceInterval';
 
+let actionGetTime = 'getTime';
+
 
 // action handlers
 max_api.addHandler(actionLoadVideo, () => {
@@ -185,14 +135,11 @@ max_api.addHandler(actionLoadVideo, () => {
 });
 
 max_api.addHandler(actionQueryLength, (duration) => {
-    // durationFrames = duration;
     video.setDuration(duration);
-    // sagaLoopVideo.next(durationFrames);
     sagaInitializeVideo.next();
 });
 
 max_api.addHandler(actionBeatEstimationDone, () => {
-    // video.setBeatEstimates()
     video.setBeatEstimatesRelative(beatEstimatesRelative);
     sagaInitializeVideo.next();
 });
@@ -206,6 +153,10 @@ max_api.addHandler(actionAdvanceInterval, () => {
     intervalIterator.next();
 });
 
+max_api.addHandler(actionGetTime, (f) => {
+    frameCurrent = f
+
+});
 
 // workflow:
 // 1. load video
@@ -218,6 +169,14 @@ max_api.addHandler(actionAdvanceInterval, () => {
 // 4. affirm cut points
 // 5. start iteration
 // 6. hit play button
+
+let sagaSetCutButton = function* () {
+    messenger.message(['gettime']);
+
+    yield;
+
+    messenger.message(['setCutButton', frameCurrent/video.getDuration()]);
+}();
 
 let sagaLoopVideo = function* () {
 
@@ -253,7 +212,6 @@ let sagaLoopVideo = function* () {
 let sageFinalizeCuts = function* () {
 
     yield;
-
 
 
 }();
