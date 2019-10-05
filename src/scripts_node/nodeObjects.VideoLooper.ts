@@ -135,18 +135,20 @@ const max_api = require('max-api');
 
 let durationFrames = 0;
 
-let pointBeatEstimates = [];
+let beatEstimatesRelative = [];
 
+
+let video: Video;
 
 
 max_api.addHandler("processBeatRelative", (beat) => {
-    pointBeatEstimates = pointBeatEstimates.concat([[parseFloat(beat), 0]])
+    beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
 });
 
 // actions
 let actionLoadVideo = 'loadVideo';
 let actionQueryLength = 'loadLength';
-let actionGetBeatEstimates = 'getBeatEstimates';
+let actionBeatEstimationDone = 'beatEstimationDone';
 
 
 // action handlers
@@ -155,12 +157,15 @@ max_api.addHandler(actionLoadVideo, () => {
 });
 
 max_api.addHandler(actionQueryLength, (duration) => {
-    durationFrames = duration;
+    // durationFrames = duration;
+    video.setDuration(duration);
     // sagaLoopVideo.next(durationFdrames);
     sagaLoopVideo.next(durationFrames);
 });
 
-max_api.addHandler(actionGetBeatEstimates, () => {
+max_api.addHandler(actionBeatEstimationDone, () => {
+    // video.setBeatEstimates()
+    video.setBeatEstimatesRelative(beatEstimatesRelative);
     sagaLoopVideo.next();
 });
 
@@ -181,7 +186,7 @@ max_api.addHandler(actionGetBeatEstimates, () => {
 let sagaLoopVideo = function* (pathVideo) {
     // max_api.outlet(actionLoadVideo, 'read', '/Users/elliottevers/Downloads/white-t-shirt.mp4');
 
-    let video = new Video(pathVideo);
+    video = new Video(pathVideo);
 
     video.load();
 
@@ -194,12 +199,10 @@ let sagaLoopVideo = function* (pathVideo) {
     // let d = yield;
     yield;
 
-
     // yield;
     // max_api.post("duration is " + d);
 
-
-    max_api.outlet(actionGetBeatEstimates, 'getBeatEstimates');
+    max_api.outlet('getBeatEstimates', 'bang');
 
     yield;
 

@@ -1,4 +1,3 @@
-import {name_objects_patcher} from "../constants/constants";
 import {message} from "../message/messenger";
 
 const _ = require('underscore');
@@ -15,26 +14,42 @@ export namespace video {
 
     type BeatPositionPercentile = number;
 
+    type Point = [number, number];
+
     export class Video {
 
         private path_file: string;
 
         private messenger: Messenger;
 
-        private length: Frame;
+        private duration: Frame;
+
+        private beatEstimatesRelative: BeatPositionPercentile[];
 
         constructor(path_file: string, messenger: Messenger) {
             this.path_file = path_file;
             this.messenger = messenger;
         }
 
-        public getLength(): Frame {
-            // this.messenger.message([0])
-            return this.length;
+        public setBeatEstimatesRelative(beatsRelative: BeatPositionPercentile[]): void {
+            this.beatEstimatesRelative = beatsRelative;
         }
 
-        public loadLength(): void {
-            this.messenger.message(['loadLength'])
+        public load(): void {
+            // TODO:
+        }
+
+        public getDuration(): Frame {
+            // this.messenger.message([0])
+            return this.duration;
+        }
+
+        public setDuration(duration: Frame): void {
+            this.duration = duration;
+        }
+
+        public loadDuration(): void {
+            this.messenger.message(['loadDuration'])
         }
     }
 
