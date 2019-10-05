@@ -171,26 +171,26 @@ let actionUpdateCuts = 'updateCuts';
 
 // action handlers
 max_api.addHandler(actionLoadVideo, () => {
-    sagaLoopVideo.next();
+    sagaInitializeVideo.next();
 });
 
 max_api.addHandler(actionQueryLength, (duration) => {
     // durationFrames = duration;
     video.setDuration(duration);
     // sagaLoopVideo.next(durationFrames);
-    sagaLoopVideo.next();
+    sagaInitializeVideo.next();
 });
 
 max_api.addHandler(actionBeatEstimationDone, () => {
     // video.setBeatEstimates()
     video.setBeatEstimatesRelative(beatEstimatesRelative);
-    sagaLoopVideo.next();
+    sagaInitializeVideo.next();
 });
 
 max_api.addHandler(actionCutsFinalized, () => {
     // video.setBeatEstimates()
     // video.setBeatEstimatesRelative(beatEstimatesRelative);
-    sagaLoopVideo.next();
+    sageFinalizeCuts.next();
 });
 
 
@@ -206,8 +206,27 @@ max_api.addHandler(actionCutsFinalized, () => {
 // 5. start iteration
 // 6. hit play button
 
+let sageLoopVideo = function* () {
 
-let sagaLoopVideo = function* (pathVideo) {
+    let intervalIterator: //Iterator
+
+    yield;
+
+
+
+}();
+
+
+let sageFinalizeCuts = function* () {
+
+    yield;
+
+
+
+}();
+
+
+let sagaInitializeVideo = function* (pathVideo) {
     // max_api.outlet(actionLoadVideo, 'read', '/Users/elliottevers/Downloads/white-t-shirt.mp4');
 
     video = new v.Video(pathVideo);
@@ -255,5 +274,5 @@ let sagaLoopVideo = function* (pathVideo) {
 // };
 
 max_api.addHandler("startSaga", (pathVideo) => {
-    sagaLoopVideo.next(pathVideo);
+    sagaInitializeVideo.next(pathVideo);
 });

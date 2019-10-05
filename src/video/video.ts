@@ -145,15 +145,14 @@ export namespace video {
         }
     }
 
-    export class Iterator {
+    export class Iterator<T> {
 
-        public intervals: Interval<Frame>[];
+        data: Array<T>;
 
         i: number;
 
-        constructor(intervals: Interval<Frame>[]) {
-            this.intervals = intervals;
-
+        constructor(data: Array<T>) {
+            this.data = data;
             this.i = -1;
         }
 
@@ -166,9 +165,9 @@ export namespace video {
                 throw 'interval iterator < 0'
             }
 
-            if (this.i < this.intervals.length) {
+            if (this.i < this.data.length) {
                 return {
-                    value: this.intervals[this.i],
+                    value: this.data[this.i],
                     done: false
                 }
             } else {
@@ -181,7 +180,7 @@ export namespace video {
 
         public current() {
             if (this.i > -1) {
-                return this.intervals[this.i];
+                return this.data[this.i];
             } else {
                 return null;
             }
