@@ -2,6 +2,8 @@ import {video as v} from "../video/video";
 import BreakpointFunction = v.BreakpointFunction;
 import Point = v.Point;
 import BeatPositionPercentile = v.BeatPositionPercentile;
+import Interval = v.Interval;
+import Frame = v.Frame;
 
 export {}
 const max_api = require('max-api');
@@ -208,7 +210,21 @@ max_api.addHandler(actionCutsFinalized, () => {
 
 let sageLoopVideo = function* () {
 
-    let intervalIterator: //Iterator
+    let intervalIterator: v.Iterator<Interval<Frame>> = new v.Iterator<Interval<Frame>>(
+        v.Iterator.createIntervals<Frame>(
+            v.Video.framesFromPercentiles(
+                breakpointFunction.getCuts().map((c) => {
+                    return c[0]
+                }),
+                video.getDuration()
+            )
+        ).map(duple => {
+            return new Interval<Frame>(
+                duple[0],
+                duple[1]
+            )
+        })
+    );
 
     yield;
 

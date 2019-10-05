@@ -4,19 +4,17 @@ const _ = require('underscore');
 
 export namespace video {
 
-    // import JIT_MOVIE = name_objects_patcher.JIT_MOVIE;
-
     import Messenger = message.Messenger;
 
-    type Frame = number;
+    export type Frame = number;
 
-    type Percentile = number;
+    export type Percentile = number;
 
-    type FramePositionPercentile = Percentile;
+    export type FramePositionPercentile = Percentile;
 
     export type BeatPositionPercentile = Percentile;
 
-    export type Point = [number, number];
+    export type Point = [FramePositionPercentile, number];  // the second value is the height
 
     export class Video {
 
@@ -58,78 +56,73 @@ export namespace video {
 
             return []
         }
+
+        public static framesFromPercentiles(
+            percentiles: Percentile[],
+            duration: Frame
+        ): Frame[] {
+            return percentiles.map((p) => {
+                return p * duration
+            })
+        }
     }
 
     // step function
     export class BreakpointFunction {
 
-        public static beat_to_point;
-
-        private beat_estimates: BeatPositionPercentile[];
-
-        private bars: number[];
+        // public static beat_to_point;
+        //
+        // private beat_estimates: BeatPositionPercentile[];
+        //
+        // private bars: number[];
 
         // list of duples of floats
-        private cuts: FramePositionPercentile[][];
+        // private cuts: FramePositionPercentile[][];
+        private cuts: Point[];
 
-        private length_video: Frame;
-
-        public set_beat_estimates(estimates_beat_position_percentile: number[]) {
-            this.beat_estimates = estimates_beat_position_percentile;
-        }
-
-        private beats_to_bars(beats: BeatPositionPercentile[]): number[] {
-            let bars = [];
-            for (let i_point in beats) {
-                if (parseInt(i_point) % 4 == 0) {
-                    bars.push(beats[i_point])
-                }
-            }
-            return bars;
-        }
-
-        public get_bar() {
-            return this.beat_estimates
-        }
-
-        // create rightmost cut from current playback time
-        public add_cut() {
+        public dump() {
 
         }
 
-        public update_cuts_from_loop(frame_loop_start: Frame, frame_loop_end: Frame): void {
-            frame_loop_start/this.length_video
-            frame_loop_end/this.length_video
+        public setCuts(cuts: Point[]): void {
+            this.cuts = cuts;
         }
+
+        public getCuts(): Point[] {
+            return this.cuts;
+        }
+
+
+        // private length_video: Frame;
+        //
+        // public set_beat_estimates(estimates_beat_position_percentile: number[]) {
+        //     this.beat_estimates = estimates_beat_position_percentile;
+        // }
+        //
+        // private beats_to_bars(beats: BeatPositionPercentile[]): number[] {
+        //     let bars = [];
+        //     for (let i_point in beats) {
+        //         if (parseInt(i_point) % 4 == 0) {
+        //             bars.push(beats[i_point])
+        //         }
+        //     }
+        //     return bars;
+        // }
+        //
+        // public get_bar() {
+        //     return this.beat_estimates
+        // }
+        //
+        // // create rightmost cut from current playback time
+        // public add_cut() {
+        //
+        // }
+        //
+        // public update_cuts_from_loop(frame_loop_start: Frame, frame_loop_end: Frame): void {
+        //     frame_loop_start/this.length_video
+        //     frame_loop_end/this.length_video
+        // }
     }
-
-    // export class PercentileInterval {
-    //     private start: Frame;
-    //     private end: Frame;
-    //
-    //     constructor(start: Frame, end: Frame) {
-    //         this.start = start;
-    //         this.end = end;
-    //     }
-    //
-    //     public get(): [Frame, Frame] {
-    //         return [this.start, this.end]
-    //     }
-    // }
-    //
-    // export class FrameInterval {
-    //     private start: Frame;
-    //     private end: Frame;
-    //
-    //     constructor(start: Frame, end: Frame) {
-    //         this.start = start;
-    //         this.end = end;
-    //     }
-    //
-    //     public get(): [Frame, Frame] {
-    //         return [this.start, this.end]
-    //     }
-    // }
 
     export class Interval<T> {
         private start: T;
@@ -162,7 +155,7 @@ export namespace video {
             this.i += value_increment;
 
             if (this.i < 0) {
-                throw 'interval iterator < 0'
+                throw 'iterator < 0'
             }
 
             if (this.i < this.data.length) {
@@ -190,8 +183,21 @@ export namespace video {
             this.i = -1;
         }
 
-        public get_index_current() {
+        public getIndexCurrent() {
             return this.i;
+        }
+
+        public static createIntervals<T>(endpoints: T[]) {
+            let intervals: [T, T][] = [];
+            for (let iEndpoint in endpoints.slice(0, -1)) {
+                intervals.push(
+                    [
+                        endpoints[Number(iEndpoint)],
+                        endpoints[Number(iEndpoint) + 1]
+                    ]
+                )
+            }
+            return intervals;
         }
     }
 }
