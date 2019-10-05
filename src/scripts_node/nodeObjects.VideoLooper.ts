@@ -4,6 +4,8 @@ import Point = v.Point;
 import BeatPositionPercentile = v.BeatPositionPercentile;
 import Interval = v.Interval;
 import Frame = v.Frame;
+import {message} from "../message/messenger";
+import Messenger = message.Messenger;
 
 export {}
 const max_api = require('max-api');
@@ -141,9 +143,13 @@ let beatEstimatesRelative: BeatPositionPercentile[] = [];
 
 let cuts: Point[] = [];
 
+let messenger = new Messenger('node_for_max', 0);
+
 let video: v.Video;
 
 let breakpointFunction: BreakpointFunction;
+
+let intervalIterator: v.Iterator<Interval<Frame>>;
 
 
 max_api.addHandler("processBeatRelative", (beat) => {
@@ -170,6 +176,8 @@ let actionBeatEstimationDone = 'beatEstimationDone';
 let actionCutsFinalized = 'cutsFinalized';
 let actionUpdateCuts = 'updateCuts';
 
+let actionAdvanceInterval = 'advanceInterval';
+
 
 // action handlers
 max_api.addHandler(actionLoadVideo, () => {
@@ -190,9 +198,12 @@ max_api.addHandler(actionBeatEstimationDone, () => {
 });
 
 max_api.addHandler(actionCutsFinalized, () => {
-    // video.setBeatEstimates()
-    // video.setBeatEstimatesRelative(beatEstimatesRelative);
     sageFinalizeCuts.next();
+});
+
+
+max_api.addHandler(actionAdvanceInterval, () => {
+    intervalIterator.next();
 });
 
 
@@ -208,9 +219,9 @@ max_api.addHandler(actionCutsFinalized, () => {
 // 5. start iteration
 // 6. hit play button
 
-let sageLoopVideo = function* () {
+let sagaLoopVideo = function* () {
 
-    let intervalIterator: v.Iterator<Interval<Frame>> = new v.Iterator<Interval<Frame>>(
+    intervalIterator = new v.Iterator<Interval<Frame>>(
         v.Iterator.createIntervals<Frame>(
             v.Video.framesFromPercentiles(
                 breakpointFunction.getCuts().map((c) => {
@@ -226,9 +237,15 @@ let sageLoopVideo = function* () {
         })
     );
 
+    let res = intervalIterator.next();
+
+    let intervalFirst = res.value;
+
+    messenger.message(['looppoints'].concat(intervalFirst.getInterval().map((n) => {return String(n)})));
+
     yield;
 
-
+    // TODO: anything?
 
 }();
 
@@ -282,13 +299,7 @@ let sagaInitializeVideo = function* (pathVideo) {
     // TODO: set cut, confirm (most recent) cut, delete (most recent) cut
 
 }();
-//
-// let start_saga_dance = () => {
-//     saga_dance.next();
-//     // saga_dance.next();
-//     // saga_dance.next();
-// };
 
-max_api.addHandler("startSaga", (pathVideo) => {
+max_api.addHandler("startSagaInitializeVideo", (pathVideo) => {
     sagaInitializeVideo.next(pathVideo);
 });
