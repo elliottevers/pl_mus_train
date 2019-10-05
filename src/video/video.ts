@@ -10,11 +10,13 @@ export namespace video {
 
     type Frame = number;
 
-    type FramePositionPercentile = number;
+    type Percentile = number;
 
-    type BeatPositionPercentile = number;
+    type FramePositionPercentile = Percentile;
 
-    type Point = [number, number];
+    export type BeatPositionPercentile = Percentile;
+
+    export type Point = [number, number];
 
     export class Video {
 
@@ -51,10 +53,15 @@ export namespace video {
         public loadDuration(): void {
             this.messenger.message(['loadDuration'])
         }
+
+        public getIntervals(): Interval<BeatPositionPercentile>[] {
+
+            return []
+        }
     }
 
     // step function
-    export class Function {
+    export class BreakpointFunction {
 
         public static beat_to_point;
 
@@ -96,27 +103,55 @@ export namespace video {
         }
     }
 
-    export class Interval {
-        private start: number;
-        private end: number;
+    // export class PercentileInterval {
+    //     private start: Frame;
+    //     private end: Frame;
+    //
+    //     constructor(start: Frame, end: Frame) {
+    //         this.start = start;
+    //         this.end = end;
+    //     }
+    //
+    //     public get(): [Frame, Frame] {
+    //         return [this.start, this.end]
+    //     }
+    // }
+    //
+    // export class FrameInterval {
+    //     private start: Frame;
+    //     private end: Frame;
+    //
+    //     constructor(start: Frame, end: Frame) {
+    //         this.start = start;
+    //         this.end = end;
+    //     }
+    //
+    //     public get(): [Frame, Frame] {
+    //         return [this.start, this.end]
+    //     }
+    // }
 
-        constructor(start: number, end: number) {
+    export class Interval<T> {
+        private start: T;
+        private end: T;
+
+        constructor(start: T, end: T) {
             this.start = start;
             this.end = end;
         }
 
-        public get(): Array<number> {
+        public getInterval(): [T, T] {
             return [this.start, this.end]
         }
     }
 
     export class Iterator {
 
-        public intervals: Interval[];
+        public intervals: Interval<Frame>[];
 
         i: number;
 
-        constructor(intervals: Interval[]) {
+        constructor(intervals: Interval<Frame>[]) {
             this.intervals = intervals;
 
             this.i = -1;

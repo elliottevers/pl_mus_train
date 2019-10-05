@@ -1,5 +1,7 @@
-import {video} from "../video/video";
-import Video = video.Video;
+import {video as v} from "../video/video";
+import BreakpointFunction = v.BreakpointFunction;
+import Point = v.Point;
+import BeatPositionPercentile = v.BeatPositionPercentile;
 
 export {}
 const max_api = require('max-api');
@@ -133,22 +135,38 @@ const max_api = require('max-api');
 
 
 
-let durationFrames = 0;
+let beatEstimatesRelative: BeatPositionPercentile[] = [];
 
-let beatEstimatesRelative = [];
+let cuts: Point[] = [];
 
+let video: v.Video;
 
-let video: Video;
+let breakpointFunction: BreakpointFunction;
 
 
 max_api.addHandler("processBeatRelative", (beat) => {
     beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
 });
 
+max_api.addHandler("processUpdateCuts", () => {
+    // beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
+    breakpointFunction.dump();  // NB: async
+    cuts = [];
+});
+
+max_api.addHandler("processCut", (x, y) => {
+    // beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
+    // breakpointFunction.dump();  // NB: async
+    // cuts = [];
+    cuts = cuts.concat([parseFloat(x), parseFloat(y)])
+});
+
 // actions
 let actionLoadVideo = 'loadVideo';
 let actionQueryLength = 'loadLength';
 let actionBeatEstimationDone = 'beatEstimationDone';
+let actionCutsFinalized = 'cutsFinalized';
+let actionUpdateCuts = 'updateCuts';
 
 
 // action handlers
@@ -159,13 +177,19 @@ max_api.addHandler(actionLoadVideo, () => {
 max_api.addHandler(actionQueryLength, (duration) => {
     // durationFrames = duration;
     video.setDuration(duration);
-    // sagaLoopVideo.next(durationFdrames);
-    sagaLoopVideo.next(durationFrames);
+    // sagaLoopVideo.next(durationFrames);
+    sagaLoopVideo.next();
 });
 
 max_api.addHandler(actionBeatEstimationDone, () => {
     // video.setBeatEstimates()
     video.setBeatEstimatesRelative(beatEstimatesRelative);
+    sagaLoopVideo.next();
+});
+
+max_api.addHandler(actionCutsFinalized, () => {
+    // video.setBeatEstimates()
+    // video.setBeatEstimatesRelative(beatEstimatesRelative);
     sagaLoopVideo.next();
 });
 
@@ -186,7 +210,7 @@ max_api.addHandler(actionBeatEstimationDone, () => {
 let sagaLoopVideo = function* (pathVideo) {
     // max_api.outlet(actionLoadVideo, 'read', '/Users/elliottevers/Downloads/white-t-shirt.mp4');
 
-    video = new Video(pathVideo);
+    video = new v.Video(pathVideo);
 
     video.load();
 
@@ -194,7 +218,7 @@ let sagaLoopVideo = function* (pathVideo) {
 
     // max_api.outlet(actionQueryLength, 'getduration');
 
-    video.loadLength();
+    video.loadDuration();
 
     // let d = yield;
     yield;
@@ -206,9 +230,21 @@ let sagaLoopVideo = function* (pathVideo) {
 
     yield;
 
-    for (let beat of pointBeatEstimates) {
-        max_api.post(beat);
-    }
+    // for (let beat of pointBeatEstimates) {
+    //     max_api.post(beat);
+    // }
+
+
+    // ready for snapping
+    video.setBeatEstimatesRelative(beatEstimatesRelative);
+
+    yield;
+
+    breakpointFunction = new BreakpointFunction();
+
+    yield;
+
+    // TODO: set cut, confirm (most recent) cut, delete (most recent) cut
 
 }();
 //
