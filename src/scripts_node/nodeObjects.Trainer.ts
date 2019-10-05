@@ -54,25 +54,11 @@ import {targeted} from "../algorithm/targeted";
 import Targeted = targeted.Targeted;
 import {freestyle} from "../algorithm/freestyle";
 import Freestyle = freestyle.Freestyle;
+
 const _ = require('underscore');
+const max_api = require('max-api');
 
-declare let autowatch: any;
-declare let inlets: any;
-declare let outlets: any;
-declare function outlet(n: number, o: any): void;
-declare function post(message?: any): void;
-declare let Dict: any;
-
-export {}
-
-declare let Global: any;
-
-let env: string = 'max';
-
-if (env === 'max') {
-    post('recompile successful');
-    autowatch = 1;
-}
+let env: string = 'node_for_max';
 
 let messenger_render = new Messenger(env, 0, 'render');
 let messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
@@ -80,7 +66,7 @@ let messenger_num_segments = new Messenger(env, 0, 'num_segments');
 let mode_texture, mode_control, song, algorithm_train, user_input_handler, window, segments_train, trainer, direction;
 let track_target: Track, track_user_input: Track;
 
-let set_mode_texture = (option) => {
+max_api.addHandler('set_mode_texture', (option) => {
     switch (option) {
         case POLYPHONY: {
             mode_texture = POLYPHONY;
@@ -91,12 +77,12 @@ let set_mode_texture = (option) => {
             break;
         }
         default: {
-            post('error setting texture')
+            max_api.post('error setting texture')
         }
     }
-};
+});
 
-let set_mode_control = (option) => {
+max_api.addHandler('set_mode_control', (option) => {
     switch (option) {
         case VOCAL: {
             mode_control = VOCAL;
@@ -107,12 +93,12 @@ let set_mode_control = (option) => {
             break;
         }
         default: {
-            post('error setting control')
+            max_api.post('error setting control')
         }
     }
-};
+});
 
-let set_algorithm_train = (option) => {
+max_api.addHandler('set_algorithm_train', (option) => {
 
     switch (option) {
         case FREESTYLE: {
@@ -136,7 +122,7 @@ let set_algorithm_train = (option) => {
             break;
         }
         default: {
-            post('error setting algorithm')
+            max_api.post('error setting algorithm')
         }
     }
 
@@ -145,13 +131,38 @@ let set_algorithm_train = (option) => {
         384*2*2,
         messenger_render
     );
-};
+});
 
-let set_depth_tree = (depth) => {
+max_api.addHandler('set_depth_tree', (depth: number) => {
     algorithm_train.set_depth(
         depth
     );
-};
+});
+
+// TODO: send this via bus based on options in radio
+max_api.addHandler('set_track_target', () => {
+    // @ts-ignore
+    let list_path_device_target = Array.prototype.slice.call(arguments);
+
+    let path_device_target = utils.cleanse_path(list_path_device_target.join(' '));
+
+    track_target = new Track(
+        new TrackDao(
+            new live.LiveApiJs(
+                utils.get_path_track_from_path_device(path_device_target)
+            ),
+            new Messenger(env, 0),
+            true,
+            'track_target'
+        )
+    );
+
+    track_target.set_path_deferlow('track_target');
+
+    track_target.load_clips();
+
+    messenger_monitor_target.message([track_target.get_index()])
+});
 
 let set_segments = () => {
 
@@ -220,34 +231,6 @@ let set_segments = () => {
     segments_train = segments
 };
 
-let test = () => {
-
-};
-
-// TODO: send this via bus based on options in radio
-let set_track_target = () => {
-    // @ts-ignore
-    let list_path_device_target = Array.prototype.slice.call(arguments);
-
-    let path_device_target = utils.cleanse_path(list_path_device_target.join(' '));
-
-    track_target = new Track(
-        new TrackDao(
-            new live.LiveApiJs(
-                utils.get_path_track_from_path_device(path_device_target)
-            ),
-            new Messenger(env, 0),
-            true,
-            'track_target'
-        )
-    );
-
-    track_target.set_path_deferlow('track_target');
-
-    track_target.load_clips();
-
-    messenger_monitor_target.message([track_target.get_index()])
-};
 
 let set_track_user_input = () => {
     let this_device = new live.LiveApiJs('this_device');
@@ -289,7 +272,7 @@ let set_song = () => {
     song.set_path_deferlow('song');
 };
 
-let initialize = () => {
+max_api.addHandler('initialize', () => {
 
     set_segments();
 
@@ -314,31 +297,31 @@ let initialize = () => {
         segments_train,
         messenger_render
     );
-};
+});
 
-let commence = () => {
+max_api.addHandler('commence', () => {
     trainer.commence();
 
     trainer.render_window()
-};
+});
 
-let pause = () => {
+max_api.addHandler('pause', () => {
     trainer.pause()
-};
+});
 
-let unpause = () => {
+max_api.addHandler('unpause', () => {
     trainer.unpause()
-};
+});
 
-let user_input_command = (command: string) => {
+max_api.addHandler('user_input_command', (command: string) => {
     trainer.accept_command(command);
-};
+});
 
-let user_input_midi = (pitch: number, velocity: number) => {
+max_api.addHandler('user_input_midi', (pitch: number, velocity: number) => {
     trainer.accept_midi(pitch, velocity);
-};
+});
 
-let load_session = (filename: string) => {
+max_api.addHandler('load_session', (filename: string) => {
 
     trainer = new Trainer(
         window,
@@ -392,37 +375,17 @@ let load_session = (filename: string) => {
     trainer.restore_user_input();
 
     trainer.render_window();
-};
+});
 
-let save_session = (filename: string) => {
+max_api.addHandler('save_session', (filename: string) => {
     TrainFreezer.freeze(
         trainer,
         filename,
         env
     );
-};
+});
 
-let set_direction = (arg_direction: string) => {
+max_api.addHandler('set_direction', (arg_direction: string) => {
     direction = arg_direction
-};
+});
 
-if (typeof Global !== "undefined") {
-    Global.train = {};
-    Global.train.load_session = load_session;
-    Global.train.save_session = save_session;
-    Global.train.initialize = initialize;
-    Global.train.commence = commence;
-    Global.train.pause = pause;
-    Global.train.unpause = unpause;
-    Global.train.user_input_command = user_input_command;
-    Global.train.user_input_midi = user_input_midi;
-    Global.train.set_segments = set_segments;
-    Global.train.set_track_user_input = set_track_user_input;
-    Global.train.set_track_target = set_track_target;
-    Global.train.set_depth_tree = set_depth_tree;
-    Global.train.set_algorithm_train = set_algorithm_train;
-    Global.train.set_mode_control = set_mode_control;
-    Global.train.set_mode_texture = set_mode_texture;
-    Global.train.set_direction = set_direction;
-    Global.train.test = test;
-}
