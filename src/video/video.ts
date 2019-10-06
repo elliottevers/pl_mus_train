@@ -16,6 +16,8 @@ export namespace video {
 
         private beatEstimatesRelative: Percentile[];
 
+        private confirmedCuts: Percentile[];
+
         constructor() {
 
         }
@@ -29,13 +31,8 @@ export namespace video {
             return []
         }
 
-        public static framesFromPercentiles(
-            percentiles: Percentile[],
-            duration: Frame
-        ): Frame[] {
-            return percentiles.map((p) => {
-                return p * duration
-            })
+        public getConfirmedCuts(): Array<Percentile> {
+            return this.confirmedCuts;
         }
     }
 
@@ -72,6 +69,22 @@ export namespace video {
             this.messenger.message(['loadDuration'])
         }
 
+        public frameFromPercentile(p: Percentile): Frame {
+            return p * this.duration
+        }
+
+        public percentileFromFrame(f: Frame): Percentile {
+            return f/this.duration
+        }
+
+        public static framesFromPercentiles(
+            percentiles: Percentile[],
+            duration: Frame
+        ): Frame[] {
+            return percentiles.map((p) => {
+                return p * duration
+            })
+        }
     }
 
     // step function

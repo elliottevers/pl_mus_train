@@ -7,79 +7,10 @@ import Frame = v.Frame;
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 
-export {}
 const max_api = require('max-api');
 
-
-// let set_bars = () => {
-//     for (let bar of looper_video.get_bars()) {
-//         messenger.message(['point'].concat(bar))
-//     }
-// };
-
-// let looppoints = (frame_loop_begin, frame_loop_end) => {
-//     messenger.message(
-//         [
-//             'loop_endpoints_function',
-//             frame_loop_begin/length_frames,
-//             0
-//         ]
-//     );
-//
-//     messenger.message(
-//         [
-//             'loop_endpoints_function',
-//             frame_loop_end/length_frames,
-//             0
-//         ]
-//     );
-// };
-
-// let affirm_cuts = () => {
-//     calculate_frame_duples()
-// };
-//
-// let calculate_frame_duples = () => {
-//     frame_duples = points.map((duple) => {
-//         return [
-//             Math.round(length_frames * duple[0]),
-//             Math.round(length_frames * duple[1])
-//         ]
-//     })
-// };
-//
-// let set_loop_endpoints = () => {
-//     messenger.message(['loop_endpoints', frame_duples[i_current][0], frame_duples[i_current][1]])
-// };
-//
-// let parse_dump = (x: string, y: string) => {
-//     points = points.concat([[parseFloat(x), parseFloat(y)]])
-// };
-// let quantize_point = (beat_raw) => {
-//     let beat_quantized =  bars.reduce(function(prev, curr) {
-//         return (Math.abs(curr - beat_raw) < Math.abs(prev - beat_raw) ? curr : prev);
-//     });
-//     messenger.message(['point_quantized', beat_quantized, 0])
-// };
-//
-// // theoretically, the onset of measures
-// let calculate_bars = () => {
-//     for (let i_point in point_beat_estimates) {
-//         if (parseInt(i_point) % 4 == 0) {
-//             // @ts-ignore
-//             // messenger.message(['point'].concat(point_beat_estimates[i_point]))
-//             bars = bars.concat(point_beat_estimates[i_point])
-//         }
-//     }
-// };
-//
-// let set_bars = () => {
-//     for (let bar of bars) {
-//         messenger.message(['point'].concat(bar))
-//     }
-// };
-//
-
+let BRANCH_QUANTIZE_LATEST_CUT = 1;
+let BRANCH_CONFIRM_LATEST_CUT = 2;
 
 let beatEstimatesRelative: Percentile[] = [];
 
@@ -101,19 +32,57 @@ let y = 0;
 
 // TODO: branch for getting latest cut?
 
+// max_api.addHandler("quantizeNth", function(){
+//     let listArgs = Array.prototype.slice.call(arguments);
+//     let xQuantized = video.getQuantizedX(listArgs[2*i]);
+//     messenger.message(['quantizeNth', 'list', i, xQuantized, y])
+// });
+
+// UI processes
+
+
+// QUANTIZE LATEST CUT
+/////////////////
+
+max_api.addHandler("quantizeLatestCut", () => {
+    messenger.message(['gateFunctionOutlet3', BRANCH_QUANTIZE_LATEST_CUT]);
+    messenger.message(['quantizeLatestCut', 'listdump'])
+});
+
 max_api.addHandler("quantizeNth", function(){
     let listArgs = Array.prototype.slice.call(arguments);
     let xQuantized = video.getQuantizedX(listArgs[2*i]);
     messenger.message(['quantizeNth', 'list', i, xQuantized, y])
 });
+/////////////////
 
-// UI handlers
 
-max_api.addHandler("quantizeLatestCut", () => {
-    // TODO: make a switch to control the flow to another branch
-    // open gate quantizeNth
-    messenger.message(['quantizeLatestCut', 'listdump'])
+// CREATE CUT FROM CURRENT FRAME
+/////////////////
+
+let sagaCreateNextCutFromCurrentFrame = function*() {
+
+    messenger.message(['gettime']);
+
+    yield;
+
+    let x = video.percentileFromFrame(frameCurrent);
+
+    messenger.message(['createNextCutFromCurrentFrame', x, y])
+}();
+
+max_api.addHandler("createNextCutFromCurrentFrame", () => {
+    sagaCreateNextCutFromCurrentFrame.next()
 });
+
+let actionGetTime = 'time';
+
+max_api.addHandler(actionGetTime, (f) => {
+    frameCurrent = f;
+    sagaCreateNextCutFromCurrentFrame.next();
+});
+/////////////////
+
 
 max_api.addHandler("loopWithLatestCut", () => {
     let x = 1;
@@ -125,14 +94,11 @@ max_api.addHandler("loopWithLatestCut", () => {
     messenger.message(['loopWithLatestCut', 'looppoints', frameLower, frameUpper])
 });
 
-max_api.addHandler("createNextCutFromCurrentFrame", () => {
-
-});
-
 max_api.addHandler("confirmLatestCut", () => {
     // TODO: make a switch to control the flow to another branch
     // open gate confirm latest cut
-    messenger.message(['confirmLatestCut', 'listdump'])
+    messenger.message(['gate', BRANCH_CONFIRM_LATEST_CUT]);
+    messenger.message(['confirmLatestCut', 'listdump']);
 });
 
 max_api.addHandler("setDefaultLoopLength", () => {
@@ -167,9 +133,9 @@ max_api.addHandler("processCut", (x, y) => {
     cuts = cuts.concat([parseFloat(x), parseFloat(y)])
 });
 
-max_api.addHandler("addCutButton", () => {
-    sagaSetCutButton.next();
-});
+// max_api.addHandler("addCutButton", () => {
+//     sagaSetCutButton.next();
+// });
 
 // actions
 let actionLoadVideo = 'loadVideo';
@@ -180,7 +146,6 @@ let actionUpdateCuts = 'updateCuts';
 
 let actionAdvanceInterval = 'advanceInterval';
 
-let actionGetTime = 'getTime';
 
 
 // action handlers
@@ -207,10 +172,7 @@ max_api.addHandler(actionAdvanceInterval, () => {
     intervalIterator.next();
 });
 
-max_api.addHandler(actionGetTime, (f) => {
-    frameCurrent = f
 
-});
 
 
 // workflow:
