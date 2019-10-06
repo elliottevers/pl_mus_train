@@ -10,30 +10,49 @@ export namespace video {
 
     export type Percentile = number;
 
-    // TODO: confirm FramePositionPercentile = BeatPositionPercentile
-    // export type FramePositionPercentile = Percentile;
-
-    // export type BeatPositionPercentile = Percentile;
-
     export type Point = [Percentile, number];  // the second value is the height
 
-    export class Video {
+    export class BeatAnalyzed {
 
-        private path_file: string;
+        private beatEstimatesRelative: Percentile[];
+
+        constructor() {
+
+        }
+
+        public setBeatEstimatesRelative(beatsRelative: Percentile[]): void {
+            this.beatEstimatesRelative = beatsRelative;
+        }
+
+        public getIntervals(): Interval<Percentile>[] {
+
+            return []
+        }
+
+        public static framesFromPercentiles(
+            percentiles: Percentile[],
+            duration: Frame
+        ): Frame[] {
+            return percentiles.map((p) => {
+                return p * duration
+            })
+        }
+    }
+
+    // TODO: make this a decorator class or something
+    export class Video extends BeatAnalyzed {
+
+        private pathFile: string;
 
         private messenger: Messenger;
 
         private duration: Frame;
 
-        private beatEstimatesRelative: Percentile[];
-
-        constructor(path_file: string, messenger: Messenger) {
-            this.path_file = path_file;
+        constructor(pathFile: string, messenger: Messenger) {
+            super();
+            this.pathFile = pathFile;
             this.messenger = messenger;
-        }
 
-        public setBeatEstimatesRelative(beatsRelative: Percentile[]): void {
-            this.beatEstimatesRelative = beatsRelative;
         }
 
         public load(): void {
@@ -53,19 +72,6 @@ export namespace video {
             this.messenger.message(['loadDuration'])
         }
 
-        public getIntervals(): Interval<Percentile>[] {
-
-            return []
-        }
-
-        public static framesFromPercentiles(
-            percentiles: Percentile[],
-            duration: Frame
-        ): Frame[] {
-            return percentiles.map((p) => {
-                return p * duration
-            })
-        }
     }
 
     // step function

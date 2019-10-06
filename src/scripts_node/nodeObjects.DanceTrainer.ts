@@ -95,6 +95,60 @@ let intervalIterator: v.Iterator<Interval<Frame>>;
 
 let frameCurrent: Frame;
 
+let i = -1;
+
+let y = 0;
+
+// TODO: branch for getting latest cut?
+
+max_api.addHandler("quantizeNth", function(){
+    let listArgs = Array.prototype.slice.call(arguments);
+    let xQuantized = video.getQuantizedX(listArgs[2*i]);
+    messenger.message(['quantizeNth', 'list', i, xQuantized, y])
+});
+
+// UI handlers
+
+max_api.addHandler("quantizeLatestCut", () => {
+    // TODO: make a switch to control the flow to another branch
+    // open gate quantizeNth
+    messenger.message(['quantizeLatestCut', 'listdump'])
+});
+
+max_api.addHandler("loopWithLatestCut", () => {
+    let x = 1;
+
+    let frameLower = video.getConfirmedCuts()[-1];
+
+    let frameUpper = video.frameFromPercentile(x);
+
+    messenger.message(['loopWithLatestCut', 'looppoints', frameLower, frameUpper])
+});
+
+max_api.addHandler("createNextCutFromCurrentFrame", () => {
+
+});
+
+max_api.addHandler("confirmLatestCut", () => {
+    // TODO: make a switch to control the flow to another branch
+    // open gate confirm latest cut
+    messenger.message(['confirmLatestCut', 'listdump'])
+});
+
+max_api.addHandler("setDefaultLoopLength", () => {
+
+});
+
+max_api.addHandler("beginTrain", () => {
+
+});
+
+max_api.addHandler("advanceInterval", () => {
+
+});
+
+
+// non-saga handlers
 
 max_api.addHandler("processBeatRelative", (beat) => {
     beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
