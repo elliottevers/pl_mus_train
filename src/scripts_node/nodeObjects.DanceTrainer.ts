@@ -222,11 +222,11 @@ max_api.addHandler("initializeVideo", (pathVideo) => {
     sagaInitializeVideo.next(pathVideo);
 });
 
-max_api.addHandler('loadVideo', () => {
+max_api.addHandler('load', () => {
     sagaInitializeVideo.next();
 });
 
-max_api.addHandler('loadLength', (duration) => {
+max_api.addHandler('duration', (duration) => {
     video.setDuration(duration);
     sagaInitializeVideo.next();
 });
