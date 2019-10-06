@@ -195,17 +195,15 @@ max_api.addHandler("processCut", (x, y) => {
 // 5. begin train, advancing segment when finished
 
 let sagaInitializeVideo = function* (pathVideo) {
-    // max_api.outlet(actionLoadVideo, 'read', '/Users/elliottevers/Downloads/white-t-shirt.mp4');
-
     video = new v.Video(pathVideo, messenger);
 
     // video.load();
-    messenger.message(['load', 'read', video.pathFile]);
+    max_api.outlet('load', 'read', video.pathFile);
 
     yield;
 
     // video.loadDuration();
-    messenger.message(['loadDuration', 'duration']);
+    max_api.outlet('loadDuration', 'getframecount');
 
     yield;
 
@@ -226,7 +224,7 @@ max_api.addHandler('load', () => {
     sagaInitializeVideo.next();
 });
 
-max_api.addHandler('duration', (duration) => {
+max_api.addHandler('framecount', (duration) => {
     video.setDuration(duration);
     sagaInitializeVideo.next();
 });
