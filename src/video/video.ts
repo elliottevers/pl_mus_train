@@ -26,10 +26,6 @@ export namespace video {
             this.beatEstimatesRelative = beatsRelative;
         }
 
-        public getIntervals(): Interval<Percentile>[] {
-            return []
-        }
-
         public getConfirmedCuts(): Array<Percentile> {
             return this.confirmedCuts;
         }
@@ -45,10 +41,9 @@ export namespace video {
         }
     }
 
-    // TODO: make this a decorator class or something
     export class Video extends BeatAnalyzed {
 
-        private pathFile: string;
+        public pathFile: string;
 
         private messenger: Messenger;
 
@@ -61,8 +56,9 @@ export namespace video {
 
         }
 
+        // TODO: support
         public load(): void {
-            // TODO:
+            // this.messenger.message(['load', 'read', this.pathFile])
         }
 
         public getDuration(): Frame {
@@ -73,8 +69,9 @@ export namespace video {
             this.duration = duration;
         }
 
+        // TODO: support
         public loadDuration(): void {
-            this.messenger.message(['loadDuration'])
+            // this.messenger.message(['loadDuration', 'duration'])
         }
 
         public frameFromPercentile(p: Percentile): Frame {

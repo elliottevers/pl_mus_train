@@ -172,13 +172,12 @@ max_api.addHandler("advanceInterval", () => {
 /////////////////
 
 
-
 max_api.addHandler("setDefaultLoopLength", () => {
 
 });
 
 
-// non-saga handlers
+// other handlers
 
 max_api.addHandler("processBeatRelative", (beat) => {
     beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
@@ -186,35 +185,6 @@ max_api.addHandler("processBeatRelative", (beat) => {
 
 max_api.addHandler("processCut", (x, y) => {
     cuts = cuts.concat([parseFloat(x), parseFloat(y)])
-});
-
-
-// actions
-let actionLoadVideo = 'loadVideo';
-let actionQueryLength = 'loadLength';
-let actionBeatEstimationDone = 'beatEstimationDone';
-
-let actionAdvanceInterval = 'advanceInterval';
-
-
-
-// action handlers
-max_api.addHandler(actionLoadVideo, () => {
-    sagaInitializeVideo.next();
-});
-
-max_api.addHandler(actionQueryLength, (duration) => {
-    video.setDuration(duration);
-    sagaInitializeVideo.next();
-});
-
-max_api.addHandler(actionBeatEstimationDone, () => {
-    video.setBeatEstimatesRelative(beatEstimatesRelative);
-    sagaInitializeVideo.next();
-});
-
-max_api.addHandler(actionAdvanceInterval, () => {
-    intervalIterator.next();
 });
 
 // workflow:
@@ -229,11 +199,13 @@ let sagaInitializeVideo = function* (pathVideo) {
 
     video = new v.Video(pathVideo, messenger);
 
-    video.load();
+    // video.load();
+    messenger.message(['load', 'read', video.pathFile]);
 
     yield;
 
-    video.loadDuration();
+    // video.loadDuration();
+    messenger.message(['loadDuration', 'duration']);
 
     yield;
 
@@ -246,6 +218,20 @@ let sagaInitializeVideo = function* (pathVideo) {
 
 }();
 
-max_api.addHandler("startSagaInitializeVideo", (pathVideo) => {
+max_api.addHandler("initializeVideo", (pathVideo) => {
     sagaInitializeVideo.next(pathVideo);
+});
+
+max_api.addHandler('loadVideo', () => {
+    sagaInitializeVideo.next();
+});
+
+max_api.addHandler('loadLength', (duration) => {
+    video.setDuration(duration);
+    sagaInitializeVideo.next();
+});
+
+max_api.addHandler('beatEstimationDone', () => {
+    video.setBeatEstimatesRelative(beatEstimatesRelative);
+    sagaInitializeVideo.next();
 });
