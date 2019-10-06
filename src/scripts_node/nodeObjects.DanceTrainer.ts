@@ -31,6 +31,10 @@ let i = -1;
 
 let y = 0;
 
+let EPSILON = 4;
+
+let BEATS_LOOP_DEFAULT = 4 * 4 + EPSILON;
+
 
 // QUANTIZE LATEST CUT
 /////////////////
@@ -98,12 +102,36 @@ max_api.addHandler(actionGetTime, (f) => {
 /////////////////
 
 
+// CONFIRM LATEST CUT
+/////////////////
+
 max_api.addHandler("confirmLatestCut", () => {
     // TODO: make a switch to control the flow to another branch
     // open gate confirm latest cut
-    messenger.message(['gate', BRANCH_CONFIRM_LATEST_CUT]);
+    messenger.message(['gateFunctionOutlet3', BRANCH_CONFIRM_LATEST_CUT]);
     messenger.message(['confirmLatestCut', 'listdump']);
 });
+
+max_api.addHandler("confirmLatestCut", function(){
+    let listArgs = Array.prototype.slice.call(arguments);
+    let xLastCut = listArgs[2*i];
+
+    video.addCut(xLastCut);
+
+    let frameLower = v.Video.framesFromPercentiles(
+        video.getConfirmedCuts(),
+        video.getDuration()
+    )[-1];
+
+    let diff = video.beatsToFrames(
+        BEATS_LOOP_DEFAULT
+    );
+
+    messenger.message(['loopNext', 'looppoints', frameLower, frameLower + diff])
+});
+
+/////////////////
+
 
 max_api.addHandler("setDefaultLoopLength", () => {
 
