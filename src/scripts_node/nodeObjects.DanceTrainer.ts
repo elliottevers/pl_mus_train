@@ -1,5 +1,4 @@
 import {video as v} from "../video/video";
-import BreakpointFunction = v.BreakpointFunction;
 import Point = v.Point;
 import Percentile = v.Percentile;
 import Interval = v.Interval;
@@ -20,8 +19,6 @@ let cuts: Point[] = [];
 let messenger = new Messenger('node_for_max', 0);
 
 let video: v.Video;
-
-let breakpointFunction: BreakpointFunction;
 
 let intervalIterator: v.Iterator<Interval<Frame>>;
 
@@ -133,15 +130,50 @@ max_api.addHandler("confirmLatestCut", function(){
 /////////////////
 
 
-max_api.addHandler("setDefaultLoopLength", () => {
-
-});
+// BEGIN TRAIN
+/////////////////
 
 max_api.addHandler("beginTrain", () => {
+    intervalIterator = new v.Iterator<Interval<Frame>>(
+        v.Iterator.createIntervals<Frame>(
+            v.Video.framesFromPercentiles(
+                video.getConfirmedCuts(),
+                video.getDuration()
+            )
+        ).map(duple => {
+            return new Interval<Frame>(
+                duple[0],
+                duple[1]
+            )
+        })
+    );
 
+    let res = intervalIterator.next();
+
+    let intervalFirst = res.value;
+
+    messenger.message(['looppoints'].concat(intervalFirst.getInterval().map((n) => {return String(n)})));
 });
 
+/////////////////
+
+
+// ADVANCE INTERVAL
+/////////////////
+
 max_api.addHandler("advanceInterval", () => {
+    let res = intervalIterator.next();
+
+    let intervalNext = res.value;
+
+    messenger.message(['looppoints'].concat(intervalNext.getInterval().map((n) => {return String(n)})));
+});
+
+/////////////////
+
+
+
+max_api.addHandler("setDefaultLoopLength", () => {
 
 });
 
@@ -152,29 +184,15 @@ max_api.addHandler("processBeatRelative", (beat) => {
     beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
 });
 
-max_api.addHandler("processUpdateCuts", () => {
-    // beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
-    breakpointFunction.dump();  // NB: async
-    cuts = [];
-});
-
 max_api.addHandler("processCut", (x, y) => {
-    // beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
-    // breakpointFunction.dump();  // NB: async
-    // cuts = [];
     cuts = cuts.concat([parseFloat(x), parseFloat(y)])
 });
 
-// max_api.addHandler("addCutButton", () => {
-//     sagaSetCutButton.next();
-// });
 
 // actions
 let actionLoadVideo = 'loadVideo';
 let actionQueryLength = 'loadLength';
 let actionBeatEstimationDone = 'beatEstimationDone';
-let actionCutsFinalized = 'cutsFinalized';
-let actionUpdateCuts = 'updateCuts';
 
 let actionAdvanceInterval = 'advanceInterval';
 
@@ -195,76 +213,16 @@ max_api.addHandler(actionBeatEstimationDone, () => {
     sagaInitializeVideo.next();
 });
 
-max_api.addHandler(actionCutsFinalized, () => {
-    sageFinalizeCuts.next();
-});
-
-
 max_api.addHandler(actionAdvanceInterval, () => {
     intervalIterator.next();
 });
 
-
-
-
 // workflow:
 // 1. load video
 // 2. set frame length
-// 2.5. get beat estimates
-
-// user cuts
-
-// 3. dump cut points (snap to beat estimates)
-// 4. affirm cut points
-// 5. start iteration
-// 6. hit play button
-
-let sagaSetCutButton = function* () {
-    messenger.message(['gettime']);
-
-    yield;
-
-    messenger.message(['setCutButton', frameCurrent/video.getDuration()]);
-}();
-
-let sagaLoopVideo = function* () {
-
-    intervalIterator = new v.Iterator<Interval<Frame>>(
-        v.Iterator.createIntervals<Frame>(
-            v.Video.framesFromPercentiles(
-                breakpointFunction.getCuts().map((c) => {
-                    return c[0]
-                }),
-                video.getDuration()
-            )
-        ).map(duple => {
-            return new Interval<Frame>(
-                duple[0],
-                duple[1]
-            )
-        })
-    );
-
-    let res = intervalIterator.next();
-
-    let intervalFirst = res.value;
-
-    messenger.message(['looppoints'].concat(intervalFirst.getInterval().map((n) => {return String(n)})));
-
-    yield;
-
-    // TODO: anything?
-
-}();
-
-
-let sageFinalizeCuts = function* () {
-
-    yield;
-
-
-}();
-
+// 3. get beat estimates, so that we can snap to grid
+// 4. iterate right to left, with a default loop length, perfecting cuts along the way
+// 5. begin train, advancing segment when finished
 
 let sagaInitializeVideo = function* (pathVideo) {
     // max_api.outlet(actionLoadVideo, 'read', '/Users/elliottevers/Downloads/white-t-shirt.mp4');
@@ -275,35 +233,16 @@ let sagaInitializeVideo = function* (pathVideo) {
 
     yield;
 
-    // max_api.outlet(actionQueryLength, 'getduration');
-
     video.loadDuration();
 
-    // let d = yield;
     yield;
-
-    // yield;
-    // max_api.post("duration is " + d);
 
     max_api.outlet('getBeatEstimates', 'bang');
 
     yield;
 
-    // for (let beat of pointBeatEstimates) {
-    //     max_api.post(beat);
-    // }
-
-
     // ready for snapping
     video.setBeatEstimatesRelative(beatEstimatesRelative);
-
-    yield;
-
-    breakpointFunction = new BreakpointFunction();
-
-    yield;
-
-    // TODO: set cut, confirm (most recent) cut, delete (most recent) cut
 
 }();
 
