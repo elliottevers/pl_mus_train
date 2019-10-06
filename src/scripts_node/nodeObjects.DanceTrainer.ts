@@ -10,7 +10,8 @@ import Messenger = message.Messenger;
 const max_api = require('max-api');
 
 let BRANCH_QUANTIZE_LATEST_CUT = 1;
-let BRANCH_CONFIRM_LATEST_CUT = 2;
+let BRANCH_LOOP_WITH_LATEST_CUT = 2;
+let BRANCH_CONFIRM_LATEST_CUT = 3;
 
 let beatEstimatesRelative: Percentile[] = [];
 
@@ -30,16 +31,6 @@ let i = -1;
 
 let y = 0;
 
-// TODO: branch for getting latest cut?
-
-// max_api.addHandler("quantizeNth", function(){
-//     let listArgs = Array.prototype.slice.call(arguments);
-//     let xQuantized = video.getQuantizedX(listArgs[2*i]);
-//     messenger.message(['quantizeNth', 'list', i, xQuantized, y])
-// });
-
-// UI processes
-
 
 // QUANTIZE LATEST CUT
 /////////////////
@@ -54,6 +45,29 @@ max_api.addHandler("quantizeNth", function(){
     let xQuantized = video.getQuantizedX(listArgs[2*i]);
     messenger.message(['quantizeNth', 'list', i, xQuantized, y])
 });
+/////////////////
+
+
+// LOOP WITH LATEST CUT
+/////////////////
+
+max_api.addHandler("loopWithLatestCut", () => {
+
+    messenger.message(['gateFunctionOutlet3', BRANCH_LOOP_WITH_LATEST_CUT]);
+    messenger.message(['loopWithLatestCut', 'listdump']);
+});
+
+max_api.addHandler("loopWithNth", function(){
+    let listArgs = Array.prototype.slice.call(arguments);
+    let xLastCut = listArgs[2*i];
+
+    let frameLower = video.getConfirmedCuts()[-1];
+    let frameUpper = video.frameFromPercentile(xLastCut);
+
+    messenger.message(['loopWithNth', 'looppoints', frameLower, frameUpper])
+});
+
+
 /////////////////
 
 
@@ -83,16 +97,6 @@ max_api.addHandler(actionGetTime, (f) => {
 });
 /////////////////
 
-
-max_api.addHandler("loopWithLatestCut", () => {
-    let x = 1;
-
-    let frameLower = video.getConfirmedCuts()[-1];
-
-    let frameUpper = video.frameFromPercentile(x);
-
-    messenger.message(['loopWithLatestCut', 'looppoints', frameLower, frameUpper])
-});
 
 max_api.addHandler("confirmLatestCut", () => {
     // TODO: make a switch to control the flow to another branch
