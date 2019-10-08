@@ -1,7 +1,7 @@
 import TreeModel = require("tree-model");
 import {note as n} from "../note/note"
 import {clip as module_clip} from "../clip/clip";
-import {utils} from "../utils/utils";
+
 
 // declare let LiveAPI: any;
 
@@ -18,6 +18,7 @@ export namespace live {
     export class LiveApiJs implements iLiveApiJs {
         private live_api: any;
 
+        // TODO: do dependency injection that's actually good
         constructor(path: string, env?: string) {
             if (env == 'node') {
 
@@ -129,22 +130,18 @@ export namespace live {
 
         get_end_marker(): number {
             return this.beat_end
-            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
         }
 
         get_start_marker(): number {
             return this.beat_start
-            // return this.notes[0].model.note.beat_start;
         }
 
         get_loop_bracket_upper(): number[] {
             return [this.beat_end]
-            // return this.notes[this.notes.length - 1].model.note.get_beat_end()
         }
 
         get_loop_bracket_lower(): number[] {
             return [this.beat_start]
-            // return this.notes[0].model.note.beat_start;
         }
 
         set_loop_bracket_lower(beat: number): void {
