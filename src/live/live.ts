@@ -12,14 +12,25 @@ export namespace live {
 
     import Clip = module_clip.Clip;
 
-    export class LiveApiMaxSynchronous {
+    export interface iLiveApiJs {
+        get(property: string): any;
+        set(property: string, value: any): void;
+        call(func: string): void;
+        get_id(): any;
+        get_path(): any;
+        get_children(): any;
+    }
 
-        private pathLive: string;
+    export class LiveApiMaxSynchronous implements iLiveApiJs {
+
+        private idLive: string;
         private maxApi: any;
+        private type_id: string;
 
-        constructor(pathLive, maxApi) {
-            this.pathLive = pathLive;
+        constructor(idLive, maxApi, type_id) {
+            this.idLive = idLive;
             this.maxApi = maxApi;
+            this.type_id = type_id;
         }
 
         public get(property) {
@@ -27,7 +38,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
 
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'get', property);
 
@@ -40,12 +51,12 @@ export namespace live {
         }
 
         public set(property, value) {
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'set', property, value);
         }
 
         public call(...args) {
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', args);
         }
 
@@ -53,7 +64,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getid');
 
             // @ts-ignore
@@ -68,7 +79,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getpath');
 
             // @ts-ignore
@@ -83,7 +94,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getchildren');
 
             // @ts-ignore
@@ -95,48 +106,42 @@ export namespace live {
         }
     }
 
-    export interface iLiveApiJs {
-        get(property: string): any;
-        set(property: string, value: any): void;
-        call(func: string): void;
-    }
-
     export class LiveApiJs implements iLiveApiJs {
-        private live_api: any;
+        private object: any;
 
         // TODO: do dependency injection that's actually good
-        constructor(path: string, env?: string) {
+        constructor(path: string, env?: string, type_id?: string) {
             if (env == 'node') {
                 const max_api = require('max-api');
-                this.live_api = new LiveApiMaxSynchronous(path, max_api);
+                this.object = new LiveApiMaxSynchronous(path, max_api, type_id);
             } else {
                 // @ts-ignore
-                this.live_api = new LiveAPI(null, path);
+                this.object = new LiveAPI(null, path);
             }
         }
 
         get(property: string): any {
-            return this.live_api.get(property);
+            return this.object.get(property);
         }
 
         set(property: string, value: any): void {
-            this.live_api.set(property, value)
+            this.object.set(property, value)
         }
 
         call(func: string, ...args: any[]): any {
-            return this.live_api.call(func, ...args);
+            return this.object.call(func, ...args);
         }
 
         get_id(): any {
-            return this.live_api.id;
+            return this.object.id;
         }
 
         get_path(): string {
-            return this.live_api.path;
+            return this.object.path;
         }
 
         get_children(): any {
-            return this.live_api.children;
+            return this.object.children;
         }
     }
 

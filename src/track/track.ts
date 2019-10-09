@@ -248,11 +248,28 @@ export namespace track {
             }
 
             return clip_slots.map((list_id_clip_slot) => {
+                let live_api_new = null;
+
+                switch(this.live_api.object.constructor.name) {
+                    case 'LiveApiMaxSynchronous':
+                        live_api_new = new LiveApiJs(
+                            list_id_clip_slot.join(' '),
+                            'node',
+                            'id'
+                        );
+                        break;
+                    case 'LiveApiJs':
+                        live_api_new = new LiveApiJs(
+                            list_id_clip_slot.join(' ')
+                        );
+                        break;
+                    default:
+                        throw 'cannot create LiveApiJs'
+                }
+
                 return new ClipSlot(
                     new ClipSlotDao(
-                        new LiveApiJs(
-                            list_id_clip_slot.join(' ')
-                        ),
+                        live_api_new,
                         new Messenger('max', 0)
                     )
                 )

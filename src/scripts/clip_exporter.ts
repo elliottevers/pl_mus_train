@@ -26,7 +26,7 @@ if (env === 'max') {
 
 let messenger = new Messenger(env, 0);
 
-let dir_projects = '/Users/elliottevers/Documents/DocumentsSymlinked/git-repos.nosync/tk_music_projects/';
+let dir_projects = '/Users/elliottevers/Documents/git-repos.nosync/tk_music_projects/';
 
 let file_json_comm = dir_projects + 'json_live.json';
 
