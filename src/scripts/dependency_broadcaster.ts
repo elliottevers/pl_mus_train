@@ -22,10 +22,6 @@ let parts = ['key_center', 'bass', 'chord', 'melody', 'vocal_harmony'];
 
 let messenger: Messenger = new Messenger(env, 0);
 
-// let test = () => {
-//
-// };
-
 let broadcast_dependencies = () => {
     //@ts-ignore
     let list_args = Array.prototype.slice.call(arguments);
@@ -46,8 +42,6 @@ let broadcast_ground_truth = (i_option: number) => {
         messenger.message([parts[String(i_part)], 'gate_ground_truth', 0]);
     }
 };
-
-// test();
 
 if (typeof Global !== "undefined") {
     Global.dependency_broadcaster = {};

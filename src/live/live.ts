@@ -2,12 +2,98 @@ import TreeModel = require("tree-model");
 import {note as n} from "../note/note"
 import {clip as module_clip} from "../clip/clip";
 
+let node = require("deasync");
+node.loop = node.runLoopOnce;
+
 
 // declare let LiveAPI: any;
 
 export namespace live {
 
     import Clip = module_clip.Clip;
+
+    export class LiveApiMaxSynchronous {
+
+        private pathLive: string;
+        private maxApi: any;
+
+        constructor(pathLive, maxApi) {
+            this.pathLive = pathLive;
+            this.maxApi = maxApi;
+        }
+
+        public get(property) {
+
+            // @ts-ignore
+            global.liveApiMaxSynchronousLocked = true;
+
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'get', property);
+
+            // @ts-ignore
+            while (global.liveApiMaxSynchronousLocked)
+                node.loop();
+
+            // @ts-ignore
+            return global.liveApiMaxSynchronousResult
+        }
+
+        public set(property, value) {
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'set', property, value);
+        }
+
+        public call(...args) {
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', args);
+        }
+
+        public get_id() {
+            // @ts-ignore
+            global.liveApiMaxSynchronousLocked = true;
+
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getid');
+
+            // @ts-ignore
+            while (global.liveApiMaxSynchronousLocked)
+                node.loop();
+
+            // @ts-ignore
+            return global.liveApiMaxSynchronousResult
+        }
+
+        public get_path() {
+            // @ts-ignore
+            global.liveApiMaxSynchronousLocked = true;
+
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getpath');
+
+            // @ts-ignore
+            while (global.liveApiMaxSynchronousLocked)
+                node.loop();
+
+            // @ts-ignore
+            return global.liveApiMaxSynchronousResult
+        }
+
+        public get_children() {
+            // @ts-ignore
+            global.liveApiMaxSynchronousLocked = true;
+
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'path', this.pathLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getchildren');
+
+            // @ts-ignore
+            while (global.liveApiMaxSynchronousLocked)
+                node.loop();
+
+            // @ts-ignore
+            return global.liveApiMaxSynchronousResult
+        }
+    }
 
     export interface iLiveApiJs {
         get(property: string): any;
@@ -21,7 +107,8 @@ export namespace live {
         // TODO: do dependency injection that's actually good
         constructor(path: string, env?: string) {
             if (env == 'node') {
-
+                const max_api = require('max-api');
+                this.live_api = new LiveApiMaxSynchronous(path, max_api);
             } else {
                 // @ts-ignore
                 this.live_api = new LiveAPI(null, path);
@@ -29,7 +116,7 @@ export namespace live {
         }
 
         get(property: string): any {
-            return this.live_api.get(property)
+            return this.live_api.get(property);
         }
 
         set(property: string, value: any): void {
