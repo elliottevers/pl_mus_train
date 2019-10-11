@@ -133,11 +133,29 @@ export namespace clip_slot {
         }
 
         get_clip(): Clip {
+
+            let live_api_new = null;
+
+            switch(this.live_api.object.constructor.name) {
+                case 'LiveApiMaxSynchronous':
+                    live_api_new = new LiveApiJs(
+                        utils.cleanse_id(this.live_api.get('clip')),
+                        'node',
+                        'id'
+                    );
+                    break;
+                case 'LiveApiJs':
+                    live_api_new = new LiveApiJs(
+                        utils.cleanse_id(this.live_api.get('clip'))
+                    );
+                    break;
+                default:
+                    throw 'cannot create LiveApiJs'
+            }
+
             return new Clip(
                 new ClipDao(
-                    new LiveApiJs(
-                        utils.cleanse_id(this.live_api.get('clip'))
-                    ),
+                    live_api_new,
                     this.messenger
                 )
             )

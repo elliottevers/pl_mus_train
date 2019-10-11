@@ -38,6 +38,10 @@ max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
 
     let clip_slot = track.get_clip_slot_at_index(0);
 
+    let clip = clip_slot.get_clip();
+
+    let notes = clip.get_notes(0, 0, 8, 128);
+
     let testing = 1;
 
     // track.create_clip_at_index(1, 8)

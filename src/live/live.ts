@@ -23,7 +23,7 @@ export namespace live {
 
     export class LiveApiMaxSynchronous implements iLiveApiJs {
 
-        private idLive: string;
+        private idLive: string;  // either path or id
         private maxApi: any;
         private type_id: string;
 
@@ -38,7 +38,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
 
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'get', property);
 
@@ -51,20 +51,20 @@ export namespace live {
         }
 
         public set(property, value) {
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'set', property, value);
         }
 
         public call(...args) {
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', args);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', ...args);
         }
 
         public get_id() {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getid');
 
             // @ts-ignore
@@ -79,7 +79,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getpath');
 
             // @ts-ignore
@@ -94,7 +94,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, this.idLive);
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getchildren');
 
             // @ts-ignore
@@ -107,7 +107,7 @@ export namespace live {
     }
 
     export class LiveApiJs implements iLiveApiJs {
-        private object: any;
+        public object: any;
 
         // TODO: do dependency injection that's actually good
         constructor(path: string, env?: string, type_id?: string) {
