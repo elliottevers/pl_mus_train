@@ -12,6 +12,7 @@ import {harmony} from "../music/harmony";
 import Harmony = harmony.Harmony;
 import ClipDao = clip.ClipDao;
 import Clip = clip.Clip;
+import LiveApiFactory = live.LiveApiFactory;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -48,8 +49,10 @@ let get_clip = () => {
 
     return new Clip(
         new ClipDao(
-            new LiveApiJs(
-                path_clip
+            LiveApiFactory.create(
+                this.messenger.env,
+                path_clip,
+                false
             ),
             new Messenger(env, 0)
         )

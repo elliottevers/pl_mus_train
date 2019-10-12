@@ -2,7 +2,6 @@ import TreeModel = require("tree-model");
 import {message} from "../message/messenger"
 import {clip, clip as c} from "../clip/clip";
 import {note as n} from "../note/note";
-import {live} from "../live/live";
 import * as _ from "lodash";
 import {segment as module_segment} from "../segment/segment";
 import {iterate} from "../train/iterate";
@@ -12,7 +11,7 @@ import {trainable} from "../algorithm/trainable";
 
 export namespace window {
 
-    import LiveClipVirtual = live.LiveClipVirtual;
+    import LiveClipVirtual = c.LiveClipVirtual;
     import Messenger = message.Messenger;
     import Segment = module_segment.Segment;
     import Clip = clip.Clip;

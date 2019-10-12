@@ -32,6 +32,7 @@ let consolidate = () => {
 
     let path_clip = 'live_set view highlighted_clip_slot clip';
 
+    // TODO: convert to node?
     let clip = new Clip(
         new ClipDao(
             new LiveApiJs(

@@ -14,6 +14,7 @@ export namespace song {
     import LiveApiJs = live.LiveApiJs;
     import CuePoint = cue_point.CuePoint;
     import CuePointDao = cue_point.CuePointDao;
+    import LiveApiFactory = live.LiveApiFactory;
 
     export class Song {
 
@@ -236,7 +237,7 @@ export namespace song {
         public key_route: string;
         private env: string;
 
-        constructor(song_live: iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
+        constructor(song_live: iLiveApiJs, messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
             this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -313,8 +314,10 @@ export namespace song {
             return scenes.map((id_scene) => {
                 return new Scene(
                     new SceneDao(
-                        new LiveApiJs(
-                            id_scene
+                        LiveApiFactory.create(
+                            this.messenger.env,
+                            id_scene,
+                            true
                         ),
                         this.messenger
                     )
@@ -396,8 +399,10 @@ export namespace song {
             return cue_points.map((list_id_cue_point) => {
                 return new CuePoint(
                     new CuePointDao(
-                        new LiveApiJs(
-                            list_id_cue_point.join(' ')
+                        LiveApiFactory.create(
+                            this.messenger.env,
+                            list_id_cue_point.join(' '),
+                            true
                         ),
                         new Messenger('max', 0)
                     )

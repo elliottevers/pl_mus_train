@@ -49,6 +49,7 @@ let get_length_beats = () => {
 let expand_segments = () => {
     let this_device = new li.LiveApiJs('this_device');
 
+    // TODO: convert to node?
     let track = new Track(
         new TrackDao(
             new LiveApiJs(
@@ -64,6 +65,7 @@ let expand_segments = () => {
 let contract_segments = () => {
     let this_device = new li.LiveApiJs('this_device');
 
+    // TODO: convert to node?
     let track = new Track(
         new TrackDao(
             new LiveApiJs(
@@ -124,6 +126,7 @@ let contract_track = (path_track) => {
 let get_notes_segments = () => {
     let this_device = new li.LiveApiJs('this_device');
 
+    // TODO: convert to node?
     let track_segments = new Track(
         new TrackDao(
             new LiveApiJs(
@@ -189,6 +192,7 @@ let contract_track_audio = (path_track) => {
 
 let expand_track_audio = (path_track) => {
 
+    // TODO: convert to node?
     let track = new Track(
         new TrackDao(
             new LiveApiJs(
@@ -289,6 +293,7 @@ let expand_track_audio = (path_track) => {
 
 let expand_track = (path_track: string, name_part?: string) => {
 
+    // TODO: convert to node?
     let track = new Track(
         new TrackDao(
             new LiveApiJs(

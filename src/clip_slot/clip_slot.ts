@@ -8,6 +8,7 @@ export namespace clip_slot {
     import Clip = module_clip.Clip;
     import Messenger = message.Messenger;
     import ClipDao = clip.ClipDao;
+    import LiveApiFactory = live.LiveApiFactory;
 
     export class ClipSlot {
 
@@ -133,29 +134,13 @@ export namespace clip_slot {
         }
 
         get_clip(): Clip {
-
-            let live_api_new = null;
-
-            switch(this.live_api.object.constructor.name) {
-                case 'LiveApiMaxSynchronous':
-                    live_api_new = new LiveApiJs(
-                        utils.cleanse_id(this.live_api.get('clip')),
-                        'node',
-                        'id'
-                    );
-                    break;
-                case 'LiveApiJs':
-                    live_api_new = new LiveApiJs(
-                        utils.cleanse_id(this.live_api.get('clip'))
-                    );
-                    break;
-                default:
-                    throw 'cannot create LiveApiJs'
-            }
-
             return new Clip(
                 new ClipDao(
-                    live_api_new,
+                    LiveApiFactory.create(
+                        this.messenger.env,
+                        utils.cleanse_id(this.live_api.get('clip')),
+                        true
+                    ),
                     this.messenger
                 )
             )

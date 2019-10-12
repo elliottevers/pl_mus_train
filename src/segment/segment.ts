@@ -1,7 +1,6 @@
 import {clip} from "../clip/clip";
 import {note, note as n} from "../note/note";
 import TreeModel = require("tree-model");
-import {live} from "../live/live";
 import {scene} from "../scene/scene";
 import {cue_point} from "../cue_point/cue_point";
 
@@ -9,9 +8,8 @@ export namespace segment {
 
     import Clip = clip.Clip;
     import Note = note.Note;
-    import LiveClipVirtual = live.LiveClipVirtual;
+    import LiveClipVirtual = clip.LiveClipVirtual;
     import Scene = scene.Scene;
-    import ClipLive = live.ClipLive;
     import CuePoint = cue_point.CuePoint;
 
     export class Segment {

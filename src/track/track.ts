@@ -8,7 +8,6 @@ import {utils} from "../utils/utils";
 const _ = require('underscore');
 
 export namespace track {
-    import LiveApiJs = live.LiveApiJs;
     import Clip = clip.Clip;
     import Messenger = message.Messenger;
     import Note = note.Note;
@@ -17,7 +16,8 @@ export namespace track {
     import ClipDao = clip.ClipDao;
     import ClipSlotDaoVirtual = clip_slot.ClipSlotDaoVirtual;
     import iLiveApiJs = live.iLiveApiJs;
-    import LiveClipVirtual = live.LiveClipVirtual;
+    import LiveClipVirtual = clip.LiveClipVirtual;
+    import LiveApiFactory = live.LiveApiFactory;
 
     export class Track {
 
@@ -30,11 +30,13 @@ export namespace track {
         }
 
         public static get_clip_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): Clip {
-            if (messenger.env === 'max') {
+            if (messenger.env === 'max' || messenger.env === 'node') {
                 return new Clip(
                     new ClipDao(
-                        new LiveApiJs(
-                            ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot), 'clip'].join(' ')
+                        LiveApiFactory.create(
+                            messenger.env,
+                            ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot), 'clip'].join(' '),
+                            false
                         ),
                         messenger
                     )
@@ -49,9 +51,11 @@ export namespace track {
         public static get_clip_slot_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): ClipSlot {
             let clip_slot_dao;
 
-            if (messenger.env === 'max') {
-                clip_slot_dao = new LiveApiJs(
-                    ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot)].join(' ')
+            if (messenger.env === 'max' || messenger.env === 'node') {
+                clip_slot_dao = LiveApiFactory.create(
+                    messenger.env,
+                    ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot)].join(' '),
+                    false
                 )
             } else {
                 clip_slot_dao = new LiveClipVirtual([])
@@ -248,29 +252,14 @@ export namespace track {
             }
 
             return clip_slots.map((list_id_clip_slot) => {
-                let live_api_new = null;
-
-                switch(this.live_api.object.constructor.name) {
-                    case 'LiveApiMaxSynchronous':
-                        live_api_new = new LiveApiJs(
-                            list_id_clip_slot.join(' '),
-                            'node',
-                            'id'
-                        );
-                        break;
-                    case 'LiveApiJs':
-                        live_api_new = new LiveApiJs(
-                            list_id_clip_slot.join(' ')
-                        );
-                        break;
-                    default:
-                        throw 'cannot create LiveApiJs'
-                }
-
                 return new ClipSlot(
                     new ClipSlotDao(
-                        live_api_new,
-                        new Messenger('max', 0)
+                        LiveApiFactory.create(
+                            this.live_api.object.constructor.name,
+                            list_id_clip_slot.join(' '),
+                            true
+                        ),
+                        new Messenger(this.live_api.env, 0)
                     )
                 )
             });
