@@ -1,10 +1,13 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live as li} from "../live/live";
+import {live} from "../live/live";
 import {clip, clip as c} from "../clip/clip";
 import {io} from "../io/io";
 import Clip = clip.Clip;
 import ClipDao = clip.ClipDao;
+import LiveApiFactory = live.LiveApiFactory;
+import TypeIdentifier = live.TypeIdentifier;
+import Env = live.Env;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -41,13 +44,16 @@ let import_part = (name_part) => {
 
     // TODO: this works when we want to create a clip from scratch - figure out how to work into workflow
 
-    let clipslot_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot'
+    let clipslot_highlighted = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view highlighted_clip_slot',
+        TypeIdentifier.PATH
     );
 
-
-    let clip_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot clip'
+    let clip_highlighted = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view highlighted_clip_slot clip',
+        TypeIdentifier.PATH
     );
 
     let clip: Clip;
@@ -58,15 +64,17 @@ let import_part = (name_part) => {
         // TODO: get the beat of end of last note
         clipslot_highlighted.call('create_clip', Number(get_length_beats()));
 
-        clip_highlighted = new li.LiveApiJs(
-            'live_set view highlighted_clip_slot clip'
+        clip_highlighted = LiveApiFactory.create(
+            Env.MAX,
+            'live_set view highlighted_clip_slot clip',
+            TypeIdentifier.PATH
         );
     }
 
     clip = new Clip(
         new ClipDao(
             clip_highlighted,
-            new Messenger(env, 0)
+            new Messenger(Env.MAX, 0)
         )
     );
 
@@ -87,7 +95,7 @@ let import_part = (name_part) => {
 
     clip.set_notes(notes);
 
-    let messenger = new Messenger(env, 0);
+    let messenger = new Messenger(Env.MAX, 0);
 
     messenger.message(['part_imported'])
 };

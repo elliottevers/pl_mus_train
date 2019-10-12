@@ -13,21 +13,57 @@ export namespace live {
 
     import Clip = module_clip.Clip;
 
+    export enum TypeIdentifier {
+        PATH,
+        ID
+    }
+
+    export enum Env {
+        NODE_FOR_MAX,
+        MAX,
+        NODE
+    }
+
     export class LiveApiFactory {
-        public static create(name: string, ref: string, id?: boolean) {
-            switch(name) {
-                case 'LiveApiMaxSynchronous':
-                    return new LiveApiJs(
-                        ref,
+        // TODO: env, type of identifier
+        public static create(env: Env, identifier: string, typeIdentifier: TypeIdentifier) {
+            switch(env) {
+                case Env.NODE_FOR_MAX:
+                    return new LiveApiMaxSynchronous(
+                        identifier,
                         'node',
                         id ? 'id' : 'path'
                     );
-                case 'LiveApiJs':
+                case Env.MAX:
+                    // @ts-ignore
+                    this.object = new LiveAPI(null, identifier);
                     return new LiveApiJs(
                         ref
                     );
+                case Env.NODE:
+                    // TODO: How will we be able to do read queries?
+                    break;
                 default:
-                    throw 'cannot create LiveApiJs'
+                    throw 'cannot create LiveApi'
+            }
+        }
+
+        public static createFromConstructor(nameConstructor: string, identifier: string, typeIdentifier: TypeIdentifier) {
+            switch(nameConstructor) {
+                case 'LiveApiMaxSynchronous':
+                    return new LiveApiMaxSynchronous(
+                        identifier,
+                        'node',
+                        id ? 'id' : 'path'
+                    );
+                case 'LiveApi':
+                    // @ts-ignore
+                    return new LiveAPI(null, identifier);
+                case Env.NODE:
+                    // TODO: How will we be able to do read queries?
+                    break;
+                default:
+                    throw 'cannot create LiveApi'
             }
         }
     }
@@ -35,22 +71,24 @@ export namespace live {
     export interface iLiveApiJs {
         get(property: string): any;
         set(property: string, value: any): void;
-        call(func: string): void;
+        call(...args): void;
         get_id(): any;
         get_path(): any;
         get_children(): any;
     }
 
+    // this should only work for node_for_max (node should just use a virtual dao?)
     export class LiveApiMaxSynchronous implements iLiveApiJs {
 
-        private idLive: string;  // either path or id
+        private refLive: string;  // either path or id
+        private typeRef: TypeIdentifier;
         private maxApi: any;
-        private type_id: string;
 
-        constructor(idLive, maxApi, type_id) {
-            this.idLive = idLive;
-            this.maxApi = maxApi;
-            this.type_id = type_id;
+
+        constructor(refLive, typeRef: TypeIdentifier) {
+            this.refLive = refLive;
+            this.typeRef = typeRef;
+            this.maxApi = require('max-api');
         }
 
         public get(property) {
@@ -58,7 +96,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
 
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'get', property);
 
@@ -71,12 +109,12 @@ export namespace live {
         }
 
         public set(property, value) {
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'set', property, value);
         }
 
         public call(...args) {
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', ...args);
         }
 
@@ -84,7 +122,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getid');
 
             // @ts-ignore
@@ -99,7 +137,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getpath');
 
             // @ts-ignore
@@ -114,7 +152,7 @@ export namespace live {
             // @ts-ignore
             global.liveApiMaxSynchronousLocked = true;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.type_id, ...this.idLive.split(' '));
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getchildren');
 
             // @ts-ignore
@@ -123,45 +161,6 @@ export namespace live {
 
             // @ts-ignore
             return global.liveApiMaxSynchronousResult
-        }
-    }
-
-    export class LiveApiJs implements iLiveApiJs {
-        public object: any;
-
-        // TODO: do dependency injection that's actually good
-        constructor(path: string, env?: string, type_id?: string) {
-            if (env == 'node') {
-                const max_api = require('max-api');
-                this.object = new LiveApiMaxSynchronous(path, max_api, type_id);
-            } else {
-                // @ts-ignore
-                this.object = new LiveAPI(null, path);
-            }
-        }
-
-        get(property: string): any {
-            return this.object.get(property);
-        }
-
-        set(property: string, value: any): void {
-            this.object.set(property, value)
-        }
-
-        call(func: string, ...args: any[]): any {
-            return this.object.call(func, ...args);
-        }
-
-        get_id(): any {
-            return this.object.id;
-        }
-
-        get_path(): string {
-            return this.object.path;
-        }
-
-        get_children(): any {
-            return this.object.children;
         }
     }
 }

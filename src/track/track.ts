@@ -18,6 +18,7 @@ export namespace track {
     import iLiveApiJs = live.iLiveApiJs;
     import LiveClipVirtual = clip.LiveClipVirtual;
     import LiveApiFactory = live.LiveApiFactory;
+    import TypeIdentifier = live.TypeIdentifier;
 
     export class Track {
 
@@ -205,13 +206,13 @@ export namespace track {
 
     export class TrackDao implements iTrackDao {
 
-        live_api;
+        live_api: iLiveApiJs;
         messenger: Messenger;
         deferlow: boolean;
         key_route: string;
         env: string;
 
-        constructor(live_api: iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
+        constructor(live_api: iLiveApiJs, messenger: Messenger, deferlow?: boolean, key_route?: string) {
             this.live_api = live_api;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -254,12 +255,12 @@ export namespace track {
             return clip_slots.map((list_id_clip_slot) => {
                 return new ClipSlot(
                     new ClipSlotDao(
-                        LiveApiFactory.create(
-                            this.live_api.object.constructor.name,
+                        LiveApiFactory.createFromConstructor(
+                            this.live_api.constructor.name,
                             list_id_clip_slot.join(' '),
-                            true
+                            TypeIdentifier.ID
                         ),
-                        new Messenger(this.live_api.env, 0)
+                        new Messenger(this.messenger.env, 0)
                     )
                 )
             });

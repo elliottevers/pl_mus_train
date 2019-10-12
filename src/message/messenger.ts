@@ -1,16 +1,20 @@
+import {live} from "../live/live";
+
 declare function outlet(n: number, o: any): void;
 
 export namespace message {
 
+    import Env = live.Env;
+
     export class Messenger {
 
-        public env: string;
+        public env: Env;
 
         private outlet: number;
 
         private key_route: string;
 
-        constructor (env: string, outlet: number, key_route?: string) {
+        constructor (env: Env, outlet: number, key_route?: string) {
             this.env = env;
             this.outlet = outlet;
             this.key_route = key_route;
@@ -22,21 +26,21 @@ export namespace message {
 
         message(message: any[], override?: boolean) {
             switch (this.env) {
-                case 'max': {
+                case Env.MAX: {
                     if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_max(message);
                     break;
                 }
-                case 'node': {
+                case Env.NODE: {
                     if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }
                     this.message_node(message);
                     break;
                 }
-                case 'node_for_max': {
+                case Env.NODE_FOR_MAX: {
                     if (this.key_route && !override) {
                         message.unshift(this.key_route);
                     }

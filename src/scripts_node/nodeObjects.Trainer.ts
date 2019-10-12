@@ -54,6 +54,9 @@ import {targeted} from "../algorithm/targeted";
 import Targeted = targeted.Targeted;
 import {freestyle} from "../algorithm/freestyle";
 import Freestyle = freestyle.Freestyle;
+import LiveApiFactory = live.LiveApiFactory;
+import Env = live.Env;
+import TypeIdentifier = live.TypeIdentifier;
 
 const _ = require('underscore');
 const max_api = require('max-api');
@@ -174,10 +177,12 @@ let set_segments = () => {
 
     let this_track = new Track(
         new TrackDao(
-            new live.LiveApiJs(
-                utils.get_path_track_from_path_device(path_this_device)
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                utils.get_path_track_from_path_device(path_this_device),
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0)
+            new Messenger(Env.NODE_FOR_MAX, 0)
         )
     );
 
@@ -260,12 +265,11 @@ let set_track_user_input = () => {
 let set_song = () => {
     song = new Song(
         new SongDao(
-            new live.LiveApiJs(
-                'live_set'
-            ),
-            new Messenger(env, 0),
-            true,
-            'song'
+            // new live.LiveApiJs(
+            //     'live_set'
+            // ),
+
+            new Messenger(Env.NODE_FOR_MAX, 0)
         )
     );
 

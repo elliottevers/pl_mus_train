@@ -11,10 +11,10 @@ export namespace song {
     import Scene = scene.Scene;
     import Track = track.Track;
     import SceneDao = scene.SceneDao;
-    import LiveApiJs = live.LiveApiJs;
     import CuePoint = cue_point.CuePoint;
     import CuePointDao = cue_point.CuePointDao;
     import LiveApiFactory = live.LiveApiFactory;
+    import TypeIdentifier = live.TypeIdentifier;
 
     export class Song {
 
@@ -231,13 +231,12 @@ export namespace song {
 
     export class SongDao implements iSongDao {
 
-        private song_live;
+        private song_live: iLiveApiJs;
         private messenger: Messenger;
         private deferlow: boolean;
         public key_route: string;
-        private env: string;
 
-        constructor(song_live: iLiveApiJs, messenger: Messenger, deferlow?: boolean, key_route?: string, env?: string) {
+        constructor(song_live: iLiveApiJs, messenger: Messenger, deferlow?: boolean, key_route?: string) {
             this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -245,7 +244,6 @@ export namespace song {
             }
             this.deferlow = deferlow;
             this.key_route = key_route;
-            this.env = env;
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {
@@ -271,7 +269,6 @@ export namespace song {
             if (this.deferlow) {
                 this.messenger.message([this.key_route, "set", "overdub", String(int)]);
             } else {
-                // this.song_live.set("overdub", int);
                 this.song_live.set("overdub", int);
 
             }
@@ -314,10 +311,10 @@ export namespace song {
             return scenes.map((id_scene) => {
                 return new Scene(
                     new SceneDao(
-                        LiveApiFactory.create(
-                            this.messenger.env,
+                        LiveApiFactory.createFromConstructor(
+                            this.song_live.constructor.name,
                             id_scene,
-                            true
+                            TypeIdentifier.ID
                         ),
                         this.messenger
                     )
@@ -399,12 +396,12 @@ export namespace song {
             return cue_points.map((list_id_cue_point) => {
                 return new CuePoint(
                     new CuePointDao(
-                        LiveApiFactory.create(
-                            this.messenger.env,
+                        LiveApiFactory.createFromConstructor(
+                            this.song_live.constructor.name,
                             list_id_cue_point.join(' '),
-                            true
+                            TypeIdentifier.ID
                         ),
-                        new Messenger('max', 0)
+                        new Messenger(this.messenger.env, 0)
                     )
                 )
             });

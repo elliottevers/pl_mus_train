@@ -1,4 +1,4 @@
-import {live as li} from "../live/live";
+import {live, live as li} from "../live/live";
 import {song} from "../song/song";
 import SongDao = song.SongDao;
 import Song = song.Song;
@@ -7,6 +7,9 @@ import Messenger = message.Messenger;
 import {track} from "../track/track";
 import TrackDao = track.TrackDao;
 import Track = track.Track;
+import LiveApiFactory = live.LiveApiFactory;
+import Env = live.Env;
+import TypeIdentifier = live.TypeIdentifier;
 
 export {}
 const max_api = require('max-api');
@@ -24,10 +27,10 @@ max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
 
     let track = new Track(
         new TrackDao(
-            new li.LiveApiJs(
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
                 path_track,
-                'node',
-                'path'
+                TypeIdentifier.PATH
             ),
             null,
             false

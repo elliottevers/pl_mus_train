@@ -1,16 +1,19 @@
 import {message} from "../message/messenger";
-import Messenger = message.Messenger;
-import {live, live as li} from "../live/live";
+import {live} from "../live/live";
 import {utils} from "../utils/utils";
 import {segment} from "../segment/segment";
-import Segment = segment.Segment;
 import {song as module_song} from "../song/song";
+import {track as module_track} from "../track/track";
+import Messenger = message.Messenger;
+import Segment = segment.Segment;
 import SongDao = module_song.SongDao;
 import Song = module_song.Song;
-import LiveApiJs = live.LiveApiJs;
-import {track as module_track} from "../track/track";
 import TrackDao = module_track.TrackDao;
 import Track = module_track.Track;
+import Env = live.Env;
+import LiveApiFactory = live.LiveApiFactory;
+import TypeIdentifier = live.TypeIdentifier;
+
 const _ = require('underscore');
 
 declare let autowatch: any;
@@ -31,7 +34,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let messenger = new Messenger(env, 0);
+let messenger = new Messenger(Env.MAX, 0);
 
 let length_beats: number = null;
 
@@ -47,13 +50,19 @@ let get_length_beats = () => {
 };
 
 let expand_segments = () => {
-    let this_device = new li.LiveApiJs('this_device');
 
-    // TODO: convert to node?
+    let this_device = LiveApiFactory.create(
+        Env.MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
+
     let track = new Track(
         new TrackDao(
-            new LiveApiJs(
-                utils.get_path_track_from_path_device(this_device.get_path())
+            LiveApiFactory.create(
+                Env.MAX,
+                utils.get_path_track_from_path_device(this_device.get_path()),
+                TypeIdentifier.PATH
             ),
             messenger
         )
@@ -63,13 +72,19 @@ let expand_segments = () => {
 };
 
 let contract_segments = () => {
-    let this_device = new li.LiveApiJs('this_device');
 
-    // TODO: convert to node?
+    let this_device = LiveApiFactory.create(
+        Env.MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
+
     let track = new Track(
         new TrackDao(
-            new LiveApiJs(
-                utils.get_path_track_from_path_device(this_device.get_path())
+            LiveApiFactory.create(
+                Env.MAX,
+                utils.get_path_track_from_path_device(this_device.get_path()),
+                TypeIdentifier.PATH
             ),
             messenger
         )
@@ -90,8 +105,10 @@ let contract_track = (path_track) => {
 
     let track = new Track(
         new TrackDao(
-            new li.LiveApiJs(
-                path_track
+            LiveApiFactory.create(
+                Env.MAX,
+                path_track,
+                TypeIdentifier.PATH
             ),
             messenger
         )
@@ -124,13 +141,20 @@ let contract_track = (path_track) => {
 // TODO: we can't export this, because it could be called from a different track than the one the segments are on...
 // NB: assumes the device that calls this is on the track of segments
 let get_notes_segments = () => {
-    let this_device = new li.LiveApiJs('this_device');
+
+    let this_device = LiveApiFactory.create(
+        Env.MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
 
     // TODO: convert to node?
     let track_segments = new Track(
         new TrackDao(
-            new LiveApiJs(
-                utils.get_path_track_from_path_device(this_device.get_path())
+            LiveApiFactory.create(
+                Env.MAX,
+                utils.get_path_track_from_path_device(this_device.get_path()),
+                TypeIdentifier.PATH
             ),
             messenger
         )
@@ -154,7 +178,11 @@ let contract_track_audio = (path_track) => {
 
     let track = new Track(
         new TrackDao(
-            new li.LiveApiJs(path_track),
+            LiveApiFactory.create(
+                Env.MAX,
+                path_track,
+                TypeIdentifier.PATH
+            ),
             messenger
         )
     );
@@ -195,8 +223,10 @@ let expand_track_audio = (path_track) => {
     // TODO: convert to node?
     let track = new Track(
         new TrackDao(
-            new LiveApiJs(
-                path_track
+            LiveApiFactory.create(
+                Env.MAX,
+                path_track,
+                TypeIdentifier.PATH
             ),
             messenger
         )
@@ -210,11 +240,12 @@ let expand_track_audio = (path_track) => {
 
     let song = new Song(
         new SongDao(
-            new li.LiveApiJs(
-                'live_set'
+            LiveApiFactory.create(
+                Env.MAX,
+                'live_set',
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0),
-            false
+            new Messenger(Env.MAX, 0)
         )
     );
 
@@ -296,8 +327,10 @@ let expand_track = (path_track: string, name_part?: string) => {
     // TODO: convert to node?
     let track = new Track(
         new TrackDao(
-            new LiveApiJs(
-                path_track
+            LiveApiFactory.create(
+                Env.MAX,
+                path_track,
+                TypeIdentifier.PATH
             ),
             messenger
         )
@@ -336,10 +369,12 @@ let expand_track = (path_track: string, name_part?: string) => {
 
     let song_read = new Song(
         new SongDao(
-            new li.LiveApiJs(
-                'live_set'
+            LiveApiFactory.create(
+                Env.MAX,
+                'live_set',
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0),
+            new Messenger(Env.MAX, 0),
             false
         )
     );
