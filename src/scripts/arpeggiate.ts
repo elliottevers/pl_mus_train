@@ -2,11 +2,13 @@ import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live} from "../live/live";
 import {clip} from "../clip/clip";
-import LiveApiJs = live.LiveApiJs;
 import {harmony} from "../music/harmony";
 import Harmony = harmony.Harmony;
 import ClipDao = clip.ClipDao;
 import Clip = clip.Clip;
+import Env = live.Env;
+import LiveApiFactory = live.LiveApiFactory;
+import TypeIdentifier = live.TypeIdentifier;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -33,10 +35,12 @@ let arpeggiate = () => {
     // TODO: convert to node?
     let clip = new Clip(
         new ClipDao(
-            new LiveApiJs(
-                path_clip
+            LiveApiFactory.create(
+                Env.MAX,
+                path_clip,
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0)
+            new Messenger(Env.MAX, 0)
         )
     );
 

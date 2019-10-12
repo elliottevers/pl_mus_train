@@ -1,58 +1,58 @@
 import {live} from "../live/live";
 import {trainer as module_trainer} from "../train/trainer";
-import Trainer = module_trainer.Trainer;
 import {clip} from "../clip/clip";
-import ClipDao = clip.ClipDao;
 import {segment} from "../segment/segment";
-import Segment = segment.Segment;
 import {modes_control, modes_texture} from "../constants/constants";
+import {song as module_song} from "../song/song";
+import {user_input} from "../control/user_input";
+import {utils} from "../utils/utils";
+import {scene} from "../scene/scene";
+import {message} from "../message/messenger";
+import {thaw} from "../serialize/thaw";
+import {track} from "../track/track";
+import {freeze} from "../serialize/freeze";
+import {window as module_window} from "../render/window";
+import {parse} from "../parse/parse";
+import {trainable} from "../algorithm/trainable";
+import {predict} from "../algorithm/predict";
+import {parse as algo_parse} from "../algorithm/parse";
+import {derive} from "../algorithm/derive";
+import {detect} from "../algorithm/detect";
+import {parsed} from "../algorithm/parsed";
+import {targeted} from "../algorithm/targeted";
+import {freestyle} from "../algorithm/freestyle";
+import Trainer = module_trainer.Trainer;
+import ClipDao = clip.ClipDao;
+import Segment = segment.Segment;
 import MONOPHONY = modes_texture.MONOPHONY;
 import INSTRUMENTAL = modes_control.INSTRUMENTAL;
 import Clip = clip.Clip;
-import {song as module_song} from "../song/song";
 import SongDao = module_song.SongDao;
-import {user_input} from "../control/user_input";
 import UserInputHandler = user_input.UserInputHandler;
 import Song = module_song.Song;
-import {utils} from "../utils/utils";
-import {scene} from "../scene/scene";
 import SceneDao = scene.SceneDao;
-import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {thaw} from "../serialize/thaw";
 import TrainThawer = thaw.TrainThawer;
 import Scene = scene.Scene;
-import {track} from "../track/track";
 import TrackDao = track.TrackDao;
 import VOCAL = modes_control.VOCAL;
 import POLYPHONY = modes_texture.POLYPHONY;
-import {freeze} from "../serialize/freeze";
 import TrainFreezer = freeze.TrainFreezer;
 import Track = track.Track;
-import {window as module_window} from "../render/window";
 import MatrixWindow = module_window.MatrixWindow;
-import {parse} from "../parse/parse";
 import MatrixParseForest = parse.MatrixParseForest;
-import {trainable} from "../algorithm/trainable";
 import FREESTYLE = trainable.FREESTYLE;
-import {predict} from "../algorithm/predict";
 import Predict = predict.Predict;
 import PREDICT = trainable.PREDICT;
 import PARSE = trainable.PARSE;
-import {parse as algo_parse} from "../algorithm/parse";
 import Parse = algo_parse.Parse;
-import {derive} from "../algorithm/derive";
 import Derive = derive.Derive;
 import DERIVE = trainable.DERIVE;
-import {detect} from "../algorithm/detect";
 import Detect = detect.Detect;
 import DETECT = trainable.DETECT;
-import {parsed} from "../algorithm/parsed";
 import Parsed = parsed.Parsed;
 import StructTrain = module_trainer.StructTrain;
-import {targeted} from "../algorithm/targeted";
 import Targeted = targeted.Targeted;
-import {freestyle} from "../algorithm/freestyle";
 import Freestyle = freestyle.Freestyle;
 import LiveApiFactory = live.LiveApiFactory;
 import Env = live.Env;
@@ -61,11 +61,11 @@ import TypeIdentifier = live.TypeIdentifier;
 const _ = require('underscore');
 const max_api = require('max-api');
 
-let env: string = 'node_for_max';
+let envTrain = Env.NODE_FOR_MAX
 
-let messenger_render = new Messenger(env, 0, 'render');
-let messenger_monitor_target = new Messenger(env, 0, 'index_track_target');
-let messenger_num_segments = new Messenger(env, 0, 'num_segments');
+let messenger_render = new Messenger(envTrain, 0, 'render');
+let messenger_monitor_target = new Messenger(envTrain, 0, 'index_track_target');
+let messenger_num_segments = new Messenger(envTrain, 0, 'num_segments');
 let mode_texture, mode_control, song, algorithm_train, user_input_handler, window, segments_train, trainer, direction;
 let track_target: Track, track_user_input: Track;
 
@@ -105,23 +105,23 @@ max_api.addHandler('set_algorithm_train', (option) => {
 
     switch (option) {
         case FREESTYLE: {
-            algorithm_train = new Freestyle();
+            algorithm_train = new Freestyle(Env.NODE_FOR_MAX);
             break;
         }
         case DETECT: {
-            algorithm_train = new Detect();
+            algorithm_train = new Detect(Env.NODE_FOR_MAX);
             break;
         }
         case PREDICT: {
-            algorithm_train = new Predict();
+            algorithm_train = new Predict(Env.NODE_FOR_MAX);
             break;
         }
         case PARSE: {
-            algorithm_train = new Parse();
+            algorithm_train = new Parse(Env.NODE_FOR_MAX);
             break;
         }
         case DERIVE: {
-            algorithm_train = new Derive();
+            algorithm_train = new Derive(Env.NODE_FOR_MAX);
             break;
         }
         default: {
@@ -151,12 +151,12 @@ max_api.addHandler('set_track_target', () => {
 
     track_target = new Track(
         new TrackDao(
-            new live.LiveApiJs(
-                utils.get_path_track_from_path_device(path_device_target)
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                utils.get_path_track_from_path_device(path_device_target),
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0),
-            true,
-            'track_target'
+            new Messenger(Env.NODE_FOR_MAX, 0)
         )
     );
 
@@ -171,7 +171,11 @@ let set_segments = () => {
 
     // TODO: this assumes the trainer device is on the same track as the segmenter
     // TODO: put back
-    let this_device = new live.LiveApiJs('this_device');
+    let this_device = LiveApiFactory.create(
+        Env.NODE_FOR_MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
 
     let path_this_device = utils.cleanse_path(this_device.get_path());
 
@@ -201,12 +205,12 @@ let set_segments = () => {
         segment.set_scene(
             new Scene(
                 new SceneDao(
-                    new live.LiveApiJs(
-                        path_scene
+                    LiveApiFactory.create(
+                        Env.NODE_FOR_MAX,
+                        path_scene,
+                        TypeIdentifier.PATH
                     ),
-                    new Messenger(env, 0),
-                    true,
-                    'scene'
+                    new Messenger(Env.NODE_FOR_MAX, 0)
                 )
             )
         );
@@ -220,12 +224,12 @@ let set_segments = () => {
         segment.set_clip_user_input(
             new Clip(
                 new ClipDao(
-                    new live.LiveApiJs(
-                        path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' ')
+                    LiveApiFactory.create(
+                        Env.NODE_FOR_MAX,
+                        path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' '),
+                        TypeIdentifier.PATH
                     ),
-                    new Messenger(env, 0),
-                    true,
-                    'clip_user_input'
+                    new Messenger(Env.NODE_FOR_MAX, 0)
                 )
             )
         );
@@ -238,7 +242,11 @@ let set_segments = () => {
 
 
 let set_track_user_input = () => {
-    let this_device = new live.LiveApiJs('this_device');
+    let this_device = LiveApiFactory.create(
+        Env.NODE_FOR_MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
 
     let path_this_track = utils.get_path_track_from_path_device(
         utils.cleanse_path(
@@ -248,12 +256,12 @@ let set_track_user_input = () => {
 
     track_user_input = new Track(
         new TrackDao(
-            new live.LiveApiJs(
-                path_this_track
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                path_this_track,
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0),
-            true,
-            'track_user_input'
+            new Messenger(Env.NODE_FOR_MAX, 0)
         )
     );
 
@@ -265,10 +273,11 @@ let set_track_user_input = () => {
 let set_song = () => {
     song = new Song(
         new SongDao(
-            // new live.LiveApiJs(
-            //     'live_set'
-            // ),
-
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                'live_set',
+                TypeIdentifier.PATH
+            ),
             new Messenger(Env.NODE_FOR_MAX, 0)
         )
     );
@@ -299,7 +308,8 @@ max_api.addHandler('initialize', () => {
         track_user_input,
         song,
         segments_train,
-        messenger_render
+        messenger_render,
+        Env.NODE_FOR_MAX
     );
 });
 
@@ -336,6 +346,7 @@ max_api.addHandler('load_session', (filename: string) => {
         song,
         segments_train,
         messenger_render,
+        Env.NODE_FOR_MAX,
         true
     );
 
@@ -343,7 +354,7 @@ max_api.addHandler('load_session', (filename: string) => {
 
         let matrix_deserialized = TrainThawer.thaw_notes_matrix(
             filename,
-            env
+            envTrain
         );
 
         let algorithm_parsed = algorithm_train as Parsed;
@@ -360,7 +371,7 @@ max_api.addHandler('load_session', (filename: string) => {
 
         let history_user_input_recovered = TrainThawer.recover_history_user_input(
             filename,
-            env,
+            envTrain,
             history_user_input_empty
         );
 
@@ -385,7 +396,7 @@ max_api.addHandler('save_session', (filename: string) => {
     TrainFreezer.freeze(
         trainer,
         filename,
-        env
+        envTrain
     );
 });
 

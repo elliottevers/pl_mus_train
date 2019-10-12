@@ -1,10 +1,13 @@
 import {message as m, message} from "../message/messenger";
-import Messenger = message.Messenger;
-import {live as li} from "../live/live";
+import {live, live as li} from "../live/live";
 import {clip as c} from "../clip/clip";
 import {io} from "../io/io";
-import Exporter = io.Exporter;
 import {utils} from "../utils/utils";
+import Messenger = message.Messenger;
+import Exporter = io.Exporter;
+import Env = live.Env;
+import LiveApiFactory = live.LiveApiFactory;
+import TypeIdentifier = live.TypeIdentifier;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -37,8 +40,10 @@ let exporter = new Exporter(
 let part_names = new utils.Set([]);
 
 let set_length = () => {
-    let clip_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot clip'
+    let clip_highlighted = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view highlighted_clip_slot clip',
+        TypeIdentifier.PATH
     );
 
     exporter.set_length(
@@ -48,8 +53,10 @@ let set_length = () => {
 };
 
 let set_tempo = () => {
-    let song = new li.LiveApiJs(
-        'live_set'
+    let song = LiveApiFactory.create(
+        Env.MAX,
+        'live_set',
+        TypeIdentifier.PATH
     );
 
     exporter.set_tempo(
@@ -59,15 +66,16 @@ let set_tempo = () => {
 
 let export_part = (name_part) => {
 
-    let clip_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot clip'
+    let clip_highlighted = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view highlighted_clip_slot clip',
+        TypeIdentifier.PATH
     );
 
     let clip = new c.Clip(
         new c.ClipDao(
             clip_highlighted,
-            new m.Messenger(env, 0),
-            false
+            new m.Messenger(Env.MAX, 0)
         )
     );
 

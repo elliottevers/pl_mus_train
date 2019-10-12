@@ -1,21 +1,13 @@
-import TreeModel = require("tree-model");
-import {note as n} from "../note/note"
-import {clip as module_clip} from "../clip/clip";
-
-
 let node = require("deasync");
 node.loop = node.runLoopOnce;
-
 
 // declare let LiveAPI: any;
 
 export namespace live {
 
-    import Clip = module_clip.Clip;
-
     export enum TypeIdentifier {
-        PATH,
-        ID
+        PATH = 'path',
+        ID = 'id'
     }
 
     export enum Env {
@@ -31,15 +23,11 @@ export namespace live {
                 case Env.NODE_FOR_MAX:
                     return new LiveApiMaxSynchronous(
                         identifier,
-                        'node',
-                        id ? 'id' : 'path'
+                        typeIdentifier
                     );
                 case Env.MAX:
                     // @ts-ignore
                     this.object = new LiveAPI(null, identifier);
-                    return new LiveApiJs(
-                        ref
-                    );
                 case Env.NODE:
                     // TODO: How will we be able to do read queries?
                     break;
@@ -53,15 +41,11 @@ export namespace live {
                 case 'LiveApiMaxSynchronous':
                     return new LiveApiMaxSynchronous(
                         identifier,
-                        'node',
-                        id ? 'id' : 'path'
+                        typeIdentifier,
                     );
                 case 'LiveApi':
                     // @ts-ignore
                     return new LiveAPI(null, identifier);
-                case Env.NODE:
-                    // TODO: How will we be able to do read queries?
-                    break;
                 default:
                     throw 'cannot create LiveApi'
             }
@@ -85,7 +69,7 @@ export namespace live {
         private maxApi: any;
 
 
-        constructor(refLive, typeRef: TypeIdentifier) {
+        constructor(refLive: string, typeRef: TypeIdentifier) {
             this.refLive = refLive;
             this.typeRef = typeRef;
             this.maxApi = require('max-api');

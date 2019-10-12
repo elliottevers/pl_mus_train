@@ -11,6 +11,7 @@ import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
 import {iterate} from "../train/iterate";
+import {live} from "../live/live";
 
 export namespace detect {
 
@@ -29,11 +30,12 @@ export namespace detect {
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
     import Track = track.Track;
+    import Env = live.Env;
 
     export class Detect extends Targeted {
 
-        constructor() {
-            super();
+        constructor(env: Env) {
+            super(env);
         }
 
         determine_targets(user_input_handler: UserInputHandler, notes_segment_next: TreeModel.Node<n.Note>[]): TypeSequenceTarget {

@@ -2,12 +2,14 @@ import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {live} from "../live/live";
 import {clip} from "../clip/clip";
-import LiveApiJs = live.LiveApiJs;
 import ClipDao = clip.ClipDao;
 import Clip = clip.Clip;
 import TreeModel = require("tree-model");
 import {note as n, note} from "../note/note";
 import Note = note.Note;
+import LiveApiFactory = live.LiveApiFactory;
+import TypeIdentifier = live.TypeIdentifier;
+import Env = live.Env;
 const _ = require('underscore');
 
 declare let autowatch: any;
@@ -35,10 +37,12 @@ let consolidate = () => {
     // TODO: convert to node?
     let clip = new Clip(
         new ClipDao(
-            new LiveApiJs(
-                path_clip
+            LiveApiFactory.create(
+                Env.MAX,
+                path_clip,
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0)
+            new Messenger(Env.MAX, 0)
         )
     );
 

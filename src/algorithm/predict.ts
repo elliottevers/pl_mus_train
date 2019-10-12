@@ -11,6 +11,7 @@ import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
 import {iterate} from "../train/iterate";
 import {log} from "../log/logger";
+import {live} from "../live/live";
 const _ = require('underscore');
 
 export namespace predict {
@@ -28,8 +29,13 @@ export namespace predict {
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
     import Logger = log.Logger;
+    import Env = live.Env;
 
     export class Predict extends Targeted {
+
+        constructor(env: Env) {
+            super(env);
+        }
 
         public get_name(): string {
             return PREDICT

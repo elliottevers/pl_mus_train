@@ -1,9 +1,12 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live as li} from "../live/live";
+import {live, live as li} from "../live/live";
 import {song} from "../song/song";
 import SongDao = song.SongDao;
 import Song = song.Song;
+import Env = live.Env;
+import LiveApiFactory = live.LiveApiFactory;
+import TypeIdentifier = live.TypeIdentifier;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -25,11 +28,12 @@ if (env === 'max') {
 let set_tempo = (int) => {
     let song = new Song(
         new SongDao(
-            new li.LiveApiJs(
+            LiveApiFactory.create(
+                Env.MAX,
                 'live_set',
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0),
-            false
+            new Messenger(Env.MAX, 0)
         )
     );
 

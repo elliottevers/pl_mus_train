@@ -1,7 +1,10 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live as li} from "../live/live";
+import {live, live as li} from "../live/live";
 import {utils} from "../utils/utils";
+import Env = live.Env;
+import LiveApiFactory = live.LiveApiFactory;
+import TypeIdentifier = live.TypeIdentifier;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -22,13 +25,15 @@ if (env === 'max') {
 }
 
 let get_selected_track = () => {
-    let track_highlighted = new li.LiveApiJs(
-        'live_set view selected_track clip_slots 0 clip'
+    let track_highlighted = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view selected_track clip_slots 0 clip',
+        TypeIdentifier.PATH
     );
 
     let path_live = track_highlighted.get_path();
 
-    let messenger = new Messenger(env, 0);
+    let messenger = new Messenger(Env.MAX, 0);
 
     messenger.message(utils.PathLive.to_message(path_live))
 

@@ -9,6 +9,7 @@ import {parse} from "../parse/parse";
 import {window} from "../render/window";
 import TreeModel = require("tree-model");
 import {song} from "../song/song";
+import {live} from "../live/live";
 
 export namespace derive {
     import Parsed = parsed.Parsed;
@@ -22,8 +23,13 @@ export namespace derive {
     import MatrixWindow = window.MatrixWindow;
     import SESSION = trainer.SESSION;
     import FORWARDS = iterate.FORWARDS;
+    import Env = live.Env;
 
     export class Derive extends Parsed {
+
+        constructor(env: Env) {
+            super(env);
+        }
 
         public get_name(): string {
             return DERIVE

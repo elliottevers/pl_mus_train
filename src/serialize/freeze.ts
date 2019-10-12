@@ -1,12 +1,14 @@
 import {trainer} from "../train/trainer";
 import {file} from "../io/file";
 import {serialize} from "./serialize";
+import {live} from "../live/live";
 
 export namespace freeze {
 
     import Trainer = trainer.Trainer;
     import to_json = file.to_json;
     import serialize_sequence_note = serialize.serialize_sequence_note;
+    import Env = live.Env;
 
     export class TrainFreezer {
 
@@ -14,7 +16,7 @@ export namespace freeze {
 
         }
 
-        public static freeze(trainer: Trainer, filepath: string, env: string) {
+        public static freeze(trainer: Trainer, filepath: string, env: Env) {
             let dict = {};
 
             let data_serializable_max = {};

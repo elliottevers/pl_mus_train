@@ -1,11 +1,14 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {live as li} from "../live/live";
+import {live, live as li} from "../live/live";
 import {clip} from "../clip/clip";
 import Clip = clip.Clip;
 import ClipDao = clip.ClipDao;
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
+import LiveApiFactory = live.LiveApiFactory;
+import TypeIdentifier = live.TypeIdentifier;
+import Env = live.Env;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -32,13 +35,17 @@ let clear_notes = () => {
 };
 
 let set_notes = () => {
-    let clipslot_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot'
+    let clipslot_highlighted = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view highlighted_clip_slot',
+        TypeIdentifier.PATH
     );
 
 
-    let clip_highlighted = new li.LiveApiJs(
-        'live_set view highlighted_clip_slot clip'
+    let clip_highlighted = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view highlighted_clip_slot clip',
+        TypeIdentifier.PATH
     );
 
     let clip: Clip;
@@ -49,15 +56,17 @@ let set_notes = () => {
         // TODO: get the beat of end of last note
         clipslot_highlighted.call('create_clip', Number(notes[notes.length - 1].beat_start + notes[notes.length - 1].beats_duration - notes[0].beat_start));
 
-        clip_highlighted = new li.LiveApiJs(
-            'live_set view highlighted_clip_slot clip'
-        );
+        clip_highlighted = LiveApiFactory.create(
+            Env.MAX,
+            'live_set view highlighted_clip_slot clip',
+            TypeIdentifier.PATH
+        )
     }
 
     clip = new Clip(
         new ClipDao(
             clip_highlighted,
-            new Messenger(env, 0)
+            new Messenger(Env.MAX, 0)
         )
     );
 

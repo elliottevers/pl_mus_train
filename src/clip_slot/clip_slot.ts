@@ -1,7 +1,6 @@
 import {live} from "../live/live";
 import {clip, clip as module_clip} from "../clip/clip";
 import {message} from "../message/messenger";
-import LiveApiJs = live.LiveApiJs;
 import {utils} from "../utils/utils";
 
 export namespace clip_slot {
@@ -9,6 +8,8 @@ export namespace clip_slot {
     import Messenger = message.Messenger;
     import ClipDao = clip.ClipDao;
     import LiveApiFactory = live.LiveApiFactory;
+    import TypeIdentifier = live.TypeIdentifier;
+    import iLiveApiJs = live.iLiveApiJs;
 
     export class ClipSlot {
 
@@ -109,10 +110,10 @@ export namespace clip_slot {
 
     export class ClipSlotDao implements iClipSlotDao {
 
-        private live_api: LiveApiJs;
+        private live_api: iLiveApiJs;
         private messenger: Messenger;
 
-        constructor(live_api: LiveApiJs, messenger: Messenger) {
+        constructor(live_api: iLiveApiJs, messenger: Messenger) {
             this.live_api = live_api;
             this.messenger = messenger;
         }
@@ -136,10 +137,10 @@ export namespace clip_slot {
         get_clip(): Clip {
             return new Clip(
                 new ClipDao(
-                    LiveApiFactory.create(
-                        this.messenger.env,
+                    LiveApiFactory.createFromConstructor(
+                        this.live_api.constructor.name,
                         utils.cleanse_id(this.live_api.get('clip')),
-                        true
+                        TypeIdentifier.ID
                     ),
                     this.messenger
                 )

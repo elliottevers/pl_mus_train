@@ -12,6 +12,7 @@ import {window} from "../render/window";
 import {track} from "../track/track";
 import {iterate} from "../train/iterate";
 import TreeModel = require("tree-model");
+import {live} from "../live/live";
 const _ = require('underscore');
 
 export namespace freestyle {
@@ -20,12 +21,18 @@ export namespace freestyle {
     import Track = track.Track;
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
+    import Env = live.Env;
 
     export class Freestyle implements Trainable {
+        env: Env;
         b_parsed: boolean;
         b_targeted: boolean;
         depth: number;
         direction: string;
+
+        constructor(env) {
+            this.env = env;
+        }
 
         public get_view(): string {
             return ARRANGEMENT

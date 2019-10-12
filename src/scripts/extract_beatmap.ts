@@ -1,18 +1,19 @@
 import {message} from "../message/messenger";
-import Messenger = message.Messenger;
-import {live as li} from "../live/live";
+import {live} from "../live/live";
 import {utils} from "../utils/utils";
 import {track} from "../track/track";
+import {song} from "../song/song";
+import {clip} from "../clip/clip";
+import Messenger = message.Messenger;
 import TrackDao = track.TrackDao;
 import Track = track.Track;
-import {song} from "../song/song";
 import Song = song.Song;
 import SongDao = song.SongDao;
-import {clip} from "../clip/clip";
 import Clip = clip.Clip;
 import ClipDao = clip.ClipDao;
-import {log} from "../log/logger";
-import Logger = log.Logger;
+import LiveApiFactory = live.LiveApiFactory;
+import TypeIdentifier = live.TypeIdentifier;
+import Env = live.Env;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -32,24 +33,28 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let messenger = new Messenger(env, 0);
+let messenger = new Messenger(Env.MAX, 0);
 
 let extract_beatmap_raw = () => {
 
     let song = new Song(
         new SongDao(
-            new li.LiveApiJs(
-                'live_set'
+            LiveApiFactory.create(
+                Env.MAX,
+                'live_set',
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0),
+            new Messenger(Env.MAX, 0),
             false
         )
     );
 
     let clip_highlighted = new Clip(
         new ClipDao(
-            new li.LiveApiJs(
-                'live_set view highlighted_clip_slot clip'
+            LiveApiFactory.create(
+                Env.MAX,
+                'live_set view highlighted_clip_slot clip',
+                TypeIdentifier.PATH
             ),
             messenger
         )
@@ -70,12 +75,18 @@ let extract_beatmap_raw = () => {
 
 let extract_beatmap_warped = () => {
 
-    let this_device = new li.LiveApiJs('this_device');
+    let this_device = LiveApiFactory.create(
+        Env.MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
 
     let track = new Track(
         new TrackDao(
-            new li.LiveApiJs(
-                utils.get_path_track_from_path_device(this_device.get_path())
+            LiveApiFactory.create(
+                Env.MAX,
+                utils.get_path_track_from_path_device(this_device.get_path()),
+                TypeIdentifier.PATH
             ),
             messenger
         )
@@ -83,11 +94,12 @@ let extract_beatmap_warped = () => {
 
     let song = new Song(
         new SongDao(
-            new li.LiveApiJs(
-                'live_set'
+            LiveApiFactory.create(
+                Env.MAX,
+                'live_set',
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0),
-            false
+            new Messenger(Env.MAX, 0)
         )
     );
 

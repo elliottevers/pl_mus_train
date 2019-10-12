@@ -9,6 +9,7 @@ import {trainable} from "./trainable";
 import {song} from "../song/song";
 import {iterate} from "../train/iterate";
 import {parse as module_parse} from "../parse/parse"
+import {live} from "../live/live";
 
 
 export namespace parse {
@@ -25,11 +26,12 @@ export namespace parse {
     import FORWARDS = iterate.FORWARDS;
     import MatrixParseForest = module_parse.MatrixParseForest;
     import ParseForest = module_parse.ParseForest;
+    import Env = live.Env;
 
     export class Parse extends Parsed {
 
-        constructor() {
-            super();
+        constructor(env: Env) {
+            super(env);
         }
 
         public get_name(): string {
@@ -70,13 +72,15 @@ export namespace parse {
                 let clip_target = Track.get_clip_at_index(
                     track_target.get_index(),
                     Number(i_segment),
-                    track_target.track_dao.messenger
+                    track_target.track_dao.messenger,
+                    this.env
                 );
 
                 let clip_user_input = Track.get_clip_at_index(
                     track_user_input.get_index(),
                     Number(i_segment),
-                    track_target.track_dao.messenger
+                    track_target.track_dao.messenger,
+                    this.env
                 );
 
                 let notes = clip_target.get_notes(

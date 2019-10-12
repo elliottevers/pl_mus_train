@@ -1,4 +1,4 @@
-import {live, live as li} from "../live/live";
+import {live} from "../live/live";
 import {message} from "../message/messenger";
 import {utils} from "../utils/utils";
 
@@ -84,11 +84,6 @@ export namespace scene {
         }
 
         public fire(force_legato: boolean) {
-            // if (this.deferlow) {
-            //     this.messenger.message([this.key_route, "set", "loop_end", beat]);
-            // } else {
-            //     this.clip_live.set('loop_end', beat);
-            // }
             if (this.deferlow) {
                 this.messenger.message([this.key_route, "call", "fire", force_legato ? '1' : '0']);
             } else {

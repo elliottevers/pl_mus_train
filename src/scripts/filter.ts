@@ -1,18 +1,12 @@
-import {message as m, message} from "../message/messenger";
+import {message} from "../message/messenger";
+import {live} from "../live/live";
+import {clip} from "../clip/clip";
 import Messenger = message.Messenger;
-import {live, live as li} from "../live/live";
-import {clip, clip as c} from "../clip/clip";
-import LiveApiJs = live.LiveApiJs;
-import {log} from "../log/logger";
-import Logger = log.Logger;
-import {io} from "../io/io";
-import Exporter = io.Exporter;
-import {utils} from "../utils/utils";
-import {harmony} from "../music/harmony";
-import Harmony = harmony.Harmony;
 import ClipDao = clip.ClipDao;
 import Clip = clip.Clip;
 import LiveApiFactory = live.LiveApiFactory;
+import Env = live.Env;
+import TypeIdentifier = live.TypeIdentifier;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -37,7 +31,11 @@ let notes_filtered = [];
 // let cached: boolean = false;
 
 let get_clip = () => {
-    let this_device = new li.LiveApiJs('this_device');
+    let this_device = LiveApiFactory.create(
+        Env.MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
 
     let path_this_device = this_device.get_path();
 
@@ -50,11 +48,11 @@ let get_clip = () => {
     return new Clip(
         new ClipDao(
             LiveApiFactory.create(
-                this.messenger.env,
+                Env.MAX,
                 path_clip,
-                false
+                TypeIdentifier.PATH
             ),
-            new Messenger(env, 0)
+            new Messenger(Env.MAX, 0)
         )
     );
 };

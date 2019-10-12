@@ -200,7 +200,8 @@ let contract_track_audio = (path_track) => {
             let clip = Track.get_clip_at_index(
                 track.get_index(),
                 Number(i_clip_slot_audio),
-                messenger
+                messenger,
+                Env.MAX
             );
 
             clip.set_endpoint_markers(0, get_length_beats());
@@ -254,7 +255,8 @@ let expand_track_audio = (path_track) => {
     let clip_first = Track.get_clip_at_index(
         track.get_index(),
         0,
-        messenger
+        messenger,
+        Env.MAX
     );
 
     let segment_first = new Segment(notes_segments[0]);
@@ -283,7 +285,8 @@ let expand_track_audio = (path_track) => {
         let clip_slot = Track.get_clip_slot_at_index(
             track.get_index(),
             Number(i_clipslot),
-            messenger
+            messenger,
+            Env.MAX
         );
 
         clip_slot.load_clip();
@@ -303,7 +306,8 @@ let expand_track_audio = (path_track) => {
         let clip = Track.get_clip_at_index(
             track.get_index(),
             Number(i_clipslot),
-            messenger
+            messenger,
+            Env.MAX
         );
 
         let segment = new Segment(note_segment);
@@ -396,7 +400,8 @@ let expand_track = (path_track: string, name_part?: string) => {
         let clip_slot = Track.get_clip_slot_at_index(
             track.get_index(),
             Number(i_segment),
-            messenger
+            messenger,
+            Env.MAX
         );
 
         clip_slot.load_clip();

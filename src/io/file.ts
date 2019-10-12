@@ -1,10 +1,13 @@
+import {live} from "../live/live";
+
 declare let Dict: any;
 
 export namespace file {
 
-    export let to_json = (string_json, filename: string, env: string) => {
+    import Env = live.Env;
+    export let to_json = (string_json, filename: string, env: Env) => {
         switch (env) {
-            case 'node_for_max': {
+            case Env.NODE_FOR_MAX: {
                 console.log('writing json');
                 let fs = require("fs");
 
@@ -16,7 +19,7 @@ export namespace file {
 
                 break;
             }
-            case 'node': {
+            case Env.NODE: {
                 console.log('writing json');
                 let fs = require("fs");
 
@@ -28,7 +31,7 @@ export namespace file {
 
                 break;
             }
-            case 'max': {
+            case Env.MAX: {
                 // @ts-ignore
                 let f = new File(filename,"write","JSON");
 
@@ -49,11 +52,11 @@ export namespace file {
         }
     };
 
-    export let from_json = (filepath: string, env: string) => {
+    export let from_json = (filepath: string, env: Env) => {
         let matrix_deserialized = [];
 
         switch (env) {
-            case 'node_for_max': {
+            case Env.NODE_FOR_MAX: {
                 console.log('reading json');
                 let fs = require("fs");
                 // TODO: fix in node_for_max
@@ -64,7 +67,7 @@ export namespace file {
                 }))['history_user_input'];
                 break;
             }
-            case 'node': {
+            case Env.NODE: {
                 console.log('reading json');
                 let fs = require("fs");
                 // TODO: fix in node_for_max
@@ -75,7 +78,7 @@ export namespace file {
                 }))['history_user_input'];
                 break;
             }
-            case 'max': {
+            case Env.MAX: {
                 let dict = new Dict();
 
                 dict.import_json(filepath);

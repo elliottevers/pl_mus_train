@@ -2,9 +2,10 @@ import {live} from "../live/live";
 import {clip} from "../clip/clip";
 import {message} from "../message/messenger";
 import {note} from "../note/note";
-import TreeModel = require("tree-model");
 import {clip_slot} from "../clip_slot/clip_slot";
 import {utils} from "../utils/utils";
+import TreeModel = require("tree-model");
+
 const _ = require('underscore');
 
 export namespace track {
@@ -19,6 +20,7 @@ export namespace track {
     import LiveClipVirtual = clip.LiveClipVirtual;
     import LiveApiFactory = live.LiveApiFactory;
     import TypeIdentifier = live.TypeIdentifier;
+    import Env = live.Env;
 
     export class Track {
 
@@ -30,14 +32,14 @@ export namespace track {
             this.track_dao = track_dao;
         }
 
-        public static get_clip_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): Clip {
-            if (messenger.env === 'max' || messenger.env === 'node') {
+        public static get_clip_at_index(index_track: number, index_clip_slot: number, messenger: Messenger, env: Env): Clip {
+            if (env == Env.NODE_FOR_MAX || env == Env.MAX) {
                 return new Clip(
                     new ClipDao(
                         LiveApiFactory.create(
-                            messenger.env,
+                            env,
                             ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot), 'clip'].join(' '),
-                            false
+                            TypeIdentifier.PATH
                         ),
                         messenger
                     )
@@ -49,14 +51,14 @@ export namespace track {
             }
         }
 
-        public static get_clip_slot_at_index(index_track: number, index_clip_slot: number, messenger: Messenger): ClipSlot {
+        public static get_clip_slot_at_index(index_track: number, index_clip_slot: number, messenger: Messenger, env: Env): ClipSlot {
             let clip_slot_dao;
 
-            if (messenger.env === 'max' || messenger.env === 'node') {
+            if (env == Env.NODE_FOR_MAX || env == Env.MAX) {
                 clip_slot_dao = LiveApiFactory.create(
-                    messenger.env,
+                    env,
                     ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot)].join(' '),
-                    false
+                    TypeIdentifier.PATH
                 )
             } else {
                 clip_slot_dao = new LiveClipVirtual([])
@@ -210,7 +212,6 @@ export namespace track {
         messenger: Messenger;
         deferlow: boolean;
         key_route: string;
-        env: string;
 
         constructor(live_api: iLiveApiJs, messenger: Messenger, deferlow?: boolean, key_route?: string) {
             this.live_api = live_api;
@@ -220,7 +221,6 @@ export namespace track {
             }
             this.deferlow = deferlow;
             this.key_route = key_route;
-            this.env = env;
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {

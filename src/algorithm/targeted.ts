@@ -13,6 +13,7 @@ import {scene} from "../scene/scene";
 import {song} from "../song/song";
 import {trainable} from "./trainable";
 import TreeModel = require("tree-model");
+import {live} from "../live/live";
 const _ = require('underscore');
 
 export namespace targeted {
@@ -35,8 +36,15 @@ export namespace targeted {
     import MatrixWindow = window.MatrixWindow;
     import Trainer = trainer.Trainer;
     import Track = track.Track;
+    import Env = live.Env;
 
     export abstract class Targeted implements Targetable {
+
+        env: Env;
+
+        constructor(env: Env) {
+            this.env = env;
+        }
 
         update_history_user_input(
             input_postprocessed: TreeModel.Node<note.Note>[],

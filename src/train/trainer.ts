@@ -12,6 +12,7 @@ import {window} from "../render/window";
 import {track} from "../track/track";
 import {user_input} from "../control/user_input";
 import {trainable} from "../algorithm/trainable";
+import {live} from "../live/live";
 const _ = require('underscore');
 
 export namespace trainer {
@@ -37,6 +38,7 @@ export namespace trainer {
     import PARSE = trainable.PARSE;
     import DERIVE = trainable.DERIVE;
     import PREDICT = trainable.PREDICT;
+    import Env = live.Env;
 
     export type StructTargets = TargetIterator[][];
 
@@ -75,6 +77,8 @@ export namespace trainer {
 
         private user_input_handler: UserInputHandler;
 
+        public env: Env;
+
         public virtualized: boolean = false;
 
         public done: boolean = false;
@@ -88,6 +92,7 @@ export namespace trainer {
             song: Song,
             segments: Segment[],
             messenger: Messenger,
+            env: Env,
             virtualized?: boolean
         ) {
             this.window = window;
@@ -98,6 +103,7 @@ export namespace trainer {
             this.user_input_handler = user_input_handler;
             this.segments = segments;
             this.messenger = messenger;
+            this.env = env;
             this.virtualized = virtualized;
 
             // TODO: put in 'initialize_render', make configurable
@@ -461,7 +467,8 @@ export namespace trainer {
                 let clip_user_input = Track.get_clip_at_index(
                     this.track_user_input.get_index(),
                     Number(i_input_most_recent),
-                    this.track_user_input.track_dao.messenger
+                    this.track_user_input.track_dao.messenger,
+                    this.env
                 );
 
                 clip_user_input.remove_notes(

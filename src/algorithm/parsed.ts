@@ -13,6 +13,7 @@ import {history} from "../history/history";
 import {trainable} from "./trainable";
 import {iterate} from "../train/iterate";
 import TreeModel = require("tree-model");
+import {live} from "../live/live";
 
 export namespace parsed {
 
@@ -30,8 +31,15 @@ export namespace parsed {
     import MatrixWindow = window.MatrixWindow;
     import Trainer = trainer.Trainer;
     import Track = track.Track;
+    import Env = live.Env;
 
     export abstract class Parsed implements Parsable {
+
+        env: Env;
+
+        constructor(env: Env) {
+            this.env = env;
+        }
 
         public b_parsed: boolean = true;
 

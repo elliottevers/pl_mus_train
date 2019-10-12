@@ -12,6 +12,7 @@ import {iterate} from "../train/iterate";
 import {history} from "../history/history";
 import {scene} from "../scene/scene";
 import {parse} from "../parse/parse";
+import {live} from "../live/live";
 
 export namespace trainable {
     import Note = note.Note;
@@ -27,6 +28,7 @@ export namespace trainable {
     import Track = track.Track;
     import MatrixParseForest = parse.MatrixParseForest;
     import Trainer = trainer.Trainer;
+    import Env = live.Env;
 
     export let DETECT = 'detect';
     export let PREDICT = 'predict';
@@ -60,6 +62,8 @@ export namespace trainable {
 
     // interface that the trainer uses
     export interface Trainable extends Segmented, Renderable {
+        env: Env;
+
         depth: number;
         b_parsed: boolean;
         b_targeted: boolean;
