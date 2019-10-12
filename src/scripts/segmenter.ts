@@ -27,9 +27,9 @@ export {}
 
 declare let Global: any;
 
-let env: string = 'max';
+let env: Env = Env.MAX;
 
-if (env === 'max') {
+if (env === Env.MAX) {
     post('recompile successful');
     autowatch = 1;
 }
