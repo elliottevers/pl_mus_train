@@ -1,29 +1,62 @@
-import {live, live as li} from "../live/live";
-import {song} from "../song/song";
-import SongDao = song.SongDao;
-import Song = song.Song;
+import {live} from "../live/live";
 import {message} from "../message/messenger";
-import Messenger = message.Messenger;
 import {track} from "../track/track";
-import TrackDao = track.TrackDao;
-import Track = track.Track;
 import LiveApiFactory = live.LiveApiFactory;
 import Env = live.Env;
 import TypeIdentifier = live.TypeIdentifier;
+import Track = track.Track;
+import TrackDao = track.TrackDao;
+import Messenger = message.Messenger;
 
 export {}
 const max_api = require('max-api');
 
+// @ts-ignore
+global.liveApi = {
+    responsesProcessed: 0,
+    responsesExpected: 0,
+    responses: [],
+    dynamicResponse: false,
+    locked: false
+};
+
 max_api.addHandler('liveApiMaxSynchronousResult', (...res) => {
     // @ts-ignore
-    global.liveApiMaxSynchronousResult = res.slice(1);
+    global.liveApi.responses = global.liveApi.responses.concat(res.slice(1));
+
     // @ts-ignore
-    global.liveApiMaxSynchronousLocked = false;
+    global.liveApi.responsesProcessed += 1;
+
+    // @ts-ignore
+    if (global.liveApi.dynamicResponse) {
+        // @ts-ignore
+        global.liveApi.responsesExpected = Number(res[2]) + 1;
+        // @ts-ignore
+        global.liveApi.dynamicResponse = false;
+    }
+
+    // @ts-ignore
+    if (global.liveApi.responsesProcessed == global.liveApi.responsesExpected) {
+        // @ts-ignore
+        global.liveApi.locked = false;
+    }
 });
 
 max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
 
     path_track = 'live_set tracks 2';
+
+    // let path_clip_slot = "path live_set tracks 2 clip_slots 0";
+    //
+    // let clip_slot = LiveApiFactory.create(
+    //     Env.NODE_FOR_MAX,
+    //     path_clip_slot,
+    //     TypeIdentifier.PATH
+    // );
+    //
+    // let children = clip_slot.get_id();
+    //
+    // let testing = 1;
 
     let track = new Track(
         new TrackDao(
@@ -32,8 +65,10 @@ max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
                 path_track,
                 TypeIdentifier.PATH
             ),
-            null,
-            false
+            new Messenger(
+                Env.NODE_FOR_MAX,
+                0
+            )
         )
     );
 

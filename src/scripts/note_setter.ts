@@ -54,7 +54,7 @@ let set_notes = () => {
 
     if (!clip_exists) {
         // TODO: get the beat of end of last note
-        clipslot_highlighted.call('create_clip', Number(notes[notes.length - 1].beat_start + notes[notes.length - 1].beats_duration - notes[0].beat_start));
+        clipslot_highlighted.call(1, 'create_clip', Number(notes[notes.length - 1].beat_start + notes[notes.length - 1].beats_duration - notes[0].beat_start));
 
         clip_highlighted = LiveApiFactory.create(
             Env.MAX,

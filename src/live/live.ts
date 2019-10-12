@@ -39,10 +39,11 @@ export namespace live {
         public static createFromConstructor(nameConstructor: string, identifier: string, typeIdentifier: TypeIdentifier) {
             switch(nameConstructor) {
                 case 'LiveApiMaxSynchronous':
-                    return new LiveApiMaxSynchronous(
+                    let res = new LiveApiMaxSynchronous(
                         identifier,
                         typeIdentifier,
                     );
+                    return res;
                 case 'LiveApi':
                     // @ts-ignore
                     return new LiveAPI(null, identifier);
@@ -68,7 +69,6 @@ export namespace live {
         private typeRef: TypeIdentifier;
         private maxApi: any;
 
-
         constructor(refLive: string, typeRef: TypeIdentifier) {
             this.refLive = refLive;
             this.typeRef = typeRef;
@@ -78,18 +78,27 @@ export namespace live {
         public get(property) {
 
             // @ts-ignore
-            global.liveApiMaxSynchronousLocked = true;
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
 
             this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
 
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'get', property);
 
             // @ts-ignore
-            while (global.liveApiMaxSynchronousLocked)
+            while (global.liveApi.locked)
                 node.loop();
 
             // @ts-ignore
-            return global.liveApiMaxSynchronousResult
+            return global.liveApi.responses;
         }
 
         public set(property, value) {
@@ -98,53 +107,141 @@ export namespace live {
         }
 
         public call(...args) {
+
+            // @ts-ignore
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
+
             this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', ...args);
+
+            this.maxApi.outlet('LiveApi MaxSynchronous', 'command', 'call', ...args);
+
+            // @ts-ignore
+            while (global.liveApi.locked)
+                node.loop();
+
         }
 
         public get_id() {
+            // // @ts-ignore
+            // global.liveApiMaxSynchronousLocked = true;
+            //
+            // this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+            // this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getid');
+            //
+            // // @ts-ignore
+            // while (global.liveApiMaxSynchronousLocked)
+            //     node.loop();
+            //
+            // // @ts-ignore
+            // return global.liveApiMaxSynchronousResult
+
             // @ts-ignore
-            global.liveApiMaxSynchronousLocked = true;
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
 
             this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getid');
 
             // @ts-ignore
-            while (global.liveApiMaxSynchronousLocked)
+            while (global.liveApi.locked)
                 node.loop();
 
             // @ts-ignore
-            return global.liveApiMaxSynchronousResult
+            return global.liveApi.responses;
         }
 
         public get_path() {
+            // // @ts-ignore
+            // global.liveApiMaxSynchronousLocked = true;
+            //
+            // this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+            // this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getpath');
+            //
+            // // @ts-ignore
+            // while (global.liveApiMaxSynchronousLocked)
+            //     node.loop();
+            //
+            // // @ts-ignore
+            // return global.liveApiMaxSynchronousResult
+
             // @ts-ignore
-            global.liveApiMaxSynchronousLocked = true;
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
 
             this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getpath');
 
             // @ts-ignore
-            while (global.liveApiMaxSynchronousLocked)
+            while (global.liveApi.locked)
                 node.loop();
 
             // @ts-ignore
-            return global.liveApiMaxSynchronousResult
+            return global.liveApi.responses;
         }
 
         public get_children() {
+            // // @ts-ignore
+            // global.liveApiMaxSynchronousLocked = true;
+            //
+            // this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+            // this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getchildren');
+            //
+            // // @ts-ignore
+            // while (global.liveApiMaxSynchronousLocked)
+            //     node.loop();
+            //
+            // // @ts-ignore
+            // return global.liveApiMaxSynchronousResult
+
             // @ts-ignore
-            global.liveApiMaxSynchronousLocked = true;
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
 
             this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+
             this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getchildren');
 
             // @ts-ignore
-            while (global.liveApiMaxSynchronousLocked)
+            while (global.liveApi.locked)
                 node.loop();
 
             // @ts-ignore
-            return global.liveApiMaxSynchronousResult
+            return global.liveApi.responses;
         }
     }
 }

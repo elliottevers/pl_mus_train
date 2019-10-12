@@ -562,10 +562,9 @@ export namespace clip {
         private messenger: Messenger;
         private deferlow: boolean;
         private key_route: string;
-        private env: string;
         private notes_cached: string[];
 
-        constructor(clip_live: li.iLiveApiJs, messenger, deferlow: boolean = false, key_route?: string, env?: string) {
+        constructor(clip_live: li.iLiveApiJs, messenger, deferlow: boolean = false, key_route?: string) {
             this.clip_live = clip_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -573,7 +572,6 @@ export namespace clip {
             }
             this.deferlow = deferlow;
             this.key_route = key_route;
-            this.env = env;
         }
 
         get_playing_position(): number {
@@ -661,9 +659,13 @@ export namespace clip {
         };
 
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
-            if (this.env === 'node_for_max') {
+            if (this.clip_live.constructor.name != 'LiveApiMaxSynchronous' && this.clip_live.constructor.name != 'LiveApi') {
                 return this.notes_cached
             } else {
+                if (this.clip_live.constructor.name == 'LiveApiMaxSynchronous') {
+                    // @ts-ignore
+                    global.liveApi.dynamicResponse = true;
+                }
                 return this.clip_live.call(
                     'get_notes',
                     beat_start,
@@ -699,7 +701,7 @@ export namespace clip {
         };
 
         set_notes(notes: TreeModel.Node<n.Note>[]): void {
-            if (this.env === 'node_for_max') {
+            if (this.clip_live.constructor.name != 'LiveApiMaxSynchronous' && this.clip_live.constructor.name != 'LiveApi') {
                 let notes_cached = [];
                 notes_cached.push('notes');
                 notes_cached.push(notes.length.toString());
