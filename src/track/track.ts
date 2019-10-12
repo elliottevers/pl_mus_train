@@ -213,7 +213,7 @@ export namespace track {
         deferlow: boolean;
         key_route: string;
 
-        constructor(live_api: iLiveApiJs, messenger: Messenger, deferlow?: boolean, key_route?: string) {
+        constructor(live_api: iLiveApiJs, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
             this.live_api = live_api;
             this.messenger = messenger;
             if (deferlow && !key_route) {

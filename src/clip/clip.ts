@@ -565,7 +565,7 @@ export namespace clip {
         private env: string;
         private notes_cached: string[];
 
-        constructor(clip_live: li.iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
+        constructor(clip_live: li.iLiveApiJs, messenger, deferlow: boolean = false, key_route?: string, env?: string) {
             this.clip_live = clip_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {

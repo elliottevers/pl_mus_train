@@ -56,13 +56,12 @@ export namespace scene {
     }
 
     export class SceneDao implements iSceneDao {
-        live_api;
+        live_api: iLiveApiJs;
         messenger: Messenger;
         deferlow: boolean;
         key_route: string;
-        env: string;
 
-        constructor(live_api: iLiveApiJs, messenger, deferlow?: boolean, key_route?: string, env?: string) {
+        constructor(live_api: iLiveApiJs, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
             this.live_api = live_api;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -70,7 +69,6 @@ export namespace scene {
             }
             this.deferlow = deferlow;
             this.key_route = key_route;
-            this.env = env;
         }
 
         set_path_deferlow(key_route_override: string, path_live: string): void {

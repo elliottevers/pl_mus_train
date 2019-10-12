@@ -236,7 +236,7 @@ export namespace song {
         private deferlow: boolean;
         public key_route: string;
 
-        constructor(song_live: iLiveApiJs, messenger: Messenger, deferlow?: boolean, key_route?: string) {
+        constructor(song_live: iLiveApiJs, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
             this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
