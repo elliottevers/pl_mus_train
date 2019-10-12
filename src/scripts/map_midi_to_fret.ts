@@ -2,6 +2,8 @@ import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {map} from "../control/map";
 import FretMapper = map.FretMapper;
+import {live} from "../live/live";
+import Env = live.Env;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -20,7 +22,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let messenger: Messenger = new Messenger(env, 0);
+let messenger: Messenger = new Messenger(Env.MAX, 0);
 
 let fret_mapper: FretMapper = new FretMapper(messenger);
 

@@ -1,5 +1,7 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
+import {live} from "../live/live";
+import Env = live.Env;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -20,7 +22,7 @@ if (env === 'max') {
 
 let parts = ['key_center', 'bass', 'chord', 'melody', 'vocal_harmony'];
 
-let messenger: Messenger = new Messenger(env, 0);
+let messenger: Messenger = new Messenger(Env.MAX, 0);
 
 let broadcast_dependencies = () => {
     //@ts-ignore

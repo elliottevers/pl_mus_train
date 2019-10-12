@@ -2,9 +2,11 @@ import {clip as c} from "../clip/clip";
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {message} from "../message/messenger";
+import {live} from "../live/live";
 
 export namespace io {
 
+    import Env = live.Env;
     let dir_projects = '/Users/elliottevers/Documents/git-repos.nosync/tk_music_projects/';
 
     export let file_json_comm = dir_projects + 'json_live.json';
@@ -65,7 +67,7 @@ export namespace io {
         }
 
         public export_clips(partnames): void {
-            let messenger = new Messenger('max', 0);
+            let messenger = new Messenger(Env.MAX, 0);
             for (let name_part in this.clips) {
                 let notes = this.clips[name_part];
                 if (partnames.indexOf(name_part) !== -1) {

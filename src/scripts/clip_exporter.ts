@@ -27,7 +27,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let messenger = new Messenger(env, 0);
+let messenger = new Messenger(Env.MAX, 0);
 
 let dir_projects = '/Users/elliottevers/Documents/git-repos.nosync/tk_music_projects/';
 

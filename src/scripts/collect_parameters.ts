@@ -1,5 +1,7 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
+import {live} from "../live/live";
+import Env = live.Env;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -31,7 +33,7 @@ let accept = (pitch_midi: number, velocity: number) => {
 
 let run = () => {
 
-    let messenger = new Messenger(env, 0);
+    let messenger = new Messenger(Env.MAX, 0);
 
     let pitches_set = [];
 

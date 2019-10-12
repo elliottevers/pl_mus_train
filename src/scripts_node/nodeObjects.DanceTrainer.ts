@@ -5,6 +5,8 @@ import Interval = v.Interval;
 import Frame = v.Frame;
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
+import {live} from "../live/live";
+import Env = live.Env;
 
 const max_api = require('max-api');
 
@@ -16,7 +18,7 @@ let beatEstimatesRelative: Percentile[] = [];
 
 let cuts: Point[] = [];
 
-let messenger = new Messenger('node_for_max', 0);
+let messenger = new Messenger(Env.NODE_FOR_MAX, 0);
 
 let video: v.Video;
 

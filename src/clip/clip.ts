@@ -1,13 +1,14 @@
 import {note as n} from "../note/note";
 import TreeModel = require("tree-model");
-import {live as li} from "../live/live";
+import {live, live as li} from "../live/live";
 import {message} from "../message/messenger";
 import {utils} from "../utils/utils";
 
 export namespace clip {
 
     import Messenger = message.Messenger;
-    // import LiveApiFactory = li.LiveApiFactory;
+    import Env = live.Env;
+    import TypeIdentifier = live.TypeIdentifier;
 
     export class Clip {
 
@@ -19,13 +20,13 @@ export namespace clip {
             this.clip_dao = clip_dao;
         }
 
-        public static from_path(path: string, messenger: Messenger): Clip {
+        public static from_path(path: string, messenger: Messenger, env: Env): Clip {
             return new Clip(
                 new ClipDao(
                     li.LiveApiFactory.create(
-                        messenger.env,
+                        env,
                         path,
-                        false
+                        TypeIdentifier.PATH
                     ),
                     messenger
                 )

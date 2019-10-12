@@ -101,7 +101,8 @@ export namespace detect {
                 let clip_user_input = Track.get_clip_at_index(
                     track_user_input.get_index(),
                     Number(i_segment),
-                    track_user_input.track_dao.messenger
+                    track_user_input.track_dao.messenger,
+                    this.env
                 );
 
                 clip_user_input.set_path_deferlow('clip_user_input');

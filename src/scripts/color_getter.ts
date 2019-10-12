@@ -1,5 +1,7 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
+import {live} from "../live/live";
+import Env = live.Env;
 const _ = require('underscore');
 
 declare let autowatch: any;
@@ -99,7 +101,7 @@ let colormap_default = {
     "0,0,0": 0
 };
 
-let messenger: Messenger = new Messenger(env, 0);
+let messenger: Messenger = new Messenger(Env.MAX, 0);
 
 let b_feedback = false;
 

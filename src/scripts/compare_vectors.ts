@@ -2,6 +2,8 @@ import {message} from "../message/messenger";
 import Messenger = message.Messenger;
 import {log} from "../log/logger";
 import Logger = log.Logger;
+import {live} from "../live/live";
+import Env = live.Env;
 const _ = require("underscore");
 
 declare let autowatch: any;
@@ -21,7 +23,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let messenger: Messenger = new Messenger(env, 0);
+let messenger: Messenger = new Messenger(Env.MAX, 0);
 
 let logger: Logger = new Logger(env);
 

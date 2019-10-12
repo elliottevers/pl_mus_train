@@ -1,5 +1,7 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
+import {live} from "../live/live";
+import Env = live.Env;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -19,7 +21,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let messenger = new Messenger(env, 0);
+let messenger = new Messenger(Env.MAX, 0);
 
 let args: Object = {};
 

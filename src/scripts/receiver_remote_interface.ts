@@ -2,6 +2,8 @@ import {control} from "../control/control";
 import Fretboard = control.Fretboard;
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
+import {live} from "../live/live";
+import Env = live.Env;
 
 declare let autowatch: any;
 declare let inlets: any;
@@ -20,7 +22,7 @@ if (env === 'max') {
     autowatch = 1;
 }
 
-let messenger = new Messenger(env, 0);
+let messenger = new Messenger(Env.MAX, 0);
 
 let fretboard = new Fretboard(6, 12, messenger);
 
