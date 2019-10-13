@@ -7,6 +7,12 @@ import TypeIdentifier = live.TypeIdentifier;
 import Track = track.Track;
 import TrackDao = track.TrackDao;
 import Messenger = message.Messenger;
+import {segment} from "../segment/segment";
+import Segment = segment.Segment;
+import {song} from "../song/song";
+import Song = song.Song;
+import SongDao = song.SongDao;
+import {utils} from "../utils/utils";
 
 export {}
 const max_api = require('max-api');
@@ -19,6 +25,8 @@ global.liveApi = {
     dynamicResponse: false,
     locked: false
 };
+
+let messenger = new Messenger(Env.NODE_FOR_MAX, 0);
 
 max_api.addHandler('liveApiMaxSynchronousResult', (...res) => {
     // @ts-ignore
@@ -42,22 +50,45 @@ max_api.addHandler('liveApiMaxSynchronousResult', (...res) => {
     }
 });
 
+let length_beats: number = 8;
+
+let get_length_beats = () => {
+    if (length_beats === null) {
+        throw 'length beats has not been set'
+    }
+    return length_beats;
+};
+
+let get_notes_segments = () => {
+
+    let this_device = LiveApiFactory.create(
+        Env.NODE_FOR_MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
+
+    // TODO: convert to node?
+    let track_segments = new Track(
+        new TrackDao(
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                utils.get_path_track_from_path_device(this_device.get_path()),
+                TypeIdentifier.PATH
+            ),
+            messenger
+        )
+    );
+
+    track_segments.load_clips();
+
+    return track_segments.get_notes();
+};
+
 max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
 
     path_track = 'live_set tracks 2';
 
-    // let path_clip_slot = "path live_set tracks 2 clip_slots 0";
-    //
-    // let clip_slot = LiveApiFactory.create(
-    //     Env.NODE_FOR_MAX,
-    //     path_clip_slot,
-    //     TypeIdentifier.PATH
-    // );
-    //
-    // let children = clip_slot.get_id();
-    //
-    // let testing = 1;
-
+    // TODO: convert to node?
     let track = new Track(
         new TrackDao(
             LiveApiFactory.create(
@@ -76,27 +107,94 @@ max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
 
     let clip_slot = track.get_clip_slot_at_index(0);
 
+    clip_slot.load_clip();
+
     let clip = clip_slot.get_clip();
 
-    let notes = clip.get_notes(0, 0, 8, 128);
+    let notes_segments = get_notes_segments();
 
-    let testing = 1;
+    if (name_part !== 'segment') {
+        clip.cut_notes_at_boundaries(notes_segments);
+    }
 
-    // track.create_clip_at_index(1, 8)
+    let notes_clip = clip.get_notes(
+        clip.get_loop_bracket_lower(),
+        0,
+        clip.get_loop_bracket_upper(),
+        128
+    );
 
-    // let song = new Song(
-    //     new SongDao(
-    //         new li.LiveApiJs(
-    //             'live_set',
-    //             'node'
-    //         ),
-    //         // new Messenger('node_for_max', 0),
-    //         null,
-    //         false
-    //     )
-    // );
-    //
-    // // song.start()
-    // max_api.post(song.get_tempo());
-    // max_api.post('finished');
+    let segments: Segment[] = [];
+
+    for (let note of notes_segments) {
+        segments.push(
+            new Segment(
+                note
+            )
+        )
+    }
+
+    let song_read = new Song(
+        new SongDao(
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                'live_set',
+                TypeIdentifier.PATH
+            ),
+            new Messenger(Env.NODE_FOR_MAX, 0)
+        )
+    );
+
+    song_read.load_scenes();
+
+    for (let i_segment in segments) {
+
+        let segment = segments[Number(i_segment)];
+
+        let scene = song_read.get_scene_at_index(Number(i_segment));
+
+        let scene_exists = scene !== null;
+
+        if (!scene_exists) {
+            song_read.create_scene_at_index(Number(i_segment))
+        }
+
+        let clip_slot = Track.get_clip_slot_at_index(
+            track.get_index(),
+            Number(i_segment),
+            new Messenger(Env.NODE_FOR_MAX, 0),
+            Env.NODE_FOR_MAX
+        );
+
+        clip_slot.load_clip();
+
+        if (Number(i_segment) === 0) {
+            clip_slot.delete_clip()
+        }
+
+        clip_slot.create_clip(get_length_beats());
+
+        clip_slot.load_clip();
+
+        let clip = clip_slot.get_clip();
+
+        clip.set_endpoints_loop(
+            segment.get_endpoints_loop()[0],
+            segment.get_endpoints_loop()[1]
+        );
+
+        clip.set_endpoint_markers(
+            segment.get_endpoints_loop()[0],
+            segment.get_endpoints_loop()[1]
+        );
+
+        let notes_within_segment = notes_clip.filter(
+            node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
+        );
+
+        // TODO: non-native scope object is here
+        clip.set_notes(notes_within_segment);
+    }
+
+    messenger.message(['done', 'bang'])
 });

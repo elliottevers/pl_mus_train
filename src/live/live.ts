@@ -205,7 +205,7 @@ export namespace live {
                 node.loop();
 
             // @ts-ignore
-            return global.liveApi.responses;
+            return global.liveApi.responses.join(' ');
         }
 
         public get_children() {
