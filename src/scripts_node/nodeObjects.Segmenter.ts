@@ -30,7 +30,7 @@ max_api.addHandler('liveApiMaxSynchronousResult', (...res) => {
     // @ts-ignore
     if (global.liveApi.dynamicResponse) {
         // @ts-ignore
-        global.liveApi.responsesExpected = Number(res[2]) + 1;
+        global.liveApi.responsesExpected = Number(res[2]) + 2;
         // @ts-ignore
         global.liveApi.dynamicResponse = false;
     }

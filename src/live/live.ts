@@ -122,12 +122,14 @@ export namespace live {
 
             this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
 
-            this.maxApi.outlet('LiveApi MaxSynchronous', 'command', 'call', ...args);
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', ...args);
 
             // @ts-ignore
             while (global.liveApi.locked)
                 node.loop();
 
+            // @ts-ignore
+            return global.liveApi.responses;
         }
 
         public get_id() {
