@@ -192,7 +192,6 @@ max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
             node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
         );
 
-        // TODO: non-native scope object is here
         clip.set_notes(notes_within_segment);
     }
 

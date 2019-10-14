@@ -132,20 +132,26 @@ export namespace live {
             return global.liveApi.responses;
         }
 
-        public get_id() {
-            // // @ts-ignore
-            // global.liveApiMaxSynchronousLocked = true;
-            //
-            // this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
-            // this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getid');
-            //
-            // // @ts-ignore
-            // while (global.liveApiMaxSynchronousLocked)
-            //     node.loop();
-            //
-            // // @ts-ignore
-            // return global.liveApiMaxSynchronousResult
+        public callAsync(...args) {
 
+            // @ts-ignore
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
+
+            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+
+            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', ...args);
+        }
+
+        public get_id() {
             // @ts-ignore
             global.liveApi.locked = true;
 
@@ -167,23 +173,10 @@ export namespace live {
                 node.loop();
 
             // @ts-ignore
-            return global.liveApi.responses;
+            return global.liveApi.responses; // TODO: probably doesn't work
         }
 
         public get_path() {
-            // // @ts-ignore
-            // global.liveApiMaxSynchronousLocked = true;
-            //
-            // this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
-            // this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getpath');
-            //
-            // // @ts-ignore
-            // while (global.liveApiMaxSynchronousLocked)
-            //     node.loop();
-            //
-            // // @ts-ignore
-            // return global.liveApiMaxSynchronousResult
-
             // @ts-ignore
             global.liveApi.locked = true;
 
@@ -209,19 +202,6 @@ export namespace live {
         }
 
         public get_children() {
-            // // @ts-ignore
-            // global.liveApiMaxSynchronousLocked = true;
-            //
-            // this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
-            // this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getchildren');
-            //
-            // // @ts-ignore
-            // while (global.liveApiMaxSynchronousLocked)
-            //     node.loop();
-            //
-            // // @ts-ignore
-            // return global.liveApiMaxSynchronousResult
-
             // @ts-ignore
             global.liveApi.locked = true;
 

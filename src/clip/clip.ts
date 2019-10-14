@@ -730,19 +730,40 @@ export namespace clip {
                 }
                 this.messenger.message([this.key_route, 'call', 'done'])
             } else {
-                this.clip_live.call('set_notes');
-                this.clip_live.call('notes', notes.length);
-                for (let node of notes) {
-                    this.clip_live.call(
-                        "note",
-                        node.model.note.pitch,
-                        node.model.note.beat_start.toFixed(4),
-                        node.model.note.beats_duration.toFixed(4),
-                        node.model.note.velocity,
-                        node.model.note.muted
-                    );
+                switch(this.clip_live.constructor.name) {
+                    case 'LiveApiMaxSynchronous':
+                        this.clip_live.callAsync('set_notes');
+                        this.clip_live.callAsync('notes', notes.length);
+                        for (let node of notes) {
+                            this.clip_live.callAsync(
+                                'note',
+                                node.model.note.pitch,
+                                node.model.note.beat_start.toFixed(4),
+                                node.model.note.beats_duration.toFixed(4),
+                                node.model.note.velocity,
+                                node.model.note.muted
+                            );
+                        }
+                        this.clip_live.callAsync('done');
+                        break;
+                    case 'LiveApi':
+                        this.clip_live.call('set_notes');
+                        this.clip_live.call('notes', notes.length);
+                        for (let node of notes) {
+                            this.clip_live.call(
+                                'note',
+                                node.model.note.pitch,
+                                node.model.note.beat_start.toFixed(4),
+                                node.model.note.beats_duration.toFixed(4),
+                                node.model.note.velocity,
+                                node.model.note.muted
+                            );
+                        }
+                        this.clip_live.call('done');
+                        break;
+                    default:
+                        throw 'cannot set notes'
                 }
-                this.clip_live.call("done")
             }
         }
 
