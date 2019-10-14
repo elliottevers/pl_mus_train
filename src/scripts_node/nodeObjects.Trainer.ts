@@ -61,7 +61,38 @@ import TypeIdentifier = live.TypeIdentifier;
 const _ = require('underscore');
 const max_api = require('max-api');
 
-let envTrain = Env.NODE_FOR_MAX
+// @ts-ignore
+global.liveApi = {
+    responsesProcessed: 0,
+    responsesExpected: 0,
+    responses: [],
+    dynamicResponse: false,
+    locked: false
+};
+
+max_api.addHandler('liveApiMaxSynchronousResult', (...res) => {
+    // @ts-ignore
+    global.liveApi.responses = global.liveApi.responses.concat(res.slice(1));
+
+    // @ts-ignore
+    global.liveApi.responsesProcessed += 1;
+
+    // @ts-ignore
+    if (global.liveApi.dynamicResponse) {
+        // @ts-ignore
+        global.liveApi.responsesExpected = Number(res[2]) + 2;
+        // @ts-ignore
+        global.liveApi.dynamicResponse = false;
+    }
+
+    // @ts-ignore
+    if (global.liveApi.responsesProcessed == global.liveApi.responsesExpected) {
+        // @ts-ignore
+        global.liveApi.locked = false;
+    }
+});
+
+let envTrain = Env.NODE_FOR_MAX;
 
 let messenger_render = new Messenger(envTrain, 0, 'render');
 let messenger_monitor_target = new Messenger(envTrain, 0, 'index_track_target');
@@ -160,7 +191,7 @@ max_api.addHandler('set_track_target', () => {
         )
     );
 
-    track_target.set_path_deferlow('track_target');
+    // track_target.set_path_deferlow('track_target');
 
     track_target.load_clips();
 
@@ -265,7 +296,7 @@ let set_track_user_input = () => {
         )
     );
 
-    track_user_input.set_path_deferlow('track_user_input');
+    // track_user_input.set_path_deferlow('track_user_input');
 
     track_user_input.load_clips()
 };
@@ -282,7 +313,7 @@ let set_song = () => {
         )
     );
 
-    song.set_path_deferlow('song');
+    // song.set_path_deferlow('song');
 };
 
 max_api.addHandler('initialize', () => {
@@ -403,4 +434,3 @@ max_api.addHandler('save_session', (filename: string) => {
 max_api.addHandler('set_direction', (arg_direction: string) => {
     direction = arg_direction
 });
-
