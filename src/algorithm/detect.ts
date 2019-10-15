@@ -12,6 +12,7 @@ import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
 import {iterate} from "../train/iterate";
 import {live} from "../live/live";
+import {message} from "../message/messenger";
 
 export namespace detect {
 
@@ -31,6 +32,7 @@ export namespace detect {
     import FORWARDS = iterate.FORWARDS;
     import Track = track.Track;
     import Env = live.Env;
+    import Messenger = message.Messenger;
 
     export class Detect extends Targeted {
 
@@ -173,6 +175,13 @@ export namespace detect {
                 0,
                 1
             );
+        }
+
+        suppress(messenger: Messenger): void {
+            // TODO: put in 'initialize_render', make configurable
+            messenger.message(['pensize', 3, 3]);
+            messenger.message(['switch_suppress', 1], true);
+            messenger.message(['gate_suppress', 1], true);
         }
     }
 }

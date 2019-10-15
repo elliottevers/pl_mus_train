@@ -10,6 +10,7 @@ import {window} from "../render/window";
 import TreeModel = require("tree-model");
 import {song} from "../song/song";
 import {live} from "../live/live";
+import {message} from "../message/messenger";
 
 export namespace derive {
     import Parsed = parsed.Parsed;
@@ -24,6 +25,7 @@ export namespace derive {
     import SESSION = trainer.SESSION;
     import FORWARDS = iterate.FORWARDS;
     import Env = live.Env;
+    import Messenger = message.Messenger;
 
     export class Derive extends Parsed {
 
@@ -197,6 +199,13 @@ export namespace derive {
                 1,
                 this.depth
             );
+        }
+
+        suppress(messenger: Messenger): void {
+            // TODO: put in 'initialize_render', make configurable
+            messenger.message(['pensize', 3, 3]);
+            messenger.message(['switch_suppress', 1], true);
+            messenger.message(['gate_suppress', 1], true);
         }
     }
 }

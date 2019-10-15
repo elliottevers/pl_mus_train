@@ -29,6 +29,7 @@ export namespace trainable {
     import MatrixParseForest = parse.MatrixParseForest;
     import Trainer = trainer.Trainer;
     import Env = live.Env;
+    import Messenger = message.Messenger;
 
     export let DETECT = 'detect';
     export let PREDICT = 'predict';
@@ -86,8 +87,7 @@ export namespace trainable {
             window: MatrixWindow,
             segments: Segment[],
             track_target: Track,
-            user_input_handler: UserInputHandler,
-            struct_train: StructTrain
+            user_input_handler: UserInputHandler
         ): StructTrain
 
         terminate(
@@ -172,6 +172,8 @@ export namespace trainable {
         set_direction(direction: string): void
 
         get_iterator_train(segments: Segment[]): MatrixIterator
+
+        suppress(messenger: Messenger): void
     }
 
     // interface common to both parse and derive, but have different implementations

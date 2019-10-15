@@ -106,16 +106,7 @@ export namespace trainer {
             this.env = env;
             this.virtualized = virtualized;
 
-            // TODO: put in 'initialize_render', make configurable
-            this.messenger.message(['pensize', 3, 3]);
-
-            // TODO: put this elsewhere
-            if (this.trainable.get_name() === PREDICT) {
-                this.messenger.message(['switch_suppress', 0], true);
-            } else {
-                this.messenger.message(['switch_suppress', 1], true);
-                this.messenger.message(['gate_suppress', 1], true);
-            }
+            this.trainable.suppress(this.messenger);
 
             this.notes_target_track = this.trainable.get_notes_focus(
                 track_target
@@ -148,8 +139,7 @@ export namespace trainer {
                 this.window,
                 this.segments,
                 this.track_target,
-                this.user_input_handler,
-                this.struct_train
+                this.user_input_handler
             );
 
             this.struct_train = this.trainable.preprocess_struct_train(

@@ -201,7 +201,7 @@ export namespace parsed {
             return true;
         }
 
-        create_struct_train(window: window.MatrixWindow, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
+        create_struct_train(window: window.MatrixWindow, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler): trainer.StructTrain {
             return this.create_matrix_parse_forest(segments);
         }
 
@@ -269,5 +269,7 @@ export namespace parsed {
         }
 
         public abstract get_iterator_train(segments: segment.Segment[]): iterate.MatrixIterator
+
+        public abstract suppress(messenger: message.Messenger): void
     }
 }

@@ -10,6 +10,7 @@ import {song} from "../song/song";
 import {iterate} from "../train/iterate";
 import {parse as module_parse} from "../parse/parse"
 import {live} from "../live/live";
+import {message} from "../message/messenger";
 
 
 export namespace parse {
@@ -27,6 +28,7 @@ export namespace parse {
     import MatrixParseForest = module_parse.MatrixParseForest;
     import ParseForest = module_parse.ParseForest;
     import Env = live.Env;
+    import Messenger = message.Messenger;
 
     export class Parse extends Parsed {
 
@@ -325,6 +327,13 @@ export namespace parse {
                 this.depth - 1,
                 1
             );
+        }
+
+        suppress(messenger: Messenger): void {
+            // TODO: put in 'initialize_render', make configurable
+            messenger.message(['pensize', 3, 3]);
+            messenger.message(['switch_suppress', 1], true);
+            messenger.message(['gate_suppress', 1], true);
         }
     }
 }

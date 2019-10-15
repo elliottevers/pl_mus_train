@@ -11,6 +11,7 @@ import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
 import {iterate} from "../train/iterate";
 import {live} from "../live/live";
+import {message} from "../message/messenger";
 const _ = require('underscore');
 
 export namespace predict {
@@ -28,6 +29,7 @@ export namespace predict {
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
     import Env = live.Env;
+    import Messenger = message.Messenger;
 
     export class Predict extends Targeted {
 
@@ -200,6 +202,12 @@ export namespace predict {
                 0,
                 1
             );
+        }
+
+        suppress(messenger: Messenger): void {
+            // TODO: put in 'initialize_render', make configurable
+            messenger.message(['pensize', 3, 3]);
+            messenger.message(['switch_suppress', 0], true);
         }
     }
 }

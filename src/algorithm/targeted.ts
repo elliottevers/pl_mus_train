@@ -193,7 +193,7 @@ export namespace targeted {
             return struct_train;
         }
 
-        create_struct_train(window: window.MatrixWindow, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler, struct_train: trainer.StructTrain): trainer.StructTrain {
+        create_struct_train(window: window.MatrixWindow, segments: segment.Segment[], track_target: track.Track, user_input_handler: user_input.UserInputHandler): trainer.StructTrain {
             let notes_target_track = track_target.get_notes();
             return this.create_matrix_targets(user_input_handler, segments, notes_target_track);
         }
@@ -279,5 +279,7 @@ export namespace targeted {
         }
 
         public abstract get_iterator_train(segments: segment.Segment[]): iterate.MatrixIterator
+
+        public abstract suppress(messenger: message.Messenger): void
     }
 }
