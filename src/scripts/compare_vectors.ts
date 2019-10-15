@@ -1,7 +1,5 @@
 import {message} from "../message/messenger";
 import Messenger = message.Messenger;
-import {log} from "../log/logger";
-import Logger = log.Logger;
 import {live} from "../live/live";
 import Env = live.Env;
 const _ = require("underscore");

@@ -10,7 +10,6 @@ import {history} from "../history/history";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";
 import {iterate} from "../train/iterate";
-import {log} from "../log/logger";
 import {live} from "../live/live";
 const _ = require('underscore');
 
@@ -28,7 +27,6 @@ export namespace predict {
     import SESSION = trainer.SESSION;
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
-    import Logger = log.Logger;
     import Env = live.Env;
 
     export class Predict extends Targeted {
@@ -49,20 +47,6 @@ export namespace predict {
 
             if (user_input_handler.mode_texture === POLYPHONY) {
 
-                // let chords_grouped: TreeModel.Node<n.Note>[][] = Harmony.group(
-                //     notes_segment_next
-                // );
-                //
-                // let chords_monophonified: TypeSequenceTarget = [];
-                //
-                // for (let note_group of chords_grouped) {
-                //     chords_monophonified.push(
-                //         Harmony.monophonify(
-                //             note_group
-                //         )
-                //     );
-                // }
-
                 throw 'polyphonic targets for prediction not yet implemented'
 
             } else if (user_input_handler.mode_texture === MONOPHONY) {
@@ -71,20 +55,11 @@ export namespace predict {
 
                 // partition segment into measures
 
-                // TODO: make configurable
-                // let position_measure = (node) => {
-                //     return Math.floor(node.model.note.beat_start/4)
-                // };
                 let position_bimeasure = (node) => {
                     return Math.floor(node.model.note.beat_start/8)
                 };
 
                 let note_partitions: TreeModel.Node<Note>[][] = _.groupBy(notes_segment_next, position_bimeasure);
-
-                // for (let partition of note_partitions) {
-                //     // get the middle note of the measure
-                //     notes_grouped.push([partition[partition.length/2]])
-                // }
 
                 for (let key_partition of Object.keys(note_partitions)) {
                     let partition = note_partitions[key_partition];
@@ -136,7 +111,7 @@ export namespace predict {
                     this.env
                 );
 
-                clip_user_input.set_path_deferlow('clip_user_input');
+                // clip_user_input.set_path_deferlow('clip_user_input');
 
                 let note_segment = segment.get_note();
 
@@ -160,7 +135,7 @@ export namespace predict {
                 // TODO: this won't work for polyphony
                 for (let note of targeted_notes_in_segment) {
 
-                    clip_target.set_path_deferlow('clip_target');
+                    // clip_target.set_path_deferlow('clip_target');
 
                     clip_target.remove_notes(
                         note.model.note.beat_start,
