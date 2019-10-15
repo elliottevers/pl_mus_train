@@ -6,13 +6,7 @@ import {live} from "../live/live";
 import Env = live.Env;
 
 declare let autowatch: any;
-declare let inlets: any;
-declare let outlets: any;
-declare function outlet(n: number, o: any): void;
 declare function post(message?: any): void;
-
-export {}
-
 declare let Global: any;
 
 let env: Env = Env.MAX;
@@ -26,15 +20,9 @@ let messenger: Messenger = new Messenger(Env.MAX, 0);
 
 let fret_mapper: FretMapper = new FretMapper(messenger);
 
-let test = () => {
-    midi(55)
-};
-
 let midi = (pitch_midi) => {
     fret_mapper.play(pitch_midi)
 };
-
-// test();
 
 if (typeof Global !== "undefined") {
     Global.map_midi_to_fret = {};

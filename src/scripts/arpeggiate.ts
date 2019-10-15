@@ -11,14 +11,7 @@ import LiveApiFactory = live.LiveApiFactory;
 import TypeIdentifier = live.TypeIdentifier;
 
 declare let autowatch: any;
-declare let inlets: any;
-declare let outlets: any;
-declare function outlet(n: number, o: any): void;
 declare function post(message?: any): void;
-declare let Dict: any;
-
-export {}
-
 declare let Global: any;
 
 let env: Env = Env.MAX;

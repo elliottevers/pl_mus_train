@@ -107,7 +107,7 @@ export namespace detect {
                     this.env
                 );
 
-                clip_user_input.set_path_deferlow('clip_user_input');
+                // clip_user_input.set_path_deferlow('clip_user_input');
 
                 let note_segment = segment.get_note();
 

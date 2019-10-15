@@ -16,14 +16,7 @@ import TypeIdentifier = live.TypeIdentifier;
 import Env = live.Env;
 
 declare let autowatch: any;
-declare let inlets: any;
-declare let outlets: any;
-declare function outlet(n: number, o: any): void;
 declare function post(message?: any): void;
-declare let Dict: any;
-
-export {}
-
 declare let Global: any;
 
 let env: Env = Env.MAX;
@@ -129,11 +122,6 @@ let extract_beatmap_warped = () => {
 
     messenger.message(['run', 'bang']);
 };
-
-let test = () => {
-
-};
-
 
 if (typeof Global !== "undefined") {
     Global.extract_beatmap = {};

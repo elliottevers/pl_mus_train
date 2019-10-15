@@ -17,14 +17,7 @@ import TypeIdentifier = live.TypeIdentifier;
 const _ = require('underscore');
 
 declare let autowatch: any;
-declare let inlets: any;
-declare let outlets: any;
-declare function outlet(n: number, o: any): void;
 declare function post(message?: any): void;
-declare let Dict: any;
-
-export {}
-
 declare let Global: any;
 
 let env: Env = Env.MAX;
@@ -437,29 +430,6 @@ let expand_track = (path_track: string, name_part?: string) => {
     messenger.message(['done', 'bang'])
 };
 
-let test = () => {
-    // let track = new Track(
-    //     new TrackDao(
-    //         new LiveApiJs(
-    //             'live_set view selected_track'
-    //         ),
-    //         messenger
-    //     )
-    // );
-    //
-    // track.load_clips();
-    //
-    // let clip_slot = track.get_clip_slot_at_index(0);
-    //
-    // clip_slot.load_clip();
-    //
-    // let clip = clip_slot.get_clip();
-    //
-    // let notes_segments = get_notes_segments();
-    //
-    // clip.cut_notes_at_boundaries(notes_segments);
-};
-
 if (typeof Global !== "undefined") {
     Global.segmenter = {};
     Global.segmenter.expand_selected_track = expand_selected_track;
@@ -468,7 +438,6 @@ if (typeof Global !== "undefined") {
     Global.segmenter.expand_segments = expand_segments;
     Global.segmenter.expand_selected_audio_track = expand_selected_audio_track;
     Global.segmenter.contract_selected_audio_track = contract_selected_audio_track;
-    Global.segmenter.test = test;
     Global.segmenter.get_length_beats = get_length_beats;
     Global.segmenter.set_length_beats = set_length_beats;
 }

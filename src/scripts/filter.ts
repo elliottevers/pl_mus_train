@@ -9,14 +9,7 @@ import Env = live.Env;
 import TypeIdentifier = live.TypeIdentifier;
 
 declare let autowatch: any;
-declare let inlets: any;
-declare let outlets: any;
-declare function outlet(n: number, o: any): void;
 declare function post(message?: any): void;
-declare let Dict: any;
-
-export {}
-
 declare let Global: any;
 
 let env: Env = Env.MAX;
@@ -27,8 +20,6 @@ if (env === Env.MAX) {
 }
 
 let notes_original = [];
-let notes_filtered = [];
-// let cached: boolean = false;
 
 let get_clip = () => {
     let this_device = LiveApiFactory.create(

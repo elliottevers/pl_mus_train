@@ -5,13 +5,7 @@ import Env = live.Env;
 const _ = require("underscore");
 
 declare let autowatch: any;
-declare let inlets: any;
-declare let outlets: any;
-declare function outlet(n: number, o: any): void;
 declare function post(message?: any): void;
-
-export {}
-
 declare let Global: any;
 
 let env: Env = Env.MAX;
@@ -33,8 +27,8 @@ let nuts = _.times(num_strings, _.constant(0));
 
 let interval_feedback: number = 0;
 
-let feedback = (interval) => {
-    interval_feedback = Math.round(Math.random() * 11);// = interval;
+let feedback = () => {
+    interval_feedback = Math.round(Math.random() * 11);
 };
 
 let render = (position_string, position_fret, state) => {
@@ -47,15 +41,6 @@ let render = (position_string, position_fret, state) => {
         frets_clone[((position_string - 1) * num_frets) + position_fret - 1] = state;
         messenger.message(['frets', state, interval_feedback].concat(frets_clone));
     }
-    // if (Number(position_fret) === 0) {
-    //     let nuts_clone = _.clone(nuts);
-    //     nuts_clone[position_string - 1] = state;
-    //     messenger.message(['nuts', state, interval_feedback].concat(nuts_clone))
-    // } else {
-    //     let frets_clone = _.clone(frets);
-    //     frets_clone[((position_string - 1) * num_frets) + position_fret - 1] = state;
-    //     messenger.message(['frets', state, interval_feedback].concat(frets_clone));
-    // }
 };
 
 if (typeof Global !== "undefined") {

@@ -368,11 +368,11 @@ export namespace trainer {
 
         // e.g., clips and scenes
         update_session_constucts() {
-            this.segment_current.scene.set_path_deferlow('scene');
+            // this.segment_current.scene.set_path_deferlow('scene');
 
             this.clip_user_input = this.segment_current.clip_user_input;
 
-            this.clip_user_input.set_path_deferlow('clip_user_input');
+            // this.clip_user_input.set_path_deferlow('clip_user_input');
 
             this.advance_scene()
         }

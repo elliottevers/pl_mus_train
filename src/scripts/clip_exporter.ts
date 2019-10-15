@@ -1,5 +1,5 @@
 import {message as m, message} from "../message/messenger";
-import {live, live as li} from "../live/live";
+import {live} from "../live/live";
 import {clip as c} from "../clip/clip";
 import {io} from "../io/io";
 import {utils} from "../utils/utils";
@@ -10,14 +10,7 @@ import LiveApiFactory = live.LiveApiFactory;
 import TypeIdentifier = live.TypeIdentifier;
 
 declare let autowatch: any;
-declare let inlets: any;
-declare let outlets: any;
-declare function outlet(n: number, o: any): void;
 declare function post(message?: any): void;
-declare let Dict: any;
-
-export {}
-
 declare let Global: any;
 
 let env: Env = Env.MAX;
