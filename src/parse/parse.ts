@@ -19,10 +19,6 @@ export namespace parse {
         // this structure has many parse trees, making it more of a ParseForest
         coords_roots: number[][];
 
-        constructor() {
-
-        }
-
         // happens at the end of a parse - builds the singular root note
         public static create_root_from_segments(segments): TreeModel.Node<n.NoteRenderable> {
             let note_segment_last = segments[segments.length - 1].get_note();
@@ -65,7 +61,6 @@ export namespace parse {
         };
     }
 
-    // more of a MatrixParseForest
     export class MatrixParseForest extends ParseForest {
 
         root: TreeModel.Node<n.NoteRenderable>;

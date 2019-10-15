@@ -21,9 +21,6 @@ export namespace window {
     import Trainable = trainable.Trainable;
     import FORWARDS = iterate.FORWARDS;
 
-    const red = [255, 0, 0];
-    const white = [255, 255, 255];
-    const blue = [10, 10, 251];
     const black = [0, 0, 0];
     const region_yellow = [254, 254, 10];
     const region_green = [33, 354, 6];
