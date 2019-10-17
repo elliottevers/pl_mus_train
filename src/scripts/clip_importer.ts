@@ -56,7 +56,7 @@ let import_part = (name_part) => {
 
     if (!clip_exists) {
         // TODO: get the beat of end of last note
-        clipslot_highlighted.call(1, 'create_clip', Number(get_length_beats()));
+        clipslot_highlighted.call('create_clip', Number(get_length_beats()));
 
         clip_highlighted = LiveApiFactory.create(
             Env.MAX,

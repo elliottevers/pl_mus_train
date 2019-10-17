@@ -5,7 +5,7 @@ import {utils} from "../utils/utils";
 export namespace scene {
 
     import Messenger = message.Messenger;
-    import iLiveApiJs = live.iLiveApiJs;
+    import iLiveApi = live.iLiveApi;
 
     export class Scene {
 
@@ -56,12 +56,12 @@ export namespace scene {
     }
 
     export class SceneDao implements iSceneDao {
-        live_api: iLiveApiJs;
+        live_api: iLiveApi;
         messenger: Messenger;
         deferlow: boolean;
         key_route: string;
 
-        constructor(live_api: iLiveApiJs, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
+        constructor(live_api: iLiveApi, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
             this.live_api = live_api;
             this.messenger = messenger;
             if (deferlow && !key_route) {

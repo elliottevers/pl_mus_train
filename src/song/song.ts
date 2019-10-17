@@ -7,7 +7,7 @@ import {cue_point} from "../cue_point/cue_point";
 
 export namespace song {
     import Messenger = message.Messenger;
-    import iLiveApiJs = live.iLiveApiJs;
+    import iLiveApi = live.iLiveApi;
     import Scene = scene.Scene;
     import Track = track.Track;
     import SceneDao = scene.SceneDao;
@@ -231,12 +231,12 @@ export namespace song {
 
     export class SongDao implements iSongDao {
 
-        private song_live: iLiveApiJs;
+        private song_live: iLiveApi;
         private messenger: Messenger;
         private deferlow: boolean;
         public key_route: string;
 
-        constructor(song_live: iLiveApiJs, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
+        constructor(song_live: iLiveApi, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
             this.song_live = song_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {

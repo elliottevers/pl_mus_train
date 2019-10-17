@@ -16,7 +16,7 @@ export namespace track {
     import ClipSlotDao = clip_slot.ClipSlotDao;
     import ClipDao = clip.ClipDao;
     import ClipSlotDaoVirtual = clip_slot.ClipSlotDaoVirtual;
-    import iLiveApiJs = live.iLiveApiJs;
+    import iLiveApi = live.iLiveApi;
     import LiveClipVirtual = clip.LiveClipVirtual;
     import LiveApiFactory = live.LiveApiFactory;
     import TypeIdentifier = live.TypeIdentifier;
@@ -208,12 +208,12 @@ export namespace track {
 
     export class TrackDao implements iTrackDao {
 
-        live_api: iLiveApiJs;
+        live_api: iLiveApi;
         messenger: Messenger;
         deferlow: boolean;
         key_route: string;
 
-        constructor(live_api: iLiveApiJs, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
+        constructor(live_api: iLiveApi, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
             this.live_api = live_api;
             this.messenger = messenger;
             if (deferlow && !key_route) {

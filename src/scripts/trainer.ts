@@ -72,7 +72,7 @@ if (env === Env.MAX) {
 }
 
 
-let envTrain = Env.NODE_FOR_MAX;
+let envTrain = Env.MAX;
 
 let messenger_render = new Messenger(envTrain, 0, 'render');
 let messenger_monitor_target = new Messenger(envTrain, 0, 'index_track_target');
@@ -116,23 +116,23 @@ let set_algorithm_train = (option) => {
 
     switch (option) {
         case FREESTYLE: {
-            algorithm_train = new Freestyle(Env.NODE_FOR_MAX);
+            algorithm_train = new Freestyle(Env.MAX);
             break;
         }
         case DETECT: {
-            algorithm_train = new Detect(Env.NODE_FOR_MAX);
+            algorithm_train = new Detect(Env.MAX);
             break;
         }
         case PREDICT: {
-            algorithm_train = new Predict(Env.NODE_FOR_MAX);
+            algorithm_train = new Predict(Env.MAX);
             break;
         }
         case PARSE: {
-            algorithm_train = new Parse(Env.NODE_FOR_MAX);
+            algorithm_train = new Parse(Env.MAX);
             break;
         }
         case DERIVE: {
-            algorithm_train = new Derive(Env.NODE_FOR_MAX);
+            algorithm_train = new Derive(Env.MAX);
             break;
         }
         default: {
@@ -163,11 +163,11 @@ let set_track_target = () => {
     track_target = new Track(
         new TrackDao(
             LiveApiFactory.create(
-                Env.NODE_FOR_MAX,
+                Env.MAX,
                 utils.get_path_track_from_path_device(path_device_target),
                 TypeIdentifier.PATH
             ),
-            new Messenger(Env.NODE_FOR_MAX, 0)
+            new Messenger(Env.MAX, 0)
         )
     );
 
@@ -183,7 +183,7 @@ let set_segments = () => {
     // TODO: this assumes the trainer device is on the same track as the segmenter
     // TODO: put back
     let this_device = LiveApiFactory.create(
-        Env.NODE_FOR_MAX,
+        Env.MAX,
         'this_device',
         TypeIdentifier.PATH
     );
@@ -193,11 +193,11 @@ let set_segments = () => {
     let this_track = new Track(
         new TrackDao(
             LiveApiFactory.create(
-                Env.NODE_FOR_MAX,
+                Env.MAX,
                 utils.get_path_track_from_path_device(path_this_device),
                 TypeIdentifier.PATH
             ),
-            new Messenger(Env.NODE_FOR_MAX, 0)
+            new Messenger(Env.MAX, 0)
         )
     );
 
@@ -217,11 +217,11 @@ let set_segments = () => {
             new Scene(
                 new SceneDao(
                     LiveApiFactory.create(
-                        Env.NODE_FOR_MAX,
+                        Env.MAX,
                         path_scene,
                         TypeIdentifier.PATH
                     ),
-                    new Messenger(Env.NODE_FOR_MAX, 0)
+                    new Messenger(Env.MAX, 0)
                 )
             )
         );
@@ -236,11 +236,11 @@ let set_segments = () => {
             new Clip(
                 new ClipDao(
                     LiveApiFactory.create(
-                        Env.NODE_FOR_MAX,
+                        Env.MAX,
                         path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' '),
                         TypeIdentifier.PATH
                     ),
-                    new Messenger(Env.NODE_FOR_MAX, 0)
+                    new Messenger(Env.MAX, 0)
                 )
             )
         );
@@ -254,7 +254,7 @@ let set_segments = () => {
 
 let set_track_user_input = () => {
     let this_device = LiveApiFactory.create(
-        Env.NODE_FOR_MAX,
+        Env.MAX,
         'this_device',
         TypeIdentifier.PATH
     );
@@ -268,11 +268,11 @@ let set_track_user_input = () => {
     track_user_input = new Track(
         new TrackDao(
             LiveApiFactory.create(
-                Env.NODE_FOR_MAX,
+                Env.MAX,
                 path_this_track,
                 TypeIdentifier.PATH
             ),
-            new Messenger(Env.NODE_FOR_MAX, 0)
+            new Messenger(Env.MAX, 0)
         )
     );
 
@@ -285,11 +285,11 @@ let set_song = () => {
     song = new Song(
         new SongDao(
             LiveApiFactory.create(
-                Env.NODE_FOR_MAX,
+                Env.MAX,
                 'live_set',
                 TypeIdentifier.PATH
             ),
-            new Messenger(Env.NODE_FOR_MAX, 0)
+            new Messenger(Env.MAX, 0)
         )
     );
 
@@ -320,7 +320,7 @@ let initialize = () => {
         song,
         segments_train,
         messenger_render,
-        Env.NODE_FOR_MAX
+        Env.MAX
     );
 };
 
@@ -356,7 +356,7 @@ let load_session = (filename: string) => {
         song,
         segments_train,
         messenger_render,
-        Env.NODE_FOR_MAX,
+        Env.MAX,
         true
     );
 

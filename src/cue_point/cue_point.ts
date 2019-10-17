@@ -5,7 +5,7 @@ import {live} from "../live/live";
 export namespace cue_point {
 
     import Messenger = message.Messenger;
-    import iLiveApiJs = live.iLiveApiJs;
+    import iLiveApi = live.iLiveApi;
 
     export class CuePoint {
 
@@ -62,10 +62,10 @@ export namespace cue_point {
 
     export class CuePointDao implements iCuePointDao {
 
-        private live_api: iLiveApiJs;
+        private live_api: iLiveApi;
         private messenger: Messenger;
 
-        constructor(live_api: iLiveApiJs, messenger: Messenger) {
+        constructor(live_api: iLiveApi, messenger: Messenger) {
             this.live_api = live_api;
             this.messenger = messenger;
         }

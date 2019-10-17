@@ -564,7 +564,7 @@ export namespace clip {
         private key_route: string;
         private notes_cached: string[];
 
-        constructor(clip_live: li.iLiveApiJs, messenger, deferlow: boolean = false, key_route?: string) {
+        constructor(clip_live: li.iLiveApi, messenger, deferlow: boolean = false, key_route?: string) {
             this.clip_live = clip_live;
             this.messenger = messenger;
             if (deferlow && !key_route) {
@@ -659,10 +659,10 @@ export namespace clip {
         };
 
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
-            if (this.clip_live.constructor.name != 'LiveApiMaxSynchronous' && this.clip_live.constructor.name != 'LiveApi') {
+            if (this.clip_live.constructor.name != 'LiveApiNode' && this.clip_live.constructor.name != 'LiveApi') {
                 return this.notes_cached
             } else {
-                if (this.clip_live.constructor.name == 'LiveApiMaxSynchronous') {
+                if (this.clip_live.constructor.name == 'LiveApiNode') {
                     // @ts-ignore
                     global.liveApi.dynamicResponse = true;
                 }
@@ -701,7 +701,7 @@ export namespace clip {
         };
 
         set_notes(notes: TreeModel.Node<n.Note>[]): void {
-            if (this.clip_live.constructor.name != 'LiveApiMaxSynchronous' && this.clip_live.constructor.name != 'LiveApi') {
+            if (this.clip_live.constructor.name != 'LiveApiNode' && this.clip_live.constructor.name != 'LiveApi') {
                 let notes_cached = [];
                 notes_cached.push('notes');
                 notes_cached.push(notes.length.toString());
@@ -731,7 +731,7 @@ export namespace clip {
                 this.messenger.message([this.key_route, 'call', 'done'])
             } else {
                 switch(this.clip_live.constructor.name) {
-                    case 'LiveApiMaxSynchronous':
+                    case 'LiveApiNode':
                         this.clip_live.callAsync('set_notes');
                         this.clip_live.callAsync('notes', notes.length);
                         for (let node of notes) {

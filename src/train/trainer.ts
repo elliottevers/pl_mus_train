@@ -351,7 +351,7 @@ export namespace trainer {
 
             let endpoints_loop = this.segment_current.get_endpoints_loop();
 
-            this.song.set_loop_start(endpoints_loop[0]);
+            this.song.set_loop_start(endpoints_loop[0], true, 'defer');
 
             this.song.set_loop_length(endpoints_loop[1] - endpoints_loop[0]);
 

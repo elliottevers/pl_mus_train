@@ -9,7 +9,7 @@ export namespace clip_slot {
     import ClipDao = clip.ClipDao;
     import LiveApiFactory = live.LiveApiFactory;
     import TypeIdentifier = live.TypeIdentifier;
-    import iLiveApiJs = live.iLiveApiJs;
+    import iLiveApi = live.iLiveApi;
 
     export class ClipSlot {
 
@@ -110,10 +110,10 @@ export namespace clip_slot {
 
     export class ClipSlotDao implements iClipSlotDao {
 
-        private live_api: iLiveApiJs;
+        private live_api: iLiveApi;
         private messenger: Messenger;
 
-        constructor(live_api: iLiveApiJs, messenger: Messenger) {
+        constructor(live_api: iLiveApi, messenger: Messenger) {
             this.live_api = live_api;
             this.messenger = messenger;
         }

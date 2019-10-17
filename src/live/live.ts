@@ -1,7 +1,9 @@
 let node = require("deasync");
 node.loop = node.runLoopOnce;
 
-// declare let LiveAPI: any;
+declare let LiveAPI: any;
+declare let outlet: any;
+declare let global: any;
 
 export namespace live {
 
@@ -21,13 +23,15 @@ export namespace live {
         public static create(env: Env, identifier: string, typeIdentifier: TypeIdentifier) {
             switch(env) {
                 case Env.NODE_FOR_MAX:
-                    return new LiveApiMaxSynchronous(
+                    return new LiveApiNode(
                         identifier,
                         typeIdentifier
                     );
                 case Env.MAX:
-                    // @ts-ignore
-                    this.object = new LiveAPI(null, identifier);
+                    return new LiveApiJsProxy(
+                        null,
+                        identifier
+                    );
                 case Env.NODE:
                     // TODO: How will we be able to do read queries?
                     break;
@@ -38,22 +42,24 @@ export namespace live {
 
         public static createFromConstructor(nameConstructor: string, identifier: string, typeIdentifier: TypeIdentifier) {
             switch(nameConstructor) {
-                case 'LiveApiMaxSynchronous':
-                    let res = new LiveApiMaxSynchronous(
+                case 'LiveApiNode':
+                    let res = new LiveApiNode(
                         identifier,
                         typeIdentifier,
                     );
                     return res;
-                case 'LiveApi':
-                    // @ts-ignore
-                    return new LiveAPI(null, identifier);
+                case 'LiveApiJsProxy':
+                    return new LiveApiJsProxy(
+                        null,
+                        identifier
+                    );
                 default:
                     throw 'cannot create LiveApi'
             }
         }
     }
 
-    export interface iLiveApiJs {
+    export interface iLiveApi {
         get(property: string): any;
         set(property: string, value: any): void;
         call(...args): void;
@@ -62,8 +68,69 @@ export namespace live {
         get_children(): any;
     }
 
+    export class LiveApiJsProxy implements iLiveApi {
+
+        private maxApi: any;
+
+        constructor(something, identifier) {
+            this.maxApi = new LiveAPI(null, identifier);
+
+        }
+
+        call(args: string[], synchronous: boolean = true, deferlow: boolean = false): any {
+
+            if (deferlow && synchronous) {
+                throw 'too hard to deferlow a task and expect it to be synchronous in JS objects - would require a lock, looping in Max, and a response handler';
+                // outlet(0, 'delegateSync', 'deferlow', ...args);
+                // return;
+            }
+
+            // used heavily in training - tasks that need to be done while other UI things are currently happening
+            if (deferlow && !synchronous) {
+                outlet(0, 'delegateAsync', 'deferlow', ...args);
+                return;
+            }
+
+            // used heavily in preprocessing/batch processing - tasks that are not time critical
+            if (!deferlow && synchronous) {
+                return this.maxApi.call(...args)
+            }
+
+            // this is when we don't care when the task gets executed, just that it happens relatively quicker than rendering
+            // since not flowing through `deferlow` and generating new event/task, should be equivalent to calling LiveAPI directly
+            // but we could force it to generate a new task with `delay 0`
+            // TODO: would this reverse order of the tasks put on the queue like this?
+            if (!deferlow && !synchronous) {
+                throw '!deferlow && !synchronous not yet implemented'
+                // outlet(0, 'delegateAsync', 'prioritize', ...args);
+                // return;
+            }
+        }
+
+        get(property: string): any {
+
+        }
+
+        get_children(): any {
+
+        }
+
+        get_id(): any {
+
+        }
+
+        get_path(): any {
+
+        }
+
+        set(property: string, value: any): void {
+
+        }
+
+    }
+
     // this should only work for node_for_max (node should just use a virtual dao?)
-    export class LiveApiMaxSynchronous implements iLiveApiJs {
+    export class LiveApiNode implements iLiveApi {
 
         private refLive: string;  // either path or id
         private typeRef: TypeIdentifier;
@@ -89,9 +156,9 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'get', property);
+            this.maxApi.outlet('LiveApiNode', 'command', 'get', property);
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -102,34 +169,42 @@ export namespace live {
         }
 
         public set(property, value) {
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'set', property, value);
+            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
+            this.maxApi.outlet('LiveApiNode', 'command', 'set', property, value);
         }
 
-        public call(...args) {
+        // essentially if synchronous ... else ...
+        public call(args: string[], synchronous: boolean = true, deferlow: boolean = false): any {
 
-            // @ts-ignore
-            global.liveApi.locked = true;
+            // TODO: figure out which condition is actually modeled by this situation
+            if ((deferlow && synchronous) || (!deferlow && synchronous)) {
+                global.liveApi.locked = true;
 
-            // @ts-ignore
-            global.liveApi.responses = [];
+                global.liveApi.responses = [];
 
-            // @ts-ignore
-            global.liveApi.responsesProcessed = 0;
+                global.liveApi.responsesProcessed = 0;
 
-            // @ts-ignore
-            global.liveApi.responsesExpected = 1;
+                global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+                // TODO: add routing key in order to defer?
+                this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', ...args);
+                this.maxApi.outlet('LiveApiNode', 'command', 'call', ...args);
 
-            // @ts-ignore
-            while (global.liveApi.locked)
-                node.loop();
+                while (global.liveApi.locked)
+                    node.loop();
 
-            // @ts-ignore
-            return global.liveApi.responses;
+                // @ts-ignore
+                return global.liveApi.responses;
+            }
+
+            // can it be synchronous **and** not-void?
+            // TODO: too much work to support asynchronous calls with variable responses?
+            // TODO: are void calls equivalent to async calls?  Since they wouldn't return anything and can run whenever
+            if ((deferlow && !synchronous) || (!deferlow && !synchronous)) {
+                this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
+                this.maxApi.outlet('LiveApiNode', 'command', 'call', ...args);
+            }
         }
 
         public callAsync(...args) {
@@ -146,9 +221,9 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'call', ...args);
+            this.maxApi.outlet('LiveApiNode', 'command', 'call', ...args);
         }
 
         public get_id() {
@@ -164,9 +239,9 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getid');
+            this.maxApi.outlet('LiveApiNode', 'command', 'getid');
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -189,9 +264,9 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getpath');
+            this.maxApi.outlet('LiveApiNode', 'command', 'getpath');
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -214,9 +289,9 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', this.typeRef, ...this.refLive.split(' '));
+            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
 
-            this.maxApi.outlet('LiveApiMaxSynchronous', 'command', 'getchildren');
+            this.maxApi.outlet('LiveApiNode', 'command', 'getchildren');
 
             // @ts-ignore
             while (global.liveApi.locked)
