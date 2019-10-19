@@ -203,7 +203,11 @@ export namespace targeted {
         }
 
         advance_scene(scene_current: scene.Scene, song: song.Song) {
+            scene_current.setMode(true, false);
+
             scene_current.fire(false);
+
+            scene_current.setMode(false, true);
         }
 
         preprocess_history_user_input(history_user_input: history.HistoryUserInput, segments: segment.Segment[]): HistoryUserInput {

@@ -128,7 +128,6 @@ export namespace detect {
 
             track_target.setMode(true, false);
 
-            // TODO: put back in
             track_target.unmute()
         }
 
