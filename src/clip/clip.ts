@@ -657,7 +657,7 @@ export namespace clip {
         };
 
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
-            if (this.liveApi.constructor.name != 'LiveApiNode' && this.liveApi.constructor.name != 'LiveApi') {
+            if (this.liveApi.constructor.name != 'LiveApiNode' && this.liveApi.constructor.name != 'LiveApiJsProxy') {
                 return this.notes_cached
             } else {
                 if (this.liveApi.constructor.name == 'LiveApiNode') {
@@ -693,7 +693,7 @@ export namespace clip {
         };
 
         set_notes(notes: TreeModel.Node<n.Note>[]): void {
-            if (this.liveApi.constructor.name != 'LiveApiNode' && this.liveApi.constructor.name != 'LiveApi') {
+            if (this.liveApi.constructor.name != 'LiveApiNode' && this.liveApi.constructor.name != 'LiveApiJsProxy') {
                 let notes_cached = [];
                 notes_cached.push('notes');
                 notes_cached.push(notes.length.toString());

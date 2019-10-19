@@ -336,6 +336,10 @@ max_api.addHandler('initialize', () => {
         messenger_render,
         Env.NODE_FOR_MAX
     );
+
+    // trainer.commence();
+    //
+    // trainer.render_window()
 });
 
 max_api.addHandler('commence', () => {

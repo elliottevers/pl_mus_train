@@ -195,7 +195,7 @@ export namespace live {
         }
 
         // essentially if synchronous ... else ...
-        public call(args: string[], synchronous: boolean = true, deferlow: boolean = false): any {
+        public call(args: string[], deferlow: boolean = false, synchronous: boolean = true): any {
 
             // TODO: figure out which condition is actually modeled by this situation
             if ((deferlow && synchronous) || (!deferlow && synchronous)) {
@@ -278,7 +278,7 @@ export namespace live {
                 node.loop();
 
             // @ts-ignore
-            return global.liveApi.responses;
+            return global.liveApi.responses.join(' ');
         }
 
         public get_children(deferlow: boolean = false, synchronous: boolean = true) {

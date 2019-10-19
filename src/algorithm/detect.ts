@@ -106,8 +106,6 @@ export namespace detect {
                     this.env
                 );
 
-                // clip_user_input.set_path_deferlow('clip_user_input');
-
                 let note_segment = segment.get_note();
 
                 clip_user_input.remove_notes(
@@ -121,12 +119,17 @@ export namespace detect {
 
                 note_segment_muted.model.note.muted = 1;
 
+                clip_user_input.setMode(true, false);
+
                 clip_user_input.set_notes(
                     [note_segment_muted]
                 );
             }
 
-            track_target.unmute()
+            track_target.setMode(true, false);
+
+            // TODO: put back in
+            // track_target.unmute()
         }
 
         handle_midi(pitch: number, velocity: number, trainer: Trainer): void {
