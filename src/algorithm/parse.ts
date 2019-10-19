@@ -293,21 +293,31 @@ export namespace parse {
 
                     let notes_struct_below = this.coord_to_index_struct_train([coords_current[0] + 1, coords_current[1]]);
 
+                    trainer.clip_user_input.setMode(true, false);
+
                     trainer.clip_user_input.set_notes(
                         matrix_parse_forest.get_notes_at_coord(notes_struct_below)
                     );
+
+                    trainer.clip_user_input.setMode(false, true);
 
                     break;
                 }
                 case 'erase': {
                     // sometimes notes aren't removed at the boundaries
                     let epsilon = .5;
+
+                    trainer.clip_user_input.setMode(true, false);
+
                     trainer.clip_user_input.remove_notes(
                         trainer.segment_current.beat_start - epsilon,
                         0,
                         trainer.segment_current.beat_end - trainer.segment_current.beat_start + epsilon,
                         128
                     );
+
+                    trainer.clip_user_input.setMode(false, true);
+
                     break;
                 }
                 default: {

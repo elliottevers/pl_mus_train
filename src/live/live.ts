@@ -185,7 +185,7 @@ export namespace live {
                 // @ts-ignore
                 global.liveApi.responsesExpected = 1;
 
-                this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'set', property, value);
+                this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'set', property, value);
 
                 // @ts-ignore
                 while (global.liveApi.locked)
@@ -211,7 +211,7 @@ export namespace live {
                 global.liveApi.responsesExpected = 1;
 
                 // TODO: add routing key in order to defer?
-                this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'call', ...args);
+                this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'call', ...args);
 
                 while (global.liveApi.locked)
                     node.loop();
@@ -242,7 +242,7 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'getid');
+            this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getid');
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -267,7 +267,7 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'getpath');
+            this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getpath');
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -291,7 +291,7 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'getchildren');
+            this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getchildren');
 
             // @ts-ignore
             while (global.liveApi.locked)
