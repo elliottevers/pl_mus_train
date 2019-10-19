@@ -129,7 +129,7 @@ export namespace detect {
             track_target.setMode(true, false);
 
             // TODO: put back in
-            // track_target.unmute()
+            track_target.unmute()
         }
 
         handle_midi(pitch: number, velocity: number, trainer: Trainer): void {

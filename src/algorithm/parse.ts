@@ -97,6 +97,8 @@ export namespace parse {
                     128
                 );
 
+                clip_user_input.setMode(true, false);
+
                 clip_user_input.set_notes(
                     notes
                 )
