@@ -351,7 +351,7 @@ export namespace trainer {
 
             let endpoints_loop = this.segment_current.get_endpoints_loop();
 
-            this.song.set_loop_start(endpoints_loop[0], true, 'defer');
+            this.song.set_loop_start(endpoints_loop[0]);
 
             this.song.set_loop_length(endpoints_loop[1] - endpoints_loop[0]);
 
@@ -457,7 +457,6 @@ export namespace trainer {
                 let clip_user_input = Track.get_clip_at_index(
                     this.track_user_input.get_index(),
                     Number(i_input_most_recent),
-                    this.track_user_input.track_dao.messenger,
                     this.env
                 );
 

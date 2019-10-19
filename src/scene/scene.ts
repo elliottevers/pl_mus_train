@@ -1,34 +1,34 @@
 import {live} from "../live/live";
-import {message} from "../message/messenger";
 import {utils} from "../utils/utils";
 
 export namespace scene {
 
-    import Messenger = message.Messenger;
     import iLiveApi = live.iLiveApi;
 
     export class Scene {
 
-        scene_dao: SceneDao;
+        scene_dao: iSceneDao;
 
         constructor(scene_dao) {
             this.scene_dao = scene_dao;
+        }
+
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.scene_dao.setMode(deferlow, synchronous)
         }
 
         public fire(force_legato: boolean) {
             this.scene_dao.fire(force_legato)
         }
 
+        // WARNING: this doesn't do anything meaningful
         public get_id(): string {
-            // TODO: implement
-            return
-        }
-
-        set_path_deferlow(key_route): void {
-            this.scene_dao.set_path_deferlow(
-                'set_path_' + key_route,
-                this.get_path()
-            )
+            return this.scene_dao.get_id()
         }
 
         public get_path(): string {
@@ -39,62 +39,64 @@ export namespace scene {
     export interface iSceneDao {
         fire(force_legato: boolean)
         get_path(): string
+
+        setMode(deferlow: boolean, synchronous: boolean): void;
+
+        get_id(): string;
     }
 
     export class SceneDaoVirtual implements iSceneDao {
         fire(force_legato: boolean) {
-            return
+
         }
 
         get_path(): string {
             return "";
         }
 
-        set_path_deferlow(key_route_override: string, path_live: string): void {
-            return
+        setMode(deferlow: boolean, synchronous: boolean): void {
+
+        }
+
+        get_id(): string {
+            return "";
         }
     }
 
     export class SceneDao implements iSceneDao {
         live_api: iLiveApi;
-        messenger: Messenger;
-        deferlow: boolean;
-        key_route: string;
+        private deferlow: boolean = false;
+        private synchronous: boolean = true;
 
-        constructor(live_api: iLiveApi, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
+        constructor(live_api: iLiveApi) {
             this.live_api = live_api;
-            this.messenger = messenger;
-            if (deferlow && !key_route) {
-                throw new Error('key route not specified when using deferlow');
-            }
-            this.deferlow = deferlow;
-            this.key_route = key_route;
         }
 
-        set_path_deferlow(key_route_override: string, path_live: string): void {
-            let mess: any[] = [key_route_override];
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
 
-            for (let word of utils.PathLive.to_message(path_live)) {
-                mess.push(word)
-            }
-
-            this.messenger.message(mess)
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.deferlow = deferlow;
+            this.synchronous = synchronous;
         }
 
         public fire(force_legato: boolean) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "call", "fire", force_legato ? '1' : '0']);
+            if (force_legato) {
+                this.live_api.call(['fire', '1'], this.deferlow, this.synchronous)
             } else {
-                if (force_legato) {
-                    this.live_api.call("fire", '1')
-                } else {
-                    this.live_api.call("fire")
-                }
+                this.live_api.call(['fire'], this.deferlow, this.synchronous)
             }
         }
 
         get_path(): string {
-            return utils.cleanse_path(this.live_api.get_path());
+            return utils.cleanse_path(this.live_api.get_path(this.deferlow, this.synchronous));
+        }
+
+        // WARNING: verify
+        get_id(): string {
+            return this.live_api.get_id(this.deferlow, this.synchronous);
         }
     }
 

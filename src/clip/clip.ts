@@ -1,18 +1,17 @@
-import {note as n} from "../note/note";
+import {note, note as n} from "../note/note";
 import TreeModel = require("tree-model");
 import {live, live as li} from "../live/live";
-import {message} from "../message/messenger";
 import {utils} from "../utils/utils";
 
 export namespace clip {
 
-    import Messenger = message.Messenger;
     import Env = live.Env;
     import TypeIdentifier = live.TypeIdentifier;
+    import iLiveApi = live.iLiveApi;
 
     export class Clip {
 
-        public clip_dao;
+        public clip_dao: iClipDao;
 
         private notes: TreeModel.Node<n.Note>[];
 
@@ -20,15 +19,23 @@ export namespace clip {
             this.clip_dao = clip_dao;
         }
 
-        public static from_path(path: string, messenger: Messenger, env: Env): Clip {
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.clip_dao.setMode(deferlow, synchronous)
+        }
+
+        public static from_path(path: string, env: Env): Clip {
             return new Clip(
                 new ClipDao(
                     li.LiveApiFactory.create(
                         env,
                         path,
                         TypeIdentifier.PATH
-                    ),
-                    messenger
+                    )
                 )
             )
         }
@@ -58,7 +65,7 @@ export namespace clip {
         }
 
         get_index_track(): number {
-            return this.clip_dao.get_path().split(' ')[2]
+            return this.clip_dao.liveApi.get_path().split(' ')[2]
         }
 
         get_beat_start(): number {
@@ -70,18 +77,11 @@ export namespace clip {
         }
 
         get_path(): string {
-            return this.clip_dao.get_path();
+            return this.clip_dao.liveApi.get_path();
         }
 
         get_id(): string {
-            return this.clip_dao.get_id();
-        }
-
-        set_path_deferlow(key_route): void {
-            this.clip_dao.set_path_deferlow(
-                'set_path_' + key_route,
-                this.get_path()
-            )
+            return this.clip_dao.liveApi.get_id();
         }
 
         get_num_measures(): number {
@@ -405,8 +405,14 @@ export namespace clip {
         }
     }
 
+    export interface iClipDao {
 
-    export interface ClipLive {
+        liveApi: iLiveApi;
+
+        beat_end: number;
+        beat_start: number;
+
+        setMode(deferlow: boolean, synchronous: boolean): void;
 
         get_end_marker(): number
 
@@ -427,10 +433,22 @@ export namespace clip {
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[]
 
         remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void
+
+        set_notes(notes: TreeModel.Node<note.Note>[]): void;
+
+        get_playing_position(): any;
+
+        get_loop_bracket_upper(): any;
+
+        get_loop_bracket_lower(): any;
+
+        append(note: TreeModel.Node<note.Note>): void;
+
+        get_name(): any;
     }
 
     // simulate dao
-    export class LiveClipVirtual implements ClipLive {
+    export class LiveClipVirtual implements iClipDao {
 
         beat_start: number;
         beat_end: number;
@@ -554,154 +572,128 @@ export namespace clip {
         get_path() {
             return ''
         }
+
+        liveApi: live.iLiveApi;
+
+        get_name(): any {
+        }
+
+        get_playing_position(): any {
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+        }
     }
 
-    export class ClipDao implements ClipLive {
+    export class ClipDao implements iClipDao {
 
-        private clip_live;
-        private messenger: Messenger;
-        private deferlow: boolean;
-        private key_route: string;
+        public liveApi: iLiveApi;
+        private deferlow: boolean = false;
+        private synchronous: boolean = true;
         private notes_cached: string[];
 
-        constructor(clip_live: li.iLiveApi, messenger, deferlow: boolean = false, key_route?: string) {
-            this.clip_live = clip_live;
-            this.messenger = messenger;
-            if (deferlow && !key_route) {
-                throw new Error('key route not specified when using deferlow');
-            }
+        constructor(liveApi: li.iLiveApi) {
+            this.liveApi = liveApi;
+        }
+
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
             this.deferlow = deferlow;
-            this.key_route = key_route;
+            this.synchronous = synchronous;
         }
 
         get_playing_position(): number {
-            return Number(this.clip_live.get('playing_position'))
-        }
-
-        set_path_deferlow(key_route_override: string, path_live: string): void {
-            let mess: any[] = [key_route_override];
-
-            for (let word of utils.PathLive.to_message(path_live)) {
-                mess.push(word)
-            }
-
-            this.messenger.message(mess)
+            return Number(this.liveApi.get('playing_position', this.deferlow, this.synchronous))
         }
 
         // TODO: check if these actually return arrays
         get_end_marker(): number {
-            return this.clip_live.get('end_marker')[0];
+            return this.liveApi.get('end_marker', this.deferlow, this.synchronous)[0];
         }
 
         // TODO: check if these actually return arrays
         get_start_marker(): number {
-            return this.clip_live.get('start_marker')[0];
+            return this.liveApi.get('start_marker', this.deferlow, this.synchronous)[0];
         }
 
         get_path(): string {
-            return utils.cleanse_path(this.clip_live.get_path());
+            return utils.cleanse_path(this.liveApi.get_path(this.deferlow, this.synchronous));
         }
 
         set_loop_bracket_lower(beat: number) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "loop_start", beat])
-            } else {
-                this.clip_live.set('loop_start', beat);
-            }
+            this.liveApi.set('loop_start', beat, this.deferlow, this.synchronous);
         }
 
         set_loop_bracket_upper(beat: number) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "loop_end", beat]);
-            } else {
-                this.clip_live.set('loop_end', beat);
-            }
+            this.liveApi.set('loop_end', beat, this.deferlow, this.synchronous);
         }
 
         get_loop_bracket_lower(): number {
-            return this.clip_live.get('loop_start');
+            return this.liveApi.get('loop_start', this.deferlow, this.synchronous);
         }
 
         get_loop_bracket_upper(): number {
-            return this.clip_live.get('loop_end');
+            return this.liveApi.get('loop_end', this.deferlow, this.synchronous);
         }
 
         set_clip_endpoint_lower(beat: number) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "start_marker", beat]);
-            } else {
-                this.clip_live.set('start_marker', beat);
-            }
+            this.liveApi.set('start_marker', beat, this.deferlow, this.synchronous);
         }
 
         set_clip_endpoint_upper(beat: number) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "end_marker", beat]);
-            } else {
-                this.clip_live.set('end_marker', beat);
-            }
+            this.liveApi.set('end_marker', beat, this.deferlow, this.synchronous);
         }
 
         fire(): void {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "call", "fire"]);
-            } else {
-                this.clip_live.call('fire');
-            }
+            this.liveApi.call(['fire'], this.deferlow, this.synchronous);
         };
 
         stop(): void {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "call", "stop"]);
-            } else {
-                this.clip_live.call('stop');
-            }
+            this.liveApi.call(['stop'], this.deferlow, this.synchronous);
         };
 
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
-            if (this.clip_live.constructor.name != 'LiveApiNode' && this.clip_live.constructor.name != 'LiveApi') {
+            if (this.liveApi.constructor.name != 'LiveApiNode' && this.liveApi.constructor.name != 'LiveApi') {
                 return this.notes_cached
             } else {
-                if (this.clip_live.constructor.name == 'LiveApiNode') {
+                if (this.liveApi.constructor.name == 'LiveApiNode') {
                     // @ts-ignore
                     global.liveApi.dynamicResponse = true;
                 }
-                return this.clip_live.call(
-                    'get_notes',
-                    beat_start,
-                    pitch_midi_min,
-                    beat_end,
-                    pitch_midi_max
+                return this.liveApi.call(
+                    [
+                        'get_notes',
+                        beat_start,
+                        pitch_midi_min,
+                        beat_end,
+                        pitch_midi_max
+                    ],
+                    this.deferlow,
+                    this.synchronous
                 );
             }
         };
 
         remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void {
-            if (this.deferlow) {
-                this.messenger.message(
-                    [
-                        this.key_route,
-                        "call",
-                        "remove_notes",
-                        beat_start,
-                        pitch_midi_min,
-                        beat_end,
-                        pitch_midi_max
-                    ]
-                );
-            } else {
-                this.clip_live.call(
+            this.liveApi.call(
+                [
                     'remove_notes',
                     beat_start,
                     pitch_midi_min,
                     beat_end,
                     pitch_midi_max
-                );
-            }
+                ],
+                this.deferlow,
+                this.synchronous
+            );
         };
 
         set_notes(notes: TreeModel.Node<n.Note>[]): void {
-            if (this.clip_live.constructor.name != 'LiveApiNode' && this.clip_live.constructor.name != 'LiveApi') {
+            if (this.liveApi.constructor.name != 'LiveApiNode' && this.liveApi.constructor.name != 'LiveApi') {
                 let notes_cached = [];
                 notes_cached.push('notes');
                 notes_cached.push(notes.length.toString());
@@ -713,66 +705,40 @@ export namespace clip {
                     notes_cached.push(note.model.note.muted.toString());
                 }
                 notes_cached.push('done');
-            } else if (this.deferlow) {
-                this.messenger.message([this.key_route, 'call', 'set_notes']);
-                this.messenger.message([this.key_route, 'call', 'notes', notes.length]);
-                for (let node of notes) {
-                    this.messenger.message([
-                        this.key_route,
-                        'call',
-                        'note',
-                        node.model.note.pitch,
-                        node.model.note.beat_start.toFixed(4),
-                        node.model.note.beats_duration.toFixed(4),
-                        node.model.note.velocity,
-                        node.model.note.muted
-                    ]);
-                }
-                this.messenger.message([this.key_route, 'call', 'done'])
             } else {
-                switch(this.clip_live.constructor.name) {
-                    case 'LiveApiNode':
-                        this.clip_live.callAsync('set_notes');
-                        this.clip_live.callAsync('notes', notes.length);
-                        for (let node of notes) {
-                            this.clip_live.callAsync(
-                                'note',
-                                node.model.note.pitch,
-                                node.model.note.beat_start.toFixed(4),
-                                node.model.note.beats_duration.toFixed(4),
-                                node.model.note.velocity,
-                                node.model.note.muted
-                            );
-                        }
-                        this.clip_live.callAsync('done');
-                        break;
-                    case 'LiveApi':
-                        this.clip_live.call('set_notes');
-                        this.clip_live.call('notes', notes.length);
-                        for (let node of notes) {
-                            this.clip_live.call(
-                                'note',
-                                node.model.note.pitch,
-                                node.model.note.beat_start.toFixed(4),
-                                node.model.note.beats_duration.toFixed(4),
-                                node.model.note.velocity,
-                                node.model.note.muted
-                            );
-                        }
-                        this.clip_live.call('done');
-                        break;
-                    default:
-                        throw 'cannot set notes'
+                this.liveApi.call(['set_notes'], this.deferlow, this.synchronous);
+                this.liveApi.call(['notes', String(notes.length)], this.deferlow, this.synchronous);
+                for (let node of notes) {
+                    this.liveApi.call(
+                        [
+                            'note',
+                            node.model.note.pitch,
+                            node.model.note.beat_start.toFixed(4),
+                            node.model.note.beats_duration.toFixed(4),
+                            node.model.note.velocity,
+                            node.model.note.muted
+                        ],
+                        this.deferlow,
+                        this.synchronous
+                    );
                 }
+                this.liveApi.call(['done'], this.deferlow, this.synchronous);
             }
         }
 
         get_name() {
-            return this.clip_live.get('name')
+            return this.liveApi.get('name', this.deferlow, this.synchronous)
         }
 
         get_id() {
-            return this.clip_live.get_id()
+            return this.liveApi.get_id(this.deferlow, this.synchronous)
+        }
+
+        beat_end: number;
+        beat_start: number;
+
+        append(note: TreeModel.Node<note.Note>): void {
+            throw 'have not implemented append method on clip object'
         }
     }
 }

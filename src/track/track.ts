@@ -24,7 +24,7 @@ export namespace track {
 
     export class Track {
 
-        public track_dao;
+        public track_dao: iTrackDao;
 
         clip_slots: ClipSlot[] = [];
 
@@ -32,7 +32,17 @@ export namespace track {
             this.track_dao = track_dao;
         }
 
-        public static get_clip_at_index(index_track: number, index_clip_slot: number, messenger: Messenger, env: Env): Clip {
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.track_dao.setMode(deferlow, synchronous)
+        }
+
+
+        public static get_clip_at_index(index_track: number, index_clip_slot: number, env: Env): Clip {
             if (env == Env.NODE_FOR_MAX || env == Env.MAX) {
                 return new Clip(
                     new ClipDao(
@@ -40,8 +50,7 @@ export namespace track {
                             env,
                             ['live_set', 'tracks', String(index_track), 'clip_slots', String(index_clip_slot), 'clip'].join(' '),
                             TypeIdentifier.PATH
-                        ),
-                        messenger
+                        )
                     )
                 );
             } else {
@@ -66,8 +75,7 @@ export namespace track {
 
             return new ClipSlot(
                 new ClipSlotDao(
-                    clip_slot_dao,
-                    messenger
+                    clip_slot_dao
                 )
             );
         }
@@ -86,13 +94,6 @@ export namespace track {
 
         public unmute() {
             this.track_dao.mute(false);
-        }
-
-        set_path_deferlow(key_route): void {
-            this.track_dao.set_path_deferlow(
-                'set_path_' + key_route,
-                this.get_path()
-            )
         }
 
         public load_clips() {
@@ -153,8 +154,12 @@ export namespace track {
     }
 
     export interface iTrackDao {
-        get_clip_slots(int: number)
+        get_clip_slots()
         get_path()
+
+        setMode(deferlow: boolean, synchronous: boolean): void;
+
+        mute(b: boolean): void;
     }
 
     // TODO: please change everything in here
@@ -202,39 +207,37 @@ export namespace track {
         }
 
         get_path(): string {
-            return "live_set tracks -1"
+            return
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+
         }
     }
 
     export class TrackDao implements iTrackDao {
 
         live_api: iLiveApi;
-        messenger: Messenger;
-        deferlow: boolean;
-        key_route: string;
+        private deferlow: boolean = false;
+        private synchronous: boolean = true;
 
-        constructor(live_api: iLiveApi, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
+        constructor(live_api: iLiveApi) {
             this.live_api = live_api;
-            this.messenger = messenger;
-            if (deferlow && !key_route) {
-                throw new Error('key route not specified when using deferlow');
-            }
-            this.deferlow = deferlow;
-            this.key_route = key_route;
+
         }
 
-        set_path_deferlow(key_route_override: string, path_live: string): void {
-            let mess: any[] = [key_route_override];
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
 
-            for (let word of utils.PathLive.to_message(path_live)) {
-                mess.push(word)
-            }
-
-            this.messenger.message(mess)
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.deferlow = deferlow;
+            this.synchronous = synchronous;
         }
 
         get_clip_slots(): ClipSlot[] {
-            let data_clip_slots = this.live_api.get("clip_slots");
+            let data_clip_slots = this.live_api.get("clip_slots", this.deferlow, this.synchronous);
 
             let clip_slots = [];
 
@@ -259,46 +262,23 @@ export namespace track {
                             this.live_api.constructor.name,
                             list_id_clip_slot.join(' '),
                             TypeIdentifier.ID
-                        ),
-                        new Messenger(this.messenger.env, 0)
+                        )
                     )
                 )
             });
         }
 
-        // TODO: use deferlow
+        // TODO: use deferlow?
         mute(val: boolean) {
-            if (this.deferlow) {
-                if (val) {
-                    this.messenger.message(
-                        [
-                            this.key_route,
-                            "set",
-                            "solo",
-                            "0"
-                        ]
-                    );
-                } else {
-                    this.messenger.message(
-                        [
-                            this.key_route,
-                            "set",
-                            "solo",
-                            "1"
-                        ]
-                    );
-                }
+            if (val) {
+                this.live_api.set('solo', '0', this.deferlow, this.synchronous)
             } else {
-                if (val) {
-                    this.live_api.set('solo', '0')
-                } else {
-                    this.live_api.set('solo', '1')
-                }
+                this.live_api.set('solo', '1', this.deferlow, this.synchronous)
             }
         }
 
         get_path(): string {
-            return utils.cleanse_path(this.live_api.get_path())
+            return utils.cleanse_path(this.live_api.get_path(this.deferlow, this.synchronous))
         }
     }
 }

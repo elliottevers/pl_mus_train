@@ -1,10 +1,8 @@
-import {message} from "../message/messenger";
 import {live} from "../live/live";
 
 
 export namespace cue_point {
 
-    import Messenger = message.Messenger;
     import iLiveApi = live.iLiveApi;
 
     export class CuePoint {
@@ -17,6 +15,15 @@ export namespace cue_point {
 
         constructor(cue_point_dao: iCuePointDao) {
             this.cue_point_dao = cue_point_dao;
+        }
+
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.cue_point_dao.setMode(deferlow, synchronous)
         }
 
         get_name(): string {
@@ -38,6 +45,8 @@ export namespace cue_point {
         get_time(): number
 
         jump(): void
+
+        setMode(deferlow: boolean, synchronous: boolean): void;
     }
 
     export class CuePointDaoVirtual implements iCuePointDao {
@@ -58,28 +67,42 @@ export namespace cue_point {
         jump(): void {
 
         }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+
+        }
     }
 
     export class CuePointDao implements iCuePointDao {
 
         private live_api: iLiveApi;
-        private messenger: Messenger;
+        private deferlow: boolean = false;
+        private synchronous: boolean = true;
 
-        constructor(live_api: iLiveApi, messenger: Messenger) {
+        constructor(live_api: iLiveApi) {
             this.live_api = live_api;
-            this.messenger = messenger;
+        }
+
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.deferlow = deferlow;
+            this.synchronous = synchronous;
         }
 
         get_name(): string {
-            return this.live_api.get('name')
+            return this.live_api.get('name', this.deferlow, this.synchronous)
         }
 
         get_time(): number {
-            return this.live_api.get('time')
+            return this.live_api.get('time', this.deferlow, this.synchronous)
         }
 
         jump(): void {
-            this.live_api.call('jump')
+            this.live_api.call(['jump'], this.deferlow, this.synchronous)
         }
     }
 }

@@ -1,12 +1,9 @@
-import {message} from "../message/messenger";
-import {live} from "../live/live";
-import {scene} from "../scene/scene";
-import {utils} from "../utils/utils";
-import {track} from "../track/track";
-import {cue_point} from "../cue_point/cue_point";
+import {live} from '../live/live';
+import {scene} from '../scene/scene';
+import {track} from '../track/track';
+import {cue_point} from '../cue_point/cue_point';
 
 export namespace song {
-    import Messenger = message.Messenger;
     import iLiveApi = live.iLiveApi;
     import Scene = scene.Scene;
     import Track = track.Track;
@@ -29,6 +26,16 @@ export namespace song {
         constructor(song_dao: iSongDao) {
             this.song_dao = song_dao;
         }
+
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.song_dao.setMode(deferlow, synchronous)
+        }
+
 
         get_cue_points() {
             return this.song_dao.get_cue_points()
@@ -107,13 +114,6 @@ export namespace song {
             return this.get_scenes().length/2
         }
 
-        set_path_deferlow(key_route): void {
-            this.song_dao.set_path_deferlow(
-                'set_path_' + key_route,
-                this.get_path()
-            )
-        }
-
         get_path(): string {
             return this.song_dao.get_path()
         }
@@ -121,7 +121,6 @@ export namespace song {
     }
 
     export interface iSongDao {
-        key_route;
         get_cue_points()
         set_or_delete_cue(): void
         jump_to_next_cue(): void
@@ -137,13 +136,12 @@ export namespace song {
         stop(): void
         get_scenes(): any[]
         get_path(): string
-        set_path_deferlow(key_route_override: string, path_live: string): void
         create_scene(index: number): void
+
+        setMode(deferlow: boolean, synchronous: boolean): void;
     }
 
     export class SongDaoVirtual implements iSongDao {
-
-        public key_route: string;
 
         scenes: Scene[];
 
@@ -152,10 +150,6 @@ export namespace song {
         }
 
         public create_scene(index: number): void {
-            return
-        }
-
-        public set_path_deferlow(key_route_override: string, path_live: string): void {
             return
         }
 
@@ -227,71 +221,58 @@ export namespace song {
         get_cue_points() {
 
         }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+
+        }
     }
 
     export class SongDao implements iSongDao {
 
         private song_live: iLiveApi;
-        private messenger: Messenger;
-        private deferlow: boolean;
-        public key_route: string;
+        private deferlow: boolean = false;
+        private synchronous: boolean = true;
 
-        constructor(song_live: iLiveApi, messenger: Messenger, deferlow: boolean = false, key_route?: string) {
+        constructor(song_live: iLiveApi) {
             this.song_live = song_live;
-            this.messenger = messenger;
-            if (deferlow && !key_route) {
-                throw new Error('key route not specified when using deferlow');
-            }
-            this.deferlow = deferlow;
-            this.key_route = key_route;
         }
 
-        set_path_deferlow(key_route_override: string, path_live: string): void {
-            let mess: any[] = [key_route_override];
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
 
-            for (let word of utils.PathLive.to_message(path_live)) {
-                mess.push(word)
-            }
-
-            this.messenger.message(mess)
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.deferlow = deferlow;
+            this.synchronous = synchronous;
         }
 
         set_session_record(int) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "session_record", String(int)]);
-            } else {
-                this.song_live.set("session_record", int);
-
-            }
+            this.song_live.set('session_record', int, this.deferlow, this.synchronous);
         }
 
         set_overdub(int) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "overdub", String(int)]);
-            } else {
-                this.song_live.set("overdub", int);
-
-            }
+            this.song_live.set('overdub', int, this.deferlow, this.synchronous);
         }
 
         set_tempo(int) {
-            this.song_live.set("tempo", int);
+            this.song_live.set('tempo', int, this.deferlow, this.synchronous);
         }
 
         get_tempo(): number {
-            return Number(this.song_live.get("tempo"));
+            return Number(this.song_live.get('tempo', this.deferlow, this.synchronous));
         }
 
         start() {
-            this.song_live.set("is_playing", 1);
+            this.song_live.set('is_playing', 1, this.deferlow, this.synchronous);
         }
 
         stop() {
-            this.song_live.set("is_playing", 0);
+            this.song_live.set('is_playing', 0, this.deferlow, this.synchronous);
         }
 
         get_scenes(): any[] {
-            let data_scenes = this.song_live.get("scenes");
+            let data_scenes = this.song_live.get('scenes', this.deferlow, this.synchronous);
 
             let scenes = [];
 
@@ -315,8 +296,7 @@ export namespace song {
                             this.song_live.constructor.name,
                             id_scene,
                             TypeIdentifier.ID
-                        ),
-                        this.messenger
+                        )
                     )
                 )
             });
@@ -327,55 +307,35 @@ export namespace song {
         }
 
         create_scene(index: number): void {
-            this.song_live.call('create_scene', String(index))
+            this.song_live.call(['create_scene', String(index)], this.deferlow, this.synchronous)
         }
 
         loop(status: boolean) {
-            this.song_live.set("loop", status ? 1 : 0)
+            this.song_live.set('loop', status ? 1 : 0, this.deferlow, this.synchronous)
         }
 
         set_loop_length(length_beats: number) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "loop_length", String(length_beats)]);
-            } else {
-                this.song_live.set("loop_length", length_beats)
-            }
+            this.song_live.set('loop_length', length_beats, this.deferlow, this.synchronous)
         }
 
         set_loop_start(beat_start: number) {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "loop_start", String(beat_start)]);
-            } else {
-                this.song_live.set("loop_start", beat_start)
-            }
+            this.song_live.set('loop_start', beat_start, this.deferlow, this.synchronous)
         }
 
         set_current_song_time(beat: number): void {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "set", "current_song_time", String(beat)]);
-            } else {
-                this.song_live.set("current_song_time", String(beat));
-            }
+            this.song_live.set('current_song_time', String(beat), this.deferlow, this.synchronous);
         }
 
         jump_to_next_cue(): void {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "call", "jump_to_next_cue"]);
-            } else {
-                this.song_live.call("jump_to_next_cue");
-            }
+            this.song_live.call(['jump_to_next_cue'], this.deferlow, this.synchronous);
         }
 
         set_or_delete_cue(): void {
-            if (this.deferlow) {
-                this.messenger.message([this.key_route, "call", "set_or_delete_cue"]);
-            } else {
-                this.song_live.call("set_or_delete_cue");
-            }
+            this.song_live.call(['set_or_delete_cue'], this.deferlow, this.synchronous);
         }
 
         get_cue_points() {
-            let data_cue_points = this.song_live.get("cue_points");
+            let data_cue_points = this.song_live.get('cue_points', this.deferlow, this.synchronous);
 
             let cue_points = [];
 
@@ -400,8 +360,7 @@ export namespace song {
                             this.song_live.constructor.name,
                             list_id_cue_point.join(' '),
                             TypeIdentifier.ID
-                        ),
-                        new Messenger(this.messenger.env, 0)
+                        )
                     )
                 )
             });

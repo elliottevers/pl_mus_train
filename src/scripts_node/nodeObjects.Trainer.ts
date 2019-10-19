@@ -186,8 +186,7 @@ max_api.addHandler('set_track_target', () => {
                 Env.NODE_FOR_MAX,
                 utils.get_path_track_from_path_device(path_device_target),
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.NODE_FOR_MAX, 0)
+            )
         )
     );
 
@@ -216,8 +215,7 @@ let set_segments = () => {
                 Env.NODE_FOR_MAX,
                 utils.get_path_track_from_path_device(path_this_device),
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.NODE_FOR_MAX, 0)
+            )
         )
     );
 
@@ -240,8 +238,7 @@ let set_segments = () => {
                         Env.NODE_FOR_MAX,
                         path_scene,
                         TypeIdentifier.PATH
-                    ),
-                    new Messenger(Env.NODE_FOR_MAX, 0)
+                    )
                 )
             )
         );
@@ -259,8 +256,7 @@ let set_segments = () => {
                         Env.NODE_FOR_MAX,
                         path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' '),
                         TypeIdentifier.PATH
-                    ),
-                    new Messenger(Env.NODE_FOR_MAX, 0)
+                    )
                 )
             )
         );
@@ -291,8 +287,7 @@ let set_track_user_input = () => {
                 Env.NODE_FOR_MAX,
                 path_this_track,
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.NODE_FOR_MAX, 0)
+            )
         )
     );
 
@@ -308,8 +303,7 @@ let set_song = () => {
                 Env.NODE_FOR_MAX,
                 'live_set',
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.NODE_FOR_MAX, 0)
+            )
         )
     );
 

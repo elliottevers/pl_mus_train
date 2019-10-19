@@ -1,11 +1,9 @@
-import {live} from "../live/live";
-import {clip, clip as module_clip} from "../clip/clip";
-import {message} from "../message/messenger";
-import {utils} from "../utils/utils";
+import {live} from '../live/live';
+import {clip, clip as module_clip} from '../clip/clip';
+import {utils} from '../utils/utils';
 
 export namespace clip_slot {
     import Clip = module_clip.Clip;
-    import Messenger = message.Messenger;
     import ClipDao = clip.ClipDao;
     import LiveApiFactory = live.LiveApiFactory;
     import TypeIdentifier = live.TypeIdentifier;
@@ -19,6 +17,15 @@ export namespace clip_slot {
 
         constructor(clip_slot_dao: iClipSlotDao) {
             this.clip_slot_dao = clip_slot_dao;
+        }
+
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.clip_slot_dao.setMode(deferlow, synchronous)
         }
 
         b_has_clip(): boolean {
@@ -69,6 +76,7 @@ export namespace clip_slot {
 
         create_clip(length_beats: number): void
 
+        setMode(deferlow: boolean, synchronous: boolean): void;
     }
 
     export class ClipSlotDaoVirtual implements iClipSlotDao {
@@ -106,32 +114,46 @@ export namespace clip_slot {
         has_clip() {
             return true
         }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+
+        }
     }
 
     export class ClipSlotDao implements iClipSlotDao {
 
         private live_api: iLiveApi;
-        private messenger: Messenger;
+        private deferlow: boolean = false;
+        private synchronous: boolean = true;
 
-        constructor(live_api: iLiveApi, messenger: Messenger) {
+        constructor(live_api: iLiveApi) {
             this.live_api = live_api;
-            this.messenger = messenger;
+        }
+
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.deferlow = deferlow;
+            this.synchronous = synchronous;
         }
 
         create_clip(length_beats: number) {
-            this.live_api.call("create_clip", String(length_beats))
+            this.live_api.call(['create_clip', String(length_beats)], this.deferlow, this.synchronous)
         }
 
         delete_clip() {
-            this.live_api.call("delete_clip")
+            this.live_api.call(['delete_clip'], this.deferlow, this.synchronous)
         }
 
         has_clip() {
-            return this.live_api.get("has_clip")[0] === 1
+            return this.live_api.get('has_clip')[0] === 1
         }
 
         duplicate_clip_to(id: number) {
-            this.live_api.call("duplicate_clip_to", ['id', id].join(' '));
+            this.live_api.call(['duplicate_clip_to', ['id', id].join(' ')], this.deferlow, this.synchronous);
         }
 
         get_clip(): Clip {
@@ -139,20 +161,19 @@ export namespace clip_slot {
                 new ClipDao(
                     LiveApiFactory.createFromConstructor(
                         this.live_api.constructor.name,
-                        utils.cleanse_id(this.live_api.get('clip')),
+                        utils.cleanse_id(this.live_api.get('clip', this.deferlow, this.synchronous)),
                         TypeIdentifier.ID
-                    ),
-                    this.messenger
+                    )
                 )
             )
         }
 
         get_path(): string {
-            return utils.cleanse_path(this.live_api.get_path())
+            return utils.cleanse_path(this.live_api.get_path(this.deferlow, this.synchronous))
         }
 
         get_id(): number {
-            return this.live_api.get_id()
+            return this.live_api.get_id(this.deferlow, this.synchronous)
         }
     }
 }

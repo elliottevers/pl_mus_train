@@ -74,8 +74,7 @@ let get_notes_segments = () => {
                 Env.NODE_FOR_MAX,
                 utils.get_path_track_from_path_device(this_device.get_path()),
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -95,10 +94,6 @@ max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
                 Env.NODE_FOR_MAX,
                 path_track,
                 TypeIdentifier.PATH
-            ),
-            new Messenger(
-                Env.NODE_FOR_MAX,
-                0
             )
         )
     );
@@ -140,8 +135,7 @@ max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
                 Env.NODE_FOR_MAX,
                 'live_set',
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.NODE_FOR_MAX, 0)
+            )
         )
     );
 

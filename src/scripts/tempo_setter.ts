@@ -26,8 +26,7 @@ let set_tempo = (int) => {
                 Env.MAX,
                 'live_set',
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 

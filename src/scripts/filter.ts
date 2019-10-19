@@ -1,7 +1,5 @@
-import {message} from "../message/messenger";
 import {live} from "../live/live";
 import {clip} from "../clip/clip";
-import Messenger = message.Messenger;
 import ClipDao = clip.ClipDao;
 import Clip = clip.Clip;
 import LiveApiFactory = live.LiveApiFactory;
@@ -42,8 +40,7 @@ let get_clip = () => {
                 Env.MAX,
                 path_clip,
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 };

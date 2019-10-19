@@ -1,5 +1,3 @@
-import {message} from "../message/messenger";
-import Messenger = message.Messenger;
 import {live} from "../live/live";
 import {clip} from "../clip/clip";
 import ClipDao = clip.ClipDao;
@@ -34,8 +32,7 @@ let consolidate = () => {
                 Env.MAX,
                 path_clip,
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 

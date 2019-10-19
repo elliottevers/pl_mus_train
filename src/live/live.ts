@@ -60,12 +60,12 @@ export namespace live {
     }
 
     export interface iLiveApi {
-        get(property: string): any;
-        set(property: string, value: any): void;
-        call(...args): void;
-        get_id(): any;
-        get_path(): any;
-        get_children(): any;
+        get(property: string, deferlow?: boolean, synchronous?: boolean): any;
+        set(property: string, value: any, deferlow?: boolean, synchronous?: boolean): void;
+        call(args: string[], deferlow?: boolean, synchronous?: boolean): any;
+        get_id(deferlow?: boolean, synchronous?: boolean): any;
+        get_path(deferlow?: boolean, synchronous?: boolean): any;
+        get_children(deferlow?: boolean, synchronous?: boolean): any;
     }
 
     export class LiveApiJsProxy implements iLiveApi {
@@ -77,7 +77,7 @@ export namespace live {
 
         }
 
-        call(args: string[], synchronous: boolean = true, deferlow: boolean = false): any {
+        call(args: string[], deferlow: boolean = false, synchronous: boolean = true): any {
 
             if (deferlow && synchronous) {
                 throw 'too hard to deferlow a task and expect it to be synchronous in JS objects - would require a lock, looping in Max, and a response handler';
@@ -87,11 +87,12 @@ export namespace live {
 
             // used heavily in training - tasks that need to be done while other UI things are currently happening
             if (deferlow && !synchronous) {
-                outlet(0, 'delegateAsync', 'deferlow', ...args);
+                throw 'deferlow && !synchronous not yet implemented';
+                outlet(0, 'deferlow', 'delegateAsync', ...args);
                 return;
             }
 
-            // used heavily in preprocessing/batch processing - tasks that are not time critical
+            // used heavily in preprocessing/batch processing - tasks that can block rendering tasks
             if (!deferlow && synchronous) {
                 return this.maxApi.call(...args)
             }
@@ -107,26 +108,28 @@ export namespace live {
             }
         }
 
-        get(property: string): any {
-
+        get(property: string, deferlow: boolean = false, synchronous: boolean = true): any {
+            return this.maxApi.get(property)
         }
 
-        get_children(): any {
-
+        set(property: string, value: any, deferlow: boolean = false, synchronous: boolean = true): void {
+            this.maxApi.set(property, value)
         }
 
-        get_id(): any {
-
+        // TODO: better return type
+        get_children(deferlow: boolean = false, synchronous: boolean = true): any {
+            this.call(['getchildren'], deferlow, synchronous)
         }
 
-        get_path(): any {
-
+        // TODO: better return type
+        get_id(deferlow: boolean = false, synchronous: boolean = true): any {
+            this.call(['getid'], deferlow, synchronous)
         }
 
-        set(property: string, value: any): void {
-
+        // TODO: better return type
+        get_path(deferlow: boolean = false, synchronous: boolean = true): any {
+            this.call(['getpath'], deferlow, synchronous)
         }
-
     }
 
     // this should only work for node_for_max (node should just use a virtual dao?)
@@ -142,8 +145,8 @@ export namespace live {
             this.maxApi = require('max-api');
         }
 
-        public get(property) {
-
+        // block in all cases
+        get(property: string, deferlow: boolean = false, synchronous: boolean = true): any {
             // @ts-ignore
             global.liveApi.locked = true;
 
@@ -168,9 +171,27 @@ export namespace live {
             return global.liveApi.responses;
         }
 
-        public set(property, value) {
+        // block in all cases
+        public set(property: string, value: any, deferlow: boolean = false, synchronous: boolean = true): void {
+            // @ts-ignore
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
+
             this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
+
             this.maxApi.outlet('LiveApiNode', 'command', 'set', property, value);
+
+            // @ts-ignore
+            while (global.liveApi.locked)
+                node.loop();
         }
 
         // essentially if synchronous ... else ...
@@ -207,98 +228,16 @@ export namespace live {
             }
         }
 
-        public callAsync(...args) {
-
-            // @ts-ignore
-            global.liveApi.locked = true;
-
-            // @ts-ignore
-            global.liveApi.responses = [];
-
-            // @ts-ignore
-            global.liveApi.responsesProcessed = 0;
-
-            // @ts-ignore
-            global.liveApi.responsesExpected = 1;
-
-            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
-
-            this.maxApi.outlet('LiveApiNode', 'command', 'call', ...args);
+        public get_id(deferlow: boolean = false, synchronous: boolean = true) {
+            this.call(['getid'], deferlow, synchronous)
         }
 
-        public get_id() {
-            // @ts-ignore
-            global.liveApi.locked = true;
-
-            // @ts-ignore
-            global.liveApi.responses = [];
-
-            // @ts-ignore
-            global.liveApi.responsesProcessed = 0;
-
-            // @ts-ignore
-            global.liveApi.responsesExpected = 1;
-
-            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
-
-            this.maxApi.outlet('LiveApiNode', 'command', 'getid');
-
-            // @ts-ignore
-            while (global.liveApi.locked)
-                node.loop();
-
-            // @ts-ignore
-            return global.liveApi.responses; // TODO: probably doesn't work
+        public get_path(deferlow: boolean = false, synchronous: boolean = true) {
+            this.call(['getpath'], deferlow, synchronous)
         }
 
-        public get_path() {
-            // @ts-ignore
-            global.liveApi.locked = true;
-
-            // @ts-ignore
-            global.liveApi.responses = [];
-
-            // @ts-ignore
-            global.liveApi.responsesProcessed = 0;
-
-            // @ts-ignore
-            global.liveApi.responsesExpected = 1;
-
-            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
-
-            this.maxApi.outlet('LiveApiNode', 'command', 'getpath');
-
-            // @ts-ignore
-            while (global.liveApi.locked)
-                node.loop();
-
-            // @ts-ignore
-            return global.liveApi.responses.join(' ');
-        }
-
-        public get_children() {
-            // @ts-ignore
-            global.liveApi.locked = true;
-
-            // @ts-ignore
-            global.liveApi.responses = [];
-
-            // @ts-ignore
-            global.liveApi.responsesProcessed = 0;
-
-            // @ts-ignore
-            global.liveApi.responsesExpected = 1;
-
-            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
-
-            this.maxApi.outlet('LiveApiNode', 'command', 'getchildren');
-
-            // @ts-ignore
-            while (global.liveApi.locked)
-                node.loop();
-
-            // @ts-ignore
-            return global.liveApi.responses;
+        public get_children(deferlow: boolean = false, synchronous: boolean = true) {
+            this.call(['getchildren'], deferlow, synchronous)
         }
     }
 }

@@ -36,9 +36,7 @@ let extract_beatmap_raw = () => {
                 Env.MAX,
                 'live_set',
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0),
-            false
+            )
         )
     );
 
@@ -48,8 +46,7 @@ let extract_beatmap_raw = () => {
                 Env.MAX,
                 'live_set view highlighted_clip_slot clip',
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -80,8 +77,7 @@ let extract_beatmap_warped = () => {
                 Env.MAX,
                 utils.get_path_track_from_path_device(this_device.get_path()),
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -91,8 +87,7 @@ let extract_beatmap_warped = () => {
                 Env.MAX,
                 'live_set',
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 

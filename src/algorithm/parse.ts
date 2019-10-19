@@ -74,14 +74,12 @@ export namespace parse {
                 let clip_target = Track.get_clip_at_index(
                     track_target.get_index(),
                     Number(i_segment),
-                    track_target.track_dao.messenger,
                     this.env
                 );
 
                 let clip_user_input = Track.get_clip_at_index(
                     track_user_input.get_index(),
                     Number(i_segment),
-                    track_target.track_dao.messenger,
                     this.env
                 );
 

@@ -233,5 +233,9 @@ export namespace freestyle {
         determine_region_focus(segment_current: segment.Segment, struct_train: trainer.StructTrain, coord_train_current: number[]) {
             return [0, 0]
         }
+
+        suppress(messenger: message.Messenger): void {
+
+        }
     }
 }

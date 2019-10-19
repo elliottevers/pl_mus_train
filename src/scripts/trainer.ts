@@ -166,8 +166,7 @@ let set_track_target = () => {
                 Env.MAX,
                 utils.get_path_track_from_path_device(path_device_target),
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 
@@ -196,8 +195,7 @@ let set_segments = () => {
                 Env.MAX,
                 utils.get_path_track_from_path_device(path_this_device),
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 
@@ -220,8 +218,7 @@ let set_segments = () => {
                         Env.MAX,
                         path_scene,
                         TypeIdentifier.PATH
-                    ),
-                    new Messenger(Env.MAX, 0)
+                    )
                 )
             )
         );
@@ -239,8 +236,7 @@ let set_segments = () => {
                         Env.MAX,
                         path_this_track.split(' ').concat(['clip_slots', i_segment, 'clip']).join(' '),
                         TypeIdentifier.PATH
-                    ),
-                    new Messenger(Env.MAX, 0)
+                    )
                 )
             )
         );
@@ -271,8 +267,7 @@ let set_track_user_input = () => {
                 Env.MAX,
                 path_this_track,
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 
@@ -288,8 +283,7 @@ let set_song = () => {
                 Env.MAX,
                 'live_set',
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 

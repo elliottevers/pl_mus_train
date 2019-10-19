@@ -67,8 +67,7 @@ let export_part = (name_part) => {
 
     let clip = new c.Clip(
         new c.ClipDao(
-            clip_highlighted,
-            new m.Messenger(Env.MAX, 0)
+            clip_highlighted
         )
     );
 

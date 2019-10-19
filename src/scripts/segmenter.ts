@@ -56,8 +56,7 @@ let expand_segments = () => {
                 Env.MAX,
                 utils.get_path_track_from_path_device(this_device.get_path()),
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -78,8 +77,7 @@ let contract_segments = () => {
                 Env.MAX,
                 utils.get_path_track_from_path_device(this_device.get_path()),
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -102,8 +100,7 @@ let contract_track = (path_track) => {
                 Env.MAX,
                 path_track,
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -148,8 +145,7 @@ let get_notes_segments = () => {
                 Env.MAX,
                 utils.get_path_track_from_path_device(this_device.get_path()),
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -175,8 +171,7 @@ let contract_track_audio = (path_track) => {
                 Env.MAX,
                 path_track,
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -193,7 +188,6 @@ let contract_track_audio = (path_track) => {
             let clip = Track.get_clip_at_index(
                 track.get_index(),
                 Number(i_clip_slot_audio),
-                messenger,
                 Env.MAX
             );
 
@@ -221,8 +215,7 @@ let expand_track_audio = (path_track) => {
                 Env.MAX,
                 path_track,
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -238,8 +231,7 @@ let expand_track_audio = (path_track) => {
                 Env.MAX,
                 'live_set',
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 
@@ -248,7 +240,6 @@ let expand_track_audio = (path_track) => {
     let clip_first = Track.get_clip_at_index(
         track.get_index(),
         0,
-        messenger,
         Env.MAX
     );
 
@@ -299,7 +290,6 @@ let expand_track_audio = (path_track) => {
         let clip = Track.get_clip_at_index(
             track.get_index(),
             Number(i_clipslot),
-            messenger,
             Env.MAX
         );
 
@@ -328,8 +318,7 @@ let expand_track = (path_track: string, name_part?: string) => {
                 Env.MAX,
                 path_track,
                 TypeIdentifier.PATH
-            ),
-            messenger
+            )
         )
     );
 
@@ -370,9 +359,7 @@ let expand_track = (path_track: string, name_part?: string) => {
                 Env.MAX,
                 'live_set',
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0),
-            false
+            )
         )
     );
 

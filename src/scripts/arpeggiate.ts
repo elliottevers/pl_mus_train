@@ -32,8 +32,7 @@ let arpeggiate = () => {
                 Env.MAX,
                 path_clip,
                 TypeIdentifier.PATH
-            ),
-            new Messenger(Env.MAX, 0)
+            )
         )
     );
 
