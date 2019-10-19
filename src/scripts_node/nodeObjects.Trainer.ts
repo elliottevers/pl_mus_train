@@ -70,7 +70,7 @@ global.liveApi = {
     locked: false
 };
 
-max_api.addHandler('liveApiMaxSynchronousResult', (...res) => {
+max_api.addHandler('liveApiResult', (...res) => {
     // @ts-ignore
     global.liveApi.responses = global.liveApi.responses.concat(res.slice(1));
 

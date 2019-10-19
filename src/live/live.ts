@@ -118,12 +118,12 @@ export namespace live {
 
         // TODO: better return type
         get_children(deferlow: boolean = false, synchronous: boolean = true): any {
-            this.call(['getchildren'], deferlow, synchronous)
+            return this.call(['getchildren'], deferlow, synchronous)
         }
 
         // TODO: better return type
         get_id(deferlow: boolean = false, synchronous: boolean = true): any {
-            this.call(['getid'], deferlow, synchronous)
+            return this.call(['getid'], deferlow, synchronous)
         }
 
         // TODO: better return type
@@ -159,9 +159,9 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
+            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
 
-            this.maxApi.outlet('LiveApiNode', 'command', 'get', property);
+            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'get', property);
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -185,9 +185,9 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
+            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
 
-            this.maxApi.outlet('LiveApiNode', 'command', 'set', property, value);
+            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'set', property, value);
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -208,9 +208,9 @@ export namespace live {
                 global.liveApi.responsesExpected = 1;
 
                 // TODO: add routing key in order to defer?
-                this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
+                this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
 
-                this.maxApi.outlet('LiveApiNode', 'command', 'call', ...args);
+                this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'call', ...args);
 
                 while (global.liveApi.locked)
                     node.loop();
@@ -223,21 +223,88 @@ export namespace live {
             // TODO: too much work to support asynchronous calls with variable responses?
             // TODO: are void calls equivalent to async calls?  Since they wouldn't return anything and can run whenever
             if ((deferlow && !synchronous) || (!deferlow && !synchronous)) {
-                this.maxApi.outlet('LiveApiNode', this.typeRef, ...this.refLive.split(' '));
-                this.maxApi.outlet('LiveApiNode', 'command', 'call', ...args);
+                this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
+                this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'call', ...args);
             }
         }
 
         public get_id(deferlow: boolean = false, synchronous: boolean = true) {
-            this.call(['getid'], deferlow, synchronous)
+            // return this.call(['getid'], deferlow, synchronous)
+            // @ts-ignore
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
+
+            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
+
+            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'getid');
+
+            // @ts-ignore
+            while (global.liveApi.locked)
+                node.loop();
+
+            // @ts-ignore
+            return global.liveApi.responses;
         }
 
         public get_path(deferlow: boolean = false, synchronous: boolean = true) {
-            this.call(['getpath'], deferlow, synchronous)
+            // return this.call(['getpath'], deferlow, synchronous)
+
+            // @ts-ignore
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
+
+            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
+
+            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'getpath');
+
+            // @ts-ignore
+            while (global.liveApi.locked)
+                node.loop();
+
+            // @ts-ignore
+            return global.liveApi.responses;
         }
 
         public get_children(deferlow: boolean = false, synchronous: boolean = true) {
-            this.call(['getchildren'], deferlow, synchronous)
+            // return this.call(['getchildren'], deferlow, synchronous)
+            // @ts-ignore
+            global.liveApi.locked = true;
+
+            // @ts-ignore
+            global.liveApi.responses = [];
+
+            // @ts-ignore
+            global.liveApi.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.liveApi.responsesExpected = 1;
+
+            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
+
+            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'getchildren');
+
+            // @ts-ignore
+            while (global.liveApi.locked)
+                node.loop();
+
+            // @ts-ignore
+            return global.liveApi.responses;
         }
     }
 }

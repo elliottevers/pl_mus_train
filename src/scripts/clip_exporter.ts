@@ -1,4 +1,4 @@
-import {message as m, message} from "../message/messenger";
+import {message} from "../message/messenger";
 import {live} from "../live/live";
 import {clip as c} from "../clip/clip";
 import {io} from "../io/io";
