@@ -111,9 +111,15 @@ export namespace targeted {
         ): MatrixWindow
 
         unpause(song: Song, scene_current: Scene) {
+            scene_current.setMode(true, false);
+            song.setMode(true, false);
+
             scene_current.fire(false);
             song.set_session_record(1);
             song.set_overdub(1);
+
+            scene_current.setMode(false, true);
+            song.setMode(false, true);
         }
 
         postprocess_user_input(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current: target.Subtarget): TreeModel.Node<note.Note>[] {
@@ -126,7 +132,13 @@ export namespace targeted {
         }
 
         pause(song: Song, scene_current: Scene) {
-            song.stop()
+            scene_current.setMode(true, false);
+            song.setMode(true, false);
+
+            song.stop();
+
+            scene_current.setMode(false, true);
+            song.setMode(false, true);
         }
 
         warrants_advance(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current): boolean {

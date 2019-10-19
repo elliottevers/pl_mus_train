@@ -153,11 +153,15 @@ export namespace parsed {
 
         pause(song: Song, scene_current: Scene) {
 
+            scene_current.setMode(true, false);
+            song.setMode(true, false);
+
             song.set_overdub(0);
-
             song.set_session_record(0);
+            song.stop();
 
-            song.stop()
+            scene_current.setMode(false, true);
+            song.setMode(false, true);
         }
 
         postprocess_user_input(notes_user_input: TreeModel.Node<note.Note>[], subtarget_current: target.Subtarget): TreeModel.Node<note.Note>[] {
@@ -188,11 +192,15 @@ export namespace parsed {
         }
 
         unpause(song: Song, scene_current: Scene) {
+            scene_current.setMode(true, false);
+            song.setMode(true, false);
+
             scene_current.fire(false);
-
             song.set_overdub(1);
-
             song.set_session_record(1);
+
+            scene_current.setMode(false, true);
+            song.setMode(false, true);
         }
 
         public abstract update_roots(coords_roots_previous: number[][], coords_notes_to_grow: number[][], coord_notes_current: number[])
