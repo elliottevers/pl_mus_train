@@ -104,6 +104,8 @@ export namespace parse {
                 )
             }
 
+            track_target.setMode(true, false);
+
             // mute target track
             track_target.mute()
         }

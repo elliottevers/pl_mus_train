@@ -159,9 +159,7 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
-
-            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'get', property);
+            this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'get', property);
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -173,25 +171,30 @@ export namespace live {
 
         // block in all cases
         public set(property: string, value: any, deferlow: boolean = false, synchronous: boolean = true): void {
-            // @ts-ignore
-            global.liveApi.locked = true;
 
-            // @ts-ignore
-            global.liveApi.responses = [];
+            if ((deferlow && synchronous) || (!deferlow && synchronous)) {
+                // @ts-ignore
+                global.liveApi.locked = true;
 
-            // @ts-ignore
-            global.liveApi.responsesProcessed = 0;
+                // @ts-ignore
+                global.liveApi.responses = [];
 
-            // @ts-ignore
-            global.liveApi.responsesExpected = 1;
+                // @ts-ignore
+                global.liveApi.responsesProcessed = 0;
 
-            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
+                // @ts-ignore
+                global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'set', property, value);
+                this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'set', property, value);
 
-            // @ts-ignore
-            while (global.liveApi.locked)
-                node.loop();
+                // @ts-ignore
+                while (global.liveApi.locked)
+                    node.loop();
+            }
+
+            if ((deferlow && !synchronous) || (!deferlow && !synchronous)) {
+                this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'set', property, value);
+            }
         }
 
         // essentially if synchronous ... else ...
@@ -208,9 +211,7 @@ export namespace live {
                 global.liveApi.responsesExpected = 1;
 
                 // TODO: add routing key in order to defer?
-                this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
-
-                this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'call', ...args);
+                this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'call', ...args);
 
                 while (global.liveApi.locked)
                     node.loop();
@@ -223,8 +224,7 @@ export namespace live {
             // TODO: too much work to support asynchronous calls with variable responses?
             // TODO: are void calls equivalent to async calls?  Since they wouldn't return anything and can run whenever
             if ((deferlow && !synchronous) || (!deferlow && !synchronous)) {
-                this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
-                this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'call', ...args);
+                this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'call', ...args);
             }
         }
 
@@ -242,9 +242,7 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
-
-            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'getid');
+            this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'getid');
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -269,9 +267,7 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
-
-            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'getpath');
+            this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'getpath');
 
             // @ts-ignore
             while (global.liveApi.locked)
@@ -295,9 +291,7 @@ export namespace live {
             // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
-            this.maxApi.outlet('deferlow', 'delegateAsync', this.typeRef, ...this.refLive.split(' '));
-
-            this.maxApi.outlet('deferlow', 'delegateAsync', 'command', 'getchildren');
+            this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'getchildren');
 
             // @ts-ignore
             while (global.liveApi.locked)
