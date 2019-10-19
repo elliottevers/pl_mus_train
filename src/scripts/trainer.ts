@@ -170,8 +170,6 @@ let set_track_target = () => {
         )
     );
 
-    // track_target.set_path_deferlow('track_target');
-
     track_target.load_clips();
 
     messenger_monitor_target.message([track_target.get_index()])
@@ -271,8 +269,6 @@ let set_track_user_input = () => {
         )
     );
 
-    // track_user_input.set_path_deferlow('track_user_input');
-
     track_user_input.load_clips()
 };
 
@@ -286,8 +282,6 @@ let set_song = () => {
             )
         )
     );
-
-    // song.set_path_deferlow('song');
 };
 
 let initialize = () => {

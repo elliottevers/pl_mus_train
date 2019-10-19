@@ -111,8 +111,6 @@ export namespace predict {
                     this.env
                 );
 
-                // clip_user_input.set_path_deferlow('clip_user_input');
-
                 let note_segment = segment.get_note();
 
                 clip_user_input.remove_notes(
@@ -134,8 +132,6 @@ export namespace predict {
 
                 // TODO: this won't work for polyphony
                 for (let note of targeted_notes_in_segment) {
-
-                    // clip_target.set_path_deferlow('clip_target');
 
                     clip_target.remove_notes(
                         note.model.note.beat_start,
