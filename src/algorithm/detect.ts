@@ -119,14 +119,18 @@ export namespace detect {
 
                 note_segment_muted.model.note.muted = 1;
 
-                clip_user_input.setMode(true, false);
+                if (this.env === Env.NODE_FOR_MAX) {
+                    clip_user_input.setMode(true, false);
+                }
 
                 clip_user_input.set_notes(
                     [note_segment_muted]
                 );
             }
 
-            track_target.setMode(true, false);
+            if (this.env === Env.NODE_FOR_MAX) {
+                track_target.setMode(true, false);
+            }
 
             track_target.unmute()
         }

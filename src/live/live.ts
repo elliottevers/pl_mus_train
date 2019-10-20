@@ -1,5 +1,6 @@
-let node = require("deasync");
-node.loop = node.runLoopOnce;
+// let node = require("deasync");
+// @ts-ignore
+// node.loop = node.runLoopOnce;
 
 declare let LiveAPI: any;
 declare let outlet: any;
@@ -30,7 +31,8 @@ export namespace live {
                 case Env.MAX:
                     return new LiveApiJsProxy(
                         null,
-                        identifier
+                        identifier,
+                        typeIdentifier
                     );
                 case Env.NODE:
                     // TODO: How will we be able to do read queries?
@@ -51,7 +53,8 @@ export namespace live {
                 case 'LiveApiJsProxy':
                     return new LiveApiJsProxy(
                         null,
-                        identifier
+                        identifier,
+                        typeIdentifier
                     );
                 default:
                     throw 'cannot create LiveApi'
@@ -71,24 +74,25 @@ export namespace live {
     export class LiveApiJsProxy implements iLiveApi {
 
         private maxApi: any;
+        private refLive: string;
+        private typeRef: TypeIdentifier;
 
-        constructor(something, identifier) {
-            this.maxApi = new LiveAPI(null, identifier);
-
+        constructor(usuallyNull: any, refLive: string, typeIdentifier: TypeIdentifier) {
+            this.maxApi = new LiveAPI(null, refLive);
+            this.refLive = refLive;
+            this.typeRef = typeIdentifier;
         }
 
         call(args: string[], deferlow: boolean = false, synchronous: boolean = true): any {
 
             if (deferlow && synchronous) {
                 throw 'too hard to deferlow a task and expect it to be synchronous in JS objects - would require a lock, looping in Max, and a response handler';
-                // outlet(0, 'delegateSync', 'deferlow', ...args);
                 // return;
             }
 
             // used heavily in training - tasks that need to be done while other UI things are currently happening
             if (deferlow && !synchronous) {
-                throw 'deferlow && !synchronous not yet implemented';
-                outlet(0, 'deferlow', 'delegateAsync', ...args);
+                outlet(0, 'batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'call', ...args);
                 return;
             }
 
@@ -103,7 +107,6 @@ export namespace live {
             // TODO: would this reverse order of the tasks put on the queue like this?
             if (!deferlow && !synchronous) {
                 throw '!deferlow && !synchronous not yet implemented'
-                // outlet(0, 'delegateAsync', 'prioritize', ...args);
                 // return;
             }
         }
@@ -118,17 +121,20 @@ export namespace live {
 
         // TODO: better return type
         get_children(deferlow: boolean = false, synchronous: boolean = true): any {
-            return this.call(['getchildren'], deferlow, synchronous)
+            return this.maxApi.children;
+            // outlet(0, 'batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getchildren');
         }
 
         // TODO: better return type
         get_id(deferlow: boolean = false, synchronous: boolean = true): any {
-            return this.call(['getid'], deferlow, synchronous)
+            return this.maxApi.id;
+            // outlet(0, 'batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getid');
         }
 
         // TODO: better return type
         get_path(deferlow: boolean = false, synchronous: boolean = true): any {
-            this.call(['getpath'], deferlow, synchronous)
+            return this.maxApi.path;
+            // outlet(0, 'batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getpath');
         }
     }
 
@@ -142,7 +148,7 @@ export namespace live {
         constructor(refLive: string, typeRef: TypeIdentifier) {
             this.refLive = refLive;
             this.typeRef = typeRef;
-            this.maxApi = require('max-api');
+            // this.maxApi = require('max-api');
         }
 
         // block in all cases
@@ -163,6 +169,7 @@ export namespace live {
 
             // @ts-ignore
             while (global.liveApi.locked)
+                // @ts-ignore
                 node.loop();
 
             // @ts-ignore
@@ -189,6 +196,7 @@ export namespace live {
 
                 // @ts-ignore
                 while (global.liveApi.locked)
+                    // @ts-ignore
                     node.loop();
             }
 
@@ -214,6 +222,7 @@ export namespace live {
                 this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'call', ...args);
 
                 while (global.liveApi.locked)
+                    // @ts-ignore
                     node.loop();
 
                 // @ts-ignore
@@ -246,6 +255,7 @@ export namespace live {
 
             // @ts-ignore
             while (global.liveApi.locked)
+                // @ts-ignore
                 node.loop();
 
             // @ts-ignore
@@ -271,6 +281,7 @@ export namespace live {
 
             // @ts-ignore
             while (global.liveApi.locked)
+                // @ts-ignore
                 node.loop();
 
             // @ts-ignore
@@ -295,6 +306,7 @@ export namespace live {
 
             // @ts-ignore
             while (global.liveApi.locked)
+                // @ts-ignore
                 node.loop();
 
             // @ts-ignore

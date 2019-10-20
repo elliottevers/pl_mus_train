@@ -402,6 +402,10 @@ let set_direction = (arg_direction: string) => {
     direction = arg_direction
 };
 
+let liveApiResult = () => {
+
+};
+
 if (typeof Global !== "undefined") {
     Global.trainer = {};
     Global.trainer.set_direction = set_direction;
@@ -418,4 +422,5 @@ if (typeof Global !== "undefined") {
     Global.trainer.set_algorithm_train = set_algorithm_train;
     Global.trainer.set_mode_control = set_mode_control;
     Global.trainer.set_mode_texture = set_mode_texture;
+    Global.trainer.liveApiResult = liveApiResult;
 }

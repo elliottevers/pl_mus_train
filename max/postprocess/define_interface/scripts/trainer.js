@@ -12,3 +12,4 @@ var set_depth_tree = Global.trainer.set_depth_tree;
 var set_algorithm_train = Global.trainer.set_algorithm_train;
 var set_mode_control = Global.trainer.set_mode_control;
 var set_mode_texture = Global.trainer.set_mode_texture;
+var liveApiResult = Global.trainer.liveApiResult;
