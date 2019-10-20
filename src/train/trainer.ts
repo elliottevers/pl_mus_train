@@ -37,7 +37,6 @@ export namespace trainer {
     import FREESTYLE = trainable.FREESTYLE;
     import PARSE = trainable.PARSE;
     import DERIVE = trainable.DERIVE;
-    import PREDICT = trainable.PREDICT;
     import Env = live.Env;
 
     export type StructTargets = TargetIterator[][];

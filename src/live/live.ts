@@ -92,7 +92,7 @@ export namespace live {
 
             // used heavily in training - tasks that need to be done while other UI things are currently happening
             if (deferlow && !synchronous) {
-                outlet(0, 'batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'call', ...args);
+                outlet(0, ['batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'call', ...args]);
                 return;
             }
 

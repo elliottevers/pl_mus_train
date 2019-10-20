@@ -38,6 +38,7 @@ export namespace scene {
 
     export interface iSceneDao {
         fire(force_legato: boolean)
+
         get_path(): string
 
         setMode(deferlow: boolean, synchronous: boolean): void;
