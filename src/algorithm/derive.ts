@@ -63,7 +63,11 @@ export namespace derive {
             track_user_input: track.Track,
             struct_train: StructTrain
         ) {
+            track_target.setMode(true, false);
+
             track_target.mute();
+
+            track_target.setMode(false, true);
         }
 
         preprocess_matrix_parse_forest(matrix_parse_forest: MatrixParseForest, segments: Segment[]): MatrixParseForest {
@@ -166,21 +170,30 @@ export namespace derive {
 
                     let notes_struct_above = this.coord_to_index_struct_train([coords_current[0] - 1, coords_current[1]]);
 
+                    trainer.clip_user_input.setMode(true, false);
+
                     trainer.clip_user_input.set_notes(
                         matrix_parse_forest.get_notes_at_coord(notes_struct_above)
                     );
 
+                    trainer.clip_user_input.setMode(false, true);
 
                     break;
                 }
                 case 'erase': {
                     let epsilon = .5;
+
+                    trainer.clip_user_input.setMode(true, false);
+
                     trainer.clip_user_input.remove_notes(
                         trainer.segment_current.beat_start - epsilon,
                         0,
                         trainer.segment_current.beat_end - trainer.segment_current.beat_start + epsilon,
                         128
                     );
+
+                    trainer.clip_user_input.setMode(false, true);
+
                     break;
                 }
                 default: {
@@ -206,7 +219,6 @@ export namespace derive {
 
         suppress(messenger: Messenger): void {
             // TODO: put in 'initialize_render', make configurable
-            messenger.message(['pensize', 3, 3]);
             messenger.message(['switch_suppress', 1], true);
             messenger.message(['gate_suppress', 1], true);
         }

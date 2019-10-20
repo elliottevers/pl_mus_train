@@ -127,6 +127,8 @@ export namespace predict {
 
                 note_segment_muted.model.note.muted = 1;
 
+                clip_user_input.setMode(true, false);
+
                 clip_user_input.set_notes(
                     [note_segment_muted]
                 );
@@ -146,6 +148,8 @@ export namespace predict {
                     let note_muted = note;
 
                     note_muted.model.note.muted = 1;
+
+                    clip_target.setMode(true, false);
 
                     clip_target.set_notes(
                         [note_muted]
