@@ -36,7 +36,7 @@ let download = () => {
 
     let path_interpreter = '/Users/elliottevers/DocumentsTurbulent/venvwrapper/requirements_tk_music/bin/python';
 
-    let dir_scripts_python = '/Users/elliottevers/Documents/git-repos.nosync/music/src/scripts/';
+    let dir_scripts_python = '/Users/elliottevers/Documents/git-repos.nosync/tk_music_py/src/scripts/';
 
     let path_script = dir_scripts_python + 'download_youtube.py';
 
