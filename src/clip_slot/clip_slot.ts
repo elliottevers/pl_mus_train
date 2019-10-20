@@ -153,7 +153,7 @@ export namespace clip_slot {
         }
 
         duplicate_clip_to(id: number) {
-            this.live_api.call(['duplicate_clip_to', ['id', id].join(' ')], this.deferlow, this.synchronous);
+            this.live_api.call(['duplicate_clip_to','id', String(id)], this.deferlow, this.synchronous);
         }
 
         get_clip(): Clip {

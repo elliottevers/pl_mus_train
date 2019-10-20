@@ -142,11 +142,13 @@ let contract_track = (path_track) => {
 
     let clip = clip_slot.get_clip();
 
-    clip.set_notes(notes);
+    clip.setMode(true, false);
 
     clip.set_endpoint_markers(0, get_length_beats());
 
     clip.set_endpoints_loop(0, get_length_beats());
+
+    clip.set_notes(notes);
 
     messenger.message(['done', 'bang'])
 };
@@ -214,6 +216,8 @@ let contract_track_audio = (path_track) => {
                 Env.NODE_FOR_MAX
             );
 
+            clip.setMode(true, false);
+
             clip.set_endpoint_markers(0, get_length_beats());
 
             clip.set_endpoints_loop(0, get_length_beats());
@@ -268,6 +272,8 @@ let expand_track_audio = (path_track) => {
 
     let segment_first = new Segment(notes_segments[0]);
 
+    clip_first.setMode(true, false);
+
     clip_first.set_endpoints_loop(
         segment_first.beat_start,
         segment_first.beat_end
@@ -304,10 +310,6 @@ let expand_track_audio = (path_track) => {
 
         clip_slot_audio.duplicate_clip_to(clip_slot);
 
-        // TODO: do we need to add this back?
-        // clip_slot.create_clip(length_beats);
-        //
-
         clip_slot.load_clip();
 
         let clip = Track.get_clip_at_index(
@@ -317,6 +319,8 @@ let expand_track_audio = (path_track) => {
         );
 
         let segment = new Segment(note_segment);
+
+        clip.setMode(true, false);
 
         clip.set_endpoints_loop(
             segment.beat_start,
@@ -418,6 +422,8 @@ let expand_track = (path_track: string, name_part?: string) => {
         clip_slot.load_clip();
 
         let clip = clip_slot.get_clip();
+
+        clip.setMode(true, false);
 
         clip.set_endpoints_loop(
             segment.get_endpoints_loop()[0],

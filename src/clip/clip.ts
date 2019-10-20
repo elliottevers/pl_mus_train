@@ -188,7 +188,11 @@ export namespace clip {
                     points
                 );
 
-                this.set_notes(replacements)
+                this.setMode(true, false);
+
+                this.set_notes(replacements);
+
+                this.setMode(false, true);
             }
         }
 
