@@ -40,19 +40,22 @@ export namespace cue_point {
     }
 
     interface iCuePointDao {
+        setMode(deferlow: boolean, synchronous: boolean): void;
+
         get_name(): string
 
         get_time(): number
 
         jump(): void
-
-        setMode(deferlow: boolean, synchronous: boolean): void;
     }
 
     export class CuePointDaoVirtual implements iCuePointDao {
 
-        // TODO: we'll need to pass in dependencies
         constructor() {
+
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
 
         }
 
@@ -65,10 +68,6 @@ export namespace cue_point {
         }
 
         jump(): void {
-
-        }
-
-        setMode(deferlow: boolean, synchronous: boolean): void {
 
         }
     }

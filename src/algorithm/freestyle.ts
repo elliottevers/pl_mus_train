@@ -22,6 +22,7 @@ export namespace freestyle {
     import MatrixIterator = iterate.MatrixIterator;
     import FORWARDS = iterate.FORWARDS;
     import Env = live.Env;
+    import Messenger = message.Messenger;
 
     export class Freestyle implements Trainable {
         env: Env;
@@ -96,7 +97,13 @@ export namespace freestyle {
 
         }
 
-        initialize_render(window: window.MatrixWindow, segments: segment.Segment[], notes_track_target: TreeModel.Node<note.Note>[], struct_train: trainer.StructTrain): window.MatrixWindow {
+        initialize_render(
+            window: window.MatrixWindow,
+            segments: segment.Segment[],
+            notes_track_target: TreeModel.Node<note.Note>[],
+            struct_train: trainer.StructTrain,
+            messengerRender: Messenger
+        ): window.MatrixWindow {
             return null;
         }
 

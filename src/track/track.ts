@@ -32,16 +32,6 @@ export namespace track {
             this.track_dao = track_dao;
         }
 
-        withMode(deferlow: boolean, synchronous: boolean): this {
-            this.setMode(deferlow, synchronous);
-            return this
-        }
-
-        setMode(deferlow: boolean, synchronous: boolean): void {
-            this.track_dao.setMode(deferlow, synchronous)
-        }
-
-
         public static get_clip_at_index(index_track: number, index_clip_slot: number, env: Env): Clip {
             if (env == Env.NODE_FOR_MAX || env == Env.MAX) {
                 return new Clip(
@@ -78,6 +68,15 @@ export namespace track {
                     clip_slot_dao
                 )
             );
+        }
+
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.track_dao.setMode(deferlow, synchronous)
         }
 
         public get_index(): number {
@@ -154,10 +153,11 @@ export namespace track {
     }
 
     export interface iTrackDao {
-        get_clip_slots()
-        get_path()
-
         setMode(deferlow: boolean, synchronous: boolean): void;
+
+        get_clip_slots()
+
+        get_path()
 
         mute(b: boolean): void;
     }
@@ -170,6 +170,11 @@ export namespace track {
         constructor(clips: Clip[], messenger: Messenger) {
             this.clips = clips;
             this.messenger = messenger;
+        }
+
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+
         }
 
         mute() {
@@ -208,10 +213,6 @@ export namespace track {
 
         get_path(): string {
             return
-        }
-
-        setMode(deferlow: boolean, synchronous: boolean): void {
-
         }
     }
 

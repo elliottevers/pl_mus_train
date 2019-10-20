@@ -85,8 +85,11 @@ export namespace detect {
             window: window.MatrixWindow,
             segments: segment.Segment[],
             notes_target_track: TreeModel.Node<note.Note>[],
-            struct_train: StructTrain
+            struct_train: StructTrain,
+            messengerRender: Messenger
         ): MatrixWindow {
+            messengerRender.message(['pensize', 3, 3]);
+
             return window
         }
 
@@ -180,7 +183,6 @@ export namespace detect {
 
         suppress(messenger: Messenger): void {
             // TODO: put in 'initialize_render', make configurable
-            messenger.message(['pensize', 3, 3]);
             messenger.message(['switch_suppress', 1], true);
             messenger.message(['gate_suppress', 1], true);
         }

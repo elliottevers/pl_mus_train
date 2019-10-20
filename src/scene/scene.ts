@@ -47,16 +47,17 @@ export namespace scene {
     }
 
     export class SceneDaoVirtual implements iSceneDao {
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+
+        }
+
         fire(force_legato: boolean) {
 
         }
 
         get_path(): string {
             return "";
-        }
-
-        setMode(deferlow: boolean, synchronous: boolean): void {
-
         }
 
         get_id(): string {

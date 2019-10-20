@@ -37,6 +37,7 @@ export namespace targeted {
     import Trainer = trainer.Trainer;
     import Track = track.Track;
     import Env = live.Env;
+    import Messenger = message.Messenger;
 
     export abstract class Targeted implements Targetable {
 
@@ -107,7 +108,8 @@ export namespace targeted {
             window: MatrixWindow,
             segments: Segment[],
             notes_target_track: TreeModel.Node<Note>[],
-            struct_train: StructTrain
+            struct_train: StructTrain,
+            messengerRender: Messenger
         ): MatrixWindow
 
         unpause(song: Song, scene_current: Scene) {

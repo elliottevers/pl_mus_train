@@ -96,8 +96,11 @@ export namespace derive {
             window: MatrixWindow,
             segments: Segment[],
             notes_target_track: TreeModel.Node<Note>[],
-            struct_train: StructTrain
+            struct_train: StructTrain,
+            messengerRender: Messenger
         ): MatrixWindow {
+            messengerRender.message(['pensize', 3, 3]);
+
             // first layer (root)
             window.add_note_to_clip_root(
                 MatrixParseForest.create_root_from_segments(

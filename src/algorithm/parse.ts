@@ -117,8 +117,11 @@ export namespace parse {
             window: MatrixWindow,
             segments: Segment[],
             notes_target_track: TreeModel.Node<Note>[],
-            struct_train: StructTrain
+            struct_train: StructTrain,
+            messengerRender: Messenger
         ): MatrixWindow {
+            messengerRender.message(['pensize', 3, 3]);
+
             // first layer
             window.add_note_to_clip_root(
                 MatrixParseForest.create_root_from_segments(
@@ -343,7 +346,6 @@ export namespace parse {
 
         suppress(messenger: Messenger): void {
             // TODO: put in 'initialize_render', make configurable
-            messenger.message(['pensize', 3, 3]);
             messenger.message(['switch_suppress', 1], true);
             messenger.message(['gate_suppress', 1], true);
         }

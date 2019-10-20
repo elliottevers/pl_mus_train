@@ -57,7 +57,8 @@ export namespace trainable {
             window: MatrixWindow,
             segments: Segment[],
             notes_track_target: TreeModel.Node<Note>[],
-            struct_train: StructTrain
+            struct_train: StructTrain,
+            messengerRender: Messenger
         ): MatrixWindow
     }
 

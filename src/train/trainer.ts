@@ -58,7 +58,7 @@ export namespace trainer {
         private track_user_input: Track;
         private song: Song;
         private segments: Segment[];
-        private messenger: Messenger;
+        private messengerRender: Messenger;
 
         public history_user_input: HistoryUserInput;
         public struct_train: StructTrain;
@@ -90,7 +90,7 @@ export namespace trainer {
             track_user_input: Track,
             song: Song,
             segments: Segment[],
-            messenger: Messenger,
+            messengerRender: Messenger,
             env: Env,
             virtualized?: boolean
         ) {
@@ -101,11 +101,13 @@ export namespace trainer {
             this.song = song;
             this.user_input_handler = user_input_handler;
             this.segments = segments;
-            this.messenger = messenger;
+            this.messengerRender = messengerRender;
             this.env = env;
             this.virtualized = virtualized;
 
-            this.trainable.suppress(this.messenger);
+            this.trainable.suppress(
+                this.messengerRender
+            );
 
             this.notes_target_track = this.trainable.get_notes_focus(
                 track_target
@@ -163,7 +165,8 @@ export namespace trainer {
                 this.window,
                 this.segments,
                 this.notes_target_track,
-                this.struct_train
+                this.struct_train,
+                this.messengerRender
             );
         }
 
@@ -322,7 +325,7 @@ export namespace trainer {
 
         private stream_bounds() {
             if (!this.virtualized) {
-                this.trainable.stream_bounds(this.messenger, this.subtarget_current, this.segment_current, this.segments);
+                this.trainable.stream_bounds(this.messengerRender, this.subtarget_current, this.segment_current, this.segments);
             }
         }
 
@@ -335,7 +338,7 @@ export namespace trainer {
                 );
 
                 this.trainable.stream_bounds(
-                    this.messenger,
+                    this.messengerRender,
                     this.subtarget_current,
                     this.segment_current,
                     this.segments

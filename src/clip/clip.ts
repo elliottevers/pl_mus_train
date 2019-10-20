@@ -19,15 +19,6 @@ export namespace clip {
             this.clip_dao = clip_dao;
         }
 
-        withMode(deferlow: boolean, synchronous: boolean): this {
-            this.setMode(deferlow, synchronous);
-            return this
-        }
-
-        setMode(deferlow: boolean, synchronous: boolean): void {
-            this.clip_dao.setMode(deferlow, synchronous)
-        }
-
         public static from_path(path: string, env: Env): Clip {
             return new Clip(
                 new ClipDao(
@@ -38,6 +29,15 @@ export namespace clip {
                     )
                 )
             )
+        }
+
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.clip_dao.setMode(deferlow, synchronous)
         }
 
         public get_playing_position() {
@@ -96,7 +96,6 @@ export namespace clip {
             return this.clip_dao.get_start_marker();
         }
 
-        // TODO: annotations
         load_notes_within_loop_brackets(): void {
             this.notes = this.get_notes(
                 this.get_loop_bracket_lower(),
@@ -106,7 +105,6 @@ export namespace clip {
             )
         }
 
-        // TODO: annotations
         load_notes_within_markers(): void {
             this.notes = this.get_notes(
                 this.get_start_marker(),
@@ -116,7 +114,6 @@ export namespace clip {
             )
         }
 
-        // TODO: annotations
         get_pitch_max(interval?): number {
             let pitch_max = 0;
 
@@ -131,7 +128,6 @@ export namespace clip {
             return pitch_max;
         }
 
-        // TODO: annotations
         get_pitch_min(interval?): number {
             let pitch_min = 128;
 
@@ -248,7 +244,7 @@ export namespace clip {
         }
 
         public get_notes(beat_start: number, pitch_midi_min: number, beat_duration: number, pitch_midi_max: number): TreeModel.Node<n.Note>[] {
-            return Clip._parse_notes(
+            return Clip.parse_notes(
                 this._get_notes(
                     beat_start,
                     pitch_midi_min,
@@ -262,8 +258,7 @@ export namespace clip {
             this.clip_dao.set_notes(notes);
         }
 
-        // TODO: *actually* make private
-        public _get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): string[] {
+        private _get_notes(beat_start: number, pitch_midi_min: number, beat_end: number, pitch_midi_max: number): string[] {
             return this.clip_dao.get_notes(
                 beat_start,
                 pitch_midi_min,
@@ -321,8 +316,7 @@ export namespace clip {
             return notes
         }
 
-        // TODO: remove underscore prefix
-        public static _parse_notes(notes: string[]): TreeModel.Node<n.Note>[] {
+        public static parse_notes(notes: string[]): TreeModel.Node<n.Note>[] {
             let data: any = [];
             let notes_parsed = [];
 
@@ -450,6 +444,8 @@ export namespace clip {
     // simulate dao
     export class LiveClipVirtual implements iClipDao {
 
+        liveApi: live.iLiveApi;
+
         beat_start: number;
         beat_end: number;
 
@@ -470,7 +466,7 @@ export namespace clip {
         }
 
         load_notes_within_loop_brackets(): void {
-            this.notes = Clip._parse_notes(
+            this.notes = Clip.parse_notes(
                 this.get_notes(
                     this.get_loop_bracket_lower()[0],
                     0,
@@ -565,23 +561,20 @@ export namespace clip {
             return
         }
 
-        set_path_deferlow(key_route_override: string, path_live: string): void {
-            return
-        }
-
         get_path() {
             return ''
         }
 
-        liveApi: live.iLiveApi;
-
         get_name(): any {
+
         }
 
         get_playing_position(): any {
+
         }
 
         setMode(deferlow: boolean, synchronous: boolean): void {
+
         }
     }
 
@@ -590,7 +583,10 @@ export namespace clip {
         public liveApi: iLiveApi;
         private deferlow: boolean = false;
         private synchronous: boolean = true;
+
         private notes_cached: string[];
+        beat_end: number;
+        beat_start: number;
 
         constructor(liveApi: li.iLiveApi) {
             this.liveApi = liveApi;
@@ -733,9 +729,6 @@ export namespace clip {
         get_id() {
             return this.liveApi.get_id(this.deferlow, this.synchronous)
         }
-
-        beat_end: number;
-        beat_start: number;
 
         append(note: TreeModel.Node<note.Note>): void {
             throw 'have not implemented append method on clip object'

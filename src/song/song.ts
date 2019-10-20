@@ -36,7 +36,6 @@ export namespace song {
             this.song_dao.setMode(deferlow, synchronous)
         }
 
-
         get_cue_points() {
             return this.song_dao.get_cue_points()
         }
@@ -59,7 +58,6 @@ export namespace song {
 
         set_loop_start(beat_start: number) {
             this.song_dao.set_loop_start(beat_start);
-
         }
 
         set_loop_length(length_beats: number) {
@@ -149,6 +147,10 @@ export namespace song {
             this.scenes = scenes;
         }
 
+        setMode(deferlow: boolean, synchronous: boolean): void {
+
+        }
+
         public create_scene(index: number): void {
             return
         }
@@ -219,10 +221,6 @@ export namespace song {
         }
 
         get_cue_points() {
-
-        }
-
-        setMode(deferlow: boolean, synchronous: boolean): void {
 
         }
     }

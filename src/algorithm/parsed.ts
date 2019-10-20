@@ -32,6 +32,7 @@ export namespace parsed {
     import Trainer = trainer.Trainer;
     import Track = track.Track;
     import Env = live.Env;
+    import Messenger = message.Messenger;
 
     export abstract class Parsed implements Parsable {
 
@@ -72,7 +73,8 @@ export namespace parsed {
             window: MatrixWindow,
             segments: Segment[],
             notes_track_target: TreeModel.Node<Note>[],
-            struct_train: StructTrain
+            struct_train: StructTrain,
+            messengerRender: Messenger
         ): MatrixWindow
 
         public abstract initialize_set(song: song.Song): void
