@@ -13,6 +13,7 @@ import {song} from "../song/song";
 import Song = song.Song;
 import SongDao = song.SongDao;
 import {utils} from "../utils/utils";
+const _ = require('underscore');
 
 export {}
 const max_api = require('max-api');
@@ -28,7 +29,7 @@ global.liveApi = {
 
 let messenger = new Messenger(Env.NODE_FOR_MAX, 0);
 
-max_api.addHandler('liveApiMaxSynchronousResult', (...res) => {
+max_api.addHandler('liveApiResult', (...res) => {
     // @ts-ignore
     global.liveApi.responses = global.liveApi.responses.concat(res.slice(1));
 
@@ -50,7 +51,13 @@ max_api.addHandler('liveApiMaxSynchronousResult', (...res) => {
     }
 });
 
-let length_beats: number = 8;
+/////////////////
+
+let length_beats: number = null;
+
+max_api.addHandler('set_length_beats', (arg_length_beats: number) => {
+    length_beats = arg_length_beats;
+});
 
 let get_length_beats = () => {
     if (length_beats === null) {
@@ -59,6 +66,93 @@ let get_length_beats = () => {
     return length_beats;
 };
 
+max_api.addHandler('expand_segments', () => {
+    let this_device = LiveApiFactory.create(
+        Env.NODE_FOR_MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
+
+    let track = new Track(
+        new TrackDao(
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                utils.get_path_track_from_path_device(this_device.get_path()),
+                TypeIdentifier.PATH
+            )
+        )
+    );
+
+    expand_track(track.get_path(), 'segment')
+});
+
+max_api.addHandler('contract_segments', () => {
+
+    let this_device = LiveApiFactory.create(
+        Env.NODE_FOR_MAX,
+        'this_device',
+        TypeIdentifier.PATH
+    );
+
+    let track = new Track(
+        new TrackDao(
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                utils.get_path_track_from_path_device(this_device.get_path()),
+                TypeIdentifier.PATH
+            )
+        )
+    );
+
+    contract_track(track.get_path())
+});
+
+max_api.addHandler('expand_selected_track', () => {
+    expand_track('live_set view selected_track')
+});
+
+max_api.addHandler('contract_selected_track', () => {
+    contract_track('live_set view selected_track')
+});
+
+let contract_track = (path_track) => {
+
+    let track = new Track(
+        new TrackDao(
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                path_track,
+                TypeIdentifier.PATH
+            )
+        )
+    );
+
+    // clip_slots and clips
+    track.load_clips();
+
+    let notes = track.get_notes();
+
+    track.delete_clips();
+
+    track.create_clip_at_index(0, get_length_beats());
+
+    let clip_slot = track.get_clip_slot_at_index(0);
+
+    clip_slot.load_clip();
+
+    let clip = clip_slot.get_clip();
+
+    clip.set_notes(notes);
+
+    clip.set_endpoint_markers(0, get_length_beats());
+
+    clip.set_endpoints_loop(0, get_length_beats());
+
+    messenger.message(['done', 'bang'])
+};
+
+// TODO: we can't export this, because it could be called from a different track than the one the segments are on...
+// NB: assumes the device that calls this is on the track of segments
 let get_notes_segments = () => {
 
     let this_device = LiveApiFactory.create(
@@ -83,9 +177,162 @@ let get_notes_segments = () => {
     return track_segments.get_notes();
 };
 
-max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
+max_api.addHandler('expand_selected_audio_track', () => {
+    expand_track_audio('live_set view selected_track')
+});
 
-    path_track = 'live_set tracks 2';
+max_api.addHandler('contract_selected_audio_track', () => {
+    contract_track_audio('live_set view selected_track')
+});
+
+// NB: we assume all training data starts on the first beat
+let contract_track_audio = (path_track) => {
+
+    let track = new Track(
+        new TrackDao(
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                path_track,
+                TypeIdentifier.PATH
+            )
+        )
+    );
+
+    track.load_clip_slots();
+
+    let clip_slots = track.get_clip_slots();
+
+    for (let i_clip_slot_audio in clip_slots) {
+
+        let clip_slot_audio = clip_slots[Number(i_clip_slot_audio)];
+
+        if (Number(i_clip_slot_audio) === 0) {
+
+            let clip = Track.get_clip_at_index(
+                track.get_index(),
+                Number(i_clip_slot_audio),
+                Env.NODE_FOR_MAX
+            );
+
+            clip.set_endpoint_markers(0, get_length_beats());
+
+            clip.set_endpoints_loop(0, get_length_beats());
+
+            continue
+        }
+
+        if (clip_slot_audio.b_has_clip()) {
+            clip_slot_audio.delete_clip()
+        }
+    }
+
+    messenger.message(['done', 'bang'])
+};
+
+let expand_track_audio = (path_track) => {
+
+    // TODO: convert to node?
+    let track = new Track(
+        new TrackDao(
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                path_track,
+                TypeIdentifier.PATH
+            )
+        )
+    );
+
+    track.load_clip_slots();
+
+    let clip_slot_audio = track.get_clip_slot_at_index(0);
+
+    let notes_segments = get_notes_segments();
+
+    let song = new Song(
+        new SongDao(
+            LiveApiFactory.create(
+                Env.NODE_FOR_MAX,
+                'live_set',
+                TypeIdentifier.PATH
+            )
+        )
+    );
+
+    song.load_scenes();
+
+    let clip_first = Track.get_clip_at_index(
+        track.get_index(),
+        0,
+        Env.NODE_FOR_MAX
+    );
+
+    let segment_first = new Segment(notes_segments[0]);
+
+    clip_first.set_endpoints_loop(
+        segment_first.beat_start,
+        segment_first.beat_end
+    );
+
+    clip_first.set_endpoint_markers(
+        segment_first.beat_start,
+        segment_first.beat_end
+    );
+
+    for (let i_clipslot of _.range(1, notes_segments.length)) {
+        let note_segment = notes_segments[Number(i_clipslot)];
+
+        let scene = song.get_scene_at_index(Number(i_clipslot));
+
+        let scene_exists = scene !== null;
+
+        if (!scene_exists) {
+            song.create_scene_at_index(Number(i_clipslot))
+        }
+
+        let clip_slot = Track.get_clip_slot_at_index(
+            track.get_index(),
+            Number(i_clipslot),
+            messenger,
+            Env.NODE_FOR_MAX
+        );
+
+        clip_slot.load_clip();
+
+        if (clip_slot.b_has_clip()) {
+            clip_slot.delete_clip()
+        }
+
+        clip_slot_audio.duplicate_clip_to(clip_slot);
+
+        // TODO: do we need to add this back?
+        // clip_slot.create_clip(length_beats);
+        //
+
+        clip_slot.load_clip();
+
+        let clip = Track.get_clip_at_index(
+            track.get_index(),
+            Number(i_clipslot),
+            Env.NODE_FOR_MAX
+        );
+
+        let segment = new Segment(note_segment);
+
+        clip.set_endpoints_loop(
+            segment.beat_start,
+            segment.beat_end
+        );
+
+        clip.set_endpoint_markers(
+            segment.beat_start,
+            segment.beat_end
+        );
+    }
+
+    messenger.message(['done', 'bang'])
+};
+
+let expand_track = (path_track: string, name_part?: string) => {
 
     // TODO: convert to node?
     let track = new Track(
@@ -156,7 +403,7 @@ max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
         let clip_slot = Track.get_clip_slot_at_index(
             track.get_index(),
             Number(i_segment),
-            new Messenger(Env.NODE_FOR_MAX, 0),
+            messenger,
             Env.NODE_FOR_MAX
         );
 
@@ -186,8 +433,9 @@ max_api.addHandler('expand_track', (path_track: string, name_part?: string) => {
             node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
         );
 
+        // TODO: non-native scope object is here
         clip.set_notes(notes_within_segment);
     }
 
     messenger.message(['done', 'bang'])
-});
+};

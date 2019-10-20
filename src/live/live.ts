@@ -1,6 +1,6 @@
-// let node = require("deasync");
+let node = require("deasync");
 // @ts-ignore
-// node.loop = node.runLoopOnce;
+node.loop = node.runLoopOnce;
 
 declare let LiveAPI: any;
 declare let outlet: any;
@@ -87,7 +87,6 @@ export namespace live {
 
             if (deferlow && synchronous) {
                 throw 'too hard to deferlow a task and expect it to be synchronous in JS objects - would require a lock, looping in Max, and a response handler';
-                // return;
             }
 
             // used heavily in training - tasks that need to be done while other UI things are currently happening
@@ -107,7 +106,6 @@ export namespace live {
             // TODO: would this reverse order of the tasks put on the queue like this?
             if (!deferlow && !synchronous) {
                 throw '!deferlow && !synchronous not yet implemented'
-                // return;
             }
         }
 
@@ -122,19 +120,16 @@ export namespace live {
         // TODO: better return type
         get_children(deferlow: boolean = false, synchronous: boolean = true): any {
             return this.maxApi.children;
-            // outlet(0, 'batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getchildren');
         }
 
         // TODO: better return type
         get_id(deferlow: boolean = false, synchronous: boolean = true): any {
             return this.maxApi.id;
-            // outlet(0, 'batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getid');
         }
 
         // TODO: better return type
         get_path(deferlow: boolean = false, synchronous: boolean = true): any {
             return this.maxApi.path;
-            // outlet(0, 'batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getpath');
         }
     }
 
@@ -148,7 +143,7 @@ export namespace live {
         constructor(refLive: string, typeRef: TypeIdentifier) {
             this.refLive = refLive;
             this.typeRef = typeRef;
-            // this.maxApi = require('max-api');
+            this.maxApi = require('max-api');
         }
 
         // block in all cases
