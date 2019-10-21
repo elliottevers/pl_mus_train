@@ -114,6 +114,8 @@ max_api.addHandler('set_mode_texture', (option) => {
             max_api.post('error setting texture')
         }
     }
+
+    max_api.post('texture set successfully');
 });
 
 max_api.addHandler('set_mode_control', (option) => {
@@ -130,6 +132,8 @@ max_api.addHandler('set_mode_control', (option) => {
             max_api.post('error setting control')
         }
     }
+
+    max_api.post('control mode set successfully');
 });
 
 max_api.addHandler('set_algorithm_train', (option) => {
@@ -165,12 +169,16 @@ max_api.addHandler('set_algorithm_train', (option) => {
         384*2*2,
         messenger_render
     );
+
+    max_api.post('training algorithm set successfully');
 });
 
 max_api.addHandler('set_depth_tree', (depth: number) => {
     algorithm_train.set_depth(
         depth
     );
+
+    max_api.post('depth set successfully');
 });
 
 // TODO: send this via bus based on options in radio
@@ -192,7 +200,9 @@ max_api.addHandler('set_track_target', () => {
 
     track_target.load_clips();
 
-    messenger_monitor_target.message([track_target.get_index()])
+    messenger_monitor_target.message([track_target.get_index()]);
+
+    max_api.post('target track set successfully');
 });
 
 let set_segments = () => {
@@ -262,7 +272,9 @@ let set_segments = () => {
 
     messenger_num_segments.message([segments.length]);
 
-    segments_train = segments
+    segments_train = segments;
+
+    max_api.post('segments set successfully');
 };
 
 
@@ -289,7 +301,9 @@ let set_track_user_input = () => {
         )
     );
 
-    track_user_input.load_clips()
+    track_user_input.load_clips();
+
+    max_api.post('user input track set successfully');
 };
 
 let set_song = () => {
@@ -302,6 +316,8 @@ let set_song = () => {
             )
         )
     );
+
+    max_api.post('song set successfully');
 };
 
 max_api.addHandler('initialize', () => {
@@ -330,20 +346,26 @@ max_api.addHandler('initialize', () => {
         messenger_render,
         Env.NODE_FOR_MAX
     );
+
+    max_api.post('trainer initialized successfully');
 });
 
 max_api.addHandler('commence', () => {
     trainer.commence();
 
-    trainer.render_window()
+    trainer.render_window();
+
+    max_api.post('trainer commenced successfully');
 });
 
 max_api.addHandler('pause', () => {
-    trainer.pause()
+    trainer.pause();
+    max_api.post('paused successfully');
 });
 
 max_api.addHandler('unpause', () => {
-    trainer.unpause()
+    trainer.unpause();
+    max_api.post('unpaused successfully');
 });
 
 max_api.addHandler('user_input_command', (command: string) => {
@@ -409,6 +431,8 @@ max_api.addHandler('load_session', (filename: string) => {
     trainer.restore_user_input();
 
     trainer.render_window();
+
+    max_api.post('loaded session successfully');
 });
 
 max_api.addHandler('save_session', (filename: string) => {
@@ -417,8 +441,10 @@ max_api.addHandler('save_session', (filename: string) => {
         filename,
         envTrain
     );
+    max_api.post('session saved successfully');
 });
 
 max_api.addHandler('set_direction', (arg_direction: string) => {
-    direction = arg_direction
+    direction = arg_direction;
+    max_api.post('set direction success');
 });

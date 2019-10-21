@@ -51,8 +51,6 @@ max_api.addHandler('liveApiResult', (...res) => {
     }
 });
 
-/////////////////
-
 let length_beats: number = null;
 
 max_api.addHandler('set_length_beats', (arg_length_beats: number) => {
