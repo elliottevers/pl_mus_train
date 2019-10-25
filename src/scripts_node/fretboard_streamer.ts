@@ -22,28 +22,23 @@ max_api.addHandler("start", () => {
     });
 
     // TODO: split multiple commands into array
-    server.on('message', (msg, rinfo) => {
-        if (msg.toString().trim() == 'clear') {
+    server.on('message', (msg) => {
+        let decoded = msg.toString();
+
+        if (decoded.trim() == 'clear') {
             send(command_clear, 0, 0, 0, 0, 0, 0);
             return
         }
 
-        let parsed = msg.toString().split(' ');
+        let parsed = decoded.split(' ');
 
         if (parsed.length == 10) {
             // TODO: where are these messages coming from?
             return
         }
 
-        let part = String(parsed[10]);
-
-        if (part == 'vocal') {
-            send(command_clear, 0, 0, 0, 0, 0, 0);
-
-        } else {
-            send(command_set, 0, parseInt(parsed[6]), parseInt(parsed[7]), parseInt(parsed[8]), parseInt(parsed[9]), parseInt(parsed[5]) - 1);
-            send(command_set, 0, parseInt(parsed[1]), parseInt(parsed[2]), parseInt(parsed[3]), parseInt(parsed[4]), parseInt(parsed[0]) - 1);
-        }
+        send(command_set, 0, parseInt(parsed[6]), parseInt(parsed[7]), parseInt(parsed[8]), parseInt(parsed[9]), parseInt(parsed[5]) - 1);
+        send(command_set, 0, parseInt(parsed[1]), parseInt(parsed[2]), parseInt(parsed[3]), parseInt(parsed[4]), parseInt(parsed[0]) - 1);
     });
 
     server.on('listening', () => {
