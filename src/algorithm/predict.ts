@@ -133,6 +133,8 @@ export namespace predict {
                     [note_segment_muted]
                 );
 
+                clip_user_input.setMode(false, true);
+
                 let targeted_notes_in_segment = matrix_targets[0][Number(i_segment)].get_notes();
 
                 // TODO: this won't work for polyphony
@@ -153,7 +155,9 @@ export namespace predict {
 
                     clip_target.set_notes(
                         [note_muted]
-                    )
+                    );
+
+                    clip_target.setMode(false, true);
                 }
             }
         }
