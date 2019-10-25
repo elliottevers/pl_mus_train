@@ -23,12 +23,17 @@ max_api.addHandler("start", () => {
 
     // TODO: split multiple commands into array
     server.on('message', (msg, rinfo) => {
-        if (msg.toString() == 'clear') {
+        if (msg.toString().trim() == 'clear') {
             send(command_clear, 0, 0, 0, 0, 0, 0);
             return
         }
 
         let parsed = msg.toString().split(' ');
+
+        if (parsed.length == 10) {
+            // TODO: where are these messages coming from?
+            return
+        }
 
         let part = String(parsed[10]);
 
