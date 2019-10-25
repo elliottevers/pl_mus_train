@@ -1,147 +1,76 @@
-import {video as v} from "../video/video";
+import {video as v} from '../video/video';
 import Point = v.Point;
-import Percentile = v.Percentile;
 import Interval = v.Interval;
 import Frame = v.Frame;
-import {message} from "../message/messenger";
+import {message} from '../message/messenger';
 import Messenger = message.Messenger;
-import {live} from "../live/live";
+import {live} from '../live/live';
 import Env = live.Env;
+import Percentile = v.Percentile;
+import {functionBreakpoint as f} from "../function/functionBreakpoint";
 
 const max_api = require('max-api');
 
-let BRANCH_QUANTIZE_LATEST_CUT = 1;
-let BRANCH_LOOP_WITH_LATEST_CUT = 2;
-let BRANCH_CONFIRM_LATEST_CUT = 3;
-
-let beatEstimatesRelative: Percentile[] = [];
-
 let cuts: Point[] = [];
+
+let latestCut: Percentile;
 
 let messenger = new Messenger(Env.NODE_FOR_MAX, 0);
 
 let video: v.Video;
 
-let intervalIterator: v.Iterator<Interval<Frame>>;
+let functionBreakpoint = new f.FunctionBreakpoint<Percentile>();
 
-let frameCurrent: Frame;
+let intervalIterator: v.Iterator<Interval<Frame>>;
 
 let i = -1;
 
 let y = 0;
 
-let EPSILON = 4;
-
-let BEATS_LOOP_DEFAULT = 4 * 4 + EPSILON;
+let pathVideo: string;
 
 
-// QUANTIZE LATEST CUT
-/////////////////
+// max_api.addHandler('confirmLatestCut', () => {
+//     // TODO: make a switch to control the flow to another branch
+//     // open gate confirm latest cut
+//     messenger.message(['gateFunctionOutlet3', BRANCH_CONFIRM_LATEST_CUT]);
+//     messenger.message(['confirmLatestCut', 'listdump']);
+// });
 
-max_api.addHandler("quantizeLatestCut", () => {
-    messenger.message(['gateFunctionOutlet3', BRANCH_QUANTIZE_LATEST_CUT]);
-    messenger.message(['quantizeLatestCut', 'listdump'])
-});
 
-max_api.addHandler("quantizeNth", function(){
+max_api.addHandler('setLatestCut', function(){
     let listArgs = Array.prototype.slice.call(arguments);
-    let xQuantized = video.getQuantizedX(listArgs[2*i]);
-    messenger.message(['quantizeNth', 'list', i, xQuantized, y])
-});
-/////////////////
-
-
-// LOOP WITH LATEST CUT
-/////////////////
-
-max_api.addHandler("loopWithLatestCut", () => {
-
-    messenger.message(['gateFunctionOutlet3', BRANCH_LOOP_WITH_LATEST_CUT]);
-    messenger.message(['loopWithLatestCut', 'listdump']);
-});
-
-max_api.addHandler("loopWithNth", function(){
-    let listArgs = Array.prototype.slice.call(arguments);
-    let xLastCut = listArgs[2*i];
-
-    let frameLower = video.getConfirmedCuts()[-1];
-    let frameUpper = video.frameFromPercentile(xLastCut);
-
-    messenger.message(['loopWithNth', 'looppoints', frameLower, frameUpper])
+    latestCut = listArgs[2*i];
 });
 
 
-/////////////////
+max_api.addHandler('confirmLatestCut', function(){
+    video.addCut(latestCut);
 
+    const percentileLower = video.getConfirmedCuts()[-1];
 
-// CREATE CUT FROM CURRENT FRAME
-/////////////////
-
-let sagaCreateNextCutFromCurrentFrame = function*() {
-
-    messenger.message(['gettime']);
-
-    yield;
-
-    let x = video.percentileFromFrame(frameCurrent);
-
-    messenger.message(['createNextCutFromCurrentFrame', x, y])
-}();
-
-max_api.addHandler("createNextCutFromCurrentFrame", () => {
-    sagaCreateNextCutFromCurrentFrame.next()
-});
-
-let actionGetTime = 'time';
-
-max_api.addHandler(actionGetTime, (f) => {
-    frameCurrent = f;
-    sagaCreateNextCutFromCurrentFrame.next();
-});
-/////////////////
-
-
-// CONFIRM LATEST CUT
-/////////////////
-
-max_api.addHandler("confirmLatestCut", () => {
-    // TODO: make a switch to control the flow to another branch
-    // open gate confirm latest cut
-    messenger.message(['gateFunctionOutlet3', BRANCH_CONFIRM_LATEST_CUT]);
-    messenger.message(['confirmLatestCut', 'listdump']);
-});
-
-max_api.addHandler("confirmLatestCut", function(){
-    let listArgs = Array.prototype.slice.call(arguments);
-    let xLastCut = listArgs[2*i];
-
-    video.addCut(xLastCut);
-
-    let frameLower = v.Video.framesFromPercentiles(
-        video.getConfirmedCuts(),
-        video.getDuration()
-    )[-1];
-
-    let diff = video.beatsToFrames(
-        BEATS_LOOP_DEFAULT
+    video.loop(
+        percentileLower,
+        defaultLoopLength
     );
-
-    messenger.message(['loopNext', 'looppoints', frameLower, frameLower + diff])
 });
 
-/////////////////
+max_api.addHandler('setCutAtTimeCurrent', function(timeRaw: string){
+
+    let time: Frame = Number(timeRaw);
+
+    latestCut = video.percentileFromFrame(time);
+
+    functionBreakpoint.load([latestCut, 0]);
 
 
-// BEGIN TRAIN
-/////////////////
 
-max_api.addHandler("beginTrain", () => {
+});
+
+max_api.addHandler('beginTrain', () => {
     intervalIterator = new v.Iterator<Interval<Frame>>(
         v.Iterator.createIntervals<Frame>(
-            v.Video.framesFromPercentiles(
-                video.getConfirmedCuts(),
-                video.getDuration()
-            )
+            video.getConfirmedCuts(),
         ).map(duple => {
             return new Interval<Frame>(
                 duple[0],
@@ -154,72 +83,78 @@ max_api.addHandler("beginTrain", () => {
 
     let intervalFirst = res.value;
 
-    messenger.message(['looppoints'].concat(intervalFirst.getInterval().map((n) => {return String(n)})));
+    Interval.send(intervalFirst);
 });
 
-/////////////////
-
-
-// ADVANCE INTERVAL
-/////////////////
-
-max_api.addHandler("advanceInterval", () => {
+max_api.addHandler('advanceInterval', () => {
     let res = intervalIterator.next();
 
     let intervalNext = res.value;
 
-    messenger.message(['looppoints'].concat(intervalNext.getInterval().map((n) => {return String(n)})));
+    Interval.send(intervalNext);
 });
-
 /////////////////
 
+let defaultLoopLength: Percentile = 10;
 
-max_api.addHandler("setDefaultLoopLength", () => {
-
+max_api.addHandler('setDefaultLoopLength', (lengthFrames) => {
+    defaultLoopLength = lengthFrames
 });
 
+// handlers
 
-// other handlers
-
-max_api.addHandler("processBeatRelative", (beat) => {
-    beatEstimatesRelative = beatEstimatesRelative.concat([parseFloat(beat)])
-});
-
-max_api.addHandler("processCut", (x, y) => {
+max_api.addHandler('processCut', (x, y) => {
     cuts = cuts.concat([parseFloat(x), parseFloat(y)])
+});
+
+max_api.addHandler('prepareTrainingData', () => {
+    // set first cut at 0 frames
+    video.addCut(0);
+    // loop video with length
+    video.loop(
+        video.getConfirmedCuts()[-1],
+        video.frameFromPercentile(defaultLoopLength)
+    )
+});
+
+max_api.addHandler('demoLatestCut', () => {
+    video.loop(
+        video.getConfirmedCuts()[-1],
+        latestCut
+    )
+});
+
+max_api.addHandler('loopDefault', () => {
+    video.loop(
+        video.getConfirmedCuts()[-1],
+        defaultLoopLength
+    )
 });
 
 // workflow:
 // 1. load video
 // 2. set frame length
-// 3. get beat estimates, so that we can snap to grid
-// 4. iterate right to left, with a default loop length, perfecting cuts along the way
-// 5. begin train, advancing segment when finished
+// 3. iterate right to left, with a default loop length, setting perfect cut at each step
+// 4. toggle demo new cut, back to default loop
+// 5. confirm cut (automatic advance)
+// 6. begin train, advancing segment when finished
 
-let sagaInitializeVideo = function* (pathVideo) {
+let sagaInitializeVideo = function* () {
+
     video = new v.Video(pathVideo, messenger);
 
-    // video.load();
-    max_api.outlet('load', 'read', video.pathFile);
+    video.load();
 
     yield;
 
-    // video.loadDuration();
-    max_api.outlet('loadDuration', 'getframecount');
+    video.loadDuration();
 
-    yield;
-
-    max_api.outlet('getBeatEstimates', 'bang');
-
-    yield;
-
-    // ready for snapping
-    video.setBeatEstimatesRelative(beatEstimatesRelative);
-
+    // video.stop();
 }();
 
-max_api.addHandler("initializeVideo", (pathVideo) => {
-    sagaInitializeVideo.next(pathVideo);
+max_api.addHandler('initializeVideo', (path) => {
+    pathVideo = path;
+    sagaInitializeVideo.next();
 });
 
 max_api.addHandler('load', () => {
@@ -228,10 +163,5 @@ max_api.addHandler('load', () => {
 
 max_api.addHandler('framecount', (duration) => {
     video.setDuration(duration);
-    sagaInitializeVideo.next();
-});
-
-max_api.addHandler('beatEstimationDone', () => {
-    video.setBeatEstimatesRelative(beatEstimatesRelative);
     sagaInitializeVideo.next();
 });

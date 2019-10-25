@@ -2,6 +2,8 @@ import {message} from "../message/messenger";
 
 const _ = require('underscore');
 
+const max_api = require('max-api');
+
 export namespace video {
 
     import Messenger = message.Messenger;
@@ -12,53 +14,22 @@ export namespace video {
 
     export type Point = [Percentile, number];  // the second value is the height
 
-    export class BeatAnalyzed {
+    export class Video {
 
-        protected beatEstimatesRelative: Percentile[];
-
-        private confirmedCuts: Percentile[];
-
-        constructor() {
-
-        }
-
-        public setBeatEstimatesRelative(beatsRelative: Percentile[]): void {
-            this.beatEstimatesRelative = beatsRelative;
-        }
-
-        public getConfirmedCuts(): Array<Percentile> {
-            return this.confirmedCuts;
-        }
-
-        public addCut(cut: Percentile): void {
-            this.confirmedCuts = this.confirmedCuts.concat([cut]);
-        }
-
-        public getQuantizedX(x: Percentile): Percentile {
-            return this.beatEstimatesRelative.reduce(function(prev, curr) {
-                return (Math.abs(curr - x) < Math.abs(prev - x) ? curr : prev);
-            });
-        }
-    }
-
-    export class Video extends BeatAnalyzed {
-
-        public pathFile: string;
+        private pathFile: string;
 
         private messenger: Messenger;
 
         private duration: Frame;
 
         constructor(pathFile: string, messenger: Messenger) {
-            super();
             this.pathFile = pathFile;
             this.messenger = messenger;
-
         }
 
         // TODO: support
         public load(): void {
-            // this.messenger.message(['load', 'read', this.pathFile])
+            max_api.outlet('video', 'read', this.pathFile);
         }
 
         public getDuration(): Frame {
@@ -69,9 +40,25 @@ export namespace video {
             this.duration = duration;
         }
 
-        // TODO: support
         public loadDuration(): void {
-            // this.messenger.message(['loadDuration', 'duration'])
+            max_api.outlet('video', 'getframecount');
+        }
+
+        public loadFrameCurrent(): void {
+            max_api.outlet('video', 'gettime');
+        }
+
+        public loop(cutLower: Percentile, cutUpper: Percentile): void {
+            max_api.outlet(
+                'video',
+                'looppoints',
+                String(this.frameFromPercentile(cutLower)),
+                String(this.frameFromPercentile(cutUpper))
+            );
+        }
+
+        public stop(): void {
+            max_api.outlet('video', 'stop');
         }
 
         public frameFromPercentile(p: Percentile): Frame {
@@ -80,10 +67,6 @@ export namespace video {
 
         public percentileFromFrame(f: Frame): Percentile {
             return f/this.duration
-        }
-
-        public beatsToFrames(beat: number): Frame {
-            return (this.beatEstimatesRelative.length/this.duration) * beat;
         }
 
         public static framesFromPercentiles(
@@ -107,6 +90,17 @@ export namespace video {
 
         public getInterval(): [T, T] {
             return [this.start, this.end]
+        }
+
+        public static send<T>(interval: Interval<T>) {
+            const message: Array<string> = ['looppoints'].concat(
+                interval.getInterval().map(
+                    (n) => {
+                        return String(n)
+                    }
+                )
+            );
+            max_api.outlet(message);
         }
     }
 
