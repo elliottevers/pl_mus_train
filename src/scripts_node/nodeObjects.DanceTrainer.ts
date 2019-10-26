@@ -19,35 +19,34 @@ let messenger = new Messenger(Env.NODE_FOR_MAX, 0);
 
 let video: v.Video;
 
-let functionBreakpoint = new f.FunctionBreakpoint<Percentile>();
+let functionBreakpointPercentile = new f.FunctionBreakpoint<Percentile>();
 
 let intervalIterator: v.Iterator<Interval<Frame>>;
-
-let i = -1;
-
-let y = 0;
 
 let pathVideo: string;
 
 
-// max_api.addHandler('confirmLatestCut', () => {
-//     // TODO: make a switch to control the flow to another branch
-//     // open gate confirm latest cut
-//     messenger.message(['gateFunctionOutlet3', BRANCH_CONFIRM_LATEST_CUT]);
-//     messenger.message(['confirmLatestCut', 'listdump']);
-// });
-
-
 max_api.addHandler('setLatestCut', function(){
-    let listArgs = Array.prototype.slice.call(arguments);
-    latestCut = listArgs[2*i];
+    functionBreakpointPercentile.listDump();
 });
 
+max_api.addHandler('parseListDump', function(){
+    let listArgs = Array.prototype.slice.call(arguments);
+    let breakpoints = listArgs.reduce(function (r, a, i) {
+        if (i % 2) {
+            r[r.length - 1].push(a);
+        } else {
+            r.push([a]);
+        }
+        return r;
+    }, []);
+    functionBreakpointPercentile.breakpoints = breakpoints;
+});
 
 max_api.addHandler('confirmLatestCut', function(){
-    video.addCut(latestCut);
+    functionBreakpointPercentile.addBreakpoint(latestCut, 0);
 
-    const percentileLower = video.getConfirmedCuts()[-1];
+    const percentileLower = functionBreakpointPercentile.breakpoints[-1][0];
 
     video.loop(
         percentileLower,
@@ -55,22 +54,36 @@ max_api.addHandler('confirmLatestCut', function(){
     );
 });
 
-max_api.addHandler('setCutAtTimeCurrent', function(timeRaw: string){
-
-    let time: Frame = Number(timeRaw);
-
-    latestCut = video.percentileFromFrame(time);
-
-    functionBreakpoint.load([latestCut, 0]);
+max_api.addHandler('setLatestCutAtTimeCurrent', function(){
+    video.requestFrameCurrent();
+});
 
 
+max_api.addHandler('outletVideo', function(){
+    let listArgs = Array.prototype.slice.call(arguments);
+
+    switch (String(listArgs[0])) {
+        case 'time':
+            latestCut = video.percentileFromFrame(Number(listArgs[1]));
+            break;
+        case 'framecount':
+            video.setDuration(Number(listArgs[1]));
+            sagaInitializeVideo.next();
+            break;
+        case 'read':
+            sagaInitializeVideo.next();
+            break;
+        default:
+            return
+    }
 
 });
+
 
 max_api.addHandler('beginTrain', () => {
     intervalIterator = new v.Iterator<Interval<Frame>>(
         v.Iterator.createIntervals<Frame>(
-            video.getConfirmedCuts(),
+            functionBreakpointPercentile.breakpoints.map(interval => interval[0]),
         ).map(duple => {
             return new Interval<Frame>(
                 duple[0],
@@ -109,24 +122,24 @@ max_api.addHandler('processCut', (x, y) => {
 
 max_api.addHandler('prepareTrainingData', () => {
     // set first cut at 0 frames
-    video.addCut(0);
+    functionBreakpointPercentile.addBreakpoint(0, 0);
     // loop video with length
     video.loop(
-        video.getConfirmedCuts()[-1],
+        functionBreakpointPercentile.breakpoints.slice(-1)[0][0],
         video.frameFromPercentile(defaultLoopLength)
     )
 });
 
 max_api.addHandler('demoLatestCut', () => {
     video.loop(
-        video.getConfirmedCuts()[-1],
+        functionBreakpointPercentile.breakpoints.slice(-1)[0][0],
         latestCut
     )
 });
 
 max_api.addHandler('loopDefault', () => {
     video.loop(
-        video.getConfirmedCuts()[-1],
+        functionBreakpointPercentile.breakpoints.slice(-1)[0][0],
         defaultLoopLength
     )
 });
@@ -154,14 +167,5 @@ let sagaInitializeVideo = function* () {
 
 max_api.addHandler('initializeVideo', (path) => {
     pathVideo = path;
-    sagaInitializeVideo.next();
-});
-
-max_api.addHandler('load', () => {
-    sagaInitializeVideo.next();
-});
-
-max_api.addHandler('framecount', (duration) => {
-    video.setDuration(duration);
     sagaInitializeVideo.next();
 });

@@ -44,7 +44,7 @@ export namespace video {
             max_api.outlet('video', 'getframecount');
         }
 
-        public loadFrameCurrent(): void {
+        public requestFrameCurrent(): void {
             max_api.outlet('video', 'gettime');
         }
 

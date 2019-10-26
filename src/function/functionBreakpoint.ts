@@ -17,7 +17,7 @@ export namespace functionBreakpoint {
             max_api.outlet('functionBreakpoint', 'list', String(x), String(y));
         }
 
-        public static dump(): void {
+        public listDump(): void {
             max_api.outlet('functionBreakpoint', 'listdump');
         }
     }
