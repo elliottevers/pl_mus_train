@@ -23,30 +23,71 @@ let intervalIterator: v.Iterator<Interval<Frame>>;
 let pathVideo: string;
 
 
-let setLatestCutFromFunctionSaga = function*() {
-    functionBreakpointPercentile.listDump();
+// let setLatestCutFromFunctionSaga;
 
-    yield;
+// let setLatestCutFromFunctionSaga = function*() {
+//     functionBreakpointPercentile.listDump();
+//
+//     yield;
+//
+//     latestCut = functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
+// }();
 
-    latestCut = functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
-}();
+// @ts-ignore
+global.maxObjects = {
+    responsesProcessed: 0,
+    responsesExpected: 0,
+    responses: [],
+    dynamicResponse: false,
+    locked: false
+};
 
+max_api.addHandler('maxObjectsResult', (...res) => {
+    // @ts-ignore
+    global.maxObjects.responses = global.maxObjects.responses.concat(res.slice(1));
+
+    // @ts-ignore
+    global.maxObjects.responsesProcessed += 1;
+
+    // @ts-ignore
+    if (global.maxObjects.dynamicResponse) {
+        // @ts-ignore
+        global.maxObjects.responsesExpected = Number(res[2]) + 2;
+        // @ts-ignore
+        global.maxObjects.dynamicResponse = false;
+    }
+
+    // @ts-ignore
+    if (global.maxObjects.responsesProcessed == global.maxObjects.responsesExpected) {
+        // @ts-ignore
+        global.maxObjects.locked = false;
+    }
+});
+
+// TODO: sagas can't be run more than once this way....
 max_api.addHandler('setLatestCutFromFunction', function(){
-    setLatestCutFromFunctionSaga.next()
+    // setLatestCutFromFunctionSaga = function*() {
+    //     functionBreakpointPercentile.listDump();
+    // }();
+    //
+    // setLatestCutFromFunctionSaga.next()
+
+    functionBreakpointPercentile.loadBreakpoints();
+
 });
 
-max_api.addHandler('parseListDump', function(){
-    let listArgs = Array.prototype.slice.call(arguments);
-    let breakpoints = listArgs.reduce(function (r, a, i) {
-        if (i % 2) {
-            r[r.length - 1].push(a);
-        } else {
-            r.push([a]);
-        }
-        return r;
-    }, []);
-    functionBreakpointPercentile.breakpoints = breakpoints;
-});
+// max_api.addHandler('parseListDump', function(){
+//     let listArgs = Array.prototype.slice.call(arguments);
+//
+//     functionBreakpointPercentile.breakpoints = listArgs.reduce(function (r, a, i) {
+//         if (i % 2) {
+//             r[r.length - 1].push(a);
+//         } else {
+//             r.push([a]);
+//         }
+//         return r;
+//     }, []);
+// });
 
 max_api.addHandler('confirmLatestCut', function(){
     functionBreakpointPercentile.addBreakpoint(latestCut, 0);
@@ -63,24 +104,24 @@ max_api.addHandler('setLatestCutAtTimeCurrent', function(){
     video.requestFrameCurrent();
 });
 
-max_api.addHandler('outletVideo', function(){
-    let listArgs = Array.prototype.slice.call(arguments);
-
-    switch (String(listArgs[0])) {
-        case 'time':
-            latestCut = video.percentileFromFrame(Number(listArgs[1]));
-            break;
-        case 'duration':
-            video.setDuration(Number(listArgs[1]));
-            sagaInitializeVideo.next();
-            break;
-        case 'read':
-            sagaInitializeVideo.next();
-            break;
-        default:
-            return
-    }
-});
+// max_api.addHandler('outletVideo', function(){
+//     let listArgs = Array.prototype.slice.call(arguments);
+//
+//     switch (String(listArgs[0])) {
+//         case 'time':
+//             latestCut = video.percentileFromFrame(Number(listArgs[1]));
+//             break;
+//         case 'duration':
+//             video.setDuration(Number(listArgs[1]));
+//             sagaInitializeVideo.next();
+//             break;
+//         case 'read':
+//             sagaInitializeVideo.next();
+//             break;
+//         default:
+//             return
+//     }
+// });
 
 max_api.addHandler('beginTrain', () => {
     intervalIterator = new v.Iterator<Interval<Frame>>(
@@ -127,10 +168,21 @@ max_api.addHandler('prepareTrainingData', () => {
     )
 });
 
+max_api.addHandler('updateLatestCut', () => {
+
+    functionBreakpointPercentile.listDump();
+
+    video.loop(
+        functionBreakpointPercentile.breakpoints.slice(-2)[0][0],
+        functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
+    )
+});
+
+
 max_api.addHandler('demoLatestCut', () => {
     video.loop(
-        functionBreakpointPercentile.breakpoints.slice(-1)[0][0],
-        latestCut
+        functionBreakpointPercentile.breakpoints.slice(-2)[0][0],
+        functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
     )
 });
 

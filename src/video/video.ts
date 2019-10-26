@@ -20,7 +20,7 @@ export namespace video {
 
         private messenger: Messenger;
 
-        private duration: Frame;
+        public duration: Frame;
 
         constructor(pathFile: string, messenger: Messenger) {
             this.pathFile = pathFile;
@@ -32,21 +32,21 @@ export namespace video {
             max_api.outlet('video', 'read', this.pathFile);
         }
 
-        public getDuration(): Frame {
-            return this.duration;
-        }
+        // public getDuration(): Frame {
+        //     return this.duration;
+        // }
 
-        public setDuration(duration: Frame): void {
-            this.duration = duration;
-        }
+        // public setDuration(duration: Frame): void {
+        //     this.duration = duration;
+        // }
 
-        public requestDuration(): void {
-            max_api.outlet('video', 'getduration');
-        }
-
-        public requestFrameCurrent(): void {
-            max_api.outlet('video', 'gettime');
-        }
+        // public requestDuration(): void {
+        //     max_api.outlet('video', 'getduration');
+        // }
+        //
+        // public requestFrameCurrent(): void {
+        //     max_api.outlet('video', 'gettime');
+        // }
 
         public loop(cutLower: Percentile, cutUpper: Percentile): void {
             max_api.outlet(
@@ -67,6 +67,73 @@ export namespace video {
 
         public percentileFromFrame(f: Frame): Percentile {
             return f/this.duration
+        }
+
+        // max_api.addHandler('outletVideo', function(){
+        //     let listArgs = Array.prototype.slice.call(arguments);
+        //
+        //     switch (String(listArgs[0])) {
+        //         case 'time':
+        //             latestCut = video.percentileFromFrame(Number(listArgs[1]));
+        //             break;
+        //         case 'duration':
+        //             video.setDuration(Number(listArgs[1]));
+        //             sagaInitializeVideo.next();
+        //             break;
+        //         case 'read':
+        //             sagaInitializeVideo.next();
+        //             break;
+        //         default:
+        //             return
+        //     }
+        // });
+
+        public getDuration(): Frame {
+            // @ts-ignore
+            global.maxObjects.locked = true;
+
+            // @ts-ignore
+            global.maxObjects.responses = [];
+
+            // @ts-ignore
+            global.maxObjects.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.maxObjects.responsesExpected = 1;
+
+            max_api.outlet('video', 'getduration');
+
+            // @ts-ignore
+            while (global.maxObjects.locked)
+                // @ts-ignore
+                node.loop();
+
+            // @ts-ignore
+            return global.maxObjects.responses[1]
+        }
+
+        public getFrameCurrent(): Frame {
+            // @ts-ignore
+            global.maxObjects.locked = true;
+
+            // @ts-ignore
+            global.maxObjects.responses = [];
+
+            // @ts-ignore
+            global.maxObjects.responsesProcessed = 0;
+
+            // @ts-ignore
+            global.maxObjects.responsesExpected = 1;
+
+            max_api.outlet('video', 'gettime');
+
+            // @ts-ignore
+            while (global.maxObjects.locked)
+                // @ts-ignore
+                node.loop();
+
+            // @ts-ignore
+            return global.maxObjects.responses[1]
         }
 
         public static framesFromPercentiles(
