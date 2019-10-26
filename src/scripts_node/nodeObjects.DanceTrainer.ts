@@ -1,5 +1,4 @@
 import {video as v} from '../video/video';
-import Point = v.Point;
 import Interval = v.Interval;
 import Frame = v.Frame;
 import {message} from '../message/messenger';
@@ -10,8 +9,6 @@ import Percentile = v.Percentile;
 import {functionBreakpoint as f} from "../function/functionBreakpoint";
 
 const max_api = require('max-api');
-
-let cuts: Point[] = [];
 
 let latestCut: Percentile;
 
@@ -26,8 +23,16 @@ let intervalIterator: v.Iterator<Interval<Frame>>;
 let pathVideo: string;
 
 
-max_api.addHandler('setLatestCut', function(){
+let setLatestCutFromFunctionSaga = function*() {
     functionBreakpointPercentile.listDump();
+
+    yield;
+
+    latestCut = functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
+}();
+
+max_api.addHandler('setLatestCutFromFunction', function(){
+    setLatestCutFromFunctionSaga.next()
 });
 
 max_api.addHandler('parseListDump', function(){
@@ -58,7 +63,6 @@ max_api.addHandler('setLatestCutAtTimeCurrent', function(){
     video.requestFrameCurrent();
 });
 
-
 max_api.addHandler('outletVideo', function(){
     let listArgs = Array.prototype.slice.call(arguments);
 
@@ -66,7 +70,7 @@ max_api.addHandler('outletVideo', function(){
         case 'time':
             latestCut = video.percentileFromFrame(Number(listArgs[1]));
             break;
-        case 'framecount':
+        case 'duration':
             video.setDuration(Number(listArgs[1]));
             sagaInitializeVideo.next();
             break;
@@ -76,9 +80,7 @@ max_api.addHandler('outletVideo', function(){
         default:
             return
     }
-
 });
-
 
 max_api.addHandler('beginTrain', () => {
     intervalIterator = new v.Iterator<Interval<Frame>>(
@@ -106,9 +108,8 @@ max_api.addHandler('advanceInterval', () => {
 
     Interval.send(intervalNext);
 });
-/////////////////
 
-let defaultLoopLength: Percentile = 10;
+let defaultLoopLength: Percentile = .10;
 
 max_api.addHandler('setDefaultLoopLength', (lengthFrames) => {
     defaultLoopLength = lengthFrames
@@ -116,17 +117,13 @@ max_api.addHandler('setDefaultLoopLength', (lengthFrames) => {
 
 // handlers
 
-max_api.addHandler('processCut', (x, y) => {
-    cuts = cuts.concat([parseFloat(x), parseFloat(y)])
-});
-
 max_api.addHandler('prepareTrainingData', () => {
     // set first cut at 0 frames
     functionBreakpointPercentile.addBreakpoint(0, 0);
     // loop video with length
     video.loop(
         functionBreakpointPercentile.breakpoints.slice(-1)[0][0],
-        video.frameFromPercentile(defaultLoopLength)
+        defaultLoopLength
     )
 });
 
@@ -160,9 +157,9 @@ let sagaInitializeVideo = function* () {
 
     yield;
 
-    video.loadDuration();
+    video.requestDuration();
 
-    // video.stop();
+    video.stop();
 }();
 
 max_api.addHandler('initializeVideo', (path) => {

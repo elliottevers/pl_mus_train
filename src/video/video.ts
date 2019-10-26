@@ -40,8 +40,8 @@ export namespace video {
             this.duration = duration;
         }
 
-        public loadDuration(): void {
-            max_api.outlet('video', 'getframecount');
+        public requestDuration(): void {
+            max_api.outlet('video', 'getduration');
         }
 
         public requestFrameCurrent(): void {
@@ -52,8 +52,8 @@ export namespace video {
             max_api.outlet(
                 'video',
                 'looppoints',
-                String(this.frameFromPercentile(cutLower)),
-                String(this.frameFromPercentile(cutUpper))
+                String(Math.round(this.frameFromPercentile(cutLower))),
+                String(Math.round(this.frameFromPercentile(cutUpper)))
             );
         }
 

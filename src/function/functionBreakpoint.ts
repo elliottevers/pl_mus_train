@@ -6,15 +6,15 @@ export namespace functionBreakpoint {
 
     export class FunctionBreakpoint<T> {
 
-        public breakpoints: Array<[T, number]>;
+        public breakpoints: Array<[T, number]> = [];
 
         constructor() {
 
         }
 
         addBreakpoint(x: T, y: number): void {
-            this.breakpoints.concat([x, y]);
-            max_api.outlet('functionBreakpoint', 'list', String(x), String(y));
+            this.breakpoints = this.breakpoints.concat([[x, y]]);
+            max_api.outlet('functionBreakpoint', 'list', x, y);
         }
 
         public listDump(): void {
