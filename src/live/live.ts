@@ -148,26 +148,19 @@ export namespace live {
 
         // block in all cases
         get(property: string, deferlow: boolean = false, synchronous: boolean = true): any {
-            // @ts-ignore
             global.liveApi.locked = true;
 
-            // @ts-ignore
             global.liveApi.responses = [];
 
-            // @ts-ignore
             global.liveApi.responsesProcessed = 0;
 
-            // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
             this.maxApi.outlet('batch', 'deferlow', 'delegateAsync', this.typeRef, this.refLive, 'get', property);
 
-            // @ts-ignore
             while (global.liveApi.locked)
-                // @ts-ignore
                 node.loop();
 
-            // @ts-ignore
             return global.liveApi.responses;
         }
 
@@ -175,23 +168,17 @@ export namespace live {
         public set(property: string, value: any, deferlow: boolean = false, synchronous: boolean = true): void {
 
             if ((deferlow && synchronous) || (!deferlow && synchronous)) {
-                // @ts-ignore
                 global.liveApi.locked = true;
 
-                // @ts-ignore
                 global.liveApi.responses = [];
 
-                // @ts-ignore
                 global.liveApi.responsesProcessed = 0;
 
-                // @ts-ignore
                 global.liveApi.responsesExpected = 1;
 
                 this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'set', property, value);
 
-                // @ts-ignore
                 while (global.liveApi.locked)
-                    // @ts-ignore
                     node.loop();
             }
 
@@ -233,78 +220,56 @@ export namespace live {
         }
 
         public get_id(deferlow: boolean = false, synchronous: boolean = true) {
-            // return this.call(['getid'], deferlow, synchronous)
-            // @ts-ignore
+
             global.liveApi.locked = true;
 
-            // @ts-ignore
             global.liveApi.responses = [];
 
-            // @ts-ignore
             global.liveApi.responsesProcessed = 0;
 
-            // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
             this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getid');
 
-            // @ts-ignore
             while (global.liveApi.locked)
-                // @ts-ignore
                 node.loop();
 
-            // @ts-ignore
             return global.liveApi.responses;
         }
 
         public get_path(deferlow: boolean = false, synchronous: boolean = true) {
-            // return this.call(['getpath'], deferlow, synchronous)
 
-            // @ts-ignore
             global.liveApi.locked = true;
 
-            // @ts-ignore
             global.liveApi.responses = [];
 
-            // @ts-ignore
             global.liveApi.responsesProcessed = 0;
 
-            // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
             this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getpath');
 
-            // @ts-ignore
             while (global.liveApi.locked)
-                // @ts-ignore
                 node.loop();
 
-            // @ts-ignore
             return global.liveApi.responses.join(' ');
         }
 
         public get_children(deferlow: boolean = false, synchronous: boolean = true) {
-            // return this.call(['getchildren'], deferlow, synchronous)
-            // @ts-ignore
+
             global.liveApi.locked = true;
 
-            // @ts-ignore
             global.liveApi.responses = [];
 
-            // @ts-ignore
             global.liveApi.responsesProcessed = 0;
 
-            // @ts-ignore
             global.liveApi.responsesExpected = 1;
 
             this.maxApi.outlet('batch', 'prioritize', 'delegateSync', this.typeRef, this.refLive, 'getchildren');
 
-            // @ts-ignore
             while (global.liveApi.locked)
-                // @ts-ignore
                 node.loop();
 
-            // @ts-ignore
             return global.liveApi.responses;
         }
     }

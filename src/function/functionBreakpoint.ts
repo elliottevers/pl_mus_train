@@ -1,45 +1,62 @@
+import {max} from "../max/dao";
+
 const _ = require('underscore');
 
 const max_api = require('max-api');
 
 export namespace functionBreakpoint {
 
+    import MaxDao = max.MaxDao;
+
     export class FunctionBreakpoint<T> {
+
+        private keyRoute: string;
+
+        private dao: MaxDao;
 
         public breakpoints: Array<[T, number]> = [];
 
-        constructor() {
-
+        constructor(dao: MaxDao) {
+            this.dao = dao;
         }
 
+        withMode(deferlow: boolean, synchronous: boolean): this {
+            this.setMode(deferlow, synchronous);
+            return this
+        }
+
+        setMode(deferlow: boolean, synchronous: boolean): void {
+            this.dao.setMode(deferlow, synchronous)
+        }
+
+        // synchronous
         addBreakpoint(x: T, y: number): void {
             if (!_.contains(this.breakpoints.map(x => x[0]), x)) {
                 this.breakpoints = this.breakpoints.concat([[x, y]]);
             }
 
-            max_api.outlet('functionBreakpoint', 'list', x, y);
+            this.dao.call(
+                [
+                    this.keyRoute,
+                    'list',
+                    String(x),
+                    String(y)
+                ]
+            )
         }
 
+        // synchronous
         public loadBreakpoints(): void {
-            // @ts-ignore
-            global.maxObjects.locked = true;
+            this.dao.call(
+                [
+                    this.keyRoute,
+                    'listdump'
+                ]
+            )
+        }
 
-            // @ts-ignore
-            global.maxObjects.responses = [];
-
-            // @ts-ignore
-            global.maxObjects.responsesProcessed = 0;
-
-            // @ts-ignore
-            global.maxObjects.responsesExpected = 1;
-
-            max_api.outlet('functionBreakpoint', 'listdump');
-
-            // @ts-ignore
-            while (global.maxObjects.locked)
-                // @ts-ignore
-                node.loop();
-
+        // TODO: implement
+        private parseBreakpoint(): [number, number][] {
             // @ts-ignore
             this.breakpoints = global.maxObjects.responses.reduce(function (r, a, i) {
                 if (i % 2) {
@@ -49,6 +66,8 @@ export namespace functionBreakpoint {
                 }
                 return r;
             }, []);
+
+            return [[0, 0]]
         }
     }
 }
