@@ -2,8 +2,6 @@ import {max} from "../max/dao";
 
 const _ = require('underscore');
 
-const max_api = require('max-api');
-
 export namespace video {
 
     import MaxDao = max.MaxDao;
@@ -16,7 +14,7 @@ export namespace video {
 
     export class Video {
 
-        private keyRoute: string;
+        private keyRoute: string = 'video';
 
         private pathFile: string;
 
@@ -76,13 +74,13 @@ export namespace video {
             return f / this.duration
         }
 
-        public getDuration(): Frame {
-            return this.dao.call(
+        public loadDuration(): void {
+            this.duration = this.dao.call(
                 [
                     this.keyRoute,
                     'getduration'
                 ]
-            )
+            )[0]
         }
 
         public getFrameCurrent(): Frame {

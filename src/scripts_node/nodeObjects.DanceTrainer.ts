@@ -1,37 +1,20 @@
 import {video as v} from '../video/video';
 import Interval = v.Interval;
 import Frame = v.Frame;
-import {message} from '../message/messenger';
-import Messenger = message.Messenger;
-import {live} from '../live/live';
-import Env = live.Env;
 import Percentile = v.Percentile;
 import {functionBreakpoint as f} from "../function/functionBreakpoint";
+import {max} from "../max/dao";
+import MaxDao = max.MaxDao;
 
 const max_api = require('max-api');
 
 let latestCut: Percentile;
 
-let messenger = new Messenger(Env.NODE_FOR_MAX, 0);
-
 let video: v.Video;
 
-let functionBreakpointPercentile = new f.FunctionBreakpoint<Percentile>();
+let functionBreakpointPercentile = new f.FunctionBreakpoint<Percentile>(new MaxDao());
 
 let intervalIterator: v.Iterator<Interval<Frame>>;
-
-let pathVideo: string;
-
-
-// let setLatestCutFromFunctionSaga;
-
-// let setLatestCutFromFunctionSaga = function*() {
-//     functionBreakpointPercentile.listDump();
-//
-//     yield;
-//
-//     latestCut = functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
-// }();
 
 // @ts-ignore
 global.maxObjects = {
@@ -64,30 +47,9 @@ max_api.addHandler('maxObjectsResult', (...res) => {
     }
 });
 
-// TODO: sagas can't be run more than once this way....
 max_api.addHandler('setLatestCutFromFunction', function(){
-    // setLatestCutFromFunctionSaga = function*() {
-    //     functionBreakpointPercentile.listDump();
-    // }();
-    //
-    // setLatestCutFromFunctionSaga.next()
-
     functionBreakpointPercentile.loadBreakpoints();
-
 });
-
-// max_api.addHandler('parseListDump', function(){
-//     let listArgs = Array.prototype.slice.call(arguments);
-//
-//     functionBreakpointPercentile.breakpoints = listArgs.reduce(function (r, a, i) {
-//         if (i % 2) {
-//             r[r.length - 1].push(a);
-//         } else {
-//             r.push([a]);
-//         }
-//         return r;
-//     }, []);
-// });
 
 max_api.addHandler('confirmLatestCut', function(){
     functionBreakpointPercentile.addBreakpoint(latestCut, 0);
@@ -101,27 +63,8 @@ max_api.addHandler('confirmLatestCut', function(){
 });
 
 max_api.addHandler('setLatestCutAtTimeCurrent', function(){
-    video.requestFrameCurrent();
+    video.getFrameCurrent();
 });
-
-// max_api.addHandler('outletVideo', function(){
-//     let listArgs = Array.prototype.slice.call(arguments);
-//
-//     switch (String(listArgs[0])) {
-//         case 'time':
-//             latestCut = video.percentileFromFrame(Number(listArgs[1]));
-//             break;
-//         case 'duration':
-//             video.setDuration(Number(listArgs[1]));
-//             sagaInitializeVideo.next();
-//             break;
-//         case 'read':
-//             sagaInitializeVideo.next();
-//             break;
-//         default:
-//             return
-//     }
-// });
 
 max_api.addHandler('beginTrain', () => {
     intervalIterator = new v.Iterator<Interval<Frame>>(
@@ -159,9 +102,11 @@ max_api.addHandler('setDefaultLoopLength', (lengthFrames) => {
 // handlers
 
 max_api.addHandler('prepareTrainingData', () => {
-    // set first cut at 0 frames
+
+    functionBreakpointPercentile.setMode(true, false);
     functionBreakpointPercentile.addBreakpoint(0, 0);
-    // loop video with length
+    functionBreakpointPercentile.setMode(false, true);
+
     video.loop(
         functionBreakpointPercentile.breakpoints.slice(-1)[0][0],
         defaultLoopLength
@@ -170,7 +115,7 @@ max_api.addHandler('prepareTrainingData', () => {
 
 max_api.addHandler('updateLatestCut', () => {
 
-    functionBreakpointPercentile.listDump();
+    functionBreakpointPercentile.loadBreakpoints();
 
     video.loop(
         functionBreakpointPercentile.breakpoints.slice(-2)[0][0],
@@ -201,20 +146,13 @@ max_api.addHandler('loopDefault', () => {
 // 5. confirm cut (automatic advance)
 // 6. begin train, advancing segment when finished
 
-let sagaInitializeVideo = function* () {
+max_api.addHandler('initializeVideo', (path) => {
 
-    video = new v.Video(pathVideo, messenger);
+    video = new v.Video(path, new MaxDao());
 
     video.load();
 
-    yield;
-
-    video.requestDuration();
+    video.loadDuration();
 
     video.stop();
-}();
-
-max_api.addHandler('initializeVideo', (path) => {
-    pathVideo = path;
-    sagaInitializeVideo.next();
 });

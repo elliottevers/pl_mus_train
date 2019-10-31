@@ -2,15 +2,13 @@ import {max} from "../max/dao";
 
 const _ = require('underscore');
 
-const max_api = require('max-api');
-
 export namespace functionBreakpoint {
 
     import MaxDao = max.MaxDao;
 
     export class FunctionBreakpoint<T> {
 
-        private keyRoute: string;
+        private keyRoute: string = 'functionBreakpoint';
 
         private dao: MaxDao;
 
