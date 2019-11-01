@@ -1,6 +1,6 @@
 import {max} from "../max/dao";
 
-const _ = require('underscore');
+const max_api = require('max-api');
 
 export namespace video {
 
@@ -9,8 +9,6 @@ export namespace video {
     export type Frame = number;
 
     export type Percentile = number;
-
-    export type Point = [Percentile, number];  // the second value is the height
 
     export class Video {
 
@@ -115,16 +113,16 @@ export namespace video {
             return [this.start, this.end]
         }
 
-        public static send<T>(interval: Interval<T>) {
-            const message: Array<string> = ['looppoints'].concat(
-                interval.getInterval().map(
-                    (n) => {
-                        return String(n)
-                    }
-                )
-            );
-            max_api.outlet(message);
-        }
+        // public static send<T>(interval: Interval<T>) {
+        //     const message: Array<any> = ['video', 'looppoints'].concat(
+        //         interval.getInterval().map(
+        //             (n) => {
+        //                 return n
+        //             }
+        //         )
+        //     );
+        //     max_api.outlet(message);
+        // }
     }
 
     export class Iterator<T> {

@@ -95,15 +95,26 @@ max_api.addHandler('beginTrain', () => {
 
     let intervalFirst = res.value;
 
-    Interval.send(intervalFirst);
+    video.loop(
+        intervalFirst.getInterval()[0],
+        intervalFirst.getInterval()[1]
+    )
 });
 
 max_api.addHandler('advanceInterval', () => {
     let res = intervalIterator.next();
 
+    if (res.done) {
+        video.stop();
+        return
+    }
+
     let intervalNext = res.value;
 
-    Interval.send(intervalNext);
+    video.loop(
+        intervalNext.getInterval()[0],
+        intervalNext.getInterval()[1]
+    )
 });
 
 let defaultLoopLength: Percentile = .10;
