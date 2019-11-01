@@ -8,13 +8,13 @@ import MaxDao = max.MaxDao;
 
 const max_api = require('max-api');
 
-let latestCut: Percentile;
-
 let video: v.Video;
 
 let functionBreakpointPercentile = new f.FunctionBreakpoint<Percentile>(new MaxDao());
 
 let intervalIterator: v.Iterator<Interval<Frame>>;
+
+let intervalsConfirmed = 0;
 
 // @ts-ignore
 global.maxObjects = {
@@ -47,23 +47,36 @@ max_api.addHandler('maxObjectsResult', (...res) => {
     }
 });
 
-max_api.addHandler('setLatestCutFromFunction', function(){
-    functionBreakpointPercentile.loadBreakpoints();
-});
+max_api.addHandler('confirmLatestCut', () => {
 
-max_api.addHandler('confirmLatestCut', function(){
-    functionBreakpointPercentile.addBreakpoint(latestCut, 0);
+    intervalsConfirmed += 1;
 
-    const percentileLower = functionBreakpointPercentile.breakpoints[-1][0];
+    const percentileLower = functionBreakpointPercentile.breakpoints.slice(-1)[0][0];
+
+    functionBreakpointPercentile.addBreakpoint(
+        percentileLower + defaultLoopLength,
+        0
+    );
 
     video.loop(
         percentileLower,
-        defaultLoopLength
+        percentileLower + defaultLoopLength
     );
 });
 
-max_api.addHandler('setLatestCutAtTimeCurrent', function(){
-    video.getFrameCurrent();
+max_api.addHandler('setLatestCutAtTimeCurrent', () => {
+    functionBreakpointPercentile.updateBreakpoint(
+        intervalsConfirmed + 1,
+        video.percentileFromFrame(video.getFrameCurrent()),
+        0
+    );
+
+    functionBreakpointPercentile.loadBreakpoints();
+
+    video.loop(
+        functionBreakpointPercentile.breakpoints.slice(-2)[0][0],
+        functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
+    )
 });
 
 max_api.addHandler('beginTrain', () => {
@@ -101,19 +114,23 @@ max_api.addHandler('setDefaultLoopLength', (lengthFrames) => {
 
 // handlers
 
+let trainingDataInitialized = false;
+
 max_api.addHandler('prepareTrainingData', () => {
 
-    functionBreakpointPercentile.setMode(true, false);
-    functionBreakpointPercentile.addBreakpoint(0, 0);
-    functionBreakpointPercentile.setMode(false, true);
+    if (!trainingDataInitialized) {
+        functionBreakpointPercentile.addBreakpoint(0, 0);
+        functionBreakpointPercentile.addBreakpoint(defaultLoopLength, 0);
+        trainingDataInitialized = true;
+    }
 
     video.loop(
-        functionBreakpointPercentile.breakpoints.slice(-1)[0][0],
-        defaultLoopLength
+        functionBreakpointPercentile.breakpoints.slice(-2)[0][0],
+        functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
     )
 });
 
-max_api.addHandler('updateLatestCut', () => {
+max_api.addHandler('demoLatestCut', () => {
 
     functionBreakpointPercentile.loadBreakpoints();
 
@@ -122,29 +139,6 @@ max_api.addHandler('updateLatestCut', () => {
         functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
     )
 });
-
-
-max_api.addHandler('demoLatestCut', () => {
-    video.loop(
-        functionBreakpointPercentile.breakpoints.slice(-2)[0][0],
-        functionBreakpointPercentile.breakpoints.slice(-1)[0][0]
-    )
-});
-
-max_api.addHandler('loopDefault', () => {
-    video.loop(
-        functionBreakpointPercentile.breakpoints.slice(-1)[0][0],
-        defaultLoopLength
-    )
-});
-
-// workflow:
-// 1. load video
-// 2. set frame length
-// 3. iterate right to left, with a default loop length, setting perfect cut at each step
-// 4. toggle demo new cut, back to default loop
-// 5. confirm cut (automatic advance)
-// 6. begin train, advancing segment when finished
 
 max_api.addHandler('initializeVideo', (path) => {
 

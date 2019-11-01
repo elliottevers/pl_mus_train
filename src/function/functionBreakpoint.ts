@@ -1,10 +1,12 @@
 import {max} from "../max/dao";
+import {video} from "../video/video";
 
 const _ = require('underscore');
 
 export namespace functionBreakpoint {
 
     import MaxDao = max.MaxDao;
+    import Percentile = video.Percentile;
 
     export class FunctionBreakpoint<T> {
 
@@ -27,45 +29,66 @@ export namespace functionBreakpoint {
             this.dao.setMode(deferlow, synchronous)
         }
 
-        // synchronous
         addBreakpoint(x: T, y: number): void {
-            if (!_.contains(this.breakpoints.map(x => x[0]), x)) {
-                this.breakpoints = this.breakpoints.concat([[x, y]]);
-            }
+
+            this.dao.setMode(true, false);
 
             this.dao.call(
                 [
                     this.keyRoute,
                     'list',
-                    String(x),
-                    String(y)
+                    x,
+                    y
                 ]
-            )
+            );
+
+            this.dao.setMode(false, true);
+
+            this.loadBreakpoints();
+        }
+
+        // NB: can only update latest breakpoint
+        updateBreakpoint(index: number, x: Percentile, y: Percentile): void {
+            this.dao.setMode(true, false);
+
+            this.dao.call(
+                [
+                    this.keyRoute,
+                    'list',
+                    index,
+                    x,
+                    y
+                ]
+            );
+
+            this.dao.setMode(false, true);
         }
 
         // synchronous
         public loadBreakpoints(): void {
-            this.dao.call(
+            const resRaw = this.dao.call(
                 [
                     this.keyRoute,
                     'listdump'
                 ]
-            )
+            );
+
+            this.breakpoints = this.parseBreakpoints(resRaw)
         }
 
         // TODO: implement
-        private parseBreakpoint(): [number, number][] {
-            // @ts-ignore
-            this.breakpoints = global.maxObjects.responses.reduce(function (r, a, i) {
-                if (i % 2) {
-                    r[r.length - 1].push(a);
-                } else {
-                    r.push([a]);
-                }
-                return r;
-            }, []);
-
-            return [[0, 0]]
+        private parseBreakpoints(raw: Array<any>): [T, number][] {
+            return raw.reduce(
+                function (r, a, i) {
+                    if (i % 2) {
+                        r[r.length - 1].push(a);
+                    } else {
+                        r.push([a]);
+                    }
+                    return r;
+                },
+                []
+            );
         }
     }
 }

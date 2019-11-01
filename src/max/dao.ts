@@ -27,7 +27,7 @@ export namespace max {
             this.synchronous = synchronous;
         }
 
-        public call(args: string[]): any {
+        public call(args: any[]): any {
             if ((this.deferlow && this.synchronous) || (!this.deferlow && this.synchronous)) {
                 global.maxObjects.locked = true;
 
