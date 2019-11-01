@@ -1,7 +1,5 @@
 import {max} from "../max/dao";
 
-const max_api = require('max-api');
-
 export namespace video {
 
     import MaxDao = max.MaxDao;
@@ -45,12 +43,16 @@ export namespace video {
         }
 
         public stop(): void {
+            this.dao.setMode(true, false);
+
             this.dao.call(
                 [
                     this.keyRoute,
                     'stop'
                 ]
-            )
+            );
+
+            this.dao.setMode(false, true);
         }
 
         public loop(cutLower: Percentile, cutUpper: Percentile): void {
@@ -112,17 +114,6 @@ export namespace video {
         public getInterval(): [T, T] {
             return [this.start, this.end]
         }
-
-        // public static send<T>(interval: Interval<T>) {
-        //     const message: Array<any> = ['video', 'looppoints'].concat(
-        //         interval.getInterval().map(
-        //             (n) => {
-        //                 return n
-        //             }
-        //         )
-        //     );
-        //     max_api.outlet(message);
-        // }
     }
 
     export class Iterator<T> {
@@ -168,10 +159,6 @@ export namespace video {
 
         public reset() {
             this.i = -1;
-        }
-
-        public getIndexCurrent() {
-            return this.i;
         }
 
         public static createIntervals<T>(endpoints: T[]) {
