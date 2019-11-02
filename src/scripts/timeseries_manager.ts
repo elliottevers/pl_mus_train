@@ -24,25 +24,38 @@ let length: number;
 let max: number;
 let min: number;
 
-let setLength = (a) => {
-    length = Number(a);
-};
+let stateHandle: 'length' | 'max' | 'min';
 
-let setMax = (a) => {
-    max = Number(a);
-};
-
-let setMin = (a) => {
-    min = Number(a);
+let handleQuery = (result) => {
+    switch (stateHandle) {
+        case 'length': {
+            length = Number(result);
+            break;
+        }
+        case 'max': {
+            max = Number(result);
+            break;
+        }
+        case 'min': {
+            min = Number(result);
+            break;
+        }
+    }
 };
 
 let initialize = () => {
 
     patcher.getnamed('modeSetter').message(Mode.Query);
 
+    stateHandle = 'length';
+
     patcher.getnamed('coll').message('length');
 
+    stateHandle = 'min';
+
     patcher.getnamed('coll').message('min');
+
+    stateHandle = 'max';
 
     patcher.getnamed('coll').message('max');
 
@@ -58,7 +71,7 @@ let initialize = () => {
 
     patcher.getnamed('coll').message('dump');
 
-    patcher.getnamed('outletSecond').message(length);
+    patcher.getnamed('outletRelayer').message(length);
 
     patcher.getnamed('modeSetter').message(Mode.Stream);
 };
@@ -66,7 +79,5 @@ let initialize = () => {
 if (typeof Global !== "undefined") {
     Global.timeseries_manager = {};
     Global.timeseries_manager.initialize = initialize;
-    Global.timeseries_manager.setLength = setLength;
-    Global.timeseries_manager.setMax = setMax;
-    Global.timeseries_manager.setMin = setMin;
+    Global.timeseries_manager.handleQuery = handleQuery;
 }
