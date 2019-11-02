@@ -1,5 +1,3 @@
-import {message} from "../message/messenger";
-import Messenger = message.Messenger;
 import {live} from "../live/live";
 import {song} from "../song/song";
 import SongDao = song.SongDao;

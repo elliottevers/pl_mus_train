@@ -79,17 +79,27 @@ let sagaInitTimeseries = function* () {
 
     messenger_execute.message(['_0', Mode.Query]);
 
+    // .setMode(Mode.Query);
+
+    // outlet(0, 'setMode', Mode.Query);
+
     yield;
 
     messenger_execute.message(['_1', 'length']);
+
+    // .loadLength()
 
     yield;
 
     messenger_execute.message(['_2', 'min']);
 
+    // .loadMin()
+
     yield;
 
     messenger_execute.message(['_3', 'max']);
+
+    // .loadMax()
 
     yield;
 
