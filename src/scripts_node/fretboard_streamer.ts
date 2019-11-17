@@ -48,12 +48,38 @@ max_api.addHandler("start", () => {
 
     server.bind(port);
 
+    // public static final int FadeNotActive = 0;
+    // public static final int FadeInShort = 1;
+    // public static final int FadeInLong = 2;
+    // public static final int FadeOutShort = 3;
+    // public static final int FadeOutLong = 4;
+    //
+    // private static final int COMMAND_SET = 0x00;
+    // private static final int COMMAND_SET_ALL = 0x01;
+    // private static final int COMMAND_SET_ACROSS = 0x02;
+    // private static final int COMMAND_SET_SUBSET = 0x03;
+    // private static final int COMMAND_CLEAR = 0x04;
+    // private static final int COMMAND_SET_DISPLAY = 0x08;
+
+    // size, in terms of bits:
+    // command: 4
+    // fade: 3
+    // R: 4
+    // B: 4
+    // G: 4
+    // fret: 4 ... (but we multiply it by 2?) so 5?
+
+    // total: 24
     function send(cmd, fade: number, string: number, R: number, B: number, G: number, fret: number) {
-        let d_1 = ((cmd << 4) | (fade & 0x0f));
-        let d_2 = ((string << 4) | ((R & 0xf)));
-        let d_3 = ((G & 0xF) << 4 | ((B & 0xf)));
+        // NB: all JavaScript numbers are converted to binary before bitwise operations
+        // bitwise operations don't work on hex numbers, hex numbers just specify groups of 4 bits at once
+        let d_1 = ((cmd << 4) | (fade & 0xF));
+        let d_2 = ((string << 4) | (R & 0xF));
+        let d_3 = ((G & 0xF) << 4 | (B & 0xF));
         let d_4 = (1 << (fret + 1));
 
+        // byte buffer?
+        // first three elements are bytes, but last element has up to 14 bits?
         charLed.write(new Buffer([d_1, d_2, d_3, d_4]), true, function(error) {
             console.log('wrote to fretboard');
         });
@@ -86,7 +112,7 @@ max_api.addHandler("start", () => {
                 console.log('Local Name = ' + localName);
             }
 
-            peripheral.connect(error => {
+            peripheral.connect(e => {
                 console.log('Connected to', peripheral.id);
 
                 peripheral.discoverSomeServicesAndCharacteristics(
