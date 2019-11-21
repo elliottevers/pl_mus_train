@@ -57,7 +57,7 @@ export namespace map {
             ),
             1: _.range(
                 control.string_to_root_note_map[1],
-                control.string_to_root_note_map[1] + 12
+                control.string_to_root_note_map[1] + 15
             ),
         };
 
@@ -68,10 +68,6 @@ export namespace map {
 
         play(note_midi) {
             let coordinate = this.map(note_midi);
-            // TODO: verify we don't need this for the Fret Zealot
-            // if (this.coordinate_last_played != null) {
-            //     this.messenger.message(this.coordinate_last_played.concat([0]));
-            // }
             this.messenger.message(coordinate.concat([1]));
             this.coordinate_last_played = coordinate;
         }
