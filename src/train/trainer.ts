@@ -1,4 +1,4 @@
-import {note, note as n} from "../note/note";
+import {note, note as n} from "../music/note";
 import TreeModel = require("tree-model");
 import {history} from "../history/history";
 import {target} from "../target/target";

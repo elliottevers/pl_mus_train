@@ -2,7 +2,7 @@ import {segment} from "../segment/segment";
 import {track} from "../track/track";
 import {parse} from "../parse/parse";
 import {target} from "../target/target";
-import {note} from "../note/note";
+import {note} from "../music/note";
 import {message} from "../message/messenger";
 import {window} from "../render/window";
 import {user_input} from "../control/user_input";

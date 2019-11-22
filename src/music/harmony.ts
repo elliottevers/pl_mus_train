@@ -1,6 +1,5 @@
-import {note as n} from "../note/note";
+import {note as n} from "../music/note";
 import TreeModel = require("tree-model");
-import {target} from "../target/target";
 import {history} from "../history/history";
 const _ = require('underscore');
 

@@ -1,10 +1,8 @@
-import {message} from "../message/messenger";
-import Messenger = message.Messenger;
 import {live} from "../live/live";
 import {clip} from "../clip/clip";
 import Clip = clip.Clip;
 import ClipDao = clip.ClipDao;
-import {note as n} from "../note/note";
+import {note as n} from "../music/note";
 import TreeModel = require("tree-model");
 import LiveApiFactory = live.LiveApiFactory;
 import TypeIdentifier = live.TypeIdentifier;

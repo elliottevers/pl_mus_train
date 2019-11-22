@@ -1,5 +1,5 @@
 import {clip} from "../clip/clip";
-import {note, note as n} from "../note/note";
+import {note, note as n} from "../music/note";
 import TreeModel = require("tree-model");
 import {scene} from "../scene/scene";
 import {cue_point} from "../cue_point/cue_point";

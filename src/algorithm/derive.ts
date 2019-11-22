@@ -3,7 +3,7 @@ import {track} from "../track/track";
 import {parsed} from "./parsed";
 import {trainer} from "../train/trainer";
 import {iterate} from "../train/iterate";
-import {note} from "../note/note";
+import {note} from "../music/note";
 import {trainable} from "./trainable";
 import {parse} from "../parse/parse";
 import {window} from "../render/window";

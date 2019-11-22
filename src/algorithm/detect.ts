@@ -1,4 +1,4 @@
-import {note, note as n} from "../note/note";
+import {note, note as n} from "../music/note";
 import {window} from "../render/window";
 import {segment} from "../segment/segment";
 import {track} from "../track/track";

@@ -1,4 +1,4 @@
-import {note} from "../note/note";
+import {note} from "../music/note";
 import TreeModel = require("tree-model");
 
 export namespace serialize {

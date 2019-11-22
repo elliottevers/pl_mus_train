@@ -1,4 +1,4 @@
-import {note as n, note} from "../note/note";
+import {note as n, note} from "../music/note";
 import TreeModel = require("tree-model");
 import {trainable} from "../algorithm/trainable";
 const _ = require("underscore");

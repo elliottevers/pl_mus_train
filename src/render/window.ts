@@ -1,7 +1,7 @@
 import TreeModel = require("tree-model");
 import {message} from "../message/messenger"
 import {clip, clip as c} from "../clip/clip";
-import {note as n} from "../note/note";
+import {note as n} from "../music/note";
 import * as _ from "lodash";
 import {segment as module_segment} from "../segment/segment";
 import {iterate} from "../train/iterate";

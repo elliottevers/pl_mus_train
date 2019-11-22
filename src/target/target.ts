@@ -1,5 +1,5 @@
 import TreeModel = require("tree-model");
-import {note as n} from "../note/note"
+import {note as n} from "../music/note"
 import {history} from "../history/history";
 
 

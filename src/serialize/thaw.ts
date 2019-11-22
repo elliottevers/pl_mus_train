@@ -1,7 +1,7 @@
 import {file} from "../io/file";
 import TreeModel = require("tree-model");
 import {serialize} from "./serialize";
-import {note} from "../note/note";
+import {note} from "../music/note";
 import {history} from "../history/history";
 import {live} from "../live/live";
 

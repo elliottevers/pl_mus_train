@@ -1,5 +1,5 @@
 import {clip as c} from "../clip/clip";
-import {note as n} from "../note/note";
+import {note as n} from "../music/note";
 import TreeModel = require("tree-model");
 import {message} from "../message/messenger";
 import {live} from "../live/live";

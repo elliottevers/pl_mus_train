@@ -2,7 +2,7 @@ import {segment} from "../segment/segment";
 import {track} from "../track/track";
 import {parsed} from "./parsed";
 import {trainer} from "../train/trainer";
-import {note} from "../note/note";
+import {note} from "../music/note";
 import {window as module_window} from "../render/window";
 import TreeModel = require("tree-model");
 import {trainable} from "./trainable";

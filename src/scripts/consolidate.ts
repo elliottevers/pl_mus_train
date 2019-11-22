@@ -3,7 +3,7 @@ import {clip} from "../clip/clip";
 import ClipDao = clip.ClipDao;
 import Clip = clip.Clip;
 import TreeModel = require("tree-model");
-import {note as n, note} from "../note/note";
+import {note as n, note} from "../music/note";
 import Note = note.Note;
 import LiveApiFactory = live.LiveApiFactory;
 import TypeIdentifier = live.TypeIdentifier;

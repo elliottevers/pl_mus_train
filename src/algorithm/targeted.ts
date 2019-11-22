@@ -1,4 +1,4 @@
-import {note as n, note} from "../note/note";
+import {note as n, note} from "../music/note";
 import {history} from "../history/history";
 import {iterate} from "../train/iterate";
 import {segment} from "../segment/segment";

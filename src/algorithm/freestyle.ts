@@ -1,6 +1,6 @@
 import {trainable} from "./trainable";
 import {song} from "../song/song";
-import {note} from "../note/note";
+import {note} from "../music/note";
 import {history} from "../history/history";
 import {message} from "../message/messenger";
 import {scene} from "../scene/scene";
