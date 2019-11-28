@@ -311,7 +311,6 @@ let expand_track_audio = (path_track) => {
 
 let expand_track = (path_track: string, name_part?: string) => {
 
-    // TODO: convert to node?
     let track = new Track(
         new TrackDao(
             LiveApiFactory.create(

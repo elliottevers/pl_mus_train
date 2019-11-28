@@ -1,5 +1,3 @@
-import {message} from "../message/messenger";
-import Messenger = message.Messenger;
 import {live} from "../live/live";
 import {clip} from "../clip/clip";
 import {harmony} from "../music/harmony";

@@ -17,7 +17,7 @@ export namespace live {
     export enum Env {
         NODE_FOR_MAX,
         MAX,
-        NODE
+        NODE  // simulation of environment
     }
 
     export class LiveApiFactory {
