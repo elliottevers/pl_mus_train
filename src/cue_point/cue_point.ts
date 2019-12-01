@@ -7,10 +7,6 @@ export namespace cue_point {
 
     export class CuePoint {
 
-        name: string;
-
-        time: number;
-
         cue_point_dao: iCuePointDao;
 
         constructor(cue_point_dao: iCuePointDao) {
@@ -26,10 +22,6 @@ export namespace cue_point {
             this.cue_point_dao.setMode(deferlow, synchronous)
         }
 
-        get_name(): string {
-            return this.cue_point_dao.get_name()
-        }
-
         get_time(): number {
             return this.cue_point_dao.get_time()
         }
@@ -41,8 +33,6 @@ export namespace cue_point {
 
     interface iCuePointDao {
         setMode(deferlow: boolean, synchronous: boolean): void;
-
-        get_name(): string
 
         get_time(): number
 
@@ -56,19 +46,15 @@ export namespace cue_point {
         }
 
         setMode(deferlow: boolean, synchronous: boolean): void {
-
-        }
-
-        get_name(): string {
-            return ''
+            throw 'not implemented'
         }
 
         get_time(): number {
-            return 0
+            throw 'not implemented'
         }
 
         jump(): void {
-
+            throw 'not implemented'
         }
     }
 
@@ -90,10 +76,6 @@ export namespace cue_point {
         setMode(deferlow: boolean, synchronous: boolean): void {
             this.deferlow = deferlow;
             this.synchronous = synchronous;
-        }
-
-        get_name(): string {
-            return this.live_api.get('name', this.deferlow, this.synchronous)
         }
 
         get_time(): number {

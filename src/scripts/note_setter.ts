@@ -41,6 +41,7 @@ let set_notes = () => {
 
     let clip: Clip;
 
+    // TODO: could this be causing the problems with expanding/contracting?
     let clip_exists = Number(clip_highlighted.get_id()) !== 0;
 
     if (!clip_exists) {

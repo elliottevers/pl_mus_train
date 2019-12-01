@@ -227,12 +227,12 @@ export namespace song {
 
     export class SongDao implements iSongDao {
 
-        private song_live: iLiveApi;
+        private live_api: iLiveApi;
         private deferlow: boolean = false;
         private synchronous: boolean = true;
 
-        constructor(song_live: iLiveApi) {
-            this.song_live = song_live;
+        constructor(live_api: iLiveApi) {
+            this.live_api = live_api;
         }
 
         withMode(deferlow: boolean, synchronous: boolean): this {
@@ -246,31 +246,31 @@ export namespace song {
         }
 
         set_session_record(int) {
-            this.song_live.set('session_record', int, this.deferlow, this.synchronous);
+            this.live_api.set('session_record', int, this.deferlow, this.synchronous);
         }
 
         set_overdub(int) {
-            this.song_live.set('overdub', int, this.deferlow, this.synchronous);
+            this.live_api.set('overdub', int, this.deferlow, this.synchronous);
         }
 
         set_tempo(int) {
-            this.song_live.set('tempo', int, this.deferlow, this.synchronous);
+            this.live_api.set('tempo', int, this.deferlow, this.synchronous);
         }
 
         get_tempo(): number {
-            return Number(this.song_live.get('tempo', this.deferlow, this.synchronous));
+            return Number(this.live_api.get('tempo', this.deferlow, this.synchronous));
         }
 
         start() {
-            this.song_live.set('is_playing', 1, this.deferlow, this.synchronous);
+            this.live_api.set('is_playing', 1, this.deferlow, this.synchronous);
         }
 
         stop() {
-            this.song_live.set('is_playing', 0, this.deferlow, this.synchronous);
+            this.live_api.set('is_playing', 0, this.deferlow, this.synchronous);
         }
 
         get_scenes(): any[] {
-            let data_scenes = this.song_live.get('scenes', this.deferlow, this.synchronous);
+            let data_scenes = this.live_api.get('scenes', this.deferlow, this.synchronous);
 
             let scenes = [];
 
@@ -291,7 +291,7 @@ export namespace song {
                 return new Scene(
                     new SceneDao(
                         LiveApiFactory.createFromConstructor(
-                            this.song_live.constructor.name,
+                            this.live_api.constructor.name,
                             id_scene,
                             TypeIdentifier.ID
                         )
@@ -305,35 +305,35 @@ export namespace song {
         }
 
         create_scene(index: number): void {
-            this.song_live.call(['create_scene', String(index)], this.deferlow, this.synchronous)
+            this.live_api.call(['create_scene', String(index)], this.deferlow, this.synchronous)
         }
 
         loop(status: boolean) {
-            this.song_live.set('loop', status ? 1 : 0, this.deferlow, this.synchronous)
+            this.live_api.set('loop', status ? 1 : 0, this.deferlow, this.synchronous)
         }
 
         set_loop_length(length_beats: number) {
-            this.song_live.set('loop_length', length_beats, this.deferlow, this.synchronous)
+            this.live_api.set('loop_length', length_beats, this.deferlow, this.synchronous)
         }
 
         set_loop_start(beat_start: number) {
-            this.song_live.set('loop_start', beat_start, this.deferlow, this.synchronous)
+            this.live_api.set('loop_start', beat_start, this.deferlow, this.synchronous)
         }
 
         set_current_song_time(beat: number): void {
-            this.song_live.set('current_song_time', String(beat), this.deferlow, this.synchronous);
+            this.live_api.set('current_song_time', String(beat), this.deferlow, this.synchronous);
         }
 
         jump_to_next_cue(): void {
-            this.song_live.call(['jump_to_next_cue'], this.deferlow, this.synchronous);
+            this.live_api.call(['jump_to_next_cue'], this.deferlow, this.synchronous);
         }
 
         set_or_delete_cue(): void {
-            this.song_live.call(['set_or_delete_cue'], this.deferlow, this.synchronous);
+            this.live_api.call(['set_or_delete_cue'], this.deferlow, this.synchronous);
         }
 
         get_cue_points() {
-            let data_cue_points = this.song_live.get('cue_points', this.deferlow, this.synchronous);
+            let data_cue_points = this.live_api.get('cue_points', this.deferlow, this.synchronous);
 
             let cue_points = [];
 
@@ -355,7 +355,7 @@ export namespace song {
                 return new CuePoint(
                     new CuePointDao(
                         LiveApiFactory.createFromConstructor(
-                            this.song_live.constructor.name,
+                            this.live_api.constructor.name,
                             list_id_cue_point.join(' '),
                             TypeIdentifier.ID
                         )

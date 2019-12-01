@@ -238,7 +238,7 @@ export namespace track {
         }
 
         get_clip_slots(): ClipSlot[] {
-            let data_clip_slots = this.live_api.get("clip_slots", this.deferlow, this.synchronous);
+            let data_clip_slots = this.live_api.get('clip_slots', this.deferlow, this.synchronous);
 
             let clip_slots = [];
 
@@ -271,11 +271,7 @@ export namespace track {
 
         // TODO: use deferlow?
         mute(val: boolean) {
-            if (val) {
-                this.live_api.set('solo', '0', this.deferlow, this.synchronous)
-            } else {
-                this.live_api.set('solo', '1', this.deferlow, this.synchronous)
-            }
+            this.live_api.set('solo', val ? '0' : '1', this.deferlow, this.synchronous)
         }
 
         get_path(): string {

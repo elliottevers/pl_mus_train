@@ -2,12 +2,12 @@ import {message} from "../message/messenger";
 import {live} from "../live/live";
 import {clip as c} from "../clip/clip";
 import {io} from "../io/io";
-import {utils} from "../utils/utils";
 import Messenger = message.Messenger;
 import Exporter = io.Exporter;
 import Env = live.Env;
 import LiveApiFactory = live.LiveApiFactory;
 import TypeIdentifier = live.TypeIdentifier;
+const shim = require('es6-shim');
 
 declare let autowatch: any;
 declare function post(message?: any): void;
@@ -30,7 +30,8 @@ let exporter = new Exporter(
     file_json_comm
 );
 
-let part_names = new utils.Set([]);
+// let part_names = new utils.Set([]);
+let part_names = new shim.Set();
 
 let set_length = () => {
     let clip_highlighted = LiveApiFactory.create(
@@ -83,7 +84,7 @@ let export_part = (name_part) => {
         notes
     );
 
-    part_names.addItem(name_part);
+    part_names.add(name_part);
 
     messenger.message(['part_exported', 'bang'])
 };
@@ -93,13 +94,15 @@ let remove = (name_part) => {
         name_part
     );
 
-    part_names.removeItem(name_part)
+    part_names.delete(name_part)
 };
 
 
 let export_clips = () => {
 
     let clips_to_export = [];
+
+    throw 'not implemented';
 
     for (let name_part of part_names.data()) {
         clips_to_export.push(name_part)

@@ -88,19 +88,19 @@ export namespace clip_slot {
         }
 
         setMode(deferlow: boolean, synchronous: boolean): void {
-
+            throw 'not implemented'
         }
 
         create_clip(length_beats: number): void {
-            throw 'ClipSlotDaoVirtual.create_clip'
+            throw 'not implemented'
         }
 
         delete_clip() {
-            throw 'ClipSlotDaoVirtual.delete_clip'
+            throw 'not implemented'
         }
 
         duplicate_clip_to(id: number) {
-            throw 'ClipSlotDaoVirtual.duplicate_clip_to'
+            throw 'not implemented'
         }
 
         get_clip(): clip.Clip {
@@ -108,15 +108,15 @@ export namespace clip_slot {
         }
 
         get_id() {
-            throw 'ClipSlotDaoVirtual.get_id'
+            throw 'not implemented'
         }
 
         get_path() {
-            throw 'ClipSlotDaoVirtual.get_path'
+            throw 'not implemented'
         }
 
         has_clip() {
-            return true
+            return !!this.clip
         }
     }
 

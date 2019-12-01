@@ -2,11 +2,10 @@ import {note, note as n} from "../music/note";
 import TreeModel = require("tree-model");
 import {live, live as li} from "../live/live";
 import {utils} from "../utils/utils";
+const _ = require('underscore');
 
 export namespace clip {
 
-    import Env = live.Env;
-    import TypeIdentifier = live.TypeIdentifier;
     import iLiveApi = live.iLiveApi;
 
     export class Clip {
@@ -17,18 +16,6 @@ export namespace clip {
 
         constructor(clip_dao) {
             this.clip_dao = clip_dao;
-        }
-
-        public static from_path(path: string, env: Env): Clip {
-            return new Clip(
-                new ClipDao(
-                    li.LiveApiFactory.create(
-                        env,
-                        path,
-                        TypeIdentifier.PATH
-                    )
-                )
-            )
         }
 
         withMode(deferlow: boolean, synchronous: boolean): this {
@@ -62,18 +49,6 @@ export namespace clip {
                 this.clip_dao.set_clip_endpoint_lower(beat_start);
                 this.clip_dao.set_clip_endpoint_upper(beat_end);
             }
-        }
-
-        get_index_track(): number {
-            return this.clip_dao.liveApi.get_path().split(' ')[2]
-        }
-
-        get_beat_start(): number {
-            return this.clip_dao.beat_start
-        }
-
-        get_beat_end(): number {
-            return this.clip_dao.beat_end
         }
 
         get_path(): string {
@@ -175,14 +150,6 @@ export namespace clip {
 
                 let points = split['points'];
 
-                // TODO: validate if we need this or not
-                // this.remove_notes(
-                //     note_to_split.model.note.beat_start,
-                //     note_to_split.model.note.pitch,
-                //     note_to_split.model.note.beats_duration,
-                //     note_to_split.model.note.pitch
-                // );
-
                 let replacements = n.Note.split_note_at_points(
                     note_to_split,
                     points
@@ -228,23 +195,14 @@ export namespace clip {
             this.clip_dao.stop();
         }
 
-        get_notes_within_markers(use_cache?: boolean): TreeModel.Node<n.Note>[] {
-            if (!this.notes || !use_cache) {
-                this.load_notes_within_markers();
-            }
+        get_notes_within_markers(): TreeModel.Node<n.Note>[] {
+            this.load_notes_within_markers();
             return this.notes;
         }
 
-        get_notes_within_loop_brackets(use_cache?: boolean): TreeModel.Node<n.Note>[] {
-            if (!this.notes || !use_cache) {
-                this.load_notes_within_loop_brackets();
-            }
+        get_notes_within_loop_brackets(): TreeModel.Node<n.Note>[] {
+            this.load_notes_within_loop_brackets();
             return this.notes;
-        }
-
-        // TODO: only works virtual clips currently
-        public append(note: TreeModel.Node<n.Note>) {
-            this.clip_dao.append(note);
         }
 
         public get_notes(beat_start: number, pitch_midi_min: number, beat_duration: number, pitch_midi_max: number): TreeModel.Node<n.Note>[] {
@@ -324,14 +282,6 @@ export namespace clip {
             let data: any = [];
             let notes_parsed = [];
 
-            let pitch;
-            let beat_start;
-            let beats_duration;
-            let velocity;
-            let b_muted;
-
-            let index_num_expected_notes = null;
-
             for (var i = 0; i < notes.length; i++) {
 
                 if (notes[i] === 'done') {
@@ -348,33 +298,19 @@ export namespace clip {
                     continue;
                 }
 
-                if (i === index_num_expected_notes) {
-                    data = [];
-                    continue;
-                }
-
                 data.push(notes[i]);
 
                 if (data.length === 5) {
-
-                    pitch = data[0];
-                    beat_start = data[1];
-                    beats_duration = data[2];
-                    velocity = data[3];
-                    b_muted = data[4];
-
-                    let tree: TreeModel = new TreeModel();
-
                     notes_parsed.push(
-                        tree.parse(
+                        new TreeModel().parse(
                             {
                                 id: -1, // TODO: hashing scheme for clip id and beat start
                                 note: new n.Note(
-                                    pitch,
-                                    beat_start,
-                                    beats_duration,
-                                    velocity,
-                                    b_muted
+                                    data[0],
+                                    data[1],
+                                    data[2],
+                                    data[3],
+                                    data[4]
                                 ),
                                 children: [
 
@@ -397,20 +333,9 @@ export namespace clip {
 
             return notes_parsed;
         }
-
-        public get_name() {
-            return this.clip_dao.get_name()
-        }
     }
 
     export interface iClipDao {
-
-        liveApi: iLiveApi;
-
-        beat_end: number;
-        beat_start: number;
-
-        setMode(deferlow: boolean, synchronous: boolean): void;
 
         get_end_marker(): number
 
@@ -442,17 +367,18 @@ export namespace clip {
 
         append(note: TreeModel.Node<note.Note>): void;
 
-        get_name(): any;
+        liveApi: any
+
+        setMode(deferlow: boolean, synchronous: boolean): void
     }
 
     // simulate dao
     export class LiveClipVirtual implements iClipDao {
 
-        liveApi: live.iLiveApi;
+        liveApi = Error('not implemented');
 
         beat_start: number;
         beat_end: number;
-
         notes: TreeModel.Node<n.Note>[];
 
         constructor(notes: TreeModel.Node<n.Note>[]) {
@@ -460,13 +386,11 @@ export namespace clip {
         }
 
         append(note) {
-            let test = this.notes;
-            test.push(note);
-            this.notes = test;
+            this.notes.push(note);
         }
 
         get_ambitus(): number[] {
-            return []
+            return [this.get_pitch_min(), this.get_pitch_max()]
         }
 
         load_notes_within_loop_brackets(): void {
@@ -480,23 +404,22 @@ export namespace clip {
             )
         }
 
-        get_notes_within_loop_brackets(use_cache?: boolean): TreeModel.Node<n.Note>[] {
-            if (!this.notes || !use_cache) {
-                this.load_notes_within_loop_brackets();
-            }
+        get_notes_within_loop_brackets(): TreeModel.Node<n.Note>[] {
             return this.notes;
         }
 
+        get_pitch_min(): number {
+            return _.min(
+                this.get_notes_within_loop_brackets(),
+                node => node.model.note.pitch
+            )
+        }
+
         get_pitch_max(): number {
-            let pitch_max = 0;
-
-            for (let node of this.get_notes_within_loop_brackets()) {
-                if (node.model.note.pitch > pitch_max) {
-                    pitch_max = node.model.note.pitch;
-                }
-            }
-
-            return pitch_max;
+            return _.max(
+                this.get_notes_within_loop_brackets(),
+                node => node.model.note.pitch
+            )
         }
 
         get_end_marker(): number {
@@ -516,27 +439,27 @@ export namespace clip {
         }
 
         set_loop_bracket_lower(beat: number): void {
-            return
+            throw 'not implemented'
         }
 
         set_loop_bracket_upper(beat: number): void {
-            return
+            throw 'not implemented'
         }
 
         set_clip_endpoint_lower(beat: number): void {
-            return
+            throw 'not implemented'
         }
 
         set_clip_endpoint_upper(beat: number): void {
-            return
+            throw 'not implemented'
         }
 
         fire(): void {
-            return
+            throw 'not implemented'
         }
 
         stop(): void {
-            return
+            throw 'not implemented'
         }
 
         set_notes(notes: TreeModel.Node<n.Note>[]): void {
@@ -562,23 +485,23 @@ export namespace clip {
         }
 
         remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void {
-            return
-        }
-
-        get_path() {
-            return ''
-        }
-
-        get_name(): any {
-
+            throw 'not implemented'
         }
 
         get_playing_position(): any {
-
+            throw 'not implemented'
         }
 
         setMode(deferlow: boolean, synchronous: boolean): void {
+            throw 'not implemented'
+        }
 
+        get_id(): any {
+            throw 'not implemented'
+        }
+
+        get_path(): any {
+            throw 'not implemented'
         }
     }
 
@@ -610,18 +533,20 @@ export namespace clip {
             return Number(this.liveApi.get('playing_position', this.deferlow, this.synchronous))
         }
 
-        // TODO: check if these actually return arrays
         get_end_marker(): number {
             return this.liveApi.get('end_marker', this.deferlow, this.synchronous)[0];
         }
 
-        // TODO: check if these actually return arrays
         get_start_marker(): number {
             return this.liveApi.get('start_marker', this.deferlow, this.synchronous)[0];
         }
 
         get_path(): string {
             return utils.cleanse_path(this.liveApi.get_path(this.deferlow, this.synchronous));
+        }
+
+        get_id() {
+            return this.liveApi.get_id(this.deferlow, this.synchronous)
         }
 
         set_loop_bracket_lower(beat: number) {
@@ -657,25 +582,21 @@ export namespace clip {
         };
 
         get_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): string[] {
-            if (this.liveApi.constructor.name != 'LiveApiNode' && this.liveApi.constructor.name != 'LiveApiJsProxy') {
-                return this.notes_cached
-            } else {
-                if (this.liveApi.constructor.name == 'LiveApiNode') {
-                    // @ts-ignore
-                    global.liveApi.dynamicResponse = true;
-                }
-                return this.liveApi.call(
-                    [
-                        'get_notes',
-                        beat_start,
-                        pitch_midi_min,
-                        beat_end,
-                        pitch_midi_max
-                    ],
-                    this.deferlow,
-                    this.synchronous
-                );
+            if (this.liveApi.constructor.name == 'LiveApiNode') {
+                // @ts-ignore
+                global.liveApi.dynamicResponse = true;
             }
+            return this.liveApi.call(
+                [
+                    'get_notes',
+                    beat_start,
+                    pitch_midi_min,
+                    beat_end,
+                    pitch_midi_max
+                ],
+                this.deferlow,
+                this.synchronous
+            );
         };
 
         remove_notes(beat_start, pitch_midi_min, beat_end, pitch_midi_max): void {
@@ -693,49 +614,27 @@ export namespace clip {
         };
 
         set_notes(notes: TreeModel.Node<n.Note>[]): void {
-            if (this.liveApi.constructor.name != 'LiveApiNode' && this.liveApi.constructor.name != 'LiveApiJsProxy') {
-                let notes_cached = [];
-                notes_cached.push('notes');
-                notes_cached.push(notes.length.toString());
-                for (let note of notes) {
-                    notes_cached.push(note.model.note.pitch.toString());
-                    notes_cached.push(note.model.note.beat_start.toString());
-                    notes_cached.push(note.model.note.beats_duration.toString());
-                    notes_cached.push(note.model.note.velocity.toString());
-                    notes_cached.push(note.model.note.muted.toString());
-                }
-                notes_cached.push('done');
-            } else {
-                this.liveApi.call(['set_notes'], this.deferlow, this.synchronous);
-                this.liveApi.call(['notes', String(notes.length)], this.deferlow, this.synchronous);
-                for (let node of notes) {
-                    this.liveApi.call(
-                        [
-                            'note',
-                            node.model.note.pitch,
-                            node.model.note.beat_start.toFixed(4),
-                            node.model.note.beats_duration.toFixed(4),
-                            node.model.note.velocity,
-                            node.model.note.muted
-                        ],
-                        this.deferlow,
-                        this.synchronous
-                    );
-                }
-                this.liveApi.call(['done'], this.deferlow, this.synchronous);
+            this.liveApi.call(['set_notes'], this.deferlow, this.synchronous);
+            this.liveApi.call(['notes', String(notes.length)], this.deferlow, this.synchronous);
+            for (let node of notes) {
+                this.liveApi.call(
+                    [
+                        'note',
+                        node.model.note.pitch,
+                        node.model.note.beat_start.toFixed(4),
+                        node.model.note.beats_duration.toFixed(4),
+                        node.model.note.velocity,
+                        node.model.note.muted
+                    ],
+                    this.deferlow,
+                    this.synchronous
+                );
             }
-        }
-
-        get_name() {
-            return this.liveApi.get('name', this.deferlow, this.synchronous)
-        }
-
-        get_id() {
-            return this.liveApi.get_id(this.deferlow, this.synchronous)
+            this.liveApi.call(['done'], this.deferlow, this.synchronous);
         }
 
         append(note: TreeModel.Node<note.Note>): void {
-            throw 'have not implemented append method on clip object'
+            throw 'not implemented'
         }
     }
 }
