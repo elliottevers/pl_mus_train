@@ -14,7 +14,7 @@ if (env === Env.MAX) {
     autowatch = 1;
 }
 
-let parts = ['key_center', 'bass', 'chord', 'melody', 'vocal_harmony'];
+let parts = ['key_center', 'bass', 'chord', 'melody', 'vocal_harmony_0', 'vocal_harmony_1', 'vocal_harmony_2'];
 
 let messenger: Messenger = new Messenger(Env.MAX, 0);
 

@@ -46,11 +46,10 @@ export namespace live {
         public static createFromConstructor(nameConstructor: string, identifier: string, typeIdentifier: TypeIdentifier) {
             switch(nameConstructor) {
                 case 'LiveApiNode':
-                    let res = new LiveApiNode(
+                    return new LiveApiNode(
                         identifier,
                         typeIdentifier,
                     );
-                    return res;
                 case 'LiveApiJsProxy':
                     return new LiveApiJsProxy(
                         null,
