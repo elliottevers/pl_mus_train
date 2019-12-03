@@ -146,6 +146,10 @@ let contract_track = (path_track) => {
 
     clip.set_endpoints_loop(0, get_length_beats());
 
+    notes.forEach(node => {
+        node.model.note.muted = 0
+    });
+
     clip.set_notes(notes);
 
     messenger.message(['done', 'bang'])

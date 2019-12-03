@@ -119,6 +119,10 @@ let contract_track = (path_track) => {
 
     let clip = clip_slot.get_clip();
 
+    notes.forEach(node => {
+        node.model.note.muted = 0
+    });
+
     clip.set_notes(notes);
 
     clip.set_endpoint_markers(0, get_length_beats());
@@ -408,6 +412,12 @@ let expand_track = (path_track: string, name_part?: string) => {
         let notes_within_segment = notes_clip.filter(
             node => node.model.note.beat_start >= segment.get_endpoints_loop()[0] && node.model.note.get_beat_end() <= segment.get_endpoints_loop()[1]
         );
+
+        if (name_part == 'segment') {
+            notes_within_segment.forEach(node => {
+                node.model.note.muted = 1
+            })
+        }
 
         // TODO: non-native scope object is here
         clip.set_notes(notes_within_segment);

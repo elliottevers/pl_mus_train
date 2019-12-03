@@ -26,7 +26,6 @@
     "array-includes": "^3.0.3",
     "deasync": "^0.1.15",
     "dgram": "^1.0.1",
-    "es6-shim": "^0.35.5",
     "lodash": "^4.17.11",
     "python-shell": "^1.0.7",
     "shelljs": "^0.8.3",
