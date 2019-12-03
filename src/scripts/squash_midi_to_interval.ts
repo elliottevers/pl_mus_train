@@ -18,10 +18,6 @@ let intervalDesired: [number, number];
 
 let messenger: Messenger = new Messenger(Env.MAX, 0);
 
-// let withinRange = (candidate: number, range: [number, number]): boolean => {
-//     return candidate >= range[0] && candidate <= range[1]
-// };
-
 let map = (pitch_midi_raw) => {
     if (intervalDesired) {
         if (pitch_midi_raw > intervalDesired[1]) {
@@ -29,7 +25,7 @@ let map = (pitch_midi_raw) => {
                 pitch_midi_raw -= 12
             }
         } else if (pitch_midi_raw < intervalDesired[0]) {
-            while (pitch_midi_raw < intervalDesired[1]) {
+            while (pitch_midi_raw < intervalDesired[0]) {
                 pitch_midi_raw += 12
             }
         }
@@ -39,7 +35,7 @@ let map = (pitch_midi_raw) => {
     messenger.message([pitch_midi_raw])
 };
 
-let setInterval = (pitch_midi_upper, pitch_midi_lower) => {
+let setInterval = (pitch_midi_lower, pitch_midi_upper) => {
     intervalDesired = [pitch_midi_lower, pitch_midi_upper]
 };
 

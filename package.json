@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "to_max": "./build_object_max_test.sh"
+    "to_max": "./build_object_max.sh"
   },
   "author": "",
   "license": "ISC",
