@@ -23,15 +23,18 @@ let messenger: Messenger = new Messenger(Env.MAX, 0);
 // };
 
 let map = (pitch_midi_raw) => {
-    if (pitch_midi_raw > intervalDesired[1]) {
-        while (pitch_midi_raw > intervalDesired[1]) {
-            pitch_midi_raw -= 12
-        }
-    } else if (pitch_midi_raw < intervalDesired[0]) {
-        while (pitch_midi_raw < intervalDesired[1]) {
-            pitch_midi_raw += 12
+    if (intervalDesired) {
+        if (pitch_midi_raw > intervalDesired[1]) {
+            while (pitch_midi_raw > intervalDesired[1]) {
+                pitch_midi_raw -= 12
+            }
+        } else if (pitch_midi_raw < intervalDesired[0]) {
+            while (pitch_midi_raw < intervalDesired[1]) {
+                pitch_midi_raw += 12
+            }
         }
     }
+
 
     messenger.message([pitch_midi_raw])
 };
