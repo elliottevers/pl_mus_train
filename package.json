@@ -4,15 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "to_max": "bnr to_max"
-  },
-  "betterScripts": {
-    "to_max": {
-      "command": "./build_object_max.sh",
-      "env": {
-        "JS_OBJ_MAX_EXPORT": "squash_midi_to_interval"
-      }
-    }
+    "to_max": "./build_object_max_test.sh"
   },
   "author": "",
   "license": "ISC",
@@ -20,7 +12,6 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.18",
     "@types/sinon": "^7.0.4",
-    "better-npm-run": "^0.1.1",
     "browserify": "^16.2.3",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
@@ -33,15 +24,10 @@
   "dependencies": {
     "@abandonware/noble": "git+https://github.com/abandonware/noble.git",
     "array-includes": "^3.0.3",
-    "async": "^3.1.0",
-    "browser-or-node": "^1.1.0",
     "deasync": "^0.1.15",
     "dgram": "^1.0.1",
     "es6-shim": "^0.35.5",
-    "filereader": "^0.10.3",
     "lodash": "^4.17.11",
-    "mathjs": "^5.6.0",
-    "osc-min": "^1.1.1",
     "python-shell": "^1.0.7",
     "shelljs": "^0.8.3",
     "tree-model": "^1.0.7",

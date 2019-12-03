@@ -1,7 +1,6 @@
-declare let node: any;
-// let node = require("deasync");
-// // @ts-ignore
-// node.loop = node.runLoopOnce;
+let node = require("deasync");
+// @ts-ignore
+node.loop = node.runLoopOnce;
 
 declare let LiveAPI: any;
 declare let outlet: any;
@@ -143,7 +142,7 @@ export namespace live {
         constructor(refLive: string, typeRef: TypeIdentifier) {
             this.refLive = refLive;
             this.typeRef = typeRef;
-            // this.maxApi = require('max-api');
+            this.maxApi = require('max-api');
         }
 
         // block in all cases
