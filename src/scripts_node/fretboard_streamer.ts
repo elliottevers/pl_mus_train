@@ -2,7 +2,7 @@ export {}
 const max_api = require('max-api');
 const noble = require('@abandonware/noble');
 const dgram = require('dgram');
-const includes = require('array-includes');
+const _ = require('underscore');
 
 let port = 8001;
 
@@ -93,7 +93,7 @@ max_api.addHandler("start", () => {
     });
 
     noble.on('discover', function(peripheral) {
-        if (includes(ids, peripheral.id) || includes(ids, peripheral.address)) {
+        if (_.contains(ids, peripheral.id) || _.contains(ids, peripheral.address)) {
 
             noble.stopScanning();
 

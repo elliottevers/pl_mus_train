@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "@abandonware/noble": "git+https://github.com/abandonware/noble.git",
-    "array-includes": "^3.0.3",
     "deasync": "^0.1.15",
     "dgram": "^1.0.1",
     "lodash": "^4.17.11",
