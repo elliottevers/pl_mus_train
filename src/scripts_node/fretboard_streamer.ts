@@ -32,11 +32,6 @@ max_api.addHandler("start", () => {
 
         let parsed = decoded.split(' ');
 
-        if (parsed.length == 10) {
-            // TODO: where are these messages coming from?
-            return
-        }
-
         send(command_set, 0, parseInt(parsed[6]), parseInt(parsed[7]), parseInt(parsed[8]), parseInt(parsed[9]), parseInt(parsed[5]) - 1);
         send(command_set, 0, parseInt(parsed[1]), parseInt(parsed[2]), parseInt(parsed[3]), parseInt(parsed[4]), parseInt(parsed[0]) - 1);
     });

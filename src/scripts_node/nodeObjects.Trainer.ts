@@ -2,7 +2,7 @@ import {live} from "../live/live";
 import {trainer as module_trainer} from "../train/trainer";
 import {clip} from "../clip/clip";
 import {segment} from "../segment/segment";
-import {modes_control, modes_texture} from "../constants/constants";
+import {modes_texture} from "../constants/constants";
 import {song as module_song} from "../song/song";
 import {user_input} from "../control/user_input";
 import {utils} from "../utils/utils";
@@ -25,7 +25,6 @@ import Trainer = module_trainer.Trainer;
 import ClipDao = clip.ClipDao;
 import Segment = segment.Segment;
 import MONOPHONY = modes_texture.MONOPHONY;
-import INSTRUMENTAL = modes_control.INSTRUMENTAL;
 import Clip = clip.Clip;
 import SongDao = module_song.SongDao;
 import UserInputHandler = user_input.UserInputHandler;
@@ -35,7 +34,6 @@ import Messenger = message.Messenger;
 import TrainThawer = thaw.TrainThawer;
 import Scene = scene.Scene;
 import TrackDao = track.TrackDao;
-import VOCAL = modes_control.VOCAL;
 import POLYPHONY = modes_texture.POLYPHONY;
 import TrainFreezer = freeze.TrainFreezer;
 import Track = track.Track;
@@ -97,7 +95,7 @@ let envTrain = Env.NODE_FOR_MAX;
 let messenger_render = new Messenger(envTrain, 0, 'render');
 let messenger_monitor_target = new Messenger(envTrain, 0, 'index_track_target');
 let messenger_num_segments = new Messenger(envTrain, 0, 'num_segments');
-let mode_texture, mode_control, song, algorithm_train, user_input_handler, window, segments_train, trainer, direction;
+let mode_texture, song, algorithm_train, user_input_handler, window, segments_train, trainer, direction;
 let track_target: Track, track_user_input: Track;
 
 max_api.addHandler('set_mode_texture', (option) => {
@@ -116,24 +114,6 @@ max_api.addHandler('set_mode_texture', (option) => {
     }
 
     max_api.post('texture set successfully');
-});
-
-max_api.addHandler('set_mode_control', (option) => {
-    switch (option) {
-        case VOCAL: {
-            mode_control = VOCAL;
-            break;
-        }
-        case INSTRUMENTAL: {
-            mode_control = INSTRUMENTAL;
-            break;
-        }
-        default: {
-            max_api.post('error setting control')
-        }
-    }
-
-    max_api.post('control mode set successfully');
 });
 
 max_api.addHandler('set_algorithm_train', (option) => {
@@ -329,8 +309,7 @@ max_api.addHandler('initialize', () => {
     set_song();
 
     user_input_handler = new UserInputHandler(
-        mode_texture,
-        mode_control
+        mode_texture
     );
 
     algorithm_train.set_direction(direction);

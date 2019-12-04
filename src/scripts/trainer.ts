@@ -2,7 +2,7 @@ import {live} from "../live/live";
 import {trainer as module_trainer} from "../train/trainer";
 import {clip} from "../clip/clip";
 import {segment} from "../segment/segment";
-import {modes_control, modes_texture} from "../constants/constants";
+import {modes_texture} from "../constants/constants";
 import {song as module_song} from "../song/song";
 import {user_input} from "../control/user_input";
 import {utils} from "../utils/utils";
@@ -25,7 +25,6 @@ import Trainer = module_trainer.Trainer;
 import ClipDao = clip.ClipDao;
 import Segment = segment.Segment;
 import MONOPHONY = modes_texture.MONOPHONY;
-import INSTRUMENTAL = modes_control.INSTRUMENTAL;
 import Clip = clip.Clip;
 import SongDao = module_song.SongDao;
 import UserInputHandler = user_input.UserInputHandler;
@@ -35,7 +34,6 @@ import Messenger = message.Messenger;
 import TrainThawer = thaw.TrainThawer;
 import Scene = scene.Scene;
 import TrackDao = track.TrackDao;
-import VOCAL = modes_control.VOCAL;
 import POLYPHONY = modes_texture.POLYPHONY;
 import TrainFreezer = freeze.TrainFreezer;
 import Track = track.Track;
@@ -92,22 +90,6 @@ let set_mode_texture = (option) => {
         }
         default: {
             max_api.post('error setting texture')
-        }
-    }
-};
-
-let set_mode_control = (option) => {
-    switch (option) {
-        case VOCAL: {
-            mode_control = VOCAL;
-            break;
-        }
-        case INSTRUMENTAL: {
-            mode_control = INSTRUMENTAL;
-            break;
-        }
-        default: {
-            max_api.post('error setting control')
         }
     }
 };
@@ -293,8 +275,7 @@ let initialize = () => {
     set_song();
 
     user_input_handler = new UserInputHandler(
-        mode_texture,
-        mode_control
+        mode_texture
     );
 
     algorithm_train.set_direction(direction);
@@ -420,7 +401,6 @@ if (typeof Global !== "undefined") {
     Global.trainer.set_track_target = set_track_target;
     Global.trainer.set_depth_tree = set_depth_tree;
     Global.trainer.set_algorithm_train = set_algorithm_train;
-    Global.trainer.set_mode_control = set_mode_control;
     Global.trainer.set_mode_texture = set_mode_texture;
     Global.trainer.liveApiResult = liveApiResult;
 }
