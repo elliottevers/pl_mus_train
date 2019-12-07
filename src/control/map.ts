@@ -1,7 +1,15 @@
-import {control} from "./control";
 const _ = require("underscore");
 
 export namespace map {
+
+    const string_to_root_note_map = {
+        6: 40,
+        5: 45,
+        4: 50,
+        3: 55,
+        2: 59,
+        1: 64
+    };
 
     export class FretMapper {
 
@@ -36,28 +44,28 @@ export namespace map {
 
         strings = {
             6: _.range(
-                control.string_to_root_note_map[6],
-                control.string_to_root_note_map[6] + 12
+                string_to_root_note_map[6],
+                string_to_root_note_map[6] + 12
             ),
             5: _.range(
-                control.string_to_root_note_map[5],
-                control.string_to_root_note_map[5] + 12
+                string_to_root_note_map[5],
+                string_to_root_note_map[5] + 12
             ),
             4: _.range(
-                control.string_to_root_note_map[4],
-                control.string_to_root_note_map[4] + 12
+                string_to_root_note_map[4],
+                string_to_root_note_map[4] + 12
             ),
             3: _.range(
-                control.string_to_root_note_map[3],
-                control.string_to_root_note_map[3] + 12
+                string_to_root_note_map[3],
+                string_to_root_note_map[3] + 12
             ),
             2: _.range(
-                control.string_to_root_note_map[2],
-                control.string_to_root_note_map[2] + 12
+                string_to_root_note_map[2],
+                string_to_root_note_map[2] + 12
             ),
             1: _.range(
-                control.string_to_root_note_map[1],
-                control.string_to_root_note_map[1] + 15
+                string_to_root_note_map[1],
+                string_to_root_note_map[1] + 15
             ),
         };
 
