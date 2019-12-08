@@ -1,6 +1,3 @@
-import {clip as c} from "../clip/clip";
-import {note as n} from "../music/note";
-import TreeModel = require("tree-model");
 import {message} from "../message/messenger";
 import {live} from "../live/live";
 
@@ -80,42 +77,6 @@ export namespace io {
             this.dict.replace('length_beats', this.length_beats);
             this.dict.export_json(this.filepath_export);
             messenger.message(['python'])
-        }
-    }
-
-    export class Importer {
-
-        public filepath_import: string;
-
-        private dict: any;
-
-        private name_dict: string;
-
-        constructor(filepath_import, name_dict?:string) {
-            this.filepath_import = filepath_import;
-            this.name_dict = name_dict;
-            this.dict = new Dict(name_dict);
-        }
-
-        public static import(name_part) {
-            let dict = new Dict();
-
-            dict.import_json(file_json_comm);
-
-            return c.Clip.parse_note_messages(
-                dict.get([name_part, 'notes'].join('::'))
-            );
-        }
-
-        public import() {
-            this.dict.import_json(this.filepath_import);
-        }
-
-        public get_notes(name_part): TreeModel.Node<n.Note>[] {
-            let key = [this.name_dict, name_part, 'notes'].join('::');
-            return c.Clip.parse_note_messages(
-                this.dict.get(key)
-            )
         }
     }
 }

@@ -27,13 +27,6 @@ let set_length_beats = (beats) => {
     length_beats = beats
 };
 
-let get_length_beats = () => {
-    if (length_beats === null) {
-        throw 'length is null, cannot determine size of clip'
-    }
-    return length_beats
-};
-
 let import_part = (name_part) => {
 
     // TODO: this works when we want to create a clip from scratch - figure out how to work into workflow
@@ -57,7 +50,7 @@ let import_part = (name_part) => {
 
     if (!clip_exists) {
         // TODO: get the beat of end of last note
-        clipslot_highlighted.call(['create_clip', String(Number(get_length_beats()))]);
+        clipslot_highlighted.call(['create_clip', String(Number(length_beats))]);
 
         clip_highlighted = LiveApiFactory.create(
             Env.MAX,
@@ -92,10 +85,6 @@ let import_part = (name_part) => {
     let messenger = new Messenger(Env.MAX, 0);
 
     messenger.message(['part_imported'])
-};
-
-let test = () => {
-
 };
 
 if (typeof Global !== "undefined") {

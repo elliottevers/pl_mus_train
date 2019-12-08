@@ -111,13 +111,8 @@ let export_clips = () => {
     messenger.message(['clips_exported', 'bang'])
 };
 
-let test = () => {
-
-};
-
 if (typeof Global !== "undefined") {
     Global.clip_exporter = {};
-    Global.clip_exporter.test = test;
     Global.clip_exporter.export_part = export_part;
     Global.clip_exporter.export_clips = export_clips;
     Global.clip_exporter.remove = remove;
