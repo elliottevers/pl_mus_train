@@ -122,7 +122,7 @@ export namespace clip {
         }
 
         cut_notes_at_boundaries(notes_boundaries: TreeModel.Node<n.Note>[]) {
-            let notes_clip: TreeModel.Node<n.Note>[] = this.get_notes_within_loop_brackets();
+            let notes_clip: TreeModel.Node<n.Note>[] = this.get_notes_within_markers();
 
             let splits = [];
 
@@ -136,6 +136,9 @@ export namespace clip {
                 for (let note_boundary of notes_boundaries) {
                     if (note_clip.model.note.contains_beat(note_boundary.model.note.get_beat_end())) {
                         split['points'].push(note_boundary.model.note.get_beat_end())
+                    }
+                    if (note_clip.model.note.contains_beat(note_boundary.model.note.beat_start)) {
+                        split['points'].push(note_boundary.model.note.beat_start)
                     }
                 }
 

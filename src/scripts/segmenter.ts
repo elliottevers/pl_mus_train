@@ -13,6 +13,9 @@ import Track = module_track.Track;
 import Env = live.Env;
 import LiveApiFactory = live.LiveApiFactory;
 import TypeIdentifier = live.TypeIdentifier;
+import {clip as c} from "../clip/clip";
+import {note as n} from "../music/note";
+import TreeModel = require("tree-model");
 
 const _ = require('underscore');
 
@@ -426,6 +429,81 @@ let expand_track = (path_track: string, name_part?: string) => {
     messenger.message(['done', 'bang'])
 };
 
+let endpoint_lower, endpoint_upper;
+
+let record_endpoints = () => {
+
+    let clip_live = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view highlighted_clip_slot clip',
+        TypeIdentifier.PATH
+    );
+
+    let clip_highlighted = new c.Clip(
+        new c.ClipDao(
+            clip_live
+        )
+    );
+
+    endpoint_lower = clip_highlighted.get_loop_bracket_lower();
+
+    endpoint_upper = clip_highlighted.get_loop_bracket_upper();
+};
+
+let set_endpoints = () => {
+
+
+    let clip_live = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view highlighted_clip_slot clip',
+        TypeIdentifier.PATH
+    );
+
+    let clip_highlighted = new c.Clip(
+        new c.ClipDao(
+            clip_live
+        )
+    );
+
+    clip_highlighted.set_endpoints_loop(endpoint_lower, endpoint_upper);
+};
+
+let cut_notes_at_endpoints = () => {
+
+    let clip_live = LiveApiFactory.create(
+        Env.MAX,
+        'live_set view highlighted_clip_slot clip',
+        TypeIdentifier.PATH
+    );
+
+    let clip_highlighted = new c.Clip(
+        new c.ClipDao(
+            clip_live
+        )
+    );
+
+    clip_highlighted.cut_notes_at_boundaries(
+        [
+            new TreeModel().parse(
+                {
+                    id: -1, // TODO: hashing scheme for clip id and beat start
+                    note: new n.Note(
+                        60,
+                        clip_highlighted.get_loop_bracket_lower(),
+                        clip_highlighted.get_loop_bracket_upper() - clip_highlighted.get_loop_bracket_lower(),
+                        90,
+                        1
+                    ),
+                    children: [
+
+                    ]
+                }
+            )
+        ]
+    );
+};
+
+
 if (typeof Global !== "undefined") {
     Global.segmenter = {};
     Global.segmenter.expand_selected_track = expand_selected_track;
@@ -436,4 +514,7 @@ if (typeof Global !== "undefined") {
     Global.segmenter.contract_selected_audio_track = contract_selected_audio_track;
     Global.segmenter.get_length_beats = get_length_beats;
     Global.segmenter.set_length_beats = set_length_beats;
+    Global.segmenter.record_endpoints = record_endpoints;
+    Global.segmenter.set_endpoints = set_endpoints;
+    Global.segmenter.cut_notes_at_endpoints = cut_notes_at_endpoints;
 }

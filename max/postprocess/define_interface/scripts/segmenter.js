@@ -7,3 +7,6 @@ var contract_selected_audio_track = Global.segmenter.contract_selected_audio_tra
 var test = Global.segmenter.test;
 var get_length_beats = Global.segmenter.get_length_beats;
 var set_length_beats = Global.segmenter.set_length_beats;
+var record_endpoints = Global.segmenter.record_endpoints;
+var set_endpoints = Global.segmenter.set_endpoints;
+var cut_notes_at_endpoints = Global.segmenter.cut_notes_at_endpoints;

@@ -13,6 +13,9 @@ import {song} from "../song/song";
 import Song = song.Song;
 import SongDao = song.SongDao;
 import {utils} from "../utils/utils";
+import {clip as c} from "../clip/clip";
+import {note as n} from "../music/note";
+import TreeModel = require("tree-model");
 const _ = require('underscore');
 
 export {}
@@ -453,3 +456,38 @@ let expand_track = (path_track: string, name_part?: string) => {
 
     messenger.message(['done', 'bang'])
 };
+
+max_api.addHandler('cut_notes_at_endpoints', () => {
+
+    let clip_live = LiveApiFactory.create(
+        Env.NODE_FOR_MAX,
+        'live_set view highlighted_clip_slot clip',
+        TypeIdentifier.PATH
+    );
+
+    let clip_highlighted = new c.Clip(
+        new c.ClipDao(
+            clip_live
+        )
+    );
+
+    clip_highlighted.cut_notes_at_boundaries(
+        [
+            new TreeModel().parse(
+                {
+                    id: -1, // TODO: hashing scheme for clip id and beat start
+                    note: new n.Note(
+                        60,
+                        clip_highlighted.get_loop_bracket_lower(),
+                        clip_highlighted.get_loop_bracket_upper() - clip_highlighted.get_loop_bracket_lower(),
+                        90,
+                        1
+                    ),
+                    children: [
+
+                    ]
+                }
+            )
+        ]
+    );
+});
