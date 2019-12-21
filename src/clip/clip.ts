@@ -122,7 +122,9 @@ export namespace clip {
         }
 
         cut_notes_at_boundaries(notes_boundaries: TreeModel.Node<n.Note>[]) {
-            let notes_clip: TreeModel.Node<n.Note>[] = this.get_notes_within_markers();
+            let notes_clip: TreeModel.Node<n.Note>[] = this.get_notes(0, 0, this.get_end_marker(), 128);
+            // let notes_clip: TreeModel.Node<n.Note>[] = this.get_notes_within_markers();
+            // get_notes
 
             let splits = [];
 

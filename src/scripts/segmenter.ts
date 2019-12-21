@@ -466,6 +466,8 @@ let set_endpoints = () => {
     );
 
     clip_highlighted.set_endpoints_loop(endpoint_lower, endpoint_upper);
+
+    clip_highlighted.set_clip_endpoint_lower(endpoint_lower);
 };
 
 let cut_notes_at_endpoints = () => {
