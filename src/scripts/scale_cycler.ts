@@ -168,9 +168,34 @@ let nextPitch = () => {
         'midi', scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)][mod_safe(indexPitchCurrent, scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)].length)]
     ]);
     indexPitchCurrent += 1;
+    if (bWindRight && mod_safe(indexPitchCurrent, 3) == 0) {
+        right()
+    }
+    if (bWindLeft && mod_safe(indexPitchCurrent, 3) == 0) {
+        left()
+    }
 };
 
 const keys = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'D-', 'A-', 'E-', 'B-', 'F'];
+
+let bWindRight = false;
+
+let bWindLeft = false;
+
+let windRight = () => {
+    bWindRight = !bWindRight;
+    indexPitchCurrent = 0;
+};
+
+let windLeft = () => {
+    bWindLeft = !bWindLeft;
+    indexPitchCurrent = 0;
+};
+
+let setKey = (indexKey) => {
+    indexScaleCurrent = indexKey - 60;
+    messenger.message(['key_current', keys[indexScaleCurrent]]);
+};
 
 let right = () => {
     indexScaleCurrent = mod_safe((indexScaleCurrent + 1), 12);
@@ -229,4 +254,7 @@ if (typeof Global !== "undefined") {
     Global.scale_cycler.setScale = setScale;
     Global.scale_cycler.nextPitch = nextPitch;
     Global.scale_cycler.resetPitch = resetPitch;
+    Global.scale_cycler.windRight = windRight;
+    Global.scale_cycler.windLeft = windLeft;
+    Global.scale_cycler.setKey = setKey;
 }
