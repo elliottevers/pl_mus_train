@@ -227,17 +227,45 @@ let mod_safe = (divisor, dividend) => {
     return ((divisor % dividend) + dividend) % dividend;
 };
 
+let indexOffset = 0;
+
+let setIndexOffset = (boundLower) => {
+    let indices = [
+        scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)].indexOf(boundLower - 1),
+        scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)].indexOf(boundLower),
+        scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)].indexOf(boundLower + 1)
+    ];
+    indexOffset = Math.min(
+        ...indices.filter(i => i > 0)
+    );
+    post(indexOffset);
+};
+
+const lengthIntervalsScaleWind = 8;
+
 let nextPitch = () => {
-    messenger.message([
-        'midi', scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)][mod_safe(indexPitchCurrent, scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)].length)]
-    ]);
+    if (bWindRight) {
+        if (mod_safe(indexPitchCurrent, lengthIntervalsScaleWind * scaleFactor) == 0) {
+            right();
+            indexPitchCurrent = 0;
+        }
+        messenger.message([
+            'midi', scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)][mod_safe(indexPitchCurrent, lengthIntervalsScaleWind * scaleFactor) + indexOffset]
+        ]);
+    } else if (bWindLeft) {
+        if (mod_safe(indexPitchCurrent, lengthIntervalsScaleWind * scaleFactor) == 0) {
+            left();
+            indexPitchCurrent = 0;
+        }
+        messenger.message([
+            'midi', scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)][mod_safe(indexPitchCurrent, lengthIntervalsScaleWind * scaleFactor) + indexOffset]
+        ]);
+    } else {
+        messenger.message([
+            'midi', scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)][mod_safe(indexPitchCurrent, scaleTypeCurrent[mod_safe(indexScaleCurrent, 12)].length)]
+        ]);
+    }
     indexPitchCurrent += 1;
-    if (bWindRight && mod_safe(indexPitchCurrent, 3) == 0) {
-        right()
-    }
-    if (bWindLeft && mod_safe(indexPitchCurrent, 3) == 0) {
-        left()
-    }
 };
 
 const keys = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'D-', 'A-', 'E-', 'B-', 'F'];
@@ -275,46 +303,61 @@ let resetPitch = () => {
     indexPitchCurrent = 0;
 };
 
+let scaleFactor;
+
 let setScale = (choice) => {
     switch (choice) {
         case 0:
             scaleTypeCurrent = seconds;
+            scaleFactor = 1;
             break;
         case 1:
             scaleTypeCurrent = thirds_rise;
+            scaleFactor = 2;
             break;
         case 2:
             scaleTypeCurrent = thirds_fall;
+            scaleFactor = 2;
             break;
         case 3:
             scaleTypeCurrent = fourths_rise;
+            scaleFactor = 2;
             break;
         case 4:
             scaleTypeCurrent = fourths_fall;
+            scaleFactor = 2;
             break;
         case 5:
             scaleTypeCurrent = fifths_rise;
+            scaleFactor = 2;
             break;
         case 6:
             scaleTypeCurrent = fifths_fall;
+            scaleFactor = 2;
             break;
         case 7:
             scaleTypeCurrent = triads_rise;
+            scaleFactor = 3;
             break;
         case 8:
             scaleTypeCurrent = triads_fall;
+            scaleFactor = 3;
             break;
         case 9:
             scaleTypeCurrent = triads_rise_first_inv;
+            scaleFactor = 3;
             break;
         case 10:
             scaleTypeCurrent = triads_fall_first_inv;
+            scaleFactor = 3;
             break;
         case 11:
             scaleTypeCurrent = triads_rise_second_inv;
+            scaleFactor = 3;
             break;
         case 12:
             scaleTypeCurrent = triads_fall_second_inv;
+            scaleFactor = 3;
             break;
         default:
             throw 'not a valid scale choice'
@@ -333,4 +376,5 @@ if (typeof Global !== "undefined") {
     Global.scale_cycler.windRight = windRight;
     Global.scale_cycler.windLeft = windLeft;
     Global.scale_cycler.setKey = setKey;
+    Global.scale_cycler.setIndexOffset = setIndexOffset;
 }

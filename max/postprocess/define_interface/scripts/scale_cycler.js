@@ -6,3 +6,4 @@ var resetPitch = Global.scale_cycler.resetPitch;
 var windRight = Global.scale_cycler.windRight;
 var windLeft = Global.scale_cycler.windLeft;
 var setKey = Global.scale_cycler.setKey;
+var setIndexOffset = Global.scale_cycler.setIndexOffset;
