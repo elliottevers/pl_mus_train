@@ -305,6 +305,26 @@ let setKey = (indexKey) => {
     messenger.message(['key_current', keys[indexScaleCurrent]]);
 };
 
+let plus2semitones = () => {
+    indexScaleCurrent = mod_safe((indexScaleCurrent + 2), 12);
+    messenger.message(['key_current', keys[indexScaleCurrent]]);
+};
+
+let plus1semitones = () => {
+    indexScaleCurrent = mod_safe((indexScaleCurrent - 5), 12);
+    messenger.message(['key_current', keys[indexScaleCurrent]]);
+};
+
+let minus1semitones = () => {
+    indexScaleCurrent = mod_safe((indexScaleCurrent + 5), 12);
+    messenger.message(['key_current', keys[indexScaleCurrent]]);
+};
+
+let minus2semitones = () => {
+    indexScaleCurrent = mod_safe((indexScaleCurrent - 2), 12);
+    messenger.message(['key_current', keys[indexScaleCurrent]]);
+};
+
 let right = () => {
     indexScaleCurrent = mod_safe((indexScaleCurrent + 1), 12);
     messenger.message(['key_current', keys[indexScaleCurrent]]);
@@ -397,4 +417,8 @@ if (typeof Global !== "undefined") {
     Global.scale_cycler.windLeft = windLeft;
     Global.scale_cycler.setKey = setKey;
     Global.scale_cycler.setIndexOffset = setIndexOffset;
+    Global.scale_cycler.plus2semitones = plus2semitones;
+    Global.scale_cycler.plus1semitones = plus1semitones;
+    Global.scale_cycler.minus1semitones = minus1semitones;
+    Global.scale_cycler.minus2semitones = minus2semitones;
 }

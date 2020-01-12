@@ -7,3 +7,7 @@ var windRight = Global.scale_cycler.windRight;
 var windLeft = Global.scale_cycler.windLeft;
 var setKey = Global.scale_cycler.setKey;
 var setIndexOffset = Global.scale_cycler.setIndexOffset;
+var plus2semitones = Global.scale_cycler.plus2semitones;
+var plus1semitones = Global.scale_cycler.plus1semitones;
+var minus1semitones = Global.scale_cycler.minus1semitones;
+var minus2semitones = Global.scale_cycler.minus2semitones;
