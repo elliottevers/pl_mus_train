@@ -264,7 +264,7 @@ export namespace cli {
         }
 
         public get_name_exec() {
-            return '-' + this.name
+            return '--' + this.name
         }
 
         public b_set(): boolean {
