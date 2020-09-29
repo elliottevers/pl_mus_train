@@ -1,4 +1,4 @@
-This is the real-time training component of an ambitious ear training project - it's main function is to, given raw audio and its corresponding musical properties, iterate over the song, accept user input, evaluate how well a user completes a set of tasks, and deliver feedback in real-time. Video demos of the project can be seen [here](https://elliottevers.github.io/).
+This is the real-time training component of an ambitious ear training project - it's main function is to, given raw audio and its corresponding musical properties, iterate over the song, accept user input, evaluate how well a user completes a set of tasks, and deliver feedback in real-time.
 
 To debug:
  - add `@options --inspect-brk=9229` after `node.script` object in Max
