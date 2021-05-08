@@ -25,7 +25,7 @@
     "@abandonware/noble": "git+https://github.com/abandonware/noble.git",
     "deasync": "^0.1.15",
     "dgram": "^1.0.1",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "python-shell": "^1.0.7",
     "shelljs": "^0.8.3",
     "tree-model": "^1.0.7",
