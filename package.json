@@ -27,7 +27,7 @@
     "dgram": "^1.0.1",
     "lodash": "^4.17.11",
     "python-shell": "^1.0.7",
-    "shelljs": "^0.8.3",
+    "shelljs": "^0.8.5",
     "tree-model": "^1.0.7",
     "underscore": "^1.9.1"
   }
